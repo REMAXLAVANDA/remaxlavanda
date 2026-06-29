@@ -6,56 +6,30 @@
 <title>RE/MAX LAVANDA - Ofis Takip</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root{
-    --red:#DC1C2E; --blue:#003DA5; --darkblue:#0C2749; --gray:#404041;
-    --bg:#F5F6F8; --card:#FFFFFF; --border:#E3E6EB;
-    --success:#1C8C4B; --warning:#C9821A;
-  }
+  :root{--red:#DC1C2E; --blue:#003DA5; --darkblue:#0C2749; --gray:#404041; --bg:#F5F6F8; --card:#FFFFFF; --border:#E3E6EB; --success:#1C8C4B; --warning:#C9821A;}
   *{box-sizing:border-box; margin:0; padding:0;}
   body{font-family:system-ui, sans-serif; background:var(--bg); color:var(--gray);}
-  
   .header{background:var(--darkblue); color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;}
   .logo{font-size:18px; font-weight:700;}
-  .logout{background:#C0182A; color:#fff; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-size:12px;}
-  
   .tabs{display:flex; gap:0; background:#fff; padding:0 20px; border-bottom:1px solid var(--border);}
   .tab{padding:12px 16px; font-size:13px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; color:#999;}
   .tab.active{color:var(--darkblue); border-bottom-color:var(--red);}
-  
   .content{max-width:1200px; margin:0 auto; padding:20px;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;}
   @media(max-width:768px){.grid{grid-template-columns:1fr;}}
-  
   .card{background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px;}
   .card h2{font-size:15px; color:var(--darkblue); margin-bottom:8px;}
-  .card p{font-size:12px; color:#999; margin-bottom:12px;}
   .num{font-size:28px; font-weight:700; color:var(--red);}
-  
-  .form-group{margin-bottom:12px;}
-  .form-group label{display:block; font-size:12px; font-weight:600; margin-bottom:4px;}
-  .form-group input, .form-group select, .form-group textarea{
-    width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:system-ui;
-  }
-  .form-group textarea{resize:vertical;}
-  
-  .btn{padding:10px 16px; background:var(--red); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;}
-  .btn:hover{background:#C0182A;}
-  .btn-ghost{background:#fff; color:var(--gray); border:1px solid var(--border);}
-  
   table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--border); border-radius:10px; overflow:hidden;}
   th{background:var(--bg); padding:12px; text-align:left; font-size:12px; font-weight:600; border-bottom:1px solid var(--border);}
   td{padding:12px; font-size:13px; border-bottom:1px solid #f0f0f0;}
   tr:hover{background:#fafafa;}
-  
   .badge{display:inline-block; padding:3px 10px; border-radius:16px; font-size:11px; font-weight:600;}
   .badge-hot{background:#FBEEDB; color:var(--warning);}
   .badge-ok{background:#E2F2E8; color:var(--success);}
-  
   .tab-pane{display:none;}
   .tab-pane.show{display:block;}
-  
   .loading{text-align:center; padding:20px; color:#999;}
-  .note{background:#FFF7E6; border-left:4px solid var(--warning); padding:12px; margin-bottom:16px; border-radius:6px; font-size:12px; color:#7A5400;}
 </style>
 </head>
 <body>
@@ -72,55 +46,40 @@
 </div>
 
 <script>
-// Supabase ayarları
 const SUPABASE_URL = 'https://vfqkmluqaihpgxhqiql.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxYWlocGd4aHFpaSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5NzA2NzA1LCJleHAiOjE5ODA5NjY3MDV9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxYWlocGd4aHFpaSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5NzA2NzA1LCJleHAiOjE5ODA5NjY3MDV9';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
-let data = { calls: [], leads: [], assignments: [] };
+let data = { gd_leads: [], recruiting_candidates: [] };
 
-// URL parametrelerinden rolü al
 function getUserFromURL() {
   const params = new URLSearchParams(window.location.search);
-  
-  if (params.has('role') && params.get('role') === 'admin') {
-    return { type: 'admin', name: 'admin' };
-  }
-  if (params.has('danisман')) {
-    return { type: 'danisман', name: params.get('danisман') };
-  }
-  if (params.has('santral')) {
-    return { type: 'santral', name: 'santral' };
-  }
+  if (params.has('role') && params.get('role') === 'admin') return { type: 'admin', name: 'admin' };
+  if (params.has('danisman')) return { type: 'danisman', name: params.get('danisman') };
+  if (params.has('santral')) return { type: 'santral', name: 'santral' };
   return null;
 }
 
 async function init() {
   currentUser = getUserFromURL();
-  
   if (!currentUser) {
-    document.getElementById('content').innerHTML = '<div class="note">❌ Geçerli link bulunamadı. Admin/Danışman/Santral linkini kullan.</div>';
+    document.getElementById('content').innerHTML = '<div style="color:red;">❌ Geçerli link bulunamadı</div>';
     return;
   }
-  
   document.getElementById('userInfo').textContent = currentUser.name + ' (' + currentUser.type + ')';
-  
   await loadData();
   renderUI();
 }
 
 async function loadData() {
   try {
-    const [callsRes, leadsRes, assignRes] = await Promise.all([
-      supabase.from('santral_calls').select('*'),
-      supabase.from('leads').select('*'),
-      supabase.from('assignments').select('*')
+    const [leadsRes, recruitRes] = await Promise.all([
+      supabase.from('gd_leads').select('*'),
+      supabase.from('recruiting_candidates').select('*')
     ]);
-    
-    data.calls = callsRes.data || [];
-    data.leads = leadsRes.data || [];
-    data.assignments = assignRes.data || [];
+    data.gd_leads = leadsRes.data || [];
+    data.recruiting_candidates = recruitRes.data || [];
   } catch (e) {
     console.error('Veri yüklenirken hata:', e);
   }
@@ -131,18 +90,10 @@ function renderUI() {
   navbar.innerHTML = '';
   
   const tabs = [];
-  
   if (currentUser.type === 'admin') {
     tabs.push({id: 'panel', label: '📊 Panel'});
-    tabs.push({id: 'calls', label: '☎️ Çağrılar'});
-    tabs.push({id: 'leads', label: '👤 Lead\'ler'});
-    tabs.push({id: 'assign', label: '📍 Yönlendirmeler'});
-  } else if (currentUser.type === 'danisман') {
-    tabs.push({id: 'panel', label: '📊 Panel'});
-    tabs.push({id: 'myLeads', label: '👤 Benim Lead\'lerim'});
-  } else if (currentUser.type === 'santral') {
-    tabs.push({id: 'addCall', label: '☎️ Çağrı Ekle'});
-    tabs.push({id: 'calls', label: '📋 Çağrı Listesi'});
+    tabs.push({id: 'leads', label: '👤 GD Leads'});
+    tabs.push({id: 'recruiting', label: '👥 Recruiting'});
   }
   
   tabs.forEach((t, i) => {
@@ -166,149 +117,52 @@ function renderContent(tabId) {
   const content = document.getElementById('content');
   
   if (tabId === 'panel') {
-    const openCalls = data.calls.filter(c => c.durum === 'Bekliyor').length;
-    const myLeads = data.leads.filter(l => l.danisman === currentUser.name && (l.durum === 'Sıcak' || l.durum === 'Soğuk')).length;
+    const openLeads = data.gd_leads.filter(l => l.durum === 'Arandı' || l.durum === 'Çağrıldı').length;
+    const recruiting = data.recruiting_candidates.filter(r => r.durum !== 'Olumsuz').length;
     
     content.innerHTML = `
       <div class="grid">
         <div class="card">
-          <h2>📞 Bekleyen Çağrılar</h2>
-          <p>Yanıt bekleniyor</p>
-          <div class="num">${openCalls}</div>
+          <h2>👤 Açık GD Lead'ler</h2>
+          <p>Takip edileniyor</p>
+          <div class="num">${openLeads}</div>
         </div>
         <div class="card">
-          <h2>👤 Açık Lead'ler</h2>
-          <p>Sıcak/Soğuk</p>
-          <div class="num">${data.leads.filter(l => l.durum === 'Sıcak' || l.durum === 'Soğuk').length}</div>
+          <h2>👥 Recruiting Adayları</h2>
+          <p>Aktif adaylar</p>
+          <div class="num">${recruiting}</div>
         </div>
       </div>
+      <h3>Son GD Leads</h3>
+      <table>
+        <thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Danışman</th></tr></thead>
+        <tbody>
+          ${data.gd_leads.slice(0, 5).map(l => `
+            <tr>
+              <td>${l.ad}</td>
+              <td>${l.telefon}</td>
+              <td>${l.kaynak}</td>
+              <td><span class="badge ${l.durum === 'Kazanıldı' ? 'badge-ok' : 'badge-hot'}">${l.durum}</span></td>
+              <td>${l.danisman || '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     `;
-  } else if (tabId === 'calls') {
-    renderCallsTable();
   } else if (tabId === 'leads') {
-    renderLeadsTable();
-  } else if (tabId === 'assign' && currentUser.type === 'admin') {
-    renderAssignments();
-  } else if (tabId === 'myLeads') {
-    renderMyLeads();
-  } else if (tabId === 'addCall') {
-    renderAddCallForm();
-  }
-}
-
-function renderCallsTable() {
-  let html = '<table><thead><tr><th>Tarih</th><th>Ad</th><th>Telefon</th><th>Neden</th><th>Danışman</th><th>Durum</th></tr></thead><tbody>';
-  data.calls.forEach(c => {
-    html += `<tr>
-      <td>${c.tarih || '—'}</td>
-      <td>${c.arayan || '—'}</td>
-      <td>${c.telefon || '—'}</td>
-      <td>${c.neden || '—'}</td>
-      <td>${c.danisman || '—'}</td>
-      <td><span class="badge ${c.durum === 'Bekliyor' ? 'badge-hot' : 'badge-ok'}">${c.durum}</span></td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('content').innerHTML = html;
-}
-
-function renderLeadsTable() {
-  let html = '<table><thead><tr><th>Kaynak</th><th>Danışman</th><th>Durum</th><th>Takip</th></tr></thead><tbody>';
-  data.leads.forEach(l => {
-    html += `<tr>
-      <td>${l.kaynak || '—'}</td>
-      <td>${l.danisman || '—'}</td>
-      <td><span class="badge ${l.durum === 'Sıcak' ? 'badge-hot' : 'badge-ok'}">${l.durum}</span></td>
-      <td>${l.sonraki_tarih || '—'}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('content').innerHTML = html;
-}
-
-function renderAssignments() {
-  let html = '<table><thead><tr><th>Lead</th><th>Danışman</th><th>Tarih</th><th>Sonuç</th><th>Komisyon</th></tr></thead><tbody>';
-  data.assignments.forEach(a => {
-    html += `<tr>
-      <td>${a.lead_id || '—'}</td>
-      <td>${a.danisman || '—'}</td>
-      <td>${a.tarih || '—'}</td>
-      <td>${a.sonuc || '—'}</td>
-      <td>${a.komisyon || '—'}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('content').innerHTML = html;
-}
-
-function renderMyLeads() {
-  const myLeads = data.leads.filter(l => l.danisman === currentUser.name);
-  let html = '<table><thead><tr><th>Kaynak</th><th>Durum</th><th>Takip</th><th>Not</th></tr></thead><tbody>';
-  myLeads.forEach(l => {
-    html += `<tr>
-      <td>${l.kaynak || '—'}</td>
-      <td><span class="badge ${l.durum === 'Sıcak' ? 'badge-hot' : 'badge-ok'}">${l.durum}</span></td>
-      <td>${l.sonraki_tarih || '—'}</td>
-      <td>${l.notes || '—'}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('content').innerHTML = html;
-}
-
-function renderAddCallForm() {
-  const today = new Date().toISOString().slice(0, 10);
-  document.getElementById('content').innerHTML = `
-    <div class="card" style="max-width:600px;">
-      <h2>Yeni Çağrı Ekle</h2>
-      <div class="form-group">
-        <label>Tarih</label>
-        <input type="date" id="callTarih" value="${today}">
-      </div>
-      <div class="form-group">
-        <label>Arayan Adı</label>
-        <input type="text" id="callArayan" placeholder="Ad Soyad">
-      </div>
-      <div class="form-group">
-        <label>Telefon</label>
-        <input type="tel" id="callTelefon" placeholder="0532...">
-      </div>
-      <div class="form-group">
-        <label>Çağrı Nedeni</label>
-        <input type="text" id="callNeden" placeholder="Portföy arama, fiyat bilgisi...">
-      </div>
-      <div class="form-group">
-        <label>Durum</label>
-        <select id="callDurum">
-          <option>Bekliyor</option>
-          <option>Dönüş Yapıldı</option>
-          <option>Yapılmadı</option>
-        </select>
-      </div>
-      <button class="btn" onclick="saveCall()">Kaydet</button>
-    </div>
-  `;
-}
-
-async function saveCall() {
-  const tarih = document.getElementById('callTarih').value;
-  const arayan = document.getElementById('callArayan').value;
-  const telefon = document.getElementById('callTelefon').value;
-  const neden = document.getElementById('callNeden').value;
-  const durum = document.getElementById('callDurum').value;
-  
-  if (!arayan) { alert('Ad gerekli'); return; }
-  
-  const res = await supabase.from('santral_calls').insert([{
-    tarih, arayan, telefon, neden, durum, danisman: 'Atanmadı'
-  }]);
-  
-  if (res.error) {
-    alert('Hata: ' + res.error.message);
-  } else {
-    alert('Çağrı kaydedildi!');
-    await loadData();
-    renderContent('calls');
+    content.innerHTML = `<table>
+      <thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Açıklama</th><th>Durum</th></tr></thead>
+      <tbody>
+        ${data.gd_leads.map(l => `<tr><td>${l.ad}</td><td>${l.telefon}</td><td>${l.kaynak}</td><td>${l.aciklama || '—'}</td><td><span class="badge ${l.durum === 'Kazanıldı' ? 'badge-ok' : 'badge-hot'}">${l.durum}</span></td></tr>`).join('')}
+      </tbody>
+    </table>`;
+  } else if (tabId === 'recruiting') {
+    content.innerHTML = `<table>
+      <thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Açıklama</th></tr></thead>
+      <tbody>
+        ${data.recruiting_candidates.map(r => `<tr><td>${r.ad}</td><td>${r.telefon}</td><td>${r.kaynak}</td><td><span class="badge ${r.durum === 'Olumsuz' ? '' : 'badge-ok'}">${r.durum || '—'}</span></td><td>${r.aciklama || '—'}</td></tr>`).join('')}
+      </tbody>
+    </table>`;
   }
 }
 
