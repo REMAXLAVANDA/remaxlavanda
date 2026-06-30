@@ -1,0 +1,17 @@
+{
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "framework": "html",
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "panel.remaxlavanda.com.tr"
+        }
+      ],
+      "destination": "/panel/:path*"
+    }
+  ]
+}
