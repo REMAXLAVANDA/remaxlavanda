@@ -4,6 +4,16 @@
   "framework": "html",
   "rewrites": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "panel.remaxlavanda.com.tr"
+        }
+      ],
+      "destination": "/panel/index.html"
+    },
+    {
       "source": "/:path*",
       "has": [
         {
