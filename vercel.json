@@ -1,7 +1,4 @@
 {
-  "buildCommand": "",
-  "outputDirectory": ".",
-  "framework": "html",
   "rewrites": [
     {
       "source": "/",
