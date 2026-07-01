@@ -1,10 +1,10 @@
 {
   "buildCommand": "",
   "outputDirectory": ".",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/panel/(.*)",
-      "dest": "/panel/index.html"
+      "source": "/panel/(.*)",
+      "destination": "/panel/index.html"
     }
   ]
 }
