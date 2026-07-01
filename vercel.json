@@ -1,24 +1,6 @@
 {
   "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "panel.remaxlavanda.com.tr"
-        }
-      ],
-      "destination": "/panel/index.html"
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "panel.remaxlavanda.com.tr"
-        }
-      ],
-      "destination": "/panel/:path*"
-    }
+    { "source": "/panel", "destination": "/panel/index.html" },
+    { "source": "/panel/", "destination": "/panel/index.html" }
   ]
 }
