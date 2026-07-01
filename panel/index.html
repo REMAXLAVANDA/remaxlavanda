@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RE/MAX LAVANDA - Ofis Yönetim Sistemi</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root { --red: #DC1C2E; --blue: #003DA5; --darkblue: #0C2749; --gray: #404041; --lightgray: #F5F6F8; --border: #E3E6EB; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,8 +30,6 @@ tr:hover { background: #fafafa; }
 .badge-hot { background: #FBEEDB; color: #C9821A; }
 .badge-ok { background: #E2F2E8; color: #1C8C4B; }
 .badge-bad { background: #FBE3E5; color: var(--red); }
-.tab-pane { display: none; }
-.tab-pane.show { display: block; }
 .section-title { font-size: 16px; font-weight: 700; color: var(--darkblue); margin: 24px 0 12px 0; }
 .loading { text-align: center; padding: 40px; color: #999; }
 .error { background: #FBE3E5; color: var(--red); padding: 16px; border-radius: 8px; }
@@ -53,13 +51,13 @@ tr:hover { background: #fafafa; }
 <div class="content" id="content"><div class="loading">Veriler yükleniyor...</div></div>
 
 <script>
-const SUPABASE_URL = 'https://vfqkmluqaihpgxhqiql.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+window.addEventListener('load', async function() {
+  const SUPABASE_URL = 'https://vfqkmluqaihpgxhqiql.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
+  
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let data = { leads: [], recruiting: [] };
 
-let data = { leads: [], recruiting: [] };
-
-async function loadData() {
   try {
     const [leadsRes, recruitRes] = await Promise.all([
       sb.from('gd_leads').select('*').order('tarih', { ascending: false }),
@@ -72,64 +70,69 @@ async function loadData() {
     renderTabs();
     renderContent('panel');
   } catch(e) {
-    document.getElementById('content').innerHTML = '<div class="error">❌ Bağlantı hatası: ' + e.message + '</div>';
+    document.getElementById('content').innerHTML = '<div class="error">❌ Hata: ' + e.message + '</div>';
   }
-}
 
-function renderTabs() {
-  const nav = document.getElementById('navTabs');
-  nav.innerHTML = '';
-  [
-    { id: 'panel', label: '📊 Panel' },
-    { id: 'leads', label: `👤 GD Leads (${data.leads.length})` },
-    { id: 'recruiting', label: `👥 Recruiting (${data.recruiting.length})` }
-  ].forEach((t, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'tab' + (i === 0 ? ' active' : '');
-    btn.textContent = t.label;
-    btn.onclick = () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
-      renderContent(t.id);
-    };
-    nav.appendChild(btn);
-  });
-}
-
-function badge(durum) {
-  const cls = durum === 'Kazanıldı' ? 'badge-ok' : durum === 'Kaybedildi' || durum === 'Olumsuz' ? 'badge-bad' : 'badge-hot';
-  return `<span class="badge ${cls}">${durum || '—'}</span>`;
-}
-
-function renderContent(tabId) {
-  const c = document.getElementById('content');
-  if (tabId === 'panel') {
-    const open = data.leads.filter(l => !['Kazanıldı','Kaybedildi'].includes(l.durum)).length;
-    const won = data.leads.filter(l => l.durum === 'Kazanıldı').length;
-    const active = data.recruiting.filter(r => r.durum !== 'Olumsuz').length;
-    c.innerHTML = `
-      <div class="grid">
-        <div class="card"><h3>📋 Açık Leads</h3><div class="card-stat">${open}</div><div class="card-meta">Takip edileniyor</div></div>
-        <div class="card"><h3>✅ Kazanılan</h3><div class="card-stat">${won}</div><div class="card-meta">Başarılı</div></div>
-        <div class="card"><h3>👥 Aktif Adaylar</h3><div class="card-stat">${active}</div><div class="card-meta">Recruiting</div></div>
-      </div>
-      <div class="section-title">📊 Son GD Leads</div>
-      <table><thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Danışman</th></tr></thead>
-      <tbody>${data.leads.slice(0,10).map(l=>`<tr><td><strong>${l.ad}</strong></td><td>${l.telefon||'—'}</td><td>${l.kaynak||'—'}</td><td>${badge(l.durum)}</td><td>${l.danisman||'—'}</td></tr>`).join('')}</tbody></table>`;
-  } else if (tabId === 'leads') {
-    c.innerHTML = `
-      <div class="section-title">👤 Tüm GD Leads (${data.leads.length})</div>
-      <table><thead><tr><th>Tarih</th><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Açıklama</th><th>Durum</th><th>Danışman</th></tr></thead>
-      <tbody>${data.leads.map(l=>`<tr><td>${l.tarih||'—'}</td><td><strong>${l.ad}</strong></td><td>${l.telefon||'—'}</td><td>${l.kaynak||'—'}</td><td>${l.aciklama||'—'}</td><td>${badge(l.durum)}</td><td>${l.danisman||'—'}</td></tr>`).join('')}</tbody></table>`;
-  } else if (tabId === 'recruiting') {
-    c.innerHTML = `
-      <div class="section-title">👥 Recruiting Adayları (${data.recruiting.length})</div>
-      <table><thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Açıklama</th></tr></thead>
-      <tbody>${data.recruiting.map(r=>`<tr><td><strong>${r.ad}</strong></td><td>${r.telefon||'—'}</td><td>${r.kaynak||'—'}</td><td>${badge(r.durum)}</td><td>${r.aciklama||'—'}</td></tr>`).join('')}</tbody></table>`;
+  function renderTabs() {
+    const nav = document.getElementById('navTabs');
+    nav.innerHTML = '';
+    [
+      { id: 'panel', label: '📊 Panel' },
+      { id: 'leads', label: '👤 GD Leads (' + data.leads.length + ')' },
+      { id: 'recruiting', label: '👥 Recruiting (' + data.recruiting.length + ')' }
+    ].forEach(function(t, i) {
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (i === 0 ? ' active' : '');
+      btn.textContent = t.label;
+      btn.onclick = function() {
+        document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
+        btn.classList.add('active');
+        renderContent(t.id);
+      };
+      nav.appendChild(btn);
+    });
   }
-}
 
-loadData();
+  function badge(durum) {
+    const cls = durum === 'Kazanıldı' ? 'badge-ok' : (durum === 'Kaybedildi' || durum === 'Olumsuz') ? 'badge-bad' : 'badge-hot';
+    return '<span class="badge ' + cls + '">' + (durum || '—') + '</span>';
+  }
+
+  function renderContent(tabId) {
+    const c = document.getElementById('content');
+    if (tabId === 'panel') {
+      const open = data.leads.filter(function(l) { return !['Kazanıldı','Kaybedildi'].includes(l.durum); }).length;
+      const won = data.leads.filter(function(l) { return l.durum === 'Kazanıldı'; }).length;
+      const active = data.recruiting.filter(function(r) { return r.durum !== 'Olumsuz'; }).length;
+      c.innerHTML = '<div class="grid">'
+        + '<div class="card"><h3>📋 Açık Leads</h3><div class="card-stat">' + open + '</div><div class="card-meta">Takip edileniyor</div></div>'
+        + '<div class="card"><h3>✅ Kazanılan</h3><div class="card-stat">' + won + '</div><div class="card-meta">Başarılı</div></div>'
+        + '<div class="card"><h3>👥 Aktif Adaylar</h3><div class="card-stat">' + active + '</div><div class="card-meta">Recruiting</div></div>'
+        + '</div>'
+        + '<div class="section-title">📊 Son GD Leads</div>'
+        + '<table><thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Danışman</th></tr></thead><tbody>'
+        + data.leads.slice(0,10).map(function(l) {
+            return '<tr><td><strong>' + (l.ad||'') + '</strong></td><td>' + (l.telefon||'—') + '</td><td>' + (l.kaynak||'—') + '</td><td>' + badge(l.durum) + '</td><td>' + (l.danisman||'—') + '</td></tr>';
+          }).join('')
+        + '</tbody></table>';
+    } else if (tabId === 'leads') {
+      c.innerHTML = '<div class="section-title">👤 Tüm GD Leads (' + data.leads.length + ')</div>'
+        + '<table><thead><tr><th>Tarih</th><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Açıklama</th><th>Durum</th><th>Danışman</th></tr></thead><tbody>'
+        + data.leads.map(function(l) {
+            return '<tr><td>' + (l.tarih||'—') + '</td><td><strong>' + (l.ad||'') + '</strong></td><td>' + (l.telefon||'—') + '</td><td>' + (l.kaynak||'—') + '</td><td>' + (l.aciklama||'—') + '</td><td>' + badge(l.durum) + '</td><td>' + (l.danisman||'—') + '</td></tr>';
+          }).join('')
+        + '</tbody></table>';
+    } else if (tabId === 'recruiting') {
+      c.innerHTML = '<div class="section-title">👥 Recruiting Adayları (' + data.recruiting.length + ')</div>'
+        + '<table><thead><tr><th>Ad</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Açıklama</th></tr></thead><tbody>'
+        + data.recruiting.map(function(r) {
+            return '<tr><td><strong>' + (r.ad||'') + '</strong></td><td>' + (r.telefon||'—') + '</td><td>' + (r.kaynak||'—') + '</td><td>' + badge(r.durum) + '</td><td>' + (r.aciklama||'—') + '</td></tr>';
+          }).join('')
+        + '</tbody></table>';
+    }
+  }
+});
 </script>
+
 </body>
 </html>
