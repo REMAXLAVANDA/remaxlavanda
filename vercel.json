@@ -1,9 +1,13 @@
 {
-  "buildCommand": "",
-  "outputDirectory": ".",
   "rewrites": [
     {
-      "source": "/panel/(.*)",
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "panel.remaxlavanda.com.tr"
+        }
+      ],
       "destination": "/panel/index.html"
     }
   ]
