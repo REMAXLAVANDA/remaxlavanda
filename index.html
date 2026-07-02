@@ -167,6 +167,14 @@ footer{background:#0a1628;color:var(--white);padding:56px 0 24px;}
 .contact-item svg{width:20px;height:20px;stroke:var(--red);flex-shrink:0;margin-top:2px;}
 .contact-item div{font-size:14px;}
 .contact-item strong{display:block;font-weight:600;color:var(--navy);}
+.badge-wrap{display:flex;flex-direction:column;gap:20px;}
+.badge-item{display:flex;align-items:center;gap:16px;background:var(--white);border-radius:8px;padding:16px 20px;border:1px solid #eee;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.badge-item img{height:56px;width:auto;object-fit:contain;flex-shrink:0;}
+.badge-item.dark-bg img{background:#444;padding:8px;border-radius:4px;}
+.badge-item.black-bg img{background:#111;padding:8px;border-radius:4px;}
+.badge-info span{display:block;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--red);margin-bottom:4px;}
+.badge-info strong{display:block;font-size:15px;font-weight:700;color:var(--navy);}
+.badge-info p{font-size:13px;color:var(--gray);margin-top:2px;}
 @media(max-width:768px){
   .hero h1{font-size:30px;}
   .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
@@ -192,8 +200,8 @@ footer{background:#0a1628;color:var(--white);padding:56px 0 24px;}
   <div class="container">
     <div class="nav-inner">
       <a href="#" onclick="goPage('home')" class="logo">
-        <img src="assets/remax_logotype.png" alt="RE/MAX">
-        <span class="logo-name">LAVANDA</span>
+        <img src="assets/remax_logotype.png" alt="RE/MAX" style="height:32px;width:auto;">
+        <span class="logo-name" style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:18px;color:var(--navy);letter-spacing:0.5px;">Lavanda</span>
       </a>
       <div class="nav-links">
         <a href="#" onclick="goPage('home')">Ana Sayfa</a>
@@ -272,17 +280,26 @@ footer{background:#0a1628;color:var(--white);padding:56px 0 24px;}
       <h2 class="section-title">Trakya'nın Kalbinde</h2>
       <p class="section-sub">Çorlu, Çerkezköy ve Tekirdağ'ın en değerli lokasyonlarında uzman danışmanlık.</p>
       <div class="grid-3">
-        <div class="bolge-card">
-          <h3>Çorlu</h3>
-          <p>Trakya'nın sanayi ve ticaret merkezi. Satılık daire, kiralık dükkan, ticari arsa.</p>
+        <div class="bolge-card" style="padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80&auto=format&fit=crop" alt="Çorlu" style="width:100%;height:160px;object-fit:cover;">
+          <div style="padding:24px;">
+            <h3>Çorlu</h3>
+            <p>Trakya'nın sanayi ve ticaret merkezi. Satılık daire, kiralık dükkan, ticari arsa.</p>
+          </div>
         </div>
-        <div class="bolge-card">
-          <h3>Çerkezköy</h3>
-          <p>OSB ve sanayi bölgesinde ticari fırsatlar. Fabrika, depo, sanayi arsası portföyleri.</p>
+        <div class="bolge-card" style="padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1565514158740-064f34bd5b33?w=600&q=80&auto=format&fit=crop" alt="Çerkezköy Sanayi" style="width:100%;height:160px;object-fit:cover;">
+          <div style="padding:24px;">
+            <h3>Çerkezköy</h3>
+            <p>OSB ve sanayi bölgesinde ticari fırsatlar. Fabrika, depo, sanayi arsası portföyleri.</p>
+          </div>
         </div>
-        <div class="bolge-card">
-          <h3>Süleymanpaşa</h3>
-          <p>Tekirdağ'ın idare merkezi. Denize yakın konumlar, yatırımlık arsa ve konutlar.</p>
+        <div class="bolge-card" style="padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80&auto=format&fit=crop" alt="Süleymanpaşa Deniz" style="width:100%;height:160px;object-fit:cover;">
+          <div style="padding:24px;">
+            <h3>Süleymanpaşa</h3>
+            <p>Tekirdağ'ın idare merkezi. Denize yakın konumlar, yatırımlık arsa ve konutlar.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -392,10 +409,22 @@ footer{background:#0a1628;color:var(--white);padding:56px 0 24px;}
   <section class="section">
     <div class="container">
       <div class="grid-2" style="gap:24px;">
-        <div class="card" style="border-top:4px solid var(--red);"><h3>Satılık Konut</h3><p style="margin-top:8px;">Daire, villa ve lüks konuttan müstakil eve, tüm satılık konut portföyleri.</p></div>
-        <div class="card" style="border-top:4px solid var(--red);"><h3>Kiralık Konut</h3><p style="margin-top:8px;">Uzun ve kısa vadeli kiralık konut çözümleri. Kiracı ve mal sahibi için güvenilir aracılık.</p></div>
-        <div class="card" style="border-top:4px solid var(--navy);"><h3>Ticari Gayrimenkul</h3><p style="margin-top:8px;">Satılık / kiralık ofis, dükkan, fabrika, depo ve sanayi arsası. ACP akreditasyonlu ticari danışmanlık.</p></div>
-        <div class="card" style="border-top:4px solid var(--navy);"><h3>Arsa & Yatırım</h3><p style="margin-top:8px;">Konut arsası, tarımsal arsa ve ticari parsel yatırımları. Bölgeye özel değerleme ve yatırım danışmanlığı.</p></div>
+        <div class="card" style="border-top:4px solid var(--red);padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=80&auto=format&fit=crop" alt="Satılık Konut" style="width:100%;height:140px;object-fit:cover;">
+          <div style="padding:20px;"><h3>Satılık Konut</h3><p style="margin-top:8px;">Daire, villa ve lüks konuttan müstakil eve, tüm satılık konut portföyleri.</p></div>
+        </div>
+        <div class="card" style="border-top:4px solid var(--red);padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=600&q=80&auto=format&fit=crop" alt="Kiralık Konut" style="width:100%;height:140px;object-fit:cover;">
+          <div style="padding:20px;"><h3>Kiralık Konut</h3><p style="margin-top:8px;">Uzun ve kısa vadeli kiralık konut çözümleri. Kiracı ve mal sahibi için güvenilir aracılık.</p></div>
+        </div>
+        <div class="card" style="border-top:4px solid var(--navy);padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80&auto=format&fit=crop" alt="Ticari Gayrimenkul" style="width:100%;height:140px;object-fit:cover;">
+          <div style="padding:20px;"><h3>Ticari Gayrimenkul</h3><p style="margin-top:8px;">Satılık / kiralık ofis, dükkan, fabrika, depo ve sanayi arsası. ACP akreditasyonlu ticari danışmanlık.</p></div>
+        </div>
+        <div class="card" style="border-top:4px solid var(--navy);padding:0;overflow:hidden;">
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80&auto=format&fit=crop" alt="Arsa Yatırım" style="width:100%;height:140px;object-fit:cover;">
+          <div style="padding:20px;"><h3>Arsa & Yatırım</h3><p style="margin-top:8px;">Konut arsası, tarımsal arsa ve ticari parsel yatırımları. Bölgeye özel değerleme ve yatırım danışmanlığı.</p></div>
+        </div>
         <div class="card" style="border-top:4px solid var(--gold);"><h3>Değerleme & Ekspertiz</h3><p style="margin-top:8px;">Profesyonel mülk değerleme ve piyasa analizi raporları.</p></div>
         <div class="card" style="border-top:4px solid var(--gold);"><h3>Yatırım Danışmanlığı</h3><p style="margin-top:8px;">Portföy analizi, kira getirisi hesaplamaları ve bölgesel yatırım rehberliği.</p></div>
       </div>
