@@ -50,17 +50,18 @@ tr:hover { background: #fafafa; }
 <div class="content" id="content"><div class="loading">Veriler yükleniyor...</div></div>
 
 <script>
-const URL = 'https://vfqkmluqaihpgxhqiql.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
+const SUPABASE_URL = 'https://vfqkmluqaihpgxhqiql.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-uXXSmDVItnV6fQhp69aFg_l7gFB3oa';
 
 async function query(table) {
-  const res = await fetch(URL + '/rest/v1/' + table + '?select=*&order=created_at.desc', {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?select=*&order=created_at.desc', {
     headers: {
-      'apikey': KEY,
-      'Authorization': 'Bearer ' + KEY,
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json'
     }
   });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
 
@@ -72,8 +73,8 @@ async function loadData() {
       query('gd_leads'),
       query('recruiting_candidates')
     ]);
-    data.leads = leads || [];
-    data.recruiting = recruiting || [];
+    data.leads = Array.isArray(leads) ? leads : [];
+    data.recruiting = Array.isArray(recruiting) ? recruiting : [];
     renderTabs();
     renderContent('panel');
   } catch(e) {
