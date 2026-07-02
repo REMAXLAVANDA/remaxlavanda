@@ -3,287 +3,972 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RE/MAX Lavanda — Çorlu ve Trakya'nın Gayrimenkul Ofisi</title>
-<meta name="description" content="RE/MAX Lavanda olarak Çorlu ve Trakya bölgesinde lüks konut ve ticari gayrimenkul danışmanlığı sunuyoruz. Portföyünüzü değerlendirin veya kariyer fırsatlarımıza başvurun.">
+<title id="page-title">RE/MAX Lavanda | Çorlu Gayrimenkul Uzmanı</title>
+<meta id="meta-desc" name="description" content="Çorlu ve Trakya bölgesinde lüks konut, ticari gayrimenkul ve arsa danışmanlığı. ACP akreditasyonlu, RE/MAX Lavanda ofisi.">
+<link rel="canonical" id="canonical" href="https://remaxlavanda.com.tr/">
+<meta property="og:site_name" content="RE/MAX Lavanda">
+<meta property="og:type" content="website">
+<meta id="og-title" property="og:title" content="RE/MAX Lavanda | Çorlu Gayrimenkul Uzmanı">
+<meta id="og-desc" property="og:description" content="Çorlu ve Trakya bölgesinde lüks konut, ticari gayrimenkul ve arsa danışmanlığı.">
+<meta property="og:url" content="https://remaxlavanda.com.tr/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "RE/MAX Lavanda",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rumeli Mah. Yücetürk Cad. No:20/3",
+    "addressLocality": "Çorlu",
+    "addressRegion": "Tekirdağ",
+    "addressCountry": "TR"
+  },
+  "telephone": "+902825022222",
+  "url": "https://remaxlavanda.com.tr",
+  "foundingDate": "2022",
+  "areaServed": ["Çorlu","Çerkezköy","Süleymanpaşa","Tekirdağ","Trakya"]
+}
+</script>
 <style>
-  :root{
-    --red:#DC1C2E;
-    --red-dark:#AA1120;
-    --blue:#003DA5;
-    --navy:#0C2749;
-    --navy2:#2E3F5A;
-    --gray:#404041;
-    --gray-light:#C4C6C8;
-    --bg-soft:#F1EFE8;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{font-family:'Montserrat',sans-serif; color:var(--gray); line-height:1.6; background:#fff;}
-  a{text-decoration:none; color:inherit;}
-  img{max-width:100%; display:block;}
-  .container{max-width:1140px; margin:0 auto; padding:0 24px;}
+:root{
+  --red:#E31837;
+  --red-dark:#B5122C;
+  --navy:#003087;
+  --navy-light:#0040A8;
+  --gold:#C9A84C;
+  --gray:#404041;
+  --gray-light:#C4C6C8;
+  --bg:#F8F8F8;
+  --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;color:var(--gray);background:var(--white);line-height:1.6;}
+a{text-decoration:none;color:inherit;}
+img{max-width:100%;display:block;}
+h1,h2,h3,h4{font-family:'Montserrat',sans-serif;}
+.container{max-width:1140px;margin:0 auto;padding:0 24px;}
 
-  /* Header */
-  header{display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:3px solid var(--red); background:#fff; position:sticky; top:0; z-index:50;}
-  header .container{flex-wrap:wrap; gap:10px;}
-  .logo-wrap{display:flex; align-items:baseline; gap:10px;}
-  .logo-wrap img{height:30px; width:auto;}
-  .logo-wrap span{font-weight:700; font-size:14px; color:var(--navy); letter-spacing:1.5px;}
-  nav{display:flex; gap:28px; font-size:14px; font-weight:500; flex-wrap:wrap;}
-  nav a:hover{color:var(--red);}
-  .nav-toggle{display:none;}
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:var(--white);border-bottom:3px solid var(--red);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px;}
+.logo{display:flex;align-items:baseline;gap:8px;}
+.logo img{height:28px;width:auto;}
+.logo-name{font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;color:var(--navy);letter-spacing:1.5px;}
+.nav-links{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.nav-links a{font-size:13px;font-weight:500;color:var(--gray);padding:6px 10px;border-radius:4px;white-space:nowrap;}
+.nav-links a:hover,.nav-links a.active{color:var(--red);}
+.nav-dropdown{position:relative;}
+.nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:var(--white);border:1px solid var(--gray-light);border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:200;}
+.nav-dropdown:hover .nav-dropdown-menu{display:block;}
+.nav-dropdown-menu a{display:block;padding:10px 16px;font-size:13px;font-weight:500;}
+.nav-dropdown-menu a:hover{background:var(--bg);color:var(--red);}
+.nav-cta{background:var(--red);color:var(--white)!important;padding:8px 16px!important;border-radius:4px;font-weight:700!important;}
+.nav-cta:hover{background:var(--red-dark)!important;color:var(--white)!important;}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:4px;}
+.nav-toggle svg{width:24px;height:24px;stroke:var(--gray);}
+.nav-mobile{display:none;flex-direction:column;gap:4px;padding:12px 0;border-top:1px solid var(--bg);}
+.nav-mobile a{display:block;padding:10px 0;font-size:14px;font-weight:500;border-bottom:1px solid var(--bg);}
 
-  /* Hero */
-  .hero{text-align:center; padding:72px 24px 56px;}
-  .eyebrow{font-size:12px; letter-spacing:1.5px; color:var(--red); font-weight:700; margin-bottom:14px;}
-  .hero h1{font-size:36px; font-weight:800; color:var(--navy); max-width:620px; margin:0 auto 18px; line-height:1.25;}
-  .hero p{font-size:16px; color:var(--gray); max-width:520px; margin:0 auto 32px;}
-  .hero-actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
-  .btn{display:inline-block; padding:13px 26px; border-radius:4px; font-size:14px; font-weight:700; cursor:pointer; border:none; font-family:inherit;}
-  .btn-primary{background:var(--red); color:#fff;}
-  .btn-primary:hover{background:var(--red-dark);}
-  .btn-outline{background:transparent; color:var(--blue); border:1.5px solid var(--blue);}
-  .btn-outline:hover{background:var(--blue); color:#fff;}
+/* BUTTONS */
+.btn{display:inline-block;padding:12px 24px;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:var(--red);color:var(--white);}
+.btn-primary:hover{background:var(--red-dark);}
+.btn-outline{background:transparent;color:var(--navy);border:2px solid var(--navy);}
+.btn-outline:hover{background:var(--navy);color:var(--white);}
+.btn-gold{background:var(--gold);color:var(--white);}
+.btn-white{background:var(--white);color:var(--navy);}
 
-  .hero-visual{max-width:1140px; margin:0 auto 0; padding:0 24px;}
-  .hero-visual .placeholder{aspect-ratio:16/6; background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 55%,var(--blue) 100%); border-radius:12px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;}
-  .hero-visual .placeholder span{color:#fff; font-size:14px; font-weight:500; letter-spacing:0.5px; z-index:2; opacity:0.9;}
-  .hero-visual .placeholder::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(115deg, transparent, transparent 38px, rgba(255,255,255,0.05) 38px, rgba(255,255,255,0.05) 46px);}
+/* SECTIONS */
+.section{padding:72px 0;}
+.section-sm{padding:48px 0;}
+.section-dark{background:var(--navy);color:var(--white);}
+.section-bg{background:var(--bg);}
+.section-red{background:var(--red);color:var(--white);}
+.section-title{font-size:32px;font-weight:800;margin-bottom:12px;color:var(--navy);}
+.section-title.light{color:var(--white);}
+.section-sub{font-size:16px;color:var(--gray);margin-bottom:40px;}
+.section-sub.light{color:rgba(255,255,255,.75);}
+.eyebrow{font-size:12px;letter-spacing:2px;font-weight:700;color:var(--red);margin-bottom:12px;font-family:'Montserrat',sans-serif;}
+.eyebrow.light{color:var(--gold);}
 
-  /* Two CTA cards */
-  .ctas{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--gray-light); margin-top:56px;}
-  .cta-card{background:#fff; padding:44px 36px;}
-  .cta-card i{font-size:28px;}
-  .cta-card h3{font-size:19px; font-weight:700; color:var(--navy); margin:16px 0 10px;}
-  .cta-card p{font-size:14px; margin-bottom:18px;}
-  .cta-card .link{font-size:14px; font-weight:700;}
-  .cta-card.portfoy .link, .cta-card.portfoy i{color:var(--red);}
-  .cta-card.kariyer .link, .cta-card.kariyer i{color:var(--blue);}
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#0040A8 50%,#1a56c4 100%);color:var(--white);padding:80px 0;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 48px);}
+.hero-content{position:relative;z-index:2;max-width:640px;}
+.hero h1{font-size:44px;font-weight:800;line-height:1.15;margin-bottom:20px;}
+.hero h1 span{color:var(--gold);}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.85);margin-bottom:32px;max-width:500px;}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;margin-bottom:20px;}
+.hero-badge span{color:var(--gold);}
 
-  /* Accreditation strip */
-  .accred{background:var(--bg-soft); padding:36px 24px; text-align:center;}
-  .accred .label{font-size:11px; letter-spacing:1px; font-weight:700; color:var(--gray); margin-bottom:18px;}
-  .accred-badges{display:flex; gap:32px; justify-content:center; align-items:center; flex-wrap:wrap;}
-  .accred-badges img{height:48px; width:auto; object-fit:contain;}
+/* CARDS */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.card{background:var(--white);border-radius:8px;padding:28px;border:1px solid #eee;}
+.card:hover{box-shadow:0 4px 24px rgba(0,0,0,.08);transform:translateY(-2px);transition:all .2s;}
+.card-icon{width:48px;height:48px;border-radius:8px;background:rgba(227,24,55,.08);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.card-icon svg{width:24px;height:24px;stroke:var(--red);}
+.card h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.card p{font-size:14px;color:var(--gray);}
+.card-link{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--red);margin-top:14px;}
 
-  /* Stats */
-  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:24px; padding:56px 24px; max-width:1140px; margin:0 auto; text-align:center;}
-  .stats .num{font-size:30px; font-weight:800; color:var(--navy);}
-  .stats .lbl{font-size:13px; color:var(--gray); margin-top:6px;}
+/* BÖLGE */
+.bolge-card{background:var(--navy);color:var(--white);border-radius:8px;padding:32px;border-top:4px solid var(--gold);}
+.bolge-card h3{font-size:20px;font-weight:700;margin-bottom:10px;}
+.bolge-card p{font-size:14px;color:rgba(255,255,255,.75);}
+.bolge-card .btn{margin-top:20px;}
 
-  /* About */
-  .about{background:var(--navy); color:#fff; padding:64px 24px;}
-  .about .container{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;}
-  .about h2{font-size:26px; font-weight:800; margin-bottom:16px;}
-  .about p{font-size:15px; color:#cfd6e3; margin-bottom:14px;}
-  .about .placeholder{aspect-ratio:4/3; background:linear-gradient(150deg,var(--red) 0%, var(--red-dark) 100%); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:500; position:relative; overflow:hidden;}
-  .about .placeholder::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(115deg, transparent, transparent 30px, rgba(255,255,255,0.07) 30px, rgba(255,255,255,0.07) 38px);}
-  .about .placeholder span{z-index:2; opacity:0.95;}
+/* NEDEN */
+.neden-item{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid #eee;}
+.neden-item:last-child{border-bottom:none;}
+.neden-num{font-size:32px;font-weight:800;color:var(--red);opacity:.2;font-family:'Montserrat',sans-serif;min-width:48px;}
+.neden-text h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:6px;}
 
-  /* Forms */
-  .section{padding:64px 24px; max-width:760px; margin:0 auto;}
-  .section h2{font-size:26px; font-weight:800; color:var(--navy); margin-bottom:8px;}
-  .section .sub{font-size:14px; color:var(--gray); margin-bottom:32px;}
-  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
-  .form-grid .full{grid-column:1/-1;}
-  label{display:block; font-size:13px; font-weight:500; color:var(--navy); margin-bottom:6px;}
-  input, select, textarea{width:100%; padding:11px 14px; border:1px solid var(--gray-light); border-radius:4px; font-family:inherit; font-size:14px; color:var(--gray);}
-  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--blue);}
-  textarea{resize:vertical; min-height:90px;}
-  .form-actions{margin-top:24px;}
-  .form-note{font-size:12px; color:#888; margin-top:14px;}
-  #portfoy{background:var(--bg-soft);}
-  #kariyer{background:#fff;}
+/* AKRED */
+.accred-bar{display:flex;gap:32px;justify-content:center;align-items:center;flex-wrap:wrap;padding:32px 0;}
+.accred-bar img{height:44px;width:auto;object-fit:contain;}
 
-  /* Footer */
-  footer{background:var(--navy); color:#fff; padding:32px 24px;}
-  footer .container{display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; align-items:center;}
-  footer .item{display:flex; align-items:center; gap:8px; font-size:13px;}
-  footer .social{display:flex; gap:14px; flex-wrap:wrap;}
-  footer .social a{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
-  footer .social a:hover{background:var(--red);}
-  footer .copyright{width:100%; text-align:center; font-size:12px; color:#7e8ba3; margin-top:20px; padding-top:20px; border-top:1px solid #1d3357;}
+/* FORM */
+.form-wrap{background:var(--white);border-radius:8px;padding:40px;box-shadow:0 2px 20px rgba(0,0,0,.08);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid .full{grid-column:1/-1;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:4px;font-family:'Inter',sans-serif;font-size:14px;color:var(--gray);transition:border-color .2s;}
+.form-input:focus{outline:none;border-color:var(--navy);}
+select.form-input{background:var(--white);}
+textarea.form-input{resize:vertical;min-height:80px;}
+.form-note{font-size:12px;color:#888;margin-top:12px;}
 
-  .wa-float{position:fixed; bottom:20px; right:20px; width:56px; height:56px; border-radius:50%; background:#25D366; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.25); z-index:100;}
-  .wa-float:hover{background:#1ebd5a;}
+/* FAQ */
+.faq-item{border-bottom:1px solid #eee;}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:18px 0;cursor:pointer;font-weight:600;color:var(--navy);font-size:15px;}
+.faq-q::after{content:'+';font-size:20px;color:var(--red);font-weight:300;}
+.faq-item.open .faq-q::after{content:'−';}
+.faq-a{display:none;padding-bottom:16px;font-size:14px;color:var(--gray);}
+.faq-item.open .faq-a{display:block;}
 
-  @media (max-width:768px){
-    nav{gap:14px; font-size:13px; width:100%; justify-content:center;}
-    header .container{justify-content:center; text-align:center;}
-    .ctas{grid-template-columns:1fr;}
-    .form-grid{grid-template-columns:1fr;}
-    .hero h1{font-size:28px;}
-    .wa-float{width:50px; height:50px; bottom:16px; right:16px;}
-    footer .container{justify-content:center; text-align:center;}
-  }
+/* BLOG */
+.blog-card{border-radius:8px;overflow:hidden;border:1px solid #eee;}
+.blog-card-body{padding:22px;}
+.blog-tag{font-size:11px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:8px;}
+.blog-card h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px;line-height:1.4;}
+.blog-card p{font-size:13px;color:var(--gray);}
+.blog-card-img{height:180px;background:linear-gradient(135deg,var(--navy),var(--navy-light));display:flex;align-items:flex-end;padding:16px;}
+.blog-card-img span{font-size:11px;color:rgba(255,255,255,.7);font-weight:500;}
+
+/* FOOTER */
+footer{background:#0a1628;color:var(--white);padding:56px 0 24px;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+.footer-brand p{font-size:14px;color:rgba(255,255,255,.6);margin-top:12px;max-width:260px;}
+.footer-col h4{font-size:13px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:16px;}
+.footer-col a{display:block;font-size:14px;color:rgba(255,255,255,.65);margin-bottom:8px;}
+.footer-col a:hover{color:var(--white);}
+.footer-social{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.footer-social a{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;}
+.footer-social a:hover{background:var(--red);}
+.footer-social a svg{width:16px;height:16px;fill:var(--white);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.footer-bottom p{font-size:12px;color:rgba(255,255,255,.4);}
+
+/* WA FLOAT */
+.wa-float{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:999;cursor:pointer;}
+.wa-float:hover{background:#1ebd5a;transform:scale(1.05);}
+.wa-float svg{width:28px;height:28px;fill:var(--white);}
+
+/* PAGE — hidden/show */
+.page{display:none;}
+.page.active{display:block;}
+
+/* BLOG POST */
+.blog-post{max-width:760px;margin:0 auto;padding:56px 24px;}
+.blog-post h1{font-size:34px;font-weight:800;color:var(--navy);margin-bottom:16px;}
+.blog-post .blog-meta{font-size:13px;color:#888;margin-bottom:32px;}
+.blog-post h2{font-size:22px;font-weight:700;color:var(--navy);margin:32px 0 12px;}
+.blog-post p{margin-bottom:16px;line-height:1.8;}
+
+/* MAPS */
+.map-wrap{border-radius:8px;overflow:hidden;height:360px;}
+.map-wrap iframe{width:100%;height:100%;border:0;}
+
+/* BREADCRUMB */
+.breadcrumb{font-size:13px;color:#888;padding:14px 0;display:flex;gap:6px;align-items:center;}
+.breadcrumb a{color:var(--red);}
+.breadcrumb span{color:#ccc;}
+
+/* CONTACT BOX */
+.contact-box{background:var(--bg);border-radius:8px;padding:28px;border-left:4px solid var(--red);}
+.contact-box h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;}
+.contact-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;}
+.contact-item svg{width:20px;height:20px;stroke:var(--red);flex-shrink:0;margin-top:2px;}
+.contact-item div{font-size:14px;}
+.contact-item strong{display:block;font-weight:600;color:var(--navy);}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .hero h1{font-size:30px;}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .nav-toggle{display:block;}
+  .nav-mobile.open{display:flex;}
+  .section{padding:48px 0;}
+  .section-title{font-size:26px;}
+  .form-grid{grid-template-columns:1fr;}
+  .blog-post h1{font-size:26px;}
+  .hero{padding:56px 0;}
+}
+@media(max-width:480px){
+  .footer-grid{grid-template-columns:1fr;}
+  .form-wrap{padding:24px;}
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="container" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-    <div class="logo-wrap">
-      <img src="assets/remax_logotype.png" alt="RE/MAX">
-      <span>LAVANDA</span>
-    </div>
-    <nav>
-      <a href="#portfoy">Portföyünüzü değerlendirin</a>
-      <a href="#kariyer">Kariyer</a>
-      <a href="#iletisim">İletişim</a>
-    </nav>
-  </div>
-</header>
-
-<section class="hero">
-  <p class="eyebrow">LÜKS KONUT VE TİCARİ GAYRİMENKUL</p>
-  <h1>Çorlu ve Trakya'nın güvenilir gayrimenkul ofisi</h1>
-  <p>2022'den bu yana RE/MAX dünya markasının gücüyle, bölgenin en değerli konut ve ticari portföylerini doğru alıcı ve satıcıyla buluşturuyoruz.</p>
-  <div class="hero-actions">
-    <a href="#portfoy" class="btn btn-primary">Portföyünüzü değerlendirin</a>
-    <a href="#kariyer" class="btn btn-outline">Kariyer fırsatları</a>
-  </div>
-</section>
-
-
-<div class="ctas">
-  <div class="cta-card portfoy">
-    <i class="ti">▣</i>
-    <h3>Portföyünüzü değerlendirin</h3>
-    <p>Lüks konut veya ticari mülkünüzü RE/MAX uzmanlığıyla doğru fiyata, doğru alıcıya ulaştırın.</p>
-    <a href="#portfoy" class="link">Formu doldurun →</a>
-  </div>
-  <div class="cta-card kariyer">
-    <i class="ti">◆</i>
-    <h3>RE/MAX Lavanda ailesine katılın</h3>
-    <p>Bölgenin en güçlü danışman kadrosuna sahip ofisinde kendi gayrimenkul kariyerinizi kurun.</p>
-    <a href="#kariyer" class="link">Başvuru yapın →</a>
-  </div>
-</div>
-
-<div class="accred">
-  <p class="label">AKREDİTASYONLARIMIZ</p>
-  <div class="accred-badges">
-    <img src="assets/ACP_Logo.jpg" alt="ACP - Accredited Commercial Professional" style="background:#404041; padding:8px; border-radius:4px;">
-    <img src="assets/remax_ticari_logo.jpg" alt="RE/MAX Ticari">
-    <img src="assets/remax_ticari_kulup.jpg" alt="RE/MAX Ticari Kulüp" style="background:#0a0a0a; padding:8px; border-radius:4px;">
-    <img src="assets/remax_collection_logo.jpg" alt="The RE/MAX Collection - Lüks Konut">
-  </div>
-</div>
-
-
-<section class="section" id="portfoy">
-  <h2>Portföyünüzü değerlendirin</h2>
-  <p class="sub">Lüks konut, ticari mülk veya arsanız için bilgilerinizi bırakın, uzman danışmanlarımız sizinle iletişime geçsin.</p>
-  <form id="portfoy-form">
-    <div class="form-grid">
-      <div>
-        <label for="p-ad">Ad soyad</label>
-        <input type="text" id="p-ad" name="ad" required>
-      </div>
-      <div>
-        <label for="p-tel">Telefon</label>
-        <input type="tel" id="p-tel" name="telefon" required>
-      </div>
-      <div>
-        <label for="p-tip">Mülk tipi</label>
-        <select id="p-tip" name="mulk_tipi">
-          <option>Konut</option>
-          <option>Ticari</option>
-          <option>Arsa</option>
-          <option>Diğer</option>
-        </select>
-      </div>
-      <div>
-        <label for="p-konum">Konum</label>
-        <input type="text" id="p-konum" name="konum" placeholder="Çorlu, Muhittin Mah.">
-      </div>
-      <div class="full">
-        <label for="p-aciklama">Açıklama</label>
-        <textarea id="p-aciklama" name="aciklama" placeholder="Mülkünüz hakkında kısa bilgi (m², oda sayısı, vb.)"></textarea>
-      </div>
-    </div>
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Bilgilerimi gönder</button>
-    </div>
-    <p class="form-note">Gönder dediğinizde bilgileriniz WhatsApp üzerinden RE/MAX Lavanda'ya iletilir.</p>
-  </form>
-</section>
-
-<section class="section" id="kariyer" style="background:var(--bg-soft); max-width:100%; padding-left:0; padding-right:0;">
-  <div style="max-width:760px; margin:0 auto; padding:0 24px;">
-    <h2>RE/MAX Lavanda ailesine katılın</h2>
-    <p class="sub">Dünyanın en büyük gayrimenkul markasının desteğiyle kendi kariyerinizi kurun. Deneyiminizi paylaşın, sizinle iletişime geçelim.</p>
-    <form id="kariyer-form">
-      <div class="form-grid">
-        <div>
-          <label for="k-ad">Ad soyad</label>
-          <input type="text" id="k-ad" name="ad" required>
-        </div>
-        <div>
-          <label for="k-tel">Telefon</label>
-          <input type="tel" id="k-tel" name="telefon" required>
-        </div>
-        <div class="full">
-          <label for="k-deneyim">Daha önce gayrimenkul sektöründe çalıştınız mı?</label>
-          <select id="k-deneyim" name="deneyim">
-            <option>Hayır, ilk kez başlayacağım</option>
-            <option>Evet, 1-3 yıl deneyimim var</option>
-            <option>Evet, 3 yıldan fazla deneyimim var</option>
-          </select>
-        </div>
-        <div class="full">
-          <label for="k-mesaj">Neden RE/MAX Lavanda'da kariyer yapmak istiyorsunuz?</label>
-          <textarea id="k-mesaj" name="mesaj"></textarea>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Başvurumu gönder</button>
-      </div>
-    </form>
-  </div>
-</section>
-
-<footer id="iletisim">
+<!-- NAV -->
+<nav>
   <div class="container">
-    <div class="item">📍 Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ</div>
-    <div class="item">📞 0 282 502 22 22</div>
-    <div class="social">
-      <a href="https://www.instagram.com/remaxlavanda/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="#fff" stroke="none"/></svg></a>
-      <a href="https://www.facebook.com/remaxlavanda/" target="_blank" rel="noopener" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06z"/></svg></a>
-      <a href="https://x.com/RemaxLavanda" target="_blank" rel="noopener" aria-label="X"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-7.1l-5.6-7.3L4.2 22H1l8.1-9.3L0.9 2H8.2l5 6.7L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
-      <a href="https://www.youtube.com/@remaxlavanda" target="_blank" rel="noopener" aria-label="YouTube"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M23 12s0-3.4-.43-5a3 3 0 0 0-2.1-2.1C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.47.4A3 3 0 0 0 1.43 7C1 8.6 1 12 1 12s0 3.4.43 5a3 3 0 0 0 2.1 2.1C5.1 19.5 12 19.5 12 19.5s6.9 0 8.47-.4a3 3 0 0 0 2.1-2.1c.43-1.6.43-5 .43-5z"/><path d="M9.8 15.3V8.7L15.8 12z" fill="#0C2749"/></svg></a>
-      <a href="https://tr.pinterest.com/remaxlavanda/" target="_blank" rel="noopener" aria-label="Pinterest"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.64 7.86 6.36 9.3-.09-.79-.17-2.01.04-2.87.19-.79 1.23-5.07 1.23-5.07s-.31-.63-.31-1.55c0-1.46.85-2.55 1.9-2.55.9 0 1.33.67 1.33 1.48 0 .9-.57 2.25-.87 3.5-.25 1.05.52 1.9 1.55 1.9 1.86 0 3.29-1.96 3.29-4.79 0-2.5-1.8-4.25-4.37-4.25-2.98 0-4.72 2.23-4.72 4.54 0 .9.34 1.86.78 2.39.09.1.1.2.07.3-.08.32-.25 1.05-.29 1.2-.05.18-.15.22-.35.13-1.3-.6-2.11-2.5-2.11-4.02 0-3.27 2.38-6.28 6.86-6.28 3.6 0 6.4 2.57 6.4 6 0 3.58-2.26 6.46-5.39 6.46-1.05 0-2.04-.55-2.38-1.2l-.65 2.46c-.23.9-.87 2.02-1.3 2.7.98.3 2.02.46 3.1.46 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg></a>
-      <a href="https://www.tiktok.com/@remax.lavanda" target="_blank" rel="noopener" aria-label="TikTok"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M16.6 2h-3.2v13.2c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.05.85.13V9.4a6 6 0 0 0-.85-.06A6 6 0 0 0 4.7 15.3a6 6 0 0 0 6 6 6 6 0 0 0 6-6V8.3a8.3 8.3 0 0 0 4.6 1.4V6.5a5 5 0 0 1-4.7-4.5z"/></svg></a>
-      <a href="https://wa.me/905325535559" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg></a>
+    <div class="nav-inner">
+      <a href="#" onclick="goPage('home')" class="logo">
+        <img src="assets/remax_logotype.png" alt="RE/MAX">
+        <span class="logo-name">LAVANDA</span>
+      </a>
+      <div class="nav-links">
+        <a href="#" onclick="goPage('home')">Ana Sayfa</a>
+        <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
+        <a href="#" onclick="goPage('hizmetler')">Hizmetler</a>
+        <div class="nav-dropdown">
+          <a href="#" onclick="return false;">Bölgeler ▾</a>
+          <div class="nav-dropdown-menu">
+            <a href="#" onclick="goPage('bolge-corlu')">Çorlu</a>
+            <a href="#" onclick="goPage('bolge-cerkezkoy')">Çerkezköy</a>
+            <a href="#" onclick="goPage('bolge-suleymanpasa')">Süleymanpaşa</a>
+          </div>
+        </div>
+        <a href="#" onclick="goPage('kariyer')">Kariyer</a>
+        <a href="#" onclick="goPage('blog')">Blog</a>
+        <a href="#" onclick="goPage('iletisim')">İletişim</a>
+        <a href="#" onclick="goPage('portfoy')" class="btn-cta nav-cta">Portföy Değerlendirin</a>
+      </div>
+      <button class="nav-toggle" onclick="toggleMobile()" aria-label="Menü">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
     </div>
-    <div class="copyright">RE/MAX Lavanda — her ofis bağımsız olarak sahiplenilir ve işletilir. © 2026</div>
+    <div class="nav-mobile" id="navMobile">
+      <a href="#" onclick="goPage('home')">Ana Sayfa</a>
+      <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
+      <a href="#" onclick="goPage('hizmetler')">Hizmetler</a>
+      <a href="#" onclick="goPage('bolge-corlu')">Çorlu</a>
+      <a href="#" onclick="goPage('bolge-cerkezkoy')">Çerkezköy</a>
+      <a href="#" onclick="goPage('bolge-suleymanpasa')">Süleymanpaşa</a>
+      <a href="#" onclick="goPage('kariyer')">Kariyer</a>
+      <a href="#" onclick="goPage('blog')">Blog</a>
+      <a href="#" onclick="goPage('iletisim')">İletişim</a>
+      <a href="#" onclick="goPage('portfoy')" style="color:var(--red);font-weight:700;">Portföy Değerlendirin</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ANA SAYFA -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge"><span>★</span> ACP Akreditasyonlu · RE/MAX Collection · RE/MAX Ticari</div>
+        <h1>Trakya'da <span>Doğru Mülk</span>, Doğru Danışman</h1>
+        <p class="hero-sub">Çorlu, Çerkezköy ve Tekirdağ'da lüks konut, ticari gayrimenkul ve arsa danışmanlığında RE/MAX Lavanda güvencesi.</p>
+        <div class="hero-actions">
+          <a href="#" onclick="goPage('portfoy')" class="btn btn-primary">Portföyünüzü Değerlendirin</a>
+          <a href="#" onclick="goPage('kariyer')" class="btn btn-white">Danışman Ol</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-sm section-bg">
+    <div class="container">
+      <div class="grid-4">
+        <div class="card" onclick="goPage('hizmetler')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <h3>Satılık Konut</h3>
+          <p>Daire, villa, müstakil ev ve lüks konut portföyleri.</p>
+          <span class="card-link">İncele →</span>
+        </div>
+        <div class="card" onclick="goPage('hizmetler')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <h3>Ticari Gayrimenkul</h3>
+          <p>Dükkan, ofis, fabrika, depo ve sanayi arsası.</p>
+          <span class="card-link">İncele →</span>
+        </div>
+        <div class="card" onclick="goPage('hizmetler')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg></div>
+          <h3>Değerleme</h3>
+          <p>Profesyonel ekspertiz ve piyasa değer analizi.</p>
+          <span class="card-link">İncele →</span>
+        </div>
+        <div class="card" onclick="goPage('kariyer')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg></div>
+          <h3>Danışman Ol</h3>
+          <p>RE/MAX Lavanda ailesine katıl, kariyerini kur.</p>
+          <span class="card-link">Başvur →</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">HİZMET BÖLGELERİ</p>
+      <h2 class="section-title">Trakya'nın Kalbinde</h2>
+      <p class="section-sub">Çorlu, Çerkezköy ve Tekirdağ'ın en değerli lokasyonlarında uzman danışmanlık.</p>
+      <div class="grid-3">
+        <div class="bolge-card">
+          <h3>Çorlu</h3>
+          <p>Trakya'nın sanayi ve ticaret merkezi. Satılık daire, kiralık dükkan, ticari arsa.</p>
+          <a href="#" onclick="goPage('bolge-corlu')" class="btn btn-outline" style="margin-top:20px;display:inline-block;">Keşfet →</a>
+        </div>
+        <div class="bolge-card">
+          <h3>Çerkezköy</h3>
+          <p>OSB ve sanayi bölgesinde ticari fırsatlar. Fabrika, depo, sanayi arsası portföyleri.</p>
+          <a href="#" onclick="goPage('bolge-cerkezkoy')" class="btn btn-outline" style="margin-top:20px;display:inline-block;">Keşfet →</a>
+        </div>
+        <div class="bolge-card">
+          <h3>Süleymanpaşa</h3>
+          <p>Tekirdağ'ın idare merkezi. Denize yakın konumlar, yatırımlık arsa ve konutlar.</p>
+          <a href="#" onclick="goPage('bolge-suleymanpasa')" class="btn btn-outline" style="margin-top:20px;display:inline-block;">Keşfet →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-bg">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+        <div>
+          <p class="eyebrow">NEDEN RE/MAX LAVANDA</p>
+          <h2 class="section-title">Fark Yaratan Dört Şey</h2>
+          <div>
+            <div class="neden-item"><div class="neden-num">01</div><div class="neden-text"><h3>Dünya Markası, Yerel Güç</h3><p>9.000+ ofis ve 140.000+ danışmanıyla RE/MAX'ın küresel ağına erişim.</p></div></div>
+            <div class="neden-item"><div class="neden-num">02</div><div class="neden-text"><h3>ACP Akreditasyonu</h3><p>Uluslararası geçerliliğe sahip ticari gayrimenkul uzmanlık sertifikası.</p></div></div>
+            <div class="neden-item"><div class="neden-num">03</div><div class="neden-text"><h3>RE/MAX Collection</h3><p>Lüks konut segmentinde özel portföy yönetimi ve alıcı ağı.</p></div></div>
+            <div class="neden-item"><div class="neden-num">04</div><div class="neden-text"><h3>2022'den Bu Yana</h3><p>Bölgenin en güçlü danışman kadrosuyla profesyonel hizmet.</p></div></div>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">AKREDİTASYONLARIMIZ</p>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px;">
+            <img src="assets/ACP_Logo.jpg" alt="ACP - Accredited Commercial Professional" style="height:48px;width:auto;object-fit:contain;background:#555;padding:8px;border-radius:4px;">
+            <img src="assets/remax_ticari_logo.jpg" alt="RE/MAX Ticari" style="height:48px;width:auto;object-fit:contain;">
+            <img src="assets/remax_ticari_kulup.jpg" alt="RE/MAX Ticari Kulüp" style="height:48px;width:auto;object-fit:contain;background:#111;padding:8px;border-radius:4px;">
+            <img src="assets/remax_collection_logo.jpg" alt="The RE/MAX Collection - Lüks Konut" style="height:48px;width:auto;object-fit:contain;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">BLOG</p>
+      <h2 class="section-title">Piyasa & Kariyer Rehberi</h2>
+      <p class="section-sub">Trakya gayrimenkul piyasasına dair güncel analizler ve rehberler.</p>
+      <div class="grid-3">
+        <div class="blog-card" onclick="goPage('blog-1')" style="cursor:pointer;">
+          <div class="blog-card-img"><span>Piyasa Analizi · 2025</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">GAYRİMENKUL YATIRIMI</div>
+            <h3>Çorlu'da Gayrimenkul Yatırımı: 2025 Piyasa Rehberi</h3>
+            <p>Mahallelere göre fiyat analizi ve en doğru yatırım stratejileri.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="goPage('blog-2')" style="cursor:pointer;">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,#1a3a5c,#0a2040);"><span>Ticari · Sanayi</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">TİCARİ GAYRİMENKUL</div>
+            <h3>Çerkezköy'de Sanayi ve Ticari Gayrimenkul Fırsatları</h3>
+            <p>OSB ve sanayi bölgesinde kiralık fabrika ve depo piyasası analizi.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="goPage('blog-3')" style="cursor:pointer;">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,#7b1f2e,#E31837);"><span>Kariyer · RE/MAX</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">KARİYER</div>
+            <h3>Gayrimenkul Danışmanı Olmak: RE/MAX Lavanda ile Kariyer</h3>
+            <p>Danışmanlık mesleğinin avantajları ve başvuru süreci.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-red">
+    <div class="container" style="text-align:center;">
+      <h2 style="font-size:32px;font-weight:800;color:var(--white);margin-bottom:14px;">Mülkünüzü Değerlendirmeye Hazır mısınız?</h2>
+      <p style="color:rgba(255,255,255,.85);margin-bottom:28px;">Formumuzu doldurun, 24 saat içinde sizi arayalım.</p>
+      <a href="#" onclick="goPage('portfoy')" class="btn btn-white">Ücretsiz Değerlendirme Alın</a>
+    </div>
+  </section>
+</div>
+
+<!-- HAKKIMIZDA -->
+<div class="page" id="page-hakkimizda">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">HAKKIMIZDA</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">RE/MAX Lavanda Kimiz?</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:60px;align-items:start;">
+        <div>
+          <p class="eyebrow">HİKAYEMİZ</p>
+          <h2 class="section-title">2022'den Bu Yana Trakya'da</h2>
+          <p style="margin-bottom:16px;">RE/MAX Lavanda, 2022 yılında Tekirdağ / Çorlu bölgesinde RE/MAX markasını alarak faaliyete başladı. Bölgenin gayrimenkul akademisi olma vizyonuyla yola çıkan ofisimiz, kısa sürede Trakya'nın en güçlü danışman kadrosuna sahip RE/MAX ofisi haline geldi.</p>
+          <p style="margin-bottom:16px;">Lüks konut ve ticari gayrimenkul segmentlerinde ACP (Accredited Commercial Professional) akreditasyonu, RE/MAX Ticari Kulüp üyeliği ve The RE/MAX Collection programıyla müşterilerimize uluslararası standartta hizmet sunuyoruz.</p>
+          <p>Çorlu, Çerkezköy ve Tekirdağ başta olmak üzere Trakya genelinde satılık, kiralık ve yatırımlık mülk danışmanlığında bölgenin ilk tercihi olmayı hedefliyoruz.</p>
+        </div>
+        <div>
+          <h2 class="section-title" style="margin-bottom:24px;">Misyon & Vizyon</h2>
+          <div class="card" style="margin-bottom:16px;border-left:4px solid var(--red);">
+            <h3 style="margin-bottom:8px;">Misyonumuz</h3>
+            <p>Müşterilerimize doğru mülkü, doğru fiyata, doğru zamanda ulaştırmak. Her işlemde şeffaflık, güven ve profesyonellik.</p>
+          </div>
+          <div class="card" style="border-left:4px solid var(--gold);">
+            <h3 style="margin-bottom:8px;">Vizyonumuz</h3>
+            <p>Trakya bölgesinin gayrimenkul akademisi ve en güvenilir danışmanlık ofisi olmak. Danışmanlarımızı sektörün en donanımlı professionelleri haline getirmek.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section-bg">
+    <div class="container">
+      <p class="eyebrow">AKREDİTASYONLARIMIZ</p>
+      <h2 class="section-title">Uluslararası Standartlar</h2>
+      <div class="grid-4">
+        <div class="card" style="text-align:center;">
+          <img src="assets/ACP_Logo.jpg" alt="ACP" style="height:56px;margin:0 auto 12px;background:#555;padding:8px;border-radius:4px;">
+          <h3 style="font-size:14px;">ACP Akreditasyonu</h3>
+          <p style="font-size:13px;">Uluslararası ticari gayrimenkul uzmanlık sertifikası</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <img src="assets/remax_ticari_logo.jpg" alt="RE/MAX Ticari" style="height:56px;margin:0 auto 12px;">
+          <h3 style="font-size:14px;">RE/MAX Ticari</h3>
+          <p style="font-size:13px;">Ticari gayrimenkul uzmanlık programı</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <img src="assets/remax_ticari_kulup.jpg" alt="RE/MAX Ticari Kulüp" style="height:56px;margin:0 auto 12px;background:#111;padding:8px;border-radius:4px;">
+          <h3 style="font-size:14px;">RE/MAX Ticari Kulüp</h3>
+          <p style="font-size:13px;">Yüksek performanslı ticari danışman programı</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <img src="assets/remax_collection_logo.jpg" alt="RE/MAX Collection" style="height:56px;margin:0 auto 12px;">
+          <h3 style="font-size:14px;">RE/MAX Collection</h3>
+          <p style="font-size:13px;">Lüks konut segmenti uzmanlık programı</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- HİZMETLER -->
+<div class="page" id="page-hizmetler">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">HİZMETLERİMİZ</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Gayrimenkul Danışmanlığı</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:24px;">
+        <div class="card" style="border-top:4px solid var(--red);">
+          <h3>Satılık Konut</h3>
+          <p style="margin-top:8px;">Daire, villa ve lüks konuttan müstakil eve, tüm satılık konut portföyleri. RE/MAX Collection çerçevesinde lüks segment uzmanız.</p>
+        </div>
+        <div class="card" style="border-top:4px solid var(--red);">
+          <h3>Kiralık Konut</h3>
+          <p style="margin-top:8px;">Uzun ve kısa vadeli kiralık konut çözümleri. Kiracı ve mal sahibi için güvenilir aracılık.</p>
+        </div>
+        <div class="card" style="border-top:4px solid var(--navy);">
+          <h3>Ticari Gayrimenkul</h3>
+          <p style="margin-top:8px;">Satılık / kiralık ofis, dükkan, fabrika, depo ve sanayi arsası. ACP akreditasyonlu ticari danışmanlık.</p>
+        </div>
+        <div class="card" style="border-top:4px solid var(--navy);">
+          <h3>Arsa & Yatırım</h3>
+          <p style="margin-top:8px;">Konut arsası, tarımsal arsa ve ticari parsel yatırımları. Bölgeye özel değerleme ve yatırım danışmanlığı.</p>
+        </div>
+        <div class="card" style="border-top:4px solid var(--gold);">
+          <h3>Değerleme & Ekspertiz</h3>
+          <p style="margin-top:8px;">Banka ve kurumsal alımlara yönelik profesyonel mülk değerleme ve piyasa analizi raporları.</p>
+        </div>
+        <div class="card" style="border-top:4px solid var(--gold);">
+          <h3>Yatırım Danışmanlığı</h3>
+          <p style="margin-top:8px;">Portföy analizi, kira getirisi hesaplamaları ve bölgesel yatırım rehberliği ile doğru kararı alın.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BÖLGE: ÇORLU -->
+<div class="page" id="page-bolge-corlu">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BÖLGE</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Çorlu Gayrimenkul</h1><p style="color:rgba(255,255,255,.7);margin-top:8px;">Satılık ve Kiralık Mülkler | RE/MAX Lavanda</p></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <h2 class="section-title">Trakya'nın Sanayi Kenti</h2>
+          <p style="margin-bottom:16px;">Çorlu, Trakya'nın en büyük sanayi ve ticaret merkezlerinden biridir. Türkiye'nin Avrupa'ya açılan kapısı konumundaki Çorlu, İstanbul'a 80 km mesafesi ve gelişmiş ulaşım altyapısıyla yatırımcılar için stratejik bir konumdadır.</p>
+          <p style="margin-bottom:16px;">Özellikle Reşadiye, Muhittin ve Omurtak Mahallesi konut segmentinde son yıllarda önemli fiyat artışları yaşanmıştır. Ticari alanda ise Çorlu Merkez ve sanayi bölgelerindeki mülkler yüksek kira getirileri sunmaktadır.</p>
+          <p style="margin-bottom:16px;">RE/MAX Lavanda olarak Çorlu'da satılık daire, kiralık işyeri ve yatırımlık arsa konularında kapsamlı portföy yönetimi sunuyoruz.</p>
+          <h3 style="margin:24px 0 12px;color:var(--navy);font-size:18px;">Çorlu'da Öne Çıkan Mülk Tipleri</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık daire (1+1'den 4+1'e)</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık dükkan ve ofis</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık sanayi arsası</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık fabrika ve depo</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık villa ve müstakil ev</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Sık Sorulan Sorular</h3>
+          <div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çorlu'da ortalama daire fiyatları nedir?</div><div class="faq-a">Çorlu'da konut fiyatları mahalleye ve metrekareye göre değişmekle birlikte, 2025 yılı itibarıyla 2+1 daireler ortalama 2,5-4,5 milyon TL bandında işlem görmektedir. Merkeze yakın ve yeni yapılı projelerde bu rakam daha yüksek olabilmektedir.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çorlu'da en çok hangi bölgeler tercih ediliyor?</div><div class="faq-a">Reşadiye, Muhittin Mahallesi ve Omurtak Caddesi çevresi konut talebi en yüksek bölgelerdir. Ticari gayrimenkul için ise Organize Sanayi Bölgesi ve Çorlu Merkez öne çıkmaktadır.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çorlu'da sanayi arsası yatırımı mantıklı mı?</div><div class="faq-a">Çorlu, İstanbul'a yakınlığı ve gelişmiş lojistik altyapısıyla sanayi yatırımları için cazip bir konumdadır. OSB içi ve çevresi parseller düzenli değer artışı göstermektedir.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">RE/MAX Lavanda'dan Çorlu'da mülk satın almak için ne yapmalıyım?</div><div class="faq-a">Portföy değerlendirme formunu doldurmanız veya 0 282 502 22 22 numaralı hattımızı aramanız yeterlidir. Uzman danışmanımız sizinle iletişime geçecektir.</div></div>
+          </div>
+          <div style="margin-top:28px;">
+            <a href="#" onclick="goPage('portfoy')" class="btn btn-primary" style="width:100%;text-align:center;display:block;">Mülkünüzü Değerlendirin</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BÖLGE: ÇERKEZKÖy -->
+<div class="page" id="page-bolge-cerkezkoy">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BÖLGE</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Çerkezköy Gayrimenkul</h1><p style="color:rgba(255,255,255,.7);margin-top:8px;">Satılık ve Kiralık Mülkler | RE/MAX Lavanda</p></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <h2 class="section-title">Sanayinin Kalbi</h2>
+          <p style="margin-bottom:16px;">Çerkezköy, Tekirdağ'ın en önemli sanayi ilçelerinden biridir. Çerkezköy Organize Sanayi Bölgesi (OSB), yüzlerce fabrika ve üretim tesisine ev sahipliği yapmaktadır. Bu yapı, ticari gayrimenkul yatırımları açısından son derece cazip fırsatlar doğurmaktadır.</p>
+          <p style="margin-bottom:16px;">İstanbul-Edirne otoyolu güzergahındaki konumuyla lojistik depo ve fabrika yatırımları için tercih edilen Çerkezköy, son yıllarda konut segmentinde de hızlı bir gelişim göstermiştir.</p>
+          <h3 style="margin:24px 0 12px;color:var(--navy);font-size:18px;">Öne Çıkan Mülk Tipleri</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık fabrika ve üretim tesisi</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık / kiralık depo</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> OSB içi sanayi parseli</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık konut ve arsa</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Sık Sorulan Sorular</h3>
+          <div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çerkezköy OSB'de fabrika kiralamak mümkün mü?</div><div class="faq-a">Evet, Çerkezköy OSB ve çevresinde kiralık fabrika ve üretim tesisi seçenekleri bulunmaktadır. RE/MAX Lavanda olarak bu segmentte aktif bir portföy yönetiyoruz.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çerkezköy'de depo yatırımı karlı mı?</div><div class="faq-a">Çerkezköy'ün lojistik konumu ve otoyola yakınlığı, depo yatırımlarını cazip kılmaktadır. Kira getirileri diğer gayrimenkul tiplerine kıyasla rekabetçi kalmaktadır.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çerkezköy'de konut fiyatları nasıl?</div><div class="faq-a">Sanayi ilçesi olmakla birlikte Çerkezköy merkezi konut talebi artmaktadır. Fiyatlar Çorlu'ya kıyasla biraz daha makul düzeyde seyretmekte, yatırım için fırsatlar barındırmaktadır.</div></div>
+          </div>
+          <div style="margin-top:28px;">
+            <a href="#" onclick="goPage('portfoy')" class="btn btn-primary" style="width:100%;text-align:center;display:block;">Mülkünüzü Değerlendirin</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BÖLGE: SÜLEYMANPAŞA -->
+<div class="page" id="page-bolge-suleymanpasa">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BÖLGE</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Süleymanpaşa Gayrimenkul</h1><p style="color:rgba(255,255,255,.7);margin-top:8px;">Satılık ve Kiralık Mülkler | RE/MAX Lavanda</p></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <h2 class="section-title">Tekirdağ'ın İdare Merkezi</h2>
+          <p style="margin-bottom:16px;">Süleymanpaşa, Tekirdağ il merkezini oluşturan ilçedir. Marmara Denizi kıyısındaki konumuyla hem yaşam kalitesi hem de yatırım değeri yüksek mülkler barındırmaktadır.</p>
+          <p style="margin-bottom:16px;">Denize yakın site projeleri, merkezi lokasyondaki ticari gayrimenkuller ve yatırımlık arsalar açısından Süleymanpaşa, Trakya'nın göz bebeği konumundadır.</p>
+          <h3 style="margin:24px 0 12px;color:var(--navy);font-size:18px;">Öne Çıkan Mülk Tipleri</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Denize yakın satılık konut</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Yatırımlık arsa</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık ofis ve ticari alan</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Lüks villa ve site dairesi</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Sık Sorulan Sorular</h3>
+          <div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Süleymanpaşa'da denize yakın konut fiyatları nasıl?</div><div class="faq-a">Denize yakın konumdaki konutlar premium fiyat taşısa da Marmara kıyısındaki yaşam kalitesi göz önüne alındığında yatırım değeri yüksek seçenekler mevcuttur.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Tekirdağ merkez arsa yatırımı mantıklı mı?</div><div class="faq-a">İl merkezi konumu, denize yakınlık ve gelişen altyapı yatırımları, Süleymanpaşa'daki arsa değerlerini olumlu etkilemektedir. Uzun vadeli yatırım için uygun bir bölgedir.</div></div>
+          </div>
+          <div style="margin-top:28px;">
+            <a href="#" onclick="goPage('portfoy')" class="btn btn-primary" style="width:100%;text-align:center;display:block;">Mülkünüzü Değerlendirin</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PORTFÖY / FORM -->
+<div class="page" id="page-portfoy">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">ÜCRETSİZ</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Portföyünüzü Değerlendirin</h1></div></div>
+  <section class="section">
+    <div class="container" style="max-width:700px;">
+      <p style="margin-bottom:32px;font-size:16px;">Mülkünüzü veya kariyer başvurunuzu aşağıdaki formla iletin. Uzman danışmanımız en kısa sürede sizi arayacak.</p>
+      <div class="form-wrap">
+        <form id="main-form" onsubmit="sendForm(event)">
+          <div class="form-grid">
+            <div>
+              <label class="form-label" for="f-ad">Ad soyad *</label>
+              <input class="form-input" type="text" id="f-ad" name="ad" required>
+            </div>
+            <div>
+              <label class="form-label" for="f-tel">Telefon *</label>
+              <input class="form-input" type="tel" id="f-tel" name="telefon" required>
+            </div>
+            <div class="full">
+              <label class="form-label" for="f-konu">Konu *</label>
+              <select class="form-input" id="f-konu" name="konu">
+                <option>Mülk değerlendirme — Konut</option>
+                <option>Mülk değerlendirme — Ticari</option>
+                <option>Mülk değerlendirme — Arsa</option>
+                <option>Kariyer başvurusu</option>
+                <option>Satın alma / kiralama talebi</option>
+                <option>Diğer</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="f-konum">Konum</label>
+              <input class="form-input" type="text" id="f-konum" name="konum" placeholder="Çorlu, Muhittin Mah.">
+            </div>
+            <div>
+              <label class="form-label" for="f-bolge">İlgilendiğiniz bölge</label>
+              <select class="form-input" id="f-bolge" name="bolge">
+                <option>Çorlu</option>
+                <option>Çerkezköy</option>
+                <option>Süleymanpaşa</option>
+                <option>Tekirdağ / Diğer</option>
+              </select>
+            </div>
+            <div class="full">
+              <label class="form-label" for="f-aciklama">Açıklama</label>
+              <textarea class="form-input" id="f-aciklama" name="aciklama" placeholder="Mülkünüz veya talebiniz hakkında kısa bilgi..."></textarea>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;">Gönder — WhatsApp ile İletirim</button>
+          </div>
+          <p class="form-note">Bilgileriniz WhatsApp üzerinden RE/MAX Lavanda danışmanına iletilir. Gizliliğinize saygı duyuyoruz.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- KARİYER -->
+<div class="page" id="page-kariyer">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">KARİYER</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">RE/MAX Lavanda'da Kariyer</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:60px;align-items:start;">
+        <div>
+          <p class="eyebrow">NEDEN RE/MAX LAVANDA</p>
+          <h2 class="section-title">Kariyerinizi Burada Kurun</h2>
+          <div class="grid-2" style="gap:16px;margin-top:8px;">
+            <div class="card" style="border-top:3px solid var(--gold);">
+              <h3 style="font-size:15px;">Dünya Markası</h3>
+              <p style="font-size:13px;margin-top:6px;">140.000+ danışman ve 9.000+ ofisin gücüyle çalışın.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--gold);">
+              <h3 style="font-size:15px;">Eğitim Desteği</h3>
+              <p style="font-size:13px;margin-top:6px;">RE/MAX Türkiye akademisi ve ACP eğitim programları.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--gold);">
+              <h3 style="font-size:15px;">Yüksek Komisyon</h3>
+              <p style="font-size:13px;margin-top:6px;">Sektörün en rekabetçi komisyon yapılarından biri.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--gold);">
+              <h3 style="font-size:15px;">Ekip Ruhu</h3>
+              <p style="font-size:13px;margin-top:6px;">Deneyimli kadromuzla birlikte büyüyün, öğrenin.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">BAŞVURU</p>
+          <h2 class="section-title">Hemen Başvurun</h2>
+          <div class="form-wrap">
+            <form id="kariyer-form-el" onsubmit="sendKariyerForm(event)">
+              <div class="form-grid">
+                <div>
+                  <label class="form-label">Ad soyad *</label>
+                  <input class="form-input" type="text" name="ad" required>
+                </div>
+                <div>
+                  <label class="form-label">Telefon *</label>
+                  <input class="form-input" type="tel" name="telefon" required>
+                </div>
+                <div class="full">
+                  <label class="form-label">Deneyim</label>
+                  <select class="form-input" name="deneyim">
+                    <option>Hayır, ilk kez başlayacağım</option>
+                    <option>1-3 yıl deneyimim var</option>
+                    <option>3 yıldan fazla deneyimim var</option>
+                  </select>
+                </div>
+                <div class="full">
+                  <label class="form-label">Neden RE/MAX Lavanda?</label>
+                  <textarea class="form-input" name="motivasyon"></textarea>
+                </div>
+              </div>
+              <div style="margin-top:20px;">
+                <button type="submit" class="btn btn-primary" style="width:100%;">Başvurumu Gönder</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BLOG LİSTESİ -->
+<div class="page" id="page-blog">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BLOG</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Piyasa & Kariyer Rehberi</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-3">
+        <div class="blog-card" onclick="goPage('blog-1')" style="cursor:pointer;">
+          <div class="blog-card-img"><span>Piyasa Analizi · 2025</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">GAYRİMENKUL YATIRIMI</div>
+            <h3>Çorlu'da Gayrimenkul Yatırımı: 2025 Piyasa Rehberi</h3>
+            <p>Mahallelere göre fiyat analizi, en doğru yatırım stratejileri ve bölge rehberi.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="goPage('blog-2')" style="cursor:pointer;">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,#1a3a5c,#0a2040);"><span>Ticari · Sanayi</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">TİCARİ GAYRİMENKUL</div>
+            <h3>Çerkezköy'de Sanayi ve Ticari Gayrimenkul Fırsatları</h3>
+            <p>OSB ve sanayi bölgesinde kiralık fabrika ve depo piyasası analizi.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="goPage('blog-3')" style="cursor:pointer;">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,#7b1f2e,#E31837);"><span>Kariyer · RE/MAX</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">KARİYER</div>
+            <h3>Gayrimenkul Danışmanı Olmak: RE/MAX Lavanda ile Kariyer</h3>
+            <p>Danışmanlık mesleğinin avantajları ve başvuru süreci.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BLOG 1 -->
+<div class="page" id="page-blog-1">
+  <div class="blog-post">
+    <div class="breadcrumb"><a href="#" onclick="goPage('blog')">Blog</a><span>/</span>Çorlu Gayrimenkul 2025</div>
+    <div class="blog-tag">GAYRİMENKUL YATIRIMI</div>
+    <h1>Çorlu'da Gayrimenkul Yatırımı: 2025 Piyasa Rehberi</h1>
+    <p class="blog-meta">RE/MAX Lavanda · 2025 · 8 dakika okuma</p>
+    <h2>Çorlu'nun Konumu ve Gelişimi</h2>
+    <p>Çorlu, Tekirdağ'ın en büyük ilçesi olup Türkiye'nin Avrupa'ya açılan kapısı konumundadır. İstanbul'a 80 km mesafede yer alan Çorlu, güçlü sanayi altyapısı, gelişmiş ulaşım ağı ve artan nüfusuyla gayrimenkul yatırımcılarının odağındaki kentlerden biridir.</p>
+    <p>2020'li yıllarda İstanbul'dan göç eden ailelerin tercihleri arasına giren Çorlu, hem uygun fiyat düzeyi hem de şehir hayatı standartlarını sunmasıyla öne çıkmaktadır. Bu dinamik yapı, hem konut hem de ticari gayrimenkul piyasasında sürdürülebilir bir büyüme trendi oluşturmuştur.</p>
+    <h2>Mahallelere Göre Fiyat Analizi</h2>
+    <p><strong>Reşadiye Mahallesi:</strong> Çorlu'nun en prestijli konut bölgesidir. Yeni yapılı projeler ve geniş daireler tercih edenlerin ilk adresidir. 2+1 daire fiyatları 3,5-5 milyon TL bandında seyretmektedir.</p>
+    <p><strong>Muhittin Mahallesi:</strong> Merkezi konumu ve altyapısıyla konut talebinin yoğun olduğu bir bölgedir. Fiyatlar 2,5-4 milyon TL aralığında değişmektedir.</p>
+    <p><strong>Omurtak Caddesi çevresi:</strong> Ticari gayrimenkul yoğunluğu yüksek olan bu koridor, kiralık dükkan ve ofis yatırımcılarının gözdesidir.</p>
+    <h2>Yatırım için En Doğru Mülk Tipleri</h2>
+    <p>Çorlu'da 2025 yılı için öne çıkan yatırım kategorileri şunlardır: Sanayi arsaları (OSB çevresi), lojistik depo amaçlı mülkler, 2+1 yeni yapı daireler ve kira getirisi yüksek ticari zemin katlar. Uzun vadeli değer artışı için arsa yatırımları ön plana çıkarken, kira geliri odaklı yatırımcılar için ticari gayrimenkul tercih edilmelidir.</p>
+    <div style="margin-top:32px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary">Mülkünüzü Değerlendirin</a></div>
+  </div>
+</div>
+
+<!-- BLOG 2 -->
+<div class="page" id="page-blog-2">
+  <div class="blog-post">
+    <div class="breadcrumb"><a href="#" onclick="goPage('blog')">Blog</a><span>/</span>Çerkezköy Ticari</div>
+    <div class="blog-tag">TİCARİ GAYRİMENKUL</div>
+    <h1>Çerkezköy'de Sanayi ve Ticari Gayrimenkul Fırsatları</h1>
+    <p class="blog-meta">RE/MAX Lavanda · 2025 · 6 dakika okuma</p>
+    <h2>Çerkezköy OSB ve Sanayi Bölgesi Analizi</h2>
+    <p>Çerkezköy Organize Sanayi Bölgesi, Türkiye'nin önemli üretim merkezlerinden biridir. Tekstil, kimya, metal işleme ve gıda sektörlerinden yüzlerce firma bu bölgede faaliyet göstermektedir. Bölgenin sürekli büyümesi, sanayi gayrimenkulüne olan talebi canlı tutmaktadır.</p>
+    <p>İstanbul-Edirne otoyoluna yakın konumu ve gelişmiş demiryolu bağlantıları, Çerkezköy'ü lojistik merkezi olarak da öne çıkarmaktadır. Bu durum, depo ve lojistik tesis yatırımlarını özellikle cazip hale getirmektedir.</p>
+    <h2>Kiralık Fabrika ve Depo Piyasası</h2>
+    <p>Çerkezköy'de 500 m²'den başlayıp 10.000 m²'yi aşan kiralık fabrika ve depo seçenekleri mevcuttur. Kira getirileri m² başına aylık 15-45 TL aralığında seyretmekte olup uzun vadeli kira sözleşmeleri tercih edilmektedir. RE/MAX Lavanda olarak bu segmentte aktif bir portföy yönetiyoruz; ACP akreditasyonlu danışmanlarımız ticari mülk alım-satım ve kiralama süreçlerinde size rehberlik edecektir.</p>
+    <h2>Yatırım Fırsatları</h2>
+    <p>OSB içi satılık parseller, altyapısı hazır olup inşaat maliyetini minimize eder. Mevcut fabrikalara yapılan yatırımlar ise kira geliri açısından oldukça rekabetçi getiri sunmaktadır. Uzun vadeli kiracı portföyü oluşturmak isteyen yatırımcılar için Çerkezköy doğru adres olmaya devam etmektedir.</p>
+    <div style="margin-top:32px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary">Mülkünüzü Değerlendirin</a></div>
+  </div>
+</div>
+
+<!-- BLOG 3 -->
+<div class="page" id="page-blog-3">
+  <div class="blog-post">
+    <div class="breadcrumb"><a href="#" onclick="goPage('blog')">Blog</a><span>/</span>RE/MAX Kariyer</div>
+    <div class="blog-tag">KARİYER</div>
+    <h1>Gayrimenkul Danışmanı Olmak: RE/MAX Lavanda ile Kariyer</h1>
+    <p class="blog-meta">RE/MAX Lavanda · 2025 · 5 dakika okuma</p>
+    <h2>Gayrimenkul Danışmanlığının Avantajları</h2>
+    <p>Gayrimenkul danışmanlığı, esnek çalışma saatleri, sınırsız kazanç potansiyeli ve insanlarla sürekli etkileşim gerektiren dinamik bir kariyer seçeneğidir. Önceki sektör deneyimine bakılmaksızın, doğru eğitim ve motivasyonla bu sektörde hızla yükselmek mümkündür.</p>
+    <h2>RE/MAX Sisteminin Farkı</h2>
+    <p>140.000'den fazla danışman ve 9.000'i aşkın ofisle RE/MAX, dünya gayrimenkul sektörünün tartışmasız lideridir. RE/MAX Lavanda çatısı altında çalışmak; bu küresel ağın gücüne, sürekli eğitim programlarına ve güçlü marka bilinirliğine erişim demektir. ACP (Accredited Commercial Professional) eğitim programı, ticari gayrimenkul alanında uluslararası geçerliliğe sahip bir sertifika sunmaktadır.</p>
+    <h2>Başvuru Süreci</h2>
+    <p>RE/MAX Lavanda'da kariyer yapmak için ön koşul yoktur. Kariyer başvuru formunu doldurmanız ve bir tanışma görüşmesi yapmanız yeterlidir. Görüşme sonrası RE/MAX eğitim süreciniz başlar ve kısa sürede kendi müşteri portföyünüzü oluşturmaya başlarsınız.</p>
+    <div style="margin-top:32px;"><a href="#" onclick="goPage('kariyer')" class="btn btn-primary">Kariyer Başvurusu Yap</a></div>
+  </div>
+</div>
+
+<!-- İLETİŞİM -->
+<div class="page" id="page-iletisim">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">İLETİŞİM</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Bize Ulaşın</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <div class="contact-box" style="margin-bottom:24px;">
+            <h3>İletişim Bilgileri</h3>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div><strong>Adres</strong>Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ</div></div>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.37 18a19.45 19.45 0 0 1-6-6A19.79 19.79 0 0 1 2.12 3.22 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><strong>Telefon</strong><a href="tel:+902825022222">0 282 502 22 22</a></div></div>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="#25D366" stroke="none"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37C7.97 7.07 7.2 7.79 7.2 9.25s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg><div><strong>WhatsApp</strong><a href="https://wa.me/905325535559" target="_blank">0532 553 55 59</a></div></div>
+          </div>
+          <div class="map-wrap">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3003.5!2d27.8!3d41.15!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRumeli+Mah+Y%C3%BCcet%C3%BCrk+Cad+No+20%2F3+%C3%87orlu!5e0!3m2!1str!2str!4v1" allowfullscreen loading="lazy"></iframe>
+          </div>
+        </div>
+        <div>
+          <h2 class="section-title">Mesaj Gönderin</h2>
+          <div class="form-wrap">
+            <form id="iletisim-form" onsubmit="sendIletisimForm(event)">
+              <div class="form-grid">
+                <div><label class="form-label">Ad soyad *</label><input class="form-input" type="text" name="ad" required></div>
+                <div><label class="form-label">Telefon *</label><input class="form-input" type="tel" name="telefon" required></div>
+                <div class="full"><label class="form-label">Konu</label><input class="form-input" type="text" name="konu"></div>
+                <div class="full"><label class="form-label">Mesajınız</label><textarea class="form-input" name="mesaj" style="min-height:100px;"></textarea></div>
+              </div>
+              <div style="margin-top:20px;"><button type="submit" class="btn btn-primary" style="width:100%;">WhatsApp ile Gönder</button></div>
+            </form>
+          </div>
+          <div class="footer-social" style="margin-top:24px;">
+            <a href="https://www.instagram.com/remaxlavanda/" target="_blank" title="Instagram"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" stroke="#fff" fill="none" stroke-width="1.5"/><circle cx="12" cy="12" r="4" stroke="#fff" fill="none" stroke-width="1.5"/><circle cx="17.2" cy="6.8" r="1.1" fill="#fff"/></svg></a>
+            <a href="https://www.facebook.com/remaxlavanda/" target="_blank" title="Facebook"><svg viewBox="0 0 24 24" fill="#fff"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06z"/></svg></a>
+            <a href="https://x.com/RemaxLavanda" target="_blank" title="X"><svg viewBox="0 0 24 24" fill="#fff"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-7.1l-5.6-7.3L4.2 22H1l8.1-9.3L.9 2H8.2l5 6.7L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
+            <a href="https://www.youtube.com/@remaxlavanda" target="_blank" title="YouTube"><svg viewBox="0 0 24 24" fill="#fff"><path d="M23 12s0-3.4-.43-5a3 3 0 0 0-2.1-2.1C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.47.4A3 3 0 0 0 1.43 7C1 8.6 1 12 1 12s0 3.4.43 5a3 3 0 0 0 2.1 2.1C5.1 19.5 12 19.5 12 19.5s6.9 0 8.47-.4a3 3 0 0 0 2.1-2.1c.43-1.6.43-5 .43-5z"/><path d="M9.8 15.3V8.7L15.8 12z" fill="#0a1628"/></svg></a>
+            <a href="https://tr.pinterest.com/remaxlavanda/" target="_blank" title="Pinterest"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.64 7.86 6.36 9.3-.09-.79-.17-2.01.04-2.87.19-.79 1.23-5.07 1.23-5.07s-.31-.63-.31-1.55c0-1.46.85-2.55 1.9-2.55.9 0 1.33.67 1.33 1.48 0 .9-.57 2.25-.87 3.5-.25 1.05.52 1.9 1.55 1.9 1.86 0 3.29-1.96 3.29-4.79 0-2.5-1.8-4.25-4.37-4.25-2.98 0-4.72 2.23-4.72 4.54 0 .9.34 1.86.78 2.39.09.1.1.2.07.3-.08.32-.25 1.05-.29 1.2-.05.18-.15.22-.35.13-1.3-.6-2.11-2.5-2.11-4.02 0-3.27 2.38-6.28 6.86-6.28 3.6 0 6.4 2.57 6.4 6 0 3.58-2.26 6.46-5.39 6.46-1.05 0-2.04-.55-2.38-1.2l-.65 2.46c-.23.9-.87 2.02-1.3 2.7.98.3 2.02.46 3.1.46 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg></a>
+            <a href="https://www.tiktok.com/@remax.lavanda" target="_blank" title="TikTok"><svg viewBox="0 0 24 24" fill="#fff"><path d="M16.6 2h-3.2v13.2c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.05.85.13V9.4a6 6 0 0 0-.85-.06A6 6 0 0 0 4.7 15.3a6 6 0 0 0 6 6 6 6 0 0 0 6-6V8.3a8.3 8.3 0 0 0 4.6 1.4V6.5a5 5 0 0 1-4.7-4.5z"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/remax_logotype.png" alt="RE/MAX" style="height:24px;filter:brightness(0) invert(1);">
+        <p style="margin-top:6px;font-size:13px;">LAVANDA</p>
+        <p>Çorlu ve Trakya bölgesinde lüks konut ve ticari gayrimenkul danışmanlığı.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/remaxlavanda/" target="_blank" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="#fff" stroke="none"/></svg></a>
+          <a href="https://www.facebook.com/remaxlavanda/" target="_blank" title="Facebook"><svg viewBox="0 0 24 24" fill="#fff"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06z"/></svg></a>
+          <a href="https://x.com/RemaxLavanda" target="_blank" title="X"><svg viewBox="0 0 24 24" fill="#fff"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-7.1l-5.6-7.3L4.2 22H1l8.1-9.3L.9 2H8.2l5 6.7L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
+          <a href="https://www.youtube.com/@remaxlavanda" target="_blank" title="YouTube"><svg viewBox="0 0 24 24" fill="#fff"><path d="M23 12s0-3.4-.43-5a3 3 0 0 0-2.1-2.1C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.47.4A3 3 0 0 0 1.43 7C1 8.6 1 12 1 12s0 3.4.43 5a3 3 0 0 0 2.1 2.1C5.1 19.5 12 19.5 12 19.5s6.9 0 8.47-.4a3 3 0 0 0 2.1-2.1c.43-1.6.43-5 .43-5z"/><path d="M9.8 15.3V8.7L15.8 12z" fill="#0a1628"/></svg></a>
+          <a href="https://tr.pinterest.com/remaxlavanda/" target="_blank" title="Pinterest"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.64 7.86 6.36 9.3-.09-.79-.17-2.01.04-2.87.19-.79 1.23-5.07 1.23-5.07s-.31-.63-.31-1.55c0-1.46.85-2.55 1.9-2.55.9 0 1.33.67 1.33 1.48 0 .9-.57 2.25-.87 3.5-.25 1.05.52 1.9 1.55 1.9 1.86 0 3.29-1.96 3.29-4.79 0-2.5-1.8-4.25-4.37-4.25-2.98 0-4.72 2.23-4.72 4.54 0 .9.34 1.86.78 2.39.09.1.1.2.07.3-.08.32-.25 1.05-.29 1.2-.05.18-.15.22-.35.13-1.3-.6-2.11-2.5-2.11-4.02 0-3.27 2.38-6.28 6.86-6.28 3.6 0 6.4 2.57 6.4 6 0 3.58-2.26 6.46-5.39 6.46-1.05 0-2.04-.55-2.38-1.2l-.65 2.46c-.23.9-.87 2.02-1.3 2.7.98.3 2.02.46 3.1.46 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg></a>
+          <a href="https://www.tiktok.com/@remax.lavanda" target="_blank" title="TikTok"><svg viewBox="0 0 24 24" fill="#fff"><path d="M16.6 2h-3.2v13.2c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.05.85.13V9.4a6 6 0 0 0-.85-.06A6 6 0 0 0 4.7 15.3a6 6 0 0 0 6 6 6 6 0 0 0 6-6V8.3a8.3 8.3 0 0 0 4.6 1.4V6.5a5 5 0 0 1-4.7-4.5z"/></svg></a>
+          <a href="https://wa.me/905325535559" target="_blank" title="WhatsApp"><svg viewBox="0 0 24 24" fill="#fff"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>SAYFALAR</h4>
+        <a href="#" onclick="goPage('home')">Ana Sayfa</a>
+        <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
+        <a href="#" onclick="goPage('hizmetler')">Hizmetler</a>
+        <a href="#" onclick="goPage('kariyer')">Kariyer</a>
+        <a href="#" onclick="goPage('blog')">Blog</a>
+        <a href="#" onclick="goPage('iletisim')">İletişim</a>
+      </div>
+      <div class="footer-col">
+        <h4>BÖLGELER</h4>
+        <a href="#" onclick="goPage('bolge-corlu')">Çorlu</a>
+        <a href="#" onclick="goPage('bolge-cerkezkoy')">Çerkezköy</a>
+        <a href="#" onclick="goPage('bolge-suleymanpasa')">Süleymanpaşa</a>
+      </div>
+      <div class="footer-col">
+        <h4>İLETİŞİM</h4>
+        <a href="tel:+902825022222">0 282 502 22 22</a>
+        <a href="https://wa.me/905325535559">0532 553 55 59</a>
+        <a href="#" onclick="goPage('portfoy')" style="color:var(--red);font-weight:700;margin-top:8px;">Portföy Değerlendirin →</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ</p>
+      <p>RE/MAX Lavanda © 2026 · Her ofis bağımsız olarak işletilir.</p>
+    </div>
   </div>
 </footer>
 
-<a href="https://wa.me/905325535559" target="_blank" rel="noopener" class="wa-float" aria-label="WhatsApp ile iletişime geç">
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+<!-- WA FLOAT -->
+<a href="https://wa.me/905325535559" target="_blank" class="wa-float" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
 </a>
 
 <script>
-function sendToWhatsApp(formId, baslik) {
-  var form = document.getElementById(formId);
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var data = new FormData(form);
-    var lines = [baslik, ''];
-    for (var pair of data.entries()) {
-      var label = form.querySelector('[name="'+pair[0]+'"]').previousElementSibling;
-      var labelText = label ? label.textContent : pair[0];
-      if (pair[1]) lines.push(labelText + ': ' + pair[1]);
-    }
-    var text = encodeURIComponent(lines.join('\n'));
-    window.open('https://wa.me/905325535559?text=' + text, '_blank');
-  });
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  var el=document.getElementById('page-'+id);
+  if(el){el.classList.add('active');}
+  window.scrollTo(0,0);
+  document.getElementById('navMobile').classList.remove('open');
 }
-sendToWhatsApp('portfoy-form', 'Yeni portföy başvurusu — RE/MAX Lavanda sitesi');
-sendToWhatsApp('kariyer-form', 'Yeni kariyer başvurusu — RE/MAX Lavanda sitesi');
-</script>
 
+function toggleMobile(){
+  document.getElementById('navMobile').classList.toggle('open');
+}
+
+function toggleFaq(el){
+  var item=el.parentElement;
+  item.classList.toggle('open');
+}
+
+function buildMsg(form){
+  var data=new FormData(form);
+  var lines=[];
+  for(var pair of data.entries()){
+    if(pair[1]) lines.push(pair[0]+': '+pair[1]);
+  }
+  return lines.join('\n');
+}
+
+function sendForm(e){
+  e.preventDefault();
+  var msg=encodeURIComponent('Portföy/Talep Başvurusu — RE/MAX Lavanda\n\n'+buildMsg(e.target));
+  window.open('https://wa.me/905325535559?text='+msg,'_blank');
+}
+
+function sendKariyerForm(e){
+  e.preventDefault();
+  var msg=encodeURIComponent('Kariyer Başvurusu — RE/MAX Lavanda\n\n'+buildMsg(e.target));
+  window.open('https://wa.me/905325535559?text='+msg,'_blank');
+}
+
+function sendIletisimForm(e){
+  e.preventDefault();
+  var msg=encodeURIComponent('İletişim Mesajı — RE/MAX Lavanda\n\n'+buildMsg(e.target));
+  window.open('https://wa.me/905325535559?text='+msg,'_blank');
+}
+</script>
 </body>
 </html>
