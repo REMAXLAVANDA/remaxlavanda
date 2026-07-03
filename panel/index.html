@@ -836,7 +836,7 @@ function svSant(){
   localStorage.setItem('rmx_sant',JSON.stringify(sant));
   document.getElementById('sant-msg').innerHTML='<div class="ok-m">✅ Çağrı eklendi!</div>';
   document.getElementById('st_tel').value='';document.getElementById('st_ad').value='';document.getElementById('st_not').value='';
-  setTimeout(()=>rSant(document.getElementById('ct')),800);
+  const sl2=document.getElementById('sant-list');if(sl2)sl2.innerHTML=renderSantList(JSON.parse(localStorage.getItem('rmx_sant')||'[]'));
 }
 
 function openLead(i){
@@ -855,7 +855,7 @@ function openLead(i){
   },300);
 }
 
-function delSant(i){if(!confirm('Silinsin mi?'))return;const s=JSON.parse(localStorage.getItem('rmx_sant')||'[]');s.splice(i,1);localStorage.setItem('rmx_sant',JSON.stringify(s));rSant(document.getElementById('ct'));}
+function delSant(i){if(!confirm('Silinsin mi?'))return;const s=JSON.parse(localStorage.getItem('rmx_sant')||'[]');s.splice(i,1);localStorage.setItem('rmx_sant',JSON.stringify(s));const sl=document.getElementById('sant-list');if(sl)sl.innerHTML=renderSantList(s);}
 
 // DANIŞMANLAR
 function rDans(c){
