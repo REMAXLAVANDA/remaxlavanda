@@ -379,8 +379,19 @@ async function chkToken(){
   try{
     await load();
     const dn=D.dans.find(x=>x.token===tok);
-    if(dn){pU='__dan__';document.getElementById('psub').textContent=dn.ad+' — PIN girin';document.getElementById('lp').classList.add('hidden');document.getElementById('po').classList.add('show');return true;}
-  }catch(e){}return false;
+    if(dn){
+      pU='__dan__';
+      pV='';
+      document.getElementById('pi').value='';
+      document.getElementById('perr').textContent='';
+      document.getElementById('psub').textContent=dn.ad+' — PIN girin';
+      document.getElementById('lp').classList.add('hidden');
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('po').classList.add('show');
+      return true;
+    }
+  }catch(e){console.error('Token check error:',e);}
+  return false;
 }
 
 function startDan(dn){
@@ -393,8 +404,8 @@ function startDan(dn){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'sant',l:'📞 Santral'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'sant',l:'📞 Santral'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy & Santral'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy & Santral'},{id:'rec',l:'👥 Recruiting'}];
   else tabs=[{id:'dan',l:'📋 Portföylerim'},{id:'havuz',l:'🏘️ Havuz'},{id:'notlar',l:'🔒 Notlarım'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');b.textContent=t.l;
@@ -408,7 +419,6 @@ function rC(id){
   if(id==='ozet')rOzet(c);
   else if(id==='pf')rPF(c);
   else if(id==='rec')rRec(c);
-  else if(id==='sant')rSant(c);
   else if(id==='dans')rDans(c);
   else if(id==='ay')rAy(c);
   else if(id==='dan')rDan(c);
@@ -547,13 +557,125 @@ function rPF(c){
     const f=D.leads.filter(l=>l.tarih>=wAgo()&&l.tarih<=td());
     h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th></tr></thead><tbody id="ofisLB">';
     h+=f.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
-    h+='</tbody></table></div>';c.innerHTML=h;return;
+    h+='</tbody></table></div>';
+    h+=santralBlock();
+    c.innerHTML=h;return;
   }
 
   h+='<div class="sb"><input id="sa" placeholder="🔍 Ad..." oninput="fL()"/><select id="sd" onchange="fL()"><option value="">Tüm Durumlar</option>'+opts(CFG.lDur,'')+'</select><select id="sdn" onchange="fL()"><option value="">Tüm Danışmanlar</option>'+dO+'</select></div>';
   h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Takip</th><th></th></tr></thead><tbody id="lB">';
   h+=lRows(D.leads);h+='</tbody></table></div>';
+  h+=santralBlock();
   c.innerHTML=h;
+}
+
+function santralBlock(){
+  const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
+  let h='<div class="div" style="margin:20px 0"></div>';
+  h+='<div class="th"><div class="tt">📞 Santral — Gelen Çağrılar</div><div class="ta"><button class="btn btn-p" onclick="newSantRow()">+ Yeni Çağrı</button></div></div>';
+  h+='<div id="sant-list">';
+  h+=renderSantList(sant);
+  h+='</div>';
+  return h;
+}
+
+function renderSantList(sant){
+  if(!sant.length)return'<div style="text-align:center;padding:20px;color:#ccc;background:#fff;border-radius:10px;border:1px solid var(--bd)">Henüz çağrı yok</div>';
+  let h='<div class="tw"><table><thead><tr><th>Saat</th><th>Telefon</th><th>Ad</th><th>Konu</th><th>Not</th><th>Durum</th><th></th></tr></thead><tbody>';
+  h+=sant.map((s,i)=>{
+    const isOpen=s.dur==='open';
+    return'<tr style="background:'+(isOpen?'#fff8f8':'#f9fff9')+'">'
+      +'<td><div class="sant-dot '+(isOpen?'open':'closed')+'" style="display:inline-block;margin-right:4px"></div>'+(s.saat||'—')+'</td>'
+      +'<td>'+wa(s.tel)+(s.tel||'—')+'</td>'
+      +'<td>'+(s.ad?'<strong>'+s.ad+'</strong>':'<em style="color:#ccc">Boş</em>')+'</td>'
+      +'<td>'+(s.konu||'—')+'</td>'
+      +'<td>'+(s.not?s.not.slice(0,40):'—')+'</td>'
+      +'<td>'+(isOpen?'<span class="badge b-ac">Açık</span>':'<span class="badge b-ka">Kapatıldı</span>')+'</td>'
+      +'<td style="display:flex;gap:4px">'
+      +(isOpen?'<button class="btn btn-sm btn-ora" onclick="openFromSant('+i+')" title="Lead olarak ekle">→ Lead</button>':'')
+      +'<button class="btn btn-sm btn-g" onclick="editSant('+i+')" title="Düzenle">✏️</button>'
+      +'<button class="btn btn-sm btn-r" onclick="delSant('+i+')" title="Sil">🗑</button>'
+      +'</td></tr>';
+  }).join('');
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function newSantRow(){
+  const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
+  sant.unshift({tel:'',ad:'',saat:new Date().toTimeString().slice(0,5),konu:'Portföy Sorusu',not:'',dur:'open',tarih:td()});
+  localStorage.setItem('rmx_sant',JSON.stringify(sant));
+  const sl=document.getElementById('sant-list');
+  if(sl)sl.innerHTML=renderSantList(sant);
+  // İlk satırı hemen edit moduna al
+  setTimeout(()=>editSant(0),100);
+}
+
+function editSant(i){
+  const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
+  const s=sant[i];
+  const dO=D.dans.map(d=>'<option value="'+d.ad+'">'+d.ad+'</option>').join('');
+  // Modal içeriği
+  document.getElementById('et').textContent='📞 Çağrı Düzenle';
+  document.getElementById('ec').innerHTML=
+    '<div class="fg">'
+    +'<div class="fgr"><label>Telefon *</label><input id="es_tel" value="'+(s.tel||'')+'"/></div>'
+    +'<div class="fgr"><label>Ad Soyad</label><input id="es_ad" value="'+(s.ad||'')+'" oninput="this.value=cap(this.value)"/></div>'
+    +'<div class="fgr"><label>Saat</label><input type="time" id="es_saat" value="'+(s.saat||'')+'"/></div>'
+    +'<div class="fgr"><label>Konu</label><select id="es_konu"><option'+(s.konu==='Portföy Sorusu'?' selected':'')+'>Portföy Sorusu</option><option'+(s.konu==='Genel Bilgi'?' selected':'')+'>Genel Bilgi</option><option'+(s.konu==='Randevu'?' selected':'')+'>Randevu</option><option'+(s.konu==='Şikayet'?' selected':'')+'>Şikayet</option><option'+(s.konu==='Diğer'?' selected':'')+'>Diğer</option></select></div>'
+    +'<div class="fgr"><label>Danışman</label><input id="es_dan" list="esDL" value="'+(s.danisman||'')+'" placeholder="Yönlendirilen danışman..."/><datalist id="esDL">'+dO+'</datalist></div>'
+    +'<div class="fgr"><label>Durum</label><select id="es_dur"><option value="open"'+(s.dur==='open'?' selected':'')+'>Açık</option><option value="closed"'+(s.dur==='closed'?' selected':'')+'>Kapatıldı</option></select></div>'
+    +'</div>'
+    +'<div class="fgr" style="margin-top:10px"><label>Not</label><textarea id="es_not">'+(s.not||'')+'</textarea></div>';
+  // Kaydet fonksiyonunu override et
+  window._santIdx=i;
+  document.getElementById('em').classList.add('show');
+}
+
+// svEdit'i override edilmiş santral için
+const _origSvEdit=window.svEdit;
+async function svEdit(){
+  if(window._santIdx!==undefined){
+    const i=window._santIdx;
+    const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
+    sant[i]={
+      tel:document.getElementById('es_tel').value.trim(),
+      ad:cap(document.getElementById('es_ad').value.trim()),
+      saat:document.getElementById('es_saat').value,
+      konu:document.getElementById('es_konu').value,
+      danisman:document.getElementById('es_dan').value.trim()||null,
+      dur:document.getElementById('es_dur').value,
+      not:document.getElementById('es_not').value.trim(),
+      tarih:sant[i].tarih||td()
+    };
+    localStorage.setItem('rmx_sant',JSON.stringify(sant));
+    window._santIdx=undefined;
+    hem();
+    const sl=document.getElementById('sant-list');
+    if(sl)sl.innerHTML=renderSantList(sant);
+    return;
+  }
+  // Orijinal edit
+  if(!eRec||!eTbl)return;
+  let data={};
+  if(eTbl==='gd_leads')data={ad:cap(document.getElementById('e_ad').value.trim()),telefon:document.getElementById('e_tel').value.trim(),kaynak:document.getElementById('e_k').value,danisman:document.getElementById('e_dan').value.trim()||null,durum:document.getElementById('e_d').value,aciklama:document.getElementById('e_a').value.trim(),sonraki_takip:document.getElementById('e_t').value||null};
+  else data={ad:cap(document.getElementById('e_ad').value.trim()),telefon:document.getElementById('e_tel').value.trim(),kaynak:document.getElementById('e_k').value,durum:document.getElementById('e_d').value,aciklama:document.getElementById('e_a').value.trim(),randevu_tarihi:document.getElementById('e_rv').value||null,randevu_saati:document.getElementById('e_rs').value||null};
+  try{await api(eTbl,'PATCH',data,'id=eq.'+eRec.id);document.getElementById('em-msg').innerHTML='<div class="ok-m">✅ Güncellendi!</div>';await load();setTimeout(()=>{hem();rC(eTbl==='gd_leads'?'pf':'rec');},800);}
+  catch(e){document.getElementById('em-msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+function openFromSant(i){
+  const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
+  const s=sant[i];
+  sant[i].dur='closed';
+  localStorage.setItem('rmx_sant',JSON.stringify(sant));
+  document.getElementById('lfw')?.classList.remove('hidden');
+  const tel=document.getElementById('f_tel');const ad=document.getElementById('f_ad');
+  if(tel)tel.value=s.tel||'';
+  if(ad){ad.value=s.ad||'';dupC(ad.value,'l');}
+  const sl=document.getElementById('sant-list');
+  if(sl)sl.innerHTML=renderSantList(sant);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 function lRows(list){return list.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td><td>'+(l.sonraki_takip||'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button></td></tr>').join('');}
 function fL(){const a=(document.getElementById('sa')||{value:''}).value.toLowerCase();const d=(document.getElementById('sd')||{value:''}).value;const dn=(document.getElementById('sdn')||{value:''}).value;const f=D.leads.filter(l=>(!a||(l.ad||'').toLowerCase().includes(a))&&(!d||l.durum===d)&&(!dn||l.danisman===dn));const b=document.getElementById('lB');if(b)b.innerHTML=lRows(f);}
@@ -771,7 +893,7 @@ function rAy(c){
   let h='';
   secs.forEach(s=>{
     h+='<div class="ss2"><h3>'+s.t+'</h3><div class="tag-l" id="tl_'+s.k+'">';
-    h+=CFG[s.k].map((v,i)=>'<div class="tag-i" id="ti_'+s.k+'_'+i+'"><input class="edit-in" id="ev_'+s.k+'_'+i+'" value="'+v+'" readonly onblur="svTag(\''+s.k+'\','+i+',this.value)"/><button class="tag-ed" onclick="edTag(\''+s.k+'\','+i+')" title="Düzenle">✏️</button><button class="tag-del" onclick="dlTag(\''+s.k+'\','+i+')" title="Sil">×</button></div>').join('');
+    h+=CFG[s.k].map((v,i)=>'<div class="tag-i"><span>'+v+'</span><button class="tag-ed" onclick="edTag(\''+s.k+'\','+i+')" title="Düzenle">✏️</button><button class="tag-del" onclick="dlTag(\''+s.k+'\','+i+')" title="Sil">×</button></div>').join('');
     h+='</div><div class="tag-add"><input id="na_'+s.k+'" placeholder="Yeni ekle..."/><button class="btn btn-p btn-sm" onclick="addTag(\''+s.k+'\')">+ Ekle</button></div></div>';
   });
   h+='<div class="ss2"><h3>⚙️ Ofis Şifre & PIN Sıfırla</h3>';
@@ -779,8 +901,14 @@ function rAy(c){
   h+='<div class="fa"><button class="btn btn-p" onclick="adRst()">Sıfırla</button></div><div id="arm"></div></div>';
   c.innerHTML=h;
 }
-function edTag(k,i){const el=document.getElementById('ev_'+k+'_'+i);if(el){el.readOnly=false;el.focus();el.select();}}
-function svTag(k,i,v){const cap2=cap(v.trim());if(!cap2)return;CFG[k][i]=cap2;svCFG();const el=document.getElementById('ev_'+k+'_'+i);if(el){el.value=cap2;el.readOnly=true;}}
+function edTag(k,i){
+  const cur=CFG[k][i];
+  const yeni=prompt('Değeri düzenle:',cur);
+  if(yeni===null)return;
+  const v=cap(yeni.trim());
+  if(!v)return;
+  CFG[k][i]=v;svCFG();rAy(document.getElementById('ct'));
+}
 function addTag(k){const el=document.getElementById('na_'+k);const v=cap(el.value.trim());if(!v)return;if(!CFG[k].includes(v)){CFG[k].push(v);svCFG();}el.value='';rAy(document.getElementById('ct'));}
 function dlTag(k,i){if(confirm('Silmek istiyor musunuz?')){CFG[k].splice(i,1);svCFG();rAy(document.getElementById('ct'));}}
 function adRst(){const p=document.getElementById('anp').value.trim();const pin=document.getElementById('anpin').value.trim();let m='';if(p&&p.length>=4){U['ofis'].pass=p;svU();m+='Şifre güncellendi. ';}if(pin&&pin.length===4){U['ofis'].pin=pin;svU();m+='PIN güncellendi.';}document.getElementById('arm').innerHTML=m?'<div class="ok-m">✅ '+m+'</div>':'<div class="err-m">En az biri doldurulmalı!</div>';}
@@ -877,6 +1005,7 @@ async function svNot(){
 async function delNot(id){if(!confirm('Silinsin mi?'))return;try{await api('danisman_notlar','DELETE',null,'id=eq.'+id);await load();rNotlar(document.getElementById('ct'));}catch(e){alert('Hata: '+e.message);}}
 
 // EDIT
+window._santIdx=undefined;
 function doE(tbl,id){
   const rec=tbl==='gd_leads'?D.leads.find(l=>l.id===id):D.rec.find(r=>r.id===id);
   if(!rec)return;eRec=rec;eTbl=tbl;
@@ -902,15 +1031,7 @@ function doE(tbl,id){
   document.getElementById('ec').innerHTML=h;
   document.getElementById('em').classList.add('show');
 }
-function hem(){document.getElementById('em').classList.remove('show');eRec=null;eTbl=null;}
-async function svEdit(){
-  if(!eRec||!eTbl)return;
-  let data={};
-  if(eTbl==='gd_leads')data={ad:cap(document.getElementById('e_ad').value.trim()),telefon:document.getElementById('e_tel').value.trim(),kaynak:document.getElementById('e_k').value,danisman:document.getElementById('e_dan').value.trim()||null,durum:document.getElementById('e_d').value,aciklama:document.getElementById('e_a').value.trim(),sonraki_takip:document.getElementById('e_t').value||null};
-  else data={ad:cap(document.getElementById('e_ad').value.trim()),telefon:document.getElementById('e_tel').value.trim(),kaynak:document.getElementById('e_k').value,durum:document.getElementById('e_d').value,aciklama:document.getElementById('e_a').value.trim(),randevu_tarihi:document.getElementById('e_rv').value||null,randevu_saati:document.getElementById('e_rs').value||null};
-  try{await api(eTbl,'PATCH',data,'id=eq.'+eRec.id);document.getElementById('em-msg').innerHTML='<div class="ok-m">✅ Güncellendi!</div>';await load();setTimeout(()=>{hem();rC(eTbl==='gd_leads'?'pf':'rec');},800);}
-  catch(e){document.getElementById('em-msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
-}
+function hem(){document.getElementById('em').classList.remove('show');eRec=null;eTbl=null;window._santIdx=undefined;}
 
 // ŞİFRE
 function spm(){document.getElementById('pm').classList.add('show');}
