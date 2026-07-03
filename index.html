@@ -1,1026 +1,812 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRF2BXPL52"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-TRF2BXPL52');
+</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RE/MAX LAVANDA - Ofis Yönetim Sistemi</title>
-<style>
-:root {
-  --red: #DC1C2E;
-  --blue: #003DA5;
-  --darkblue: #0C2749;
-  --gray: #404041;
-  --lightgray: #F5F6F8;
-  --border: #E3E6EB;
-  --green: #1C8C4B;
-  --orange: #C9821A;
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">RE/MAX Lavanda | Çorlu Gayrimenkul Uzmanı</title>
+<meta id="meta-desc" name="description" content="Çorlu ve Trakya bölgesinde lüks konut, ticari gayrimenkul ve arsa danışmanlığı. ACP akreditasyonlu, RE/MAX Lavanda ofisi.">
+<link rel="canonical" id="canonical" href="https://remaxlavanda.com.tr/">
+<meta property="og:site_name" content="RE/MAX Lavanda">
+<meta property="og:type" content="website">
+<meta id="og-title" property="og:title" content="RE/MAX Lavanda | Çorlu Gayrimenkul Uzmanı">
+<meta id="og-desc" property="og:description" content="Çorlu ve Trakya bölgesinde lüks konut, ticari gayrimenkul ve arsa danışmanlığı.">
+<meta property="og:url" content="https://remaxlavanda.com.tr/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "RE/MAX Lavanda",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rumeli Mah. Yücetürk Cad. No:20/3",
+    "addressLocality": "Çorlu",
+    "addressRegion": "Tekirdağ",
+    "addressCountry": "TR"
+  },
+  "telephone": "+902825022222",
+  "url": "https://remaxlavanda.com.tr",
+  "foundingDate": "2022",
+  "areaServed": ["Çorlu","Çerkezköy","Süleymanpaşa","Tekirdağ","Trakya"]
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lightgray); color: var(--gray); min-height: 100vh; }
-
-/* LOGIN */
-.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--darkblue), var(--blue)); }
-.login-box { background: white; border-radius: 20px; padding: 48px 40px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
-.login-logo { font-size: 22px; font-weight: 800; color: var(--darkblue); margin-bottom: 4px; }
-.login-sub { font-size: 12px; color: #999; margin-bottom: 32px; }
-.login-box input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; margin-bottom: 12px; outline: none; }
-.login-box input:focus { border-color: var(--blue); }
-.btn-login { width: 100%; padding: 13px; background: var(--darkblue); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
-.btn-login:hover { background: var(--blue); }
-.login-error { color: var(--red); font-size: 12px; margin-top: 8px; }
-
-/* HEADER */
-.header { background: linear-gradient(135deg, var(--darkblue), var(--blue)); color: white; padding: 16px 20px; }
-.header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-.logo { font-size: 17px; font-weight: 800; }
-.subtitle { font-size: 11px; opacity: 0.8; margin-top: 2px; }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.user-badge { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 12px; }
-.last-login { font-size: 10px; opacity: 0.7; margin-top: 2px; }
-.btn-header { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; }
-.btn-header:hover { background: rgba(255,255,255,0.25); }
-
-/* TABS */
-.tab-bar { background: white; border-bottom: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-.tabs { display: flex; max-width: 1400px; margin: 0 auto; padding: 0 20px; overflow-x: auto; }
-.tab { padding: 14px 18px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: #999; border-bottom: 3px solid transparent; white-space: nowrap; }
-.tab:hover { color: var(--darkblue); }
-.tab.active { color: var(--darkblue); border-bottom-color: var(--red); font-weight: 600; }
-
-/* CONTENT */
-.content { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
-
-/* CARDS */
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
-.card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
-.card h3 { font-size: 11px; color: #999; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.card-stat { font-size: 28px; font-weight: 800; color: var(--darkblue); }
-.card-sub { font-size: 11px; color: #bbb; margin-top: 4px; }
-.card.red .card-stat { color: var(--red); }
-.card.green .card-stat { color: var(--green); }
-.card.orange .card-stat { color: var(--orange); }
-.card.blue .card-stat { color: var(--blue); }
-
-/* 2 KOLON LAYOUT */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media(max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
-.col-box { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-.col-box h2 { font-size: 15px; font-weight: 700; color: var(--darkblue); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--red); }
-
-/* DATE FILTER */
-.date-filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
-.date-filter-bar label { font-size: 11px; font-weight: 700; color: #666; }
-.date-filter-bar input, .date-filter-bar select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; outline: none; }
-.filter-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 11px; cursor: pointer; font-weight: 600; color: #666; }
-.filter-btn.active { background: var(--darkblue); color: white; border-color: var(--darkblue); }
-
-/* TABLE */
-.table-header { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 10px 0; }
-.table-title { font-size: 14px; font-weight: 700; color: var(--darkblue); }
-.table-actions { display: flex; gap: 8px; }
-.table-wrap { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.search-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.search-bar input, .search-bar select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
-table { width: 100%; border-collapse: collapse; }
-th { background: var(--lightgray); padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; border-bottom: 1px solid var(--border); color: #666; text-transform: uppercase; }
-td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #fafafa; }
-
-/* MINI TABLE (özet için) */
-.mini-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-.mini-table th { font-size: 11px; font-weight: 700; color: #666; padding: 8px; background: var(--lightgray); border-bottom: 1px solid var(--border); text-align: left; }
-.mini-table td { font-size: 12px; padding: 8px; border-bottom: 1px solid #f5f5f5; }
-.mini-table tr:last-child td { border-bottom: none; }
-
-/* BADGE */
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.badge-arandi { background: #E8F0FE; color: #1a56db; }
-.badge-cagrildi { background: #FEF3C7; color: #92400e; }
-.badge-gorusuldu { background: #EDE9FE; color: #5b21b6; }
-.badge-1gorusme { background: #E0F2FE; color: #0369a1; }
-.badge-2gorusme { background: #F0FDF4; color: #15803d; }
-.badge-sicak { background: #FBEEDB; color: var(--orange); }
-.badge-soguk { background: #F0F0F0; color: #555; }
-.badge-kazanildi { background: #E2F2E8; color: var(--green); }
-.badge-kaybedildi { background: #FBE3E5; color: var(--red); }
-.badge-beklemede { background: #FEF3C7; color: #92400e; }
-.badge-randevu { background: #EDE9FE; color: #5b21b6; }
-.badge-olumsuz { background: #FBE3E5; color: var(--red); }
-.badge-karalist { background: #1a1a1a; color: white; }
-
-/* BUTTONS */
-.btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
-.btn-primary { background: var(--darkblue); color: white; }
-.btn-primary:hover { background: var(--blue); }
-.btn-ghost { background: white; color: var(--gray); border: 1px solid var(--border); }
-.btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
-.btn-wa { background: #25D366; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; text-decoration: none; }
-
-/* FORM */
-.form-wrap { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 16px; }
-.form-wrap h3 { font-size: 15px; font-weight: 700; color: var(--darkblue); margin-bottom: 20px; }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; }
-.form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; font-family: inherit; }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); }
-.form-group textarea { resize: vertical; min-height: 70px; }
-.form-actions { margin-top: 16px; display: flex; gap: 8px; align-items: center; }
-.status-select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; background: white; }
-
-/* TAKVIM */
-.calendar-wrap { background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--lightgray); }
-.calendar-nav { display: flex; gap: 8px; align-items: center; }
-.cal-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer; font-size: 13px; }
-.cal-title { font-size: 16px; font-weight: 700; color: var(--darkblue); }
-.time-grid { display: grid; grid-template-columns: 60px 1fr; }
-.time-col { border-right: 1px solid var(--border); }
-.time-slot { height: 60px; display: flex; align-items: flex-start; justify-content: center; padding-top: 4px; font-size: 11px; color: #999; border-bottom: 1px solid #f0f0f0; }
-.event-col { position: relative; }
-.event-row { height: 60px; border-bottom: 1px solid #f0f0f0; position: relative; }
-.event-item { position: absolute; left: 4px; right: 4px; background: var(--blue); color: white; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 600; cursor: pointer; overflow: hidden; z-index: 1; }
-.event-item.confirmed { background: var(--green); }
-.event-item.pending { background: var(--orange); }
-
-/* MODAL */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-.modal-overlay.show { display: flex; }
-.modal { background: white; border-radius: 16px; padding: 32px; width: 520px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
-.modal h3 { font-size: 16px; font-weight: 700; color: var(--darkblue); margin-bottom: 20px; }
-.modal-actions { margin-top: 20px; display: flex; gap: 8px; justify-content: flex-end; }
-
-/* UTILS */
-.hidden { display: none; }
-.loading { text-align: center; padding: 40px; color: #999; }
-.success-msg { background: #E2F2E8; color: var(--green); padding: 10px 14px; border-radius: 8px; margin: 8px 0; font-size: 13px; }
-.error-msg { background: #FBE3E5; color: var(--red); padding: 10px 14px; border-radius: 8px; margin: 8px 0; font-size: 13px; }
-.dup-warning { background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; font-size: 12px; color: #856404; }
-.token-link { font-family: monospace; font-size: 10px; background: #f0f0f0; padding: 3px 6px; border-radius: 4px; color: var(--blue); word-break: break-all; }
-.rate-bar { display: inline-block; height: 8px; background: var(--green); border-radius: 4px; vertical-align: middle; margin-right: 6px; }
-.section-divider { height: 1px; background: var(--border); margin: 16px 0; }
-.today-badge { background: var(--red); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 6px; }
+</script>
+<style>
+:root{
+  --red:#E31837;
+  --red-dark:#B5122C;
+  --navy:#003087;
+  --navy-light:#0040A8;
+  --gold:#C9A84C;
+  --gray:#404041;
+  --gray-light:#C4C6C8;
+  --bg:#F8F8F8;
+  --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;color:var(--gray);background:var(--white);line-height:1.6;}
+a{text-decoration:none;color:inherit;}
+img{max-width:100%;display:block;}
+h1,h2,h3,h4{font-family:'Montserrat',sans-serif;}
+.container{max-width:1140px;margin:0 auto;padding:0 24px;}
+nav{position:sticky;top:0;z-index:100;background:var(--white);border-bottom:3px solid var(--red);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px;}
+.logo{display:flex;align-items:baseline;gap:8px;}
+.logo img{height:28px;width:auto;}
+.logo-name{font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;color:var(--navy);letter-spacing:1.5px;}
+.nav-links{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.nav-links a{font-size:13px;font-weight:500;color:var(--gray);padding:6px 10px;border-radius:4px;white-space:nowrap;}
+.nav-links a:hover,.nav-links a.active{color:var(--red);}
+.nav-dropdown{position:relative;}
+.nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:var(--white);border:1px solid var(--gray-light);border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:200;}
+.nav-dropdown:hover .nav-dropdown-menu{display:block;}
+.nav-dropdown-menu a{display:block;padding:10px 16px;font-size:13px;font-weight:500;}
+.nav-dropdown-menu a:hover{background:var(--bg);color:var(--red);}
+.nav-cta{background:var(--red);color:var(--white)!important;padding:8px 16px!important;border-radius:4px;font-weight:700!important;}
+.nav-cta:hover{background:var(--red-dark)!important;color:var(--white)!important;}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:4px;}
+.nav-toggle svg{width:24px;height:24px;stroke:var(--gray);}
+.nav-mobile{display:none;flex-direction:column;gap:4px;padding:12px 0;border-top:1px solid var(--bg);}
+.nav-mobile a{display:block;padding:10px 0;font-size:14px;font-weight:500;border-bottom:1px solid var(--bg);}
+.btn{display:inline-block;padding:12px 24px;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:var(--red);color:var(--white);}
+.btn-primary:hover{background:var(--red-dark);}
+.btn-outline{background:transparent;color:var(--navy);border:2px solid var(--navy);}
+.btn-outline:hover{background:var(--navy);color:var(--white);}
+.btn-gold{background:var(--gold);color:var(--white);}
+.btn-white{background:var(--white);color:var(--navy);}
+.section{padding:72px 0;}
+.section-sm{padding:48px 0;}
+.section-dark{background:var(--navy);color:var(--white);}
+.section-bg{background:var(--bg);}
+.section-red{background:var(--red);color:var(--white);}
+.section-title{font-size:32px;font-weight:800;margin-bottom:12px;color:var(--navy);}
+.section-title.light{color:var(--white);}
+.section-sub{font-size:16px;color:var(--gray);margin-bottom:40px;}
+.section-sub.light{color:rgba(255,255,255,.75);}
+.eyebrow{font-size:12px;letter-spacing:2px;font-weight:700;color:var(--red);margin-bottom:12px;font-family:'Montserrat',sans-serif;}
+.eyebrow.light{color:var(--gold);}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#0040A8 50%,#1a56c4 100%);color:var(--white);padding:80px 0;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 48px);}
+.hero-content{position:relative;z-index:2;max-width:640px;}
+.hero h1{font-size:44px;font-weight:800;line-height:1.15;margin-bottom:20px;}
+.hero h1 span{color:var(--gold);}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.85);margin-bottom:32px;max-width:500px;}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;margin-bottom:20px;}
+.hero-badge span{color:var(--gold);}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.card{background:var(--white);border-radius:8px;padding:28px;border:1px solid #eee;}
+.card:hover{box-shadow:0 4px 24px rgba(0,0,0,.08);transform:translateY(-2px);transition:all .2s;}
+.card-icon{width:48px;height:48px;border-radius:8px;background:rgba(227,24,55,.08);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.card-icon svg{width:24px;height:24px;stroke:var(--red);}
+.card h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.card p{font-size:14px;color:var(--gray);}
+.card-link{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--red);margin-top:14px;}
+.bolge-card{background:var(--navy);color:var(--white);border-radius:8px;padding:32px;border-top:4px solid var(--gold);}
+.bolge-card h3{font-size:20px;font-weight:700;margin-bottom:10px;}
+.bolge-card p{font-size:14px;color:rgba(255,255,255,.75);}
+.neden-item{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid #eee;}
+.neden-item:last-child{border-bottom:none;}
+.neden-num{font-size:32px;font-weight:800;color:var(--red);opacity:.2;font-family:'Montserrat',sans-serif;min-width:48px;}
+.neden-text h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.form-wrap{background:var(--white);border-radius:8px;padding:40px;box-shadow:0 2px 20px rgba(0,0,0,.08);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid .full{grid-column:1/-1;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:4px;font-family:'Inter',sans-serif;font-size:14px;color:var(--gray);transition:border-color .2s;}
+.form-input:focus{outline:none;border-color:var(--navy);}
+select.form-input{background:var(--white);}
+textarea.form-input{resize:vertical;min-height:80px;}
+.form-note{font-size:12px;color:#888;margin-top:12px;}
+.faq-item{border-bottom:1px solid #eee;}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:18px 0;cursor:pointer;font-weight:600;color:var(--navy);font-size:15px;}
+.faq-q::after{content:'+';font-size:20px;color:var(--red);font-weight:300;}
+.faq-item.open .faq-q::after{content:'−';}
+.faq-a{display:none;padding-bottom:16px;font-size:14px;color:var(--gray);}
+.faq-item.open .faq-a{display:block;}
+.blog-card{border-radius:8px;overflow:hidden;border:1px solid #eee;}
+.blog-card-body{padding:22px;}
+.blog-tag{font-size:11px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:8px;}
+.blog-card h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px;line-height:1.4;}
+.blog-card p{font-size:13px;color:var(--gray);}
+.blog-card-img{height:180px;background:linear-gradient(135deg,var(--navy),var(--navy-light));display:flex;align-items:flex-end;padding:16px;}
+.blog-card-img span{font-size:11px;color:rgba(255,255,255,.7);font-weight:500;}
+footer{background:#0a1628;color:var(--white);padding:56px 0 24px;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+.footer-brand p{font-size:14px;color:rgba(255,255,255,.6);margin-top:12px;max-width:260px;}
+.footer-col h4{font-size:13px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:16px;}
+.footer-col a{display:block;font-size:14px;color:rgba(255,255,255,.65);margin-bottom:8px;}
+.footer-col a:hover{color:var(--white);}
+.footer-social{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.footer-social a{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;}
+.footer-social a:hover{background:var(--red);}
+.footer-social a svg{width:16px;height:16px;fill:var(--white);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.footer-bottom p{font-size:12px;color:rgba(255,255,255,.4);}
+.wa-float{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:999;cursor:pointer;}
+.wa-float:hover{background:#1ebd5a;transform:scale(1.05);}
+.wa-float svg{width:28px;height:28px;fill:var(--white);}
+.page{display:none;}
+.page.active{display:block;}
+.blog-post{max-width:760px;margin:0 auto;padding:56px 24px;}
+.blog-post h1{font-size:34px;font-weight:800;color:var(--navy);margin-bottom:16px;}
+.blog-post .blog-meta{font-size:13px;color:#888;margin-bottom:32px;}
+.blog-post h2{font-size:22px;font-weight:700;color:var(--navy);margin:32px 0 12px;}
+.blog-post p{margin-bottom:16px;line-height:1.8;}
+.map-wrap{border-radius:8px;overflow:hidden;height:360px;}
+.map-wrap iframe{width:100%;height:100%;border:0;}
+.breadcrumb{font-size:13px;color:#888;padding:14px 0;display:flex;gap:6px;align-items:center;}
+.breadcrumb a{color:var(--red);}
+.breadcrumb span{color:#ccc;}
+.contact-box{background:var(--bg);border-radius:8px;padding:28px;border-left:4px solid var(--red);}
+.contact-box h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;}
+.contact-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;}
+.contact-item svg{width:20px;height:20px;stroke:var(--red);flex-shrink:0;margin-top:2px;}
+.contact-item div{font-size:14px;}
+.contact-item strong{display:block;font-weight:600;color:var(--navy);}
+@media(max-width:768px){
+  .hero h1{font-size:30px;}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .nav-links{display:none;}
+  .nav-toggle{display:block;}
+  .nav-mobile.open{display:flex;}
+  .section{padding:48px 0;}
+  .section-title{font-size:26px;}
+  .form-grid{grid-template-columns:1fr;}
+  .blog-post h1{font-size:26px;}
+  .hero{padding:56px 0;}
+}
+@media(max-width:480px){
+  .footer-grid{grid-template-columns:1fr;}
+  .form-wrap{padding:24px;}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginPage" class="login-wrap">
-  <div class="login-box">
-    <div class="login-logo">RE/MAX LAVANDA</div>
-    <div class="login-sub">Ofis Yönetim Sistemi</div>
-    <input type="text" id="loginUser" placeholder="Kullanıcı adı" />
-    <input type="password" id="loginPass" placeholder="Şifre" />
-    <button class="btn-login" onclick="doLogin()">Giriş Yap</button>
-    <div id="loginError" class="login-error"></div>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="mainApp" class="hidden">
-  <div class="header">
-    <div class="header-content">
-      <div>
-        <div class="logo">RE/MAX LAVANDA</div>
-        <div class="subtitle">Ofis Yönetim Sistemi</div>
-      </div>
-      <div class="header-right">
-        <div>
-          <div class="user-badge" id="userBadge">👤</div>
-          <div class="last-login" id="lastLoginInfo"></div>
+<nav>
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#" onclick="goPage('home')" class="logo">
+        <img src="assets/remax_logotype.png" alt="RE/MAX">
+        <span class="logo-name">LAVANDA</span>
+      </a>
+      <div class="nav-links">
+        <a href="#" onclick="goPage('home')">Ana Sayfa</a>
+        <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
+        <a href="#" onclick="goPage('hizmetler')">Hizmetler</a>
+        <div class="nav-dropdown">
+          <a href="#" onclick="return false;">Bölgeler ▾</a>
+          <div class="nav-dropdown-menu">
+            <a href="#" onclick="goPage('bolge-corlu')">Çorlu</a>
+            <a href="#" onclick="goPage('bolge-cerkezkoy')">Çerkezköy</a>
+            <a href="#" onclick="goPage('bolge-suleymanpasa')">Süleymanpaşa</a>
+          </div>
         </div>
-        <button class="btn-header" onclick="showPasswordModal()">🔑 Şifre</button>
-        <button class="btn-header" onclick="doLogout()">Çıkış</button>
+        <a href="#" onclick="goPage('kariyer')">Kariyer</a>
+        <a href="#" onclick="goPage('blog')">Blog</a>
+        <a href="#" onclick="goPage('iletisim')">İletişim</a>
+        <a href="#" onclick="goPage('portfoy')" class="btn-cta nav-cta">Portföy Değerlendirin</a>
+      </div>
+      <button class="nav-toggle" onclick="toggleMobile()" aria-label="Menü">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="nav-mobile" id="navMobile">
+      <a href="#" onclick="goPage('home')">Ana Sayfa</a>
+      <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
+      <a href="#" onclick="goPage('hizmetler')">Hizmetler</a>
+      <a href="#" onclick="goPage('bolge-corlu')">Çorlu</a>
+      <a href="#" onclick="goPage('bolge-cerkezkoy')">Çerkezköy</a>
+      <a href="#" onclick="goPage('bolge-suleymanpasa')">Süleymanpaşa</a>
+      <a href="#" onclick="goPage('kariyer')">Kariyer</a>
+      <a href="#" onclick="goPage('blog')">Blog</a>
+      <a href="#" onclick="goPage('iletisim')">İletişim</a>
+      <a href="#" onclick="goPage('portfoy')" style="color:var(--red);font-weight:700;">Portföy Değerlendirin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge"><span>★</span> ACP Akreditasyonlu · RE/MAX Collection · RE/MAX Ticari</div>
+        <h1>Trakya'da <span>Doğru Mülk</span>, Doğru Danışman</h1>
+        <p class="hero-sub">Çorlu, Çerkezköy ve Tekirdağ'da lüks konut, ticari gayrimenkul ve arsa danışmanlığında RE/MAX Lavanda güvencesi.</p>
+        <div class="hero-actions">
+          <a href="#" onclick="goPage('portfoy')" class="btn btn-primary">Portföyünüzü Değerlendirin</a>
+          <a href="#" onclick="goPage('kariyer')" class="btn btn-white">Danışman Ol</a>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="tab-bar"><div class="tabs" id="navTabs"></div></div>
-  <div class="content" id="content"><div class="loading">Yükleniyor...</div></div>
+  </section>
+
+  <section class="section-sm section-bg">
+    <div class="container">
+      <div class="grid-4">
+        <div class="card" onclick="goPage('hizmetler')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <h3>Satılık Konut</h3>
+          <p>Daire, villa, müstakil ev ve lüks konut portföyleri.</p>
+          <span class="card-link">İncele →</span>
+        </div>
+        <div class="card" onclick="goPage('hizmetler')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <h3>Ticari Gayrimenkul</h3>
+          <p>Dükkan, ofis, fabrika, depo ve sanayi arsası.</p>
+          <span class="card-link">İncele →</span>
+        </div>
+        <div class="card" onclick="goPage('hizmetler')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg></div>
+          <h3>Değerleme</h3>
+          <p>Profesyonel ekspertiz ve piyasa değer analizi.</p>
+          <span class="card-link">İncele →</span>
+        </div>
+        <div class="card" onclick="goPage('kariyer')" style="cursor:pointer;">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg></div>
+          <h3>Danışman Ol</h3>
+          <p>RE/MAX Lavanda ailesine katıl, kariyerini kur.</p>
+          <span class="card-link">Başvur →</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">HİZMET BÖLGELERİ</p>
+      <h2 class="section-title">Trakya'nın Kalbinde</h2>
+      <p class="section-sub">Çorlu, Çerkezköy ve Tekirdağ'ın en değerli lokasyonlarında uzman danışmanlık.</p>
+      <div class="grid-3">
+        <div class="bolge-card">
+          <h3>Çorlu</h3>
+          <p>Trakya'nın sanayi ve ticaret merkezi. Satılık daire, kiralık dükkan, ticari arsa.</p>
+          <a href="#" onclick="goPage('bolge-corlu')" class="btn btn-outline" style="margin-top:20px;display:inline-block;">Keşfet →</a>
+        </div>
+        <div class="bolge-card">
+          <h3>Çerkezköy</h3>
+          <p>OSB ve sanayi bölgesinde ticari fırsatlar. Fabrika, depo, sanayi arsası portföyleri.</p>
+          <a href="#" onclick="goPage('bolge-cerkezkoy')" class="btn btn-outline" style="margin-top:20px;display:inline-block;">Keşfet →</a>
+        </div>
+        <div class="bolge-card">
+          <h3>Süleymanpaşa</h3>
+          <p>Tekirdağ'ın idare merkezi. Denize yakın konumlar, yatırımlık arsa ve konutlar.</p>
+          <a href="#" onclick="goPage('bolge-suleymanpasa')" class="btn btn-outline" style="margin-top:20px;display:inline-block;">Keşfet →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-bg">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+        <div>
+          <p class="eyebrow">NEDEN RE/MAX LAVANDA</p>
+          <h2 class="section-title">Fark Yaratan Dört Şey</h2>
+          <div>
+            <div class="neden-item"><div class="neden-num">01</div><div class="neden-text"><h3>Dünya Markası, Yerel Güç</h3><p>9.000+ ofis ve 140.000+ danışmanıyla RE/MAX'ın küresel ağına erişim.</p></div></div>
+            <div class="neden-item"><div class="neden-num">02</div><div class="neden-text"><h3>ACP Akreditasyonu</h3><p>Uluslararası geçerliliğe sahip ticari gayrimenkul uzmanlık sertifikası.</p></div></div>
+            <div class="neden-item"><div class="neden-num">03</div><div class="neden-text"><h3>RE/MAX Collection</h3><p>Lüks konut segmentinde özel portföy yönetimi ve alıcı ağı.</p></div></div>
+            <div class="neden-item"><div class="neden-num">04</div><div class="neden-text"><h3>2022'den Bu Yana</h3><p>Bölgenin en güçlü danışman kadrosuyla profesyonel hizmet.</p></div></div>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">AKREDİTASYONLARIMIZ</p>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px;">
+            <img src="assets/ACP_Logo.jpg" alt="ACP - Accredited Commercial Professional" style="height:48px;width:auto;object-fit:contain;background:#555;padding:8px;border-radius:4px;">
+            <img src="assets/remax_ticari_logo.jpg" alt="RE/MAX Ticari" style="height:48px;width:auto;object-fit:contain;">
+            <img src="assets/remax_ticari_kulup.jpg" alt="RE/MAX Ticari Kulüp" style="height:48px;width:auto;object-fit:contain;background:#111;padding:8px;border-radius:4px;">
+            <img src="assets/remax_collection_logo.jpg" alt="The RE/MAX Collection" style="height:48px;width:auto;object-fit:contain;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">BLOG</p>
+      <h2 class="section-title">Piyasa & Kariyer Rehberi</h2>
+      <p class="section-sub">Trakya gayrimenkul piyasasına dair güncel analizler ve rehberler.</p>
+      <div class="grid-3">
+        <div class="blog-card" onclick="goPage('blog-1')" style="cursor:pointer;">
+          <div class="blog-card-img"><span>Piyasa Analizi · 2025</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">GAYRİMENKUL YATIRIMI</div>
+            <h3>Çorlu'da Gayrimenkul Yatırımı: 2025 Piyasa Rehberi</h3>
+            <p>Mahallelere göre fiyat analizi ve en doğru yatırım stratejileri.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="goPage('blog-2')" style="cursor:pointer;">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,#1a3a5c,#0a2040);"><span>Ticari · Sanayi</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">TİCARİ GAYRİMENKUL</div>
+            <h3>Çerkezköy'de Sanayi ve Ticari Gayrimenkul Fırsatları</h3>
+            <p>OSB ve sanayi bölgesinde kiralık fabrika ve depo piyasası analizi.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="goPage('blog-3')" style="cursor:pointer;">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,#7b1f2e,#E31837);"><span>Kariyer · RE/MAX</span></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">KARİYER</div>
+            <h3>Gayrimenkul Danışmanı Olmak: RE/MAX Lavanda ile Kariyer</h3>
+            <p>Danışmanlık mesleğinin avantajları ve başvuru süreci.</p>
+            <span class="card-link">Oku →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-red">
+    <div class="container" style="text-align:center;">
+      <h2 style="font-size:32px;font-weight:800;color:var(--white);margin-bottom:14px;">Mülkünüzü Değerlendirmeye Hazır mısınız?</h2>
+      <p style="color:rgba(255,255,255,.85);margin-bottom:28px;">Formumuzu doldurun, 24 saat içinde sizi arayalım.</p>
+      <a href="#" onclick="goPage('portfoy')" class="btn btn-white">Ücretsiz Değerlendirme Alın</a>
+    </div>
+  </section>
 </div>
 
-<!-- ŞİFRE MODAL -->
-<div id="passwordModal" class="modal-overlay">
-  <div class="modal">
-    <h3>🔑 Şifre Değiştir</h3>
-    <div class="form-group" style="margin-bottom:12px"><label>Mevcut Şifre</label><input type="password" id="oldPass" /></div>
-    <div class="form-group" style="margin-bottom:12px"><label>Yeni Şifre</label><input type="password" id="newPass" /></div>
-    <div class="form-group"><label>Yeni Şifre (Tekrar)</label><input type="password" id="newPass2" /></div>
-    <div id="passMsg"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="hidePasswordModal()">İptal</button>
-      <button class="btn btn-primary" onclick="changePassword()">Kaydet</button>
+<div class="page" id="page-hakkimizda">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">HAKKIMIZDA</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">RE/MAX Lavanda Kimiz?</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:60px;align-items:start;">
+        <div>
+          <p class="eyebrow">HİKAYEMİZ</p>
+          <h2 class="section-title">2022'den Bu Yana Trakya'da</h2>
+          <p style="margin-bottom:16px;">RE/MAX Lavanda, 2022 yılında Tekirdağ / Çorlu bölgesinde RE/MAX markasını alarak faaliyete başladı. Bölgenin gayrimenkul akademisi olma vizyonuyla yola çıkan ofisimiz, kısa sürede Trakya'nın en güçlü danışman kadrosuna sahip RE/MAX ofisi haline geldi.</p>
+          <p style="margin-bottom:16px;">Lüks konut ve ticari gayrimenkul segmentlerinde ACP akreditasyonu, RE/MAX Ticari Kulüp üyeliği ve The RE/MAX Collection programıyla müşterilerimize uluslararası standartta hizmet sunuyoruz.</p>
+          <p>Çorlu, Çerkezköy ve Tekirdağ başta olmak üzere Trakya genelinde satılık, kiralık ve yatırımlık mülk danışmanlığında bölgenin ilk tercihi olmayı hedefliyoruz.</p>
+        </div>
+        <div>
+          <h2 class="section-title" style="margin-bottom:24px;">Misyon & Vizyon</h2>
+          <div class="card" style="margin-bottom:16px;border-left:4px solid var(--red);">
+            <h3 style="margin-bottom:8px;">Misyonumuz</h3>
+            <p>Müşterilerimize doğru mülkü, doğru fiyata, doğru zamanda ulaştırmak. Her işlemde şeffaflık, güven ve profesyonellik.</p>
+          </div>
+          <div class="card" style="border-left:4px solid var(--gold);">
+            <h3 style="margin-bottom:8px;">Vizyonumuz</h3>
+            <p>Trakya bölgesinin gayrimenkul akademisi ve en güvenilir danışmanlık ofisi olmak.</p>
+          </div>
+        </div>
+      </div>
     </div>
+  </section>
+  <section class="section section-bg">
+    <div class="container">
+      <p class="eyebrow">AKREDİTASYONLARIMIZ</p>
+      <h2 class="section-title">Uluslararası Standartlar</h2>
+      <div class="grid-4">
+        <div class="card" style="text-align:center;">
+          <img src="assets/ACP_Logo.jpg" alt="ACP" style="height:56px;margin:0 auto 12px;background:#555;padding:8px;border-radius:4px;">
+          <h3 style="font-size:14px;">ACP Akreditasyonu</h3>
+          <p style="font-size:13px;">Uluslararası ticari gayrimenkul uzmanlık sertifikası</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <img src="assets/remax_ticari_logo.jpg" alt="RE/MAX Ticari" style="height:56px;margin:0 auto 12px;">
+          <h3 style="font-size:14px;">RE/MAX Ticari</h3>
+          <p style="font-size:13px;">Ticari gayrimenkul uzmanlık programı</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <img src="assets/remax_ticari_kulup.jpg" alt="RE/MAX Ticari Kulüp" style="height:56px;margin:0 auto 12px;background:#111;padding:8px;border-radius:4px;">
+          <h3 style="font-size:14px;">RE/MAX Ticari Kulüp</h3>
+          <p style="font-size:13px;">Yüksek performanslı ticari danışman programı</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <img src="assets/remax_collection_logo.jpg" alt="RE/MAX Collection" style="height:56px;margin:0 auto 12px;">
+          <h3 style="font-size:14px;">RE/MAX Collection</h3>
+          <p style="font-size:13px;">Lüks konut segmenti uzmanlık programı</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-hizmetler">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">HİZMETLERİMİZ</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Gayrimenkul Danışmanlığı</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:24px;">
+        <div class="card" style="border-top:4px solid var(--red);"><h3>Satılık Konut</h3><p style="margin-top:8px;">Daire, villa ve lüks konuttan müstakil eve, tüm satılık konut portföyleri.</p></div>
+        <div class="card" style="border-top:4px solid var(--red);"><h3>Kiralık Konut</h3><p style="margin-top:8px;">Uzun ve kısa vadeli kiralık konut çözümleri. Kiracı ve mal sahibi için güvenilir aracılık.</p></div>
+        <div class="card" style="border-top:4px solid var(--navy);"><h3>Ticari Gayrimenkul</h3><p style="margin-top:8px;">Satılık / kiralık ofis, dükkan, fabrika, depo ve sanayi arsası. ACP akreditasyonlu ticari danışmanlık.</p></div>
+        <div class="card" style="border-top:4px solid var(--navy);"><h3>Arsa & Yatırım</h3><p style="margin-top:8px;">Konut arsası, tarımsal arsa ve ticari parsel yatırımları. Bölgeye özel değerleme ve yatırım danışmanlığı.</p></div>
+        <div class="card" style="border-top:4px solid var(--gold);"><h3>Değerleme & Ekspertiz</h3><p style="margin-top:8px;">Profesyonel mülk değerleme ve piyasa analizi raporları.</p></div>
+        <div class="card" style="border-top:4px solid var(--gold);"><h3>Yatırım Danışmanlığı</h3><p style="margin-top:8px;">Portföy analizi, kira getirisi hesaplamaları ve bölgesel yatırım rehberliği.</p></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-bolge-corlu">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BÖLGE</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Çorlu Gayrimenkul</h1><p style="color:rgba(255,255,255,.7);margin-top:8px;">Satılık ve Kiralık Mülkler | RE/MAX Lavanda</p></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <h2 class="section-title">Trakya'nın Sanayi Kenti</h2>
+          <p style="margin-bottom:16px;">Çorlu, Trakya'nın en büyük sanayi ve ticaret merkezlerinden biridir. İstanbul'a 80 km mesafesi ve gelişmiş ulaşım altyapısıyla yatırımcılar için stratejik bir konumdadır.</p>
+          <p style="margin-bottom:16px;">Reşadiye, Muhittin ve Omurtak Mahallesi konut segmentinde son yıllarda önemli fiyat artışları yaşanmıştır. RE/MAX Lavanda olarak Çorlu'da satılık daire, kiralık işyeri ve yatırımlık arsa konularında kapsamlı portföy yönetimi sunuyoruz.</p>
+          <h3 style="margin:24px 0 12px;color:var(--navy);font-size:18px;">Öne Çıkan Mülk Tipleri</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık daire (1+1'den 4+1'e)</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık dükkan ve ofis</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık sanayi arsası</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık fabrika ve depo</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık villa ve müstakil ev</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Sık Sorulan Sorular</h3>
+          <div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çorlu'da ortalama daire fiyatları nedir?</div><div class="faq-a">2025 itibarıyla 2+1 daireler ortalama 2,5-4,5 milyon TL bandında işlem görmektedir.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çorlu'da en çok hangi bölgeler tercih ediliyor?</div><div class="faq-a">Reşadiye, Muhittin Mahallesi ve Omurtak Caddesi çevresi konut talebi en yüksek bölgelerdir.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çorlu'da sanayi arsası yatırımı mantıklı mı?</div><div class="faq-a">İstanbul'a yakınlığı ve gelişmiş lojistik altyapısıyla sanayi yatırımları için cazip bir konumdadır.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Mülk satın almak için ne yapmalıyım?</div><div class="faq-a">Portföy değerlendirme formunu doldurmanız veya 0 282 502 22 22 numaralı hattımızı aramanız yeterlidir.</div></div>
+          </div>
+          <div style="margin-top:28px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary" style="width:100%;text-align:center;display:block;">Mülkünüzü Değerlendirin</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-bolge-cerkezkoy">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BÖLGE</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Çerkezköy Gayrimenkul</h1><p style="color:rgba(255,255,255,.7);margin-top:8px;">Satılık ve Kiralık Mülkler | RE/MAX Lavanda</p></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <h2 class="section-title">Sanayinin Kalbi</h2>
+          <p style="margin-bottom:16px;">Çerkezköy Organize Sanayi Bölgesi, yüzlerce fabrika ve üretim tesisine ev sahipliği yapmaktadır. İstanbul-Edirne otoyolu güzergahındaki konumuyla lojistik depo ve fabrika yatırımları için tercih edilen Çerkezköy, son yıllarda konut segmentinde de hızlı gelişim göstermiştir.</p>
+          <h3 style="margin:24px 0 12px;color:var(--navy);font-size:18px;">Öne Çıkan Mülk Tipleri</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık fabrika ve üretim tesisi</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık / kiralık depo</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> OSB içi sanayi parseli</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Satılık konut ve arsa</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Sık Sorulan Sorular</h3>
+          <div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çerkezköy OSB'de fabrika kiralamak mümkün mü?</div><div class="faq-a">Evet, RE/MAX Lavanda olarak bu segmentte aktif bir portföy yönetiyoruz.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çerkezköy'de depo yatırımı karlı mı?</div><div class="faq-a">Lojistik konumu ve otoyola yakınlığı depo yatırımlarını cazip kılmaktadır.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Çerkezköy'de konut fiyatları nasıl?</div><div class="faq-a">Fiyatlar Çorlu'ya kıyasla biraz daha makul düzeyde, yatırım için fırsatlar barındırmaktadır.</div></div>
+          </div>
+          <div style="margin-top:28px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary" style="width:100%;text-align:center;display:block;">Mülkünüzü Değerlendirin</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-bolge-suleymanpasa">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BÖLGE</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Süleymanpaşa Gayrimenkul</h1><p style="color:rgba(255,255,255,.7);margin-top:8px;">Satılık ve Kiralık Mülkler | RE/MAX Lavanda</p></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <h2 class="section-title">Tekirdağ'ın İdare Merkezi</h2>
+          <p style="margin-bottom:16px;">Süleymanpaşa, Tekirdağ il merkezini oluşturan ilçedir. Marmara Denizi kıyısındaki konumuyla hem yaşam kalitesi hem de yatırım değeri yüksek mülkler barındırmaktadır.</p>
+          <h3 style="margin:24px 0 12px;color:var(--navy);font-size:18px;">Öne Çıkan Mülk Tipleri</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Denize yakın satılık konut</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Yatırımlık arsa</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Kiralık ofis ve ticari alan</li>
+            <li style="display:flex;gap:8px;"><span style="color:var(--red);font-weight:700;">→</span> Lüks villa ve site dairesi</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Sık Sorulan Sorular</h3>
+          <div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Süleymanpaşa'da denize yakın konut fiyatları nasıl?</div><div class="faq-a">Denize yakın konumdaki konutlar premium fiyat taşısa da yatırım değeri yüksek seçenekler mevcuttur.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Tekirdağ merkez arsa yatırımı mantıklı mı?</div><div class="faq-a">İl merkezi konumu ve denize yakınlık, Süleymanpaşa'daki arsa değerlerini olumlu etkilemektedir.</div></div>
+          </div>
+          <div style="margin-top:28px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary" style="width:100%;text-align:center;display:block;">Mülkünüzü Değerlendirin</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-portfoy">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">ÜCRETSİZ</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Portföyünüzü Değerlendirin</h1></div></div>
+  <section class="section">
+    <div class="container" style="max-width:700px;">
+      <p style="margin-bottom:32px;font-size:16px;">Mülkünüzü veya kariyer başvurunuzu aşağıdaki formla iletin. Uzman danışmanımız en kısa sürede sizi arayacak.</p>
+      <div class="form-wrap">
+        <form id="main-form" onsubmit="sendForm(event)">
+          <div class="form-grid">
+            <div><label class="form-label">Ad soyad *</label><input class="form-input" type="text" name="ad" required></div>
+            <div><label class="form-label">Telefon *</label><input class="form-input" type="tel" name="telefon" required></div>
+            <div class="full">
+              <label class="form-label">Konu *</label>
+              <select class="form-input" name="konu">
+                <option>Mülk değerlendirme — Konut</option>
+                <option>Mülk değerlendirme — Ticari</option>
+                <option>Mülk değerlendirme — Arsa</option>
+                <option>Kariyer başvurusu</option>
+                <option>Satın alma / kiralama talebi</option>
+                <option>Diğer</option>
+              </select>
+            </div>
+            <div><label class="form-label">Konum</label><input class="form-input" type="text" name="konum" placeholder="Çorlu, Muhittin Mah."></div>
+            <div>
+              <label class="form-label">İlgilendiğiniz bölge</label>
+              <select class="form-input" name="bolge">
+                <option>Çorlu</option>
+                <option>Çerkezköy</option>
+                <option>Süleymanpaşa</option>
+                <option>Tekirdağ / Diğer</option>
+              </select>
+            </div>
+            <div class="full"><label class="form-label">Açıklama</label><textarea class="form-input" name="aciklama" placeholder="Mülkünüz veya talebiniz hakkında kısa bilgi..."></textarea></div>
+          </div>
+          <div style="margin-top:24px;"><button type="submit" class="btn btn-primary" style="width:100%;padding:14px;">Gönder — WhatsApp ile İletirim</button></div>
+          <p class="form-note">Bilgileriniz WhatsApp üzerinden RE/MAX Lavanda danışmanına iletilir.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-kariyer">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">KARİYER</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">RE/MAX Lavanda'da Kariyer</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:60px;align-items:start;">
+        <div>
+          <p class="eyebrow">NEDEN RE/MAX LAVANDA</p>
+          <h2 class="section-title">Kariyerinizi Burada Kurun</h2>
+          <div class="grid-2" style="gap:16px;margin-top:8px;">
+            <div class="card" style="border-top:3px solid var(--gold);"><h3 style="font-size:15px;">Dünya Markası</h3><p style="font-size:13px;margin-top:6px;">140.000+ danışman ve 9.000+ ofisin gücüyle çalışın.</p></div>
+            <div class="card" style="border-top:3px solid var(--gold);"><h3 style="font-size:15px;">Eğitim Desteği</h3><p style="font-size:13px;margin-top:6px;">RE/MAX Türkiye akademisi ve ACP eğitim programları.</p></div>
+            <div class="card" style="border-top:3px solid var(--gold);"><h3 style="font-size:15px;">Yüksek Komisyon</h3><p style="font-size:13px;margin-top:6px;">Sektörün en rekabetçi komisyon yapılarından biri.</p></div>
+            <div class="card" style="border-top:3px solid var(--gold);"><h3 style="font-size:15px;">Ekip Ruhu</h3><p style="font-size:13px;margin-top:6px;">Deneyimli kadromuzla birlikte büyüyün, öğrenin.</p></div>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">BAŞVURU</p>
+          <h2 class="section-title">Hemen Başvurun</h2>
+          <div class="form-wrap">
+            <form onsubmit="sendKariyerForm(event)">
+              <div class="form-grid">
+                <div><label class="form-label">Ad soyad *</label><input class="form-input" type="text" name="ad" required></div>
+                <div><label class="form-label">Telefon *</label><input class="form-input" type="tel" name="telefon" required></div>
+                <div class="full">
+                  <label class="form-label">Deneyim</label>
+                  <select class="form-input" name="deneyim">
+                    <option>Hayır, ilk kez başlayacağım</option>
+                    <option>1-3 yıl deneyimim var</option>
+                    <option>3 yıldan fazla deneyimim var</option>
+                  </select>
+                </div>
+                <div class="full"><label class="form-label">Neden RE/MAX Lavanda?</label><textarea class="form-input" name="motivasyon"></textarea></div>
+              </div>
+              <div style="margin-top:20px;"><button type="submit" class="btn btn-primary" style="width:100%;">Başvurumu Gönder</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-blog">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">BLOG</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Piyasa & Kariyer Rehberi</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-3">
+        <div class="blog-card" onclick="goPage('blog-1')" style="cursor:pointer;"><div class="blog-card-img"><span>Piyasa Analizi · 2025</span></div><div class="blog-card-body"><div class="blog-tag">GAYRİMENKUL YATIRIMI</div><h3>Çorlu'da Gayrimenkul Yatırımı: 2025 Piyasa Rehberi</h3><p>Mahallelere göre fiyat analizi ve en doğru yatırım stratejileri.</p><span class="card-link">Oku →</span></div></div>
+        <div class="blog-card" onclick="goPage('blog-2')" style="cursor:pointer;"><div class="blog-card-img" style="background:linear-gradient(135deg,#1a3a5c,#0a2040);"><span>Ticari · Sanayi</span></div><div class="blog-card-body"><div class="blog-tag">TİCARİ GAYRİMENKUL</div><h3>Çerkezköy'de Sanayi ve Ticari Gayrimenkul Fırsatları</h3><p>OSB ve sanayi bölgesinde kiralık fabrika ve depo piyasası analizi.</p><span class="card-link">Oku →</span></div></div>
+        <div class="blog-card" onclick="goPage('blog-3')" style="cursor:pointer;"><div class="blog-card-img" style="background:linear-gradient(135deg,#7b1f2e,#E31837);"><span>Kariyer · RE/MAX</span></div><div class="blog-card-body"><div class="blog-tag">KARİYER</div><h3>Gayrimenkul Danışmanı Olmak: RE/MAX Lavanda ile Kariyer</h3><p>Danışmanlık mesleğinin avantajları ve başvuru süreci.</p><span class="card-link">Oku →</span></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" id="page-blog-1">
+  <div class="blog-post">
+    <div class="breadcrumb"><a href="#" onclick="goPage('blog')">Blog</a><span>/</span>Çorlu Gayrimenkul 2025</div>
+    <div class="blog-tag">GAYRİMENKUL YATIRIMI</div>
+    <h1>Çorlu'da Gayrimenkul Yatırımı: 2025 Piyasa Rehberi</h1>
+    <p class="blog-meta">RE/MAX Lavanda · 2025 · 8 dakika okuma</p>
+    <h2>Çorlu'nun Konumu ve Gelişimi</h2>
+    <p>Çorlu, Tekirdağ'ın en büyük ilçesi olup Türkiye'nin Avrupa'ya açılan kapısı konumundadır. İstanbul'a 80 km mesafede yer alan Çorlu, güçlü sanayi altyapısı ve artan nüfusuyla gayrimenkul yatırımcılarının odağındaki kentlerden biridir.</p>
+    <h2>Mahallelere Göre Fiyat Analizi</h2>
+    <p><strong>Reşadiye Mahallesi:</strong> Çorlu'nun en prestijli konut bölgesidir. 2+1 daire fiyatları 3,5-5 milyon TL bandında seyretmektedir.</p>
+    <p><strong>Muhittin Mahallesi:</strong> Merkezi konumu ile konut talebinin yoğun olduğu bir bölgedir. Fiyatlar 2,5-4 milyon TL aralığında değişmektedir.</p>
+    <p><strong>Omurtak Caddesi çevresi:</strong> Ticari gayrimenkul yoğunluğu yüksek, kiralık dükkan ve ofis yatırımcılarının gözdesidir.</p>
+    <h2>Yatırım için En Doğru Mülk Tipleri</h2>
+    <p>Çorlu'da 2025 yılı için öne çıkan yatırım kategorileri: sanayi arsaları, lojistik depo amaçlı mülkler, 2+1 yeni yapı daireler ve kira getirisi yüksek ticari zemin katlar.</p>
+    <div style="margin-top:32px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary">Mülkünüzü Değerlendirin</a></div>
   </div>
 </div>
 
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal-overlay">
-  <div class="modal">
-    <h3 id="editModalTitle">Düzenle</h3>
-    <div id="editModalContent"></div>
-    <div id="editModalMsg"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="hideEditModal()">İptal</button>
-      <button class="btn btn-primary" onclick="saveEdit()">Kaydet</button>
-    </div>
+<div class="page" id="page-blog-2">
+  <div class="blog-post">
+    <div class="breadcrumb"><a href="#" onclick="goPage('blog')">Blog</a><span>/</span>Çerkezköy Ticari</div>
+    <div class="blog-tag">TİCARİ GAYRİMENKUL</div>
+    <h1>Çerkezköy'de Sanayi ve Ticari Gayrimenkul Fırsatları</h1>
+    <p class="blog-meta">RE/MAX Lavanda · 2025 · 6 dakika okuma</p>
+    <h2>Çerkezköy OSB ve Sanayi Bölgesi Analizi</h2>
+    <p>Çerkezköy Organize Sanayi Bölgesi, Türkiye'nin önemli üretim merkezlerinden biridir. Tekstil, kimya, metal işleme ve gıda sektörlerinden yüzlerce firma bu bölgede faaliyet göstermektedir.</p>
+    <h2>Kiralık Fabrika ve Depo Piyasası</h2>
+    <p>Çerkezköy'de 500 m²'den başlayıp 10.000 m²'yi aşan kiralık fabrika ve depo seçenekleri mevcuttur. RE/MAX Lavanda olarak ACP akreditasyonlu danışmanlarımız bu süreçlerde size rehberlik edecektir.</p>
+    <h2>Yatırım Fırsatları</h2>
+    <p>OSB içi satılık parseller altyapısı hazır olup inşaat maliyetini minimize eder. Uzun vadeli kiracı portföyü oluşturmak isteyen yatırımcılar için Çerkezköy doğru adres olmaya devam etmektedir.</p>
+    <div style="margin-top:32px;"><a href="#" onclick="goPage('portfoy')" class="btn btn-primary">Mülkünüzü Değerlendirin</a></div>
   </div>
 </div>
+
+<div class="page" id="page-blog-3">
+  <div class="blog-post">
+    <div class="breadcrumb"><a href="#" onclick="goPage('blog')">Blog</a><span>/</span>RE/MAX Kariyer</div>
+    <div class="blog-tag">KARİYER</div>
+    <h1>Gayrimenkul Danışmanı Olmak: RE/MAX Lavanda ile Kariyer</h1>
+    <p class="blog-meta">RE/MAX Lavanda · 2025 · 5 dakika okuma</p>
+    <h2>Gayrimenkul Danışmanlığının Avantajları</h2>
+    <p>Gayrimenkul danışmanlığı, esnek çalışma saatleri ve sınırsız kazanç potansiyeliyle dinamik bir kariyer seçeneğidir. Doğru eğitim ve motivasyonla bu sektörde hızla yükselmek mümkündür.</p>
+    <h2>RE/MAX Sisteminin Farkı</h2>
+    <p>140.000'den fazla danışman ve 9.000'i aşkın ofisle RE/MAX, dünya gayrimenkul sektörünün tartışmasız lideridir. ACP eğitim programı, ticari gayrimenkul alanında uluslararası geçerliliğe sahip sertifika sunmaktadır.</p>
+    <h2>Başvuru Süreci</h2>
+    <p>RE/MAX Lavanda'da kariyer için ön koşul yoktur. Formu doldurun, tanışma görüşmesi yapın ve eğitim süreciniz başlasın.</p>
+    <div style="margin-top:32px;"><a href="#" onclick="goPage('kariyer')" class="btn btn-primary">Kariyer Başvurusu Yap</a></div>
+  </div>
+</div>
+
+<div class="page" id="page-iletisim">
+  <div style="background:var(--navy);padding:48px 0;"><div class="container"><p class="eyebrow light">İLETİŞİM</p><h1 style="font-size:36px;font-weight:800;color:var(--white);">Bize Ulaşın</h1></div></div>
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <div class="contact-box" style="margin-bottom:24px;">
+            <h3>İletişim Bilgileri</h3>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div><strong>Adres</strong>Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ</div></div>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.37 18a19.45 19.45 0 0 1-6-6A19.79 19.79 0 0 1 2.12 3.22 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><strong>Telefon</strong><a href="tel:+902825022222">0 282 502 22 22</a></div></div>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="#25D366" stroke="none"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37C7.97 7.07 7.2 7.79 7.2 9.25s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg><div><strong>WhatsApp</strong><a href="https://wa.me/905325535559" target="_blank">0532 553 55 59</a></div></div>
+          </div>
+          <div class="map-wrap">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3003.5!2d27.8!3d41.15!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRumeli+Mah+Y%C3%BCcet%C3%BCrk+Cad+No+20%2F3+%C3%87orlu!5e0!3m2!1str!2str!4v1" allowfullscreen loading="lazy"></iframe>
+          </div>
+        </div>
+        <div>
+          <h2 class="section-title">Mesaj Gönderin</h2>
+          <div class="form-wrap">
+            <form onsubmit="sendIletisimForm(event)">
+              <div class="form-grid">
+                <div><label class="form-label">Ad soyad *</label><input class="form-input" type="text" name="ad" required></div>
+                <div><label class="form-label">Telefon *</label><input class="form-input" type="tel" name="telefon" required></div>
+                <div class="full"><label class="form-label">Konu</label><input class="form-input" type="text" name="konu"></div>
+                <div class="full"><label class="form-label">Mesajınız</label><textarea class="form-input" name="mesaj" style="min-height:100px;"></textarea></div>
+              </div>
+              <div style="margin-top:20px;"><button type="submit" class="btn btn-primary" style="width:100%;">WhatsApp ile Gönder</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/remax_logotype.png" alt="RE/MAX" style="height:24px;filter:brightness(0) invert(1);">
+        <p style="margin-top:6px;font-size:13px;">LAVANDA</p>
+        <p>Çorlu ve Trakya bölgesinde lüks konut ve ticari gayrimenkul danışmanlığı.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/remaxlavanda/" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="#fff" stroke="none"/></svg></a>
+          <a href="https://www.facebook.com/remaxlavanda/" target="_blank"><svg viewBox="0 0 24 24" fill="#fff"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06z"/></svg></a>
+          <a href="https://www.youtube.com/@remaxlavanda" target="_blank"><svg viewBox="0 0 24 24" fill="#fff"><path d="M23 12s0-3.4-.43-5a3 3 0 0 0-2.1-2.1C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.47.4A3 3 0 0 0 1.43 7C1 8.6 1 12 1 12s0 3.4.43 5a3 3 0 0 0 2.1 2.1C5.1 19.5 12 19.5 12 19.5s6.9 0 8.47-.4a3 3 0 0 0 2.1-2.1c.43-1.6.43-5 .43-5z"/><path d="M9.8 15.3V8.7L15.8 12z" fill="#0a1628"/></svg></a>
+          <a href="https://wa.me/905325535559" target="_blank"><svg viewBox="0 0 24 24" fill="#fff"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>SAYFALAR</h4>
+        <a href="#" onclick="goPage('home')">Ana Sayfa</a>
+        <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
+        <a href="#" onclick="goPage('hizmetler')">Hizmetler</a>
+        <a href="#" onclick="goPage('kariyer')">Kariyer</a>
+        <a href="#" onclick="goPage('blog')">Blog</a>
+        <a href="#" onclick="goPage('iletisim')">İletişim</a>
+      </div>
+      <div class="footer-col">
+        <h4>BÖLGELER</h4>
+        <a href="#" onclick="goPage('bolge-corlu')">Çorlu</a>
+        <a href="#" onclick="goPage('bolge-cerkezkoy')">Çerkezköy</a>
+        <a href="#" onclick="goPage('bolge-suleymanpasa')">Süleymanpaşa</a>
+      </div>
+      <div class="footer-col">
+        <h4>İLETİŞİM</h4>
+        <a href="tel:+902825022222">0 282 502 22 22</a>
+        <a href="https://wa.me/905325535559">0532 553 55 59</a>
+        <a href="#" onclick="goPage('portfoy')" style="color:var(--red);font-weight:700;margin-top:8px;">Portföy Değerlendirin →</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ</p>
+      <p>RE/MAX Lavanda © 2026 · Her ofis bağımsız olarak işletilir.</p>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/905325535559" target="_blank" class="wa-float" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+</a>
 
 <script>
-const SB_URL = 'https://vfqkmluqjaihpgxhqlqt.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
-
-let USERS = JSON.parse(localStorage.getItem('rmx_users') || 'null') || {
-  'admin': { pass: 'lavanda2024', role: 'admin', name: 'Admin' },
-  'ofis': { pass: '1234', role: 'ofis', name: 'Ofis' }
-};
-
-let SOURCES_LEAD = JSON.parse(localStorage.getItem('rmx_sources_lead') || '["Sponsorlu","Remax","Selen","Referans","Diğer"]');
-let SOURCES_RECRUIT = JSON.parse(localStorage.getItem('rmx_sources_recruit') || '["Leman","Eren","Secret","Remax","Halk Eğitim","Kariyer","Sahibinden","Seminer","Diğer"]');
-
-function saveSources() {
-  localStorage.setItem('rmx_sources_lead', JSON.stringify(SOURCES_LEAD));
-  localStorage.setItem('rmx_sources_recruit', JSON.stringify(SOURCES_RECRUIT));
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  var el=document.getElementById('page-'+id);
+  if(el){el.classList.add('active');}
+  window.scrollTo(0,0);
+  document.getElementById('navMobile').classList.remove('open');
 }
-
-let currentUser = null;
-let allData = { leads: [], recruiting: [], danismanlar: [] };
-let editingRecord = null;
-let editingTable = null;
-let calendarDate = new Date();
-
-const urlParams = new URLSearchParams(window.location.search);
-const urlToken = urlParams.get('token');
-
-function saveUsers() { localStorage.setItem('rmx_users', JSON.stringify(USERS)); }
-
-async function api(table, method, body, filter) {
-  let url = SB_URL + '/rest/v1/' + table;
-  if (filter) url += '?' + filter;
-  const opts = {
-    method: method || 'GET',
-    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : (method === 'PATCH' ? 'return=representation' : '') }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if (!res.ok) { const err = await res.text(); throw new Error(err); }
-  const text = await res.text();
-  return text ? JSON.parse(text) : [];
+function toggleMobile(){
+  document.getElementById('navMobile').classList.toggle('open');
 }
-
-async function loadData() {
-  const [leads, recruiting, danismanlar] = await Promise.all([
-    api('gd_leads', 'GET', null, 'select=*&order=created_at.desc'),
-    api('recruiting_candidates', 'GET', null, 'select=*&order=created_at.desc'),
-    api('danismanlar', 'GET', null, 'select=*&order=created_at.asc')
-  ]);
-  allData.leads = leads || [];
-  allData.recruiting = recruiting || [];
-  allData.danismanlar = danismanlar || [];
+function toggleFaq(el){
+  el.parentElement.classList.toggle('open');
 }
-
-function capitalize(str) {
-  if (!str) return '';
-  return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+function buildMsg(form){
+  var data=new FormData(form);
+  var lines=[];
+  for(var pair of data.entries()){if(pair[1])lines.push(pair[0]+': '+pair[1]);}
+  return lines.join('\n');
 }
-
-function doLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value.trim();
-  if (USERS[u] && USERS[u].pass === p) {
-    currentUser = { ...USERS[u], username: u };
-    const now = new Date().toLocaleString('tr-TR');
-    localStorage.setItem('lastLogin_' + u, now);
-    startApp();
-  } else {
-    document.getElementById('loginError').textContent = 'Kullanıcı adı veya şifre hatalı!';
-  }
+function sendForm(e){
+  e.preventDefault();
+  window.open('https://wa.me/905325535559?text='+encodeURIComponent('Portföy/Talep Başvurusu — RE/MAX Lavanda\n\n'+buildMsg(e.target)),'_blank');
 }
-
-function doLogout() {
-  currentUser = null;
-  document.getElementById('mainApp').classList.add('hidden');
-  document.getElementById('loginPage').classList.remove('hidden');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+function sendKariyerForm(e){
+  e.preventDefault();
+  window.open('https://wa.me/905325535559?text='+encodeURIComponent('Kariyer Başvurusu — RE/MAX Lavanda\n\n'+buildMsg(e.target)),'_blank');
 }
-
-async function startApp() {
-  document.getElementById('loginPage').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
-  document.getElementById('userBadge').textContent = '👤 ' + currentUser.name;
-  const last = localStorage.getItem('lastLogin_' + currentUser.username);
-  if (last) document.getElementById('lastLoginInfo').textContent = 'Son giriş: ' + last;
-  try {
-    await loadData();
-    renderTabs();
-    const firstTab = currentUser.role === 'admin' ? 'ozet' : currentUser.role === 'ofis' ? 'lead-giris' : 'danisman-panel';
-    renderContent(firstTab);
-  } catch(e) {
-    document.getElementById('content').innerHTML = '<div class="error-msg">❌ Bağlantı hatası: ' + e.message + '</div>';
-  }
+function sendIletisimForm(e){
+  e.preventDefault();
+  window.open('https://wa.me/905325535559?text='+encodeURIComponent('İletişim Mesajı — RE/MAX Lavanda\n\n'+buildMsg(e.target)),'_blank');
 }
-
-async function checkToken() {
-  if (!urlToken) return false;
-  try {
-    await loadData();
-    const d = allData.danismanlar.find(x => x.token === urlToken);
-    if (d) {
-      currentUser = { role: 'danisman', name: d.ad, danismanId: d.id, danismanAd: d.ad };
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('userBadge').textContent = '👤 ' + d.ad;
-      renderTabs();
-      renderContent('danisman-panel');
-      return true;
-    }
-  } catch(e) {}
-  return false;
-}
-
-function renderTabs() {
-  const nav = document.getElementById('navTabs');
-  nav.innerHTML = '';
-  let tabs = [];
-  const todayCount = allData.recruiting.filter(r => r.randevu_tarihi === today()).length;
-  const todayBadge = todayCount > 0 ? '<span class="today-badge">' + todayCount + '</span>' : '';
-
-  if (currentUser.role === 'admin') {
-    tabs = [
-      { id: 'ozet', label: '📊 Özet' },
-      { id: 'gd-leads', label: '👤 GD Leads' },
-      { id: 'recruiting', label: '👥 Recruiting' },
-      { id: 'takvim', label: '📅 Takvim' + todayBadge },
-      { id: 'danismanlar', label: '🔑 Danışmanlar' },
-      { id: 'ayarlar', label: '⚙️ Ayarlar' }
-    ];
-  } else if (currentUser.role === 'ofis') {
-    tabs = [
-      { id: 'lead-giris', label: '➕ GD Lead Ekle' },
-      { id: 'lead-listesi', label: '📋 Son Leadler' },
-      { id: 'recruit-giris', label: '➕ Aday Ekle' },
-      { id: 'takvim', label: '📅 Takvim' + todayBadge }
-    ];
-  } else if (currentUser.role === 'danisman') {
-    tabs = [{ id: 'danisman-panel', label: '📋 Portföylerim' }];
-  }
-
-  tabs.forEach(function(t, i) {
-    const btn = document.createElement('button');
-    btn.className = 'tab' + (i === 0 ? ' active' : '');
-    btn.innerHTML = t.label;
-    btn.onclick = function() {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
-      renderContent(t.id);
-    };
-    nav.appendChild(btn);
-  });
-}
-
-function badge(durum) {
-  const map = {
-    'Arandı':'arandi','Çağrıldı':'cagrildi','Görüşüldü':'gorusuldu',
-    '1. Görüşme':'1gorusme','2. Görüşme':'2gorusme',
-    'Sıcak':'sicak','Soğuk':'soguk','Kazanıldı':'kazanildi',
-    'Kaybedildi':'kaybedildi','Beklemede':'beklemede','Randevu':'randevu',
-    'Olumsuz':'olumsuz','Kara Liste':'karalist'
-  };
-  const cls = map[durum] || 'soguk';
-  return '<span class="badge badge-' + cls + '">' + (durum || '—') + '</span>';
-}
-
-function waBtn(tel) {
-  if (!tel) return '';
-  const clean = tel.replace(/\D/g,'');
-  const num = clean.startsWith('0') ? '90'+clean.slice(1) : (clean.startsWith('90') ? clean : '90'+clean);
-  return '<a href="https://wa.me/' + num + '" target="_blank" class="btn-wa">💬</a> ';
-}
-
-function today() { return new Date().toISOString().split('T')[0]; }
-function weekAgo() { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString().split('T')[0]; }
-
-function getDateRange(period) {
-  const now = new Date();
-  const end = now.toISOString().split('T')[0];
-  let start;
-  if (period === 'week') { const d = new Date(); d.setDate(d.getDate()-7); start = d.toISOString().split('T')[0]; }
-  else if (period === 'month') { const d = new Date(now.getFullYear(), now.getMonth(), 1); start = d.toISOString().split('T')[0]; }
-  else if (period === '3month') { const d = new Date(); d.setMonth(d.getMonth()-3); start = d.toISOString().split('T')[0]; }
-  else if (period === 'year') { start = now.getFullYear() + '-01-01'; }
-  return { start, end };
-}
-
-function renderContent(tabId) {
-  const c = document.getElementById('content');
-  if (tabId === 'ozet') renderOzet(c);
-  else if (tabId === 'gd-leads') renderGDLeads(c);
-  else if (tabId === 'recruiting') renderRecruiting(c);
-  else if (tabId === 'takvim') renderTakvim(c);
-  else if (tabId === 'danismanlar') renderDanismanlar(c);
-  else if (tabId === 'ayarlar') renderAyarlar(c);
-  else if (tabId === 'lead-giris') renderLeadGiris(c);
-  else if (tabId === 'lead-listesi') renderLeadListesi(c);
-  else if (tabId === 'recruit-giris') renderRecruitGiris(c);
-  else if (tabId === 'danisman-panel') renderDanismanPanel(c);
-}
-
-// ============ ÖZET ============
-function renderOzet(c, period, customStart, customEnd) {
-  period = period || 'month';
-  let range = getDateRange(period);
-  if (period === 'custom' && customStart && customEnd) { range = { start: customStart, end: customEnd }; }
-
-  const leads = allData.leads.filter(l => l.tarih >= range.start && l.tarih <= range.end);
-  const recruits = allData.recruiting.filter(r => (r.created_at||'').slice(0,10) >= range.start && (r.created_at||'').slice(0,10) <= range.end);
-
-  const totalL = leads.length;
-  const wonL = leads.filter(l => l.durum === 'Kazanıldı').length;
-  const rateL = totalL > 0 ? Math.round(wonL/totalL*100) : 0;
-  const hotL = leads.filter(l => l.durum === 'Sıcak').length;
-
-  const totalR = recruits.length;
-  const okR = recruits.filter(r => !['Olumsuz','Kara Liste'].includes(r.durum)).length;
-  const rateR = totalR > 0 ? Math.round(okR/totalR*100) : 0;
-
-  // Danışman bazlı
-  const byD = {};
-  leads.forEach(l => {
-    if (l.danisman) {
-      if (!byD[l.danisman]) byD[l.danisman] = {t:0,k:0};
-      byD[l.danisman].t++;
-      if (l.durum === 'Kazanıldı') byD[l.danisman].k++;
-    }
-  });
-
-  // Lead kaynak bazlı
-  const byLS = {};
-  leads.forEach(l => { const k=l.kaynak||'Diğer'; if(!byLS[k]) byLS[k]={t:0,k:0}; byLS[k].t++; if(l.durum==='Kazanıldı') byLS[k].k++; });
-
-  // Recruit kaynak bazlı
-  const byRS = {};
-  recruits.forEach(r => { const k=r.kaynak||'Diğer'; if(!byRS[k]) byRS[k]={t:0,ok:0}; byRS[k].t++; if(!['Olumsuz','Kara Liste'].includes(r.durum)) byRS[k].ok++; });
-
-  const periods = [{id:'week',label:'Bu Hafta'},{id:'month',label:'Bu Ay'},{id:'3month',label:'3 Ay'},{id:'year',label:'Bu Yıl'},{id:'custom',label:'Özel'}];
-
-  let html = '<div class="date-filter-bar">';
-  periods.forEach(p => { html += '<button class="filter-btn' + (period===p.id?' active':'') + '" onclick="renderOzetPeriod(\'' + p.id + '\')">' + p.label + '</button>'; });
-  html += '<span id="customDateRange" class="' + (period==='custom'?'':'hidden') + '" style="display:' + (period==='custom'?'flex':'none') + ';gap:6px;align-items:center">';
-  html += '<input type="date" id="ozet_start" value="' + range.start + '" />';
-  html += '<span>—</span>';
-  html += '<input type="date" id="ozet_end" value="' + range.end + '" />';
-  html += '<button class="btn btn-primary btn-sm" onclick="applyCustomDate()">Uygula</button></span>';
-  html += '</div>';
-
-  html += '<div class="two-col">';
-
-  // SOL — GD LEADS
-  html += '<div class="col-box"><h2>👤 GD Leads Raporu</h2>';
-  html += '<div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">';
-  html += '<div class="card"><h3>Toplam</h3><div class="card-stat">' + totalL + '</div></div>';
-  html += '<div class="card green"><h3>Kazanılan</h3><div class="card-stat">' + wonL + '</div></div>';
-  html += '<div class="card blue"><h3>Dönüşüm</h3><div class="card-stat">' + rateL + '%</div></div>';
-  html += '</div>';
-
-  html += '<div class="table-title" style="margin-bottom:8px">Danışman Başarı Oranları</div>';
-  html += '<table class="mini-table"><thead><tr><th>Danışman</th><th>Lead</th><th>Kazanılan</th><th>Oran</th><th></th></tr></thead><tbody>';
-  html += Object.entries(byD).sort((a,b)=>b[1].k/Math.max(b[1].t,1)-a[1].k/Math.max(a[1].t,1)).map(([ad,d]) => {
-    const r = d.t > 0 ? Math.round(d.k/d.t*100) : 0;
-    return '<tr><td><strong>' + ad + '</strong></td><td>' + d.t + '</td><td>' + d.k + '</td><td>' + r + '%</td><td><div class="rate-bar" style="width:' + r + 'px;max-width:60px"></div></td></tr>';
-  }).join('') || '<tr><td colspan="5" style="text-align:center;color:#999">Veri yok</td></tr>';
-  html += '</tbody></table>';
-
-  html += '<div class="section-divider"></div>';
-  html += '<div class="table-title" style="margin-bottom:8px">Kaynak Başarı Oranları</div>';
-  html += '<table class="mini-table"><thead><tr><th>Kaynak</th><th>Lead</th><th>Kazanılan</th><th>Oran</th></tr></thead><tbody>';
-  html += Object.entries(byLS).sort((a,b)=>b[1].t-a[1].t).map(([k,d]) => {
-    const r = d.t > 0 ? Math.round(d.k/d.t*100) : 0;
-    return '<tr><td>' + k + '</td><td>' + d.t + '</td><td>' + d.k + '</td><td>' + r + '%</td></tr>';
-  }).join('') || '<tr><td colspan="4" style="text-align:center;color:#999">Veri yok</td></tr>';
-  html += '</tbody></table></div>';
-
-  // SAĞ — RECRUITING
-  html += '<div class="col-box"><h2>👥 Recruiting Raporu</h2>';
-  html += '<div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">';
-  html += '<div class="card"><h3>Toplam</h3><div class="card-stat">' + totalR + '</div></div>';
-  html += '<div class="card green"><h3>Aktif</h3><div class="card-stat">' + okR + '</div></div>';
-  html += '<div class="card blue"><h3>Oran</h3><div class="card-stat">' + rateR + '%</div></div>';
-  html += '</div>';
-
-  const byRD = {};
-  recruits.forEach(r => {
-    const d = r.durum||'Belirsiz';
-    byRD[d] = (byRD[d]||0) + 1;
-  });
-
-  html += '<div class="table-title" style="margin-bottom:8px">Durum Dağılımı</div>';
-  html += '<table class="mini-table"><thead><tr><th>Durum</th><th>Aday</th><th>%</th></tr></thead><tbody>';
-  html += Object.entries(byRD).sort((a,b)=>b[1]-a[1]).map(([d,n]) => {
-    const r = totalR > 0 ? Math.round(n/totalR*100) : 0;
-    return '<tr><td>' + badge(d) + '</td><td>' + n + '</td><td>' + r + '%</td></tr>';
-  }).join('') || '<tr><td colspan="3" style="text-align:center;color:#999">Veri yok</td></tr>';
-  html += '</tbody></table>';
-
-  html += '<div class="section-divider"></div>';
-  html += '<div class="table-title" style="margin-bottom:8px">Kaynak Başarı Oranları</div>';
-  html += '<table class="mini-table"><thead><tr><th>Kaynak</th><th>Aday</th><th>Aktif</th><th>Oran</th></tr></thead><tbody>';
-  html += Object.entries(byRS).sort((a,b)=>b[1].t-a[1].t).map(([k,d]) => {
-    const r = d.t > 0 ? Math.round(d.ok/d.t*100) : 0;
-    return '<tr><td>' + k + '</td><td>' + d.t + '</td><td>' + d.ok + '</td><td>' + r + '%</td></tr>';
-  }).join('') || '<tr><td colspan="4" style="text-align:center;color:#999">Veri yok</td></tr>';
-  html += '</tbody></table></div>';
-
-  html += '</div>';
-  c.innerHTML = html;
-}
-
-function renderOzetPeriod(p) {
-  const c = document.getElementById('content');
-  const customEl = document.getElementById('customDateRange');
-  if (p === 'custom') {
-    if (customEl) customEl.style.display = 'flex';
-  }
-  renderOzet(c, p);
-}
-
-function applyCustomDate() {
-  const s = document.getElementById('ozet_start').value;
-  const e = document.getElementById('ozet_end').value;
-  renderOzet(document.getElementById('content'), 'custom', s, e);
-}
-
-// ============ GD LEADS ============
-function getLeadDurumOptions(current) {
-  return ['Arandı','Çağrıldı','Görüşüldü','Sıcak','Soğuk','Kazanıldı','Kaybedildi','Kara Liste'].map(s => '<option' + (current===s?' selected':'') + '>' + s + '</option>').join('');
-}
-
-function getLeadSourceOptions(current) {
-  return SOURCES_LEAD.map(s => '<option' + (current===s?' selected':'') + '>' + s + '</option>').join('');
-}
-
-function renderGDLeads(c) {
-  const danOpts = allData.danismanlar.map(d => '<option value="' + d.ad + '">' + d.ad + '</option>').join('');
-  let html = '<div class="table-header"><div class="table-title">👤 GD Leads (' + allData.leads.length + ')</div><div class="table-actions"><button class="btn btn-primary" onclick="showLeadForm()">+ Yeni Lead</button><button class="btn btn-ghost" onclick="exportCSV(\'leads\')">📥 CSV</button></div></div>';
-
-  html += '<div id="leadFormWrap" class="hidden form-wrap"><h3>Yeni GD Lead</h3><div id="leadDupWarn"></div>';
-  html += '<div class="form-grid">';
-  html += '<div class="form-group"><label>Ad Soyad *</label><input id="f_ad" placeholder="Ad Soyad" oninput="this.value=capitalize(this.value);checkDup(this.value,\'lead\')" /></div>';
-  html += '<div class="form-group"><label>Telefon</label><input id="f_tel" placeholder="5XX XXX XX XX" /></div>';
-  html += '<div class="form-group"><label>Kaynak</label><select id="f_kaynak">' + getLeadSourceOptions('') + '</select> <button class="btn btn-sm btn-ghost" onclick="addSource(\'lead\')" style="margin-top:4px">+ Kaynak Ekle</button></div>';
-  html += '<div class="form-group"><label>Danışman</label><input id="f_danisman" list="danList" placeholder="Seç veya yeni yaz..." /><datalist id="danList">' + danOpts + '</datalist> <button class="btn btn-sm btn-ghost" onclick="quickAddDanisman()" style="margin-top:4px">+ Yeni Danışman</button></div>';
-  html += '<div class="form-group"><label>Durum</label><select id="f_durum">' + getLeadDurumOptions('Arandı') + '</select></div>';
-  html += '<div class="form-group"><label>Sonraki Takip</label><input type="date" id="f_takip" /></div>';
-  html += '</div>';
-  html += '<div class="form-group" style="margin-top:12px"><label>Açıklama</label><textarea id="f_aciklama" placeholder="Not..."></textarea></div>';
-  html += '<div id="quickDanWrap" class="hidden" style="margin-top:8px;padding:12px;background:#f5f5f5;border-radius:8px">';
-  html += '<div style="font-size:12px;font-weight:700;margin-bottom:8px">Yeni Danışman Ekle</div>';
-  html += '<div style="display:flex;gap:8px"><input id="quick_dan_ad" placeholder="Ad Soyad" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px" /><button class="btn btn-primary btn-sm" onclick="saveQuickDanisman()">Ekle</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'quickDanWrap\').classList.add(\'hidden\')">İptal</button></div>';
-  html += '<div id="quickDanMsg"></div></div>';
-  html += '<div class="form-actions"><button class="btn btn-primary" onclick="saveLead()">Kaydet</button><button class="btn btn-ghost" onclick="hideLeadForm()">İptal</button></div>';
-  html += '<div id="leadFormMsg"></div></div>';
-
-  html += '<div class="search-bar"><input id="srch_ad" placeholder="🔍 İsim ara..." oninput="filterLeads()" /><select id="srch_durum" onchange="filterLeads()"><option value="">Tüm Durumlar</option>' + getLeadDurumOptions('') + '</select><select id="srch_dan" onchange="filterLeads()"><option value="">Tüm Danışmanlar</option>' + danOpts + '</select></div>';
-  html += '<div class="table-wrap"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Takip</th><th>✏️</th></tr></thead><tbody id="leadsBody">';
-  html += renderLeadsRows(allData.leads);
-  html += '</tbody></table></div>';
-  c.innerHTML = html;
-}
-
-function renderLeadsRows(list) {
-  return list.map(l => '<tr><td>' + (l.tarih||'—') + '</td><td><strong>' + (l.ad||'') + '</strong></td><td>' + waBtn(l.telefon) + (l.telefon||'') + '</td><td>' + (l.kaynak||'—') + '</td><td>' + badge(l.durum) + '</td><td>' + (l.danisman||'—') + '</td><td>' + (l.sonraki_takip||'—') + '</td><td><button class="btn btn-sm btn-ghost" onclick="editRecord(\'gd_leads\',\'' + l.id + '\')">✏️</button></td></tr>').join('');
-}
-
-function filterLeads() {
-  const ad = (document.getElementById('srch_ad')||{value:''}).value.toLowerCase();
-  const durum = (document.getElementById('srch_durum')||{value:''}).value;
-  const dan = (document.getElementById('srch_dan')||{value:''}).value;
-  const filtered = allData.leads.filter(l => (!ad||(l.ad||'').toLowerCase().includes(ad)) && (!durum||l.durum===durum) && (!dan||l.danisman===dan));
-  const body = document.getElementById('leadsBody');
-  if (body) body.innerHTML = renderLeadsRows(filtered);
-}
-
-function showLeadForm() { document.getElementById('leadFormWrap').classList.remove('hidden'); }
-function hideLeadForm() { document.getElementById('leadFormWrap').classList.add('hidden'); }
-
-function quickAddDanisman() { document.getElementById('quickDanWrap').classList.remove('hidden'); }
-
-async function saveQuickDanisman() {
-  const ad = capitalize(document.getElementById('quick_dan_ad').value.trim());
-  if (!ad) return;
-  const token = generateToken();
-  try {
-    await api('danismanlar', 'POST', { ad, token });
-    await loadData();
-    document.getElementById('f_danisman').value = ad;
-    document.getElementById('quickDanMsg').innerHTML = '<div class="success-msg">✅ ' + ad + ' eklendi!</div>';
-    const danList = document.getElementById('danList');
-    if (danList) danList.innerHTML = allData.danismanlar.map(d => '<option value="' + d.ad + '">' + d.ad + '</option>').join('');
-    setTimeout(() => { document.getElementById('quickDanWrap').classList.add('hidden'); document.getElementById('quickDanMsg').innerHTML = ''; }, 1500);
-  } catch(e) { document.getElementById('quickDanMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-function addSource(type) {
-  const name = prompt('Yeni kaynak adı:');
-  if (!name || !name.trim()) return;
-  const cap = capitalize(name.trim());
-  if (type === 'lead') { if (!SOURCES_LEAD.includes(cap)) { SOURCES_LEAD.push(cap); saveSources(); } }
-  else { if (!SOURCES_RECRUIT.includes(cap)) { SOURCES_RECRUIT.push(cap); saveSources(); } }
-  alert(cap + ' eklendi!');
-  renderContent(type === 'lead' ? 'gd-leads' : 'recruiting');
-}
-
-function checkDup(val, type) {
-  if (val.length < 3) return;
-  const warnEl = document.getElementById(type === 'lead' ? 'leadDupWarn' : 'recruitDupWarn');
-  if (!warnEl) return;
-  const existing = type === 'lead' ? allData.leads.find(l => (l.ad||'').toLowerCase().includes(val.toLowerCase())) : allData.recruiting.find(r => (r.ad||'').toLowerCase().includes(val.toLowerCase()));
-  if (existing) warnEl.innerHTML = '<div class="dup-warning">⚠️ Bu isimde kayıt mevcut! <strong>' + existing.ad + '</strong> — ' + (existing.durum||'—') + ' — ' + (existing.tarih||'') + '</div>';
-  else warnEl.innerHTML = '';
-}
-
-async function saveLead() {
-  const ad = capitalize(document.getElementById('f_ad').value.trim());
-  if (!ad) { document.getElementById('leadFormMsg').innerHTML = '<div class="error-msg">Ad zorunlu!</div>'; return; }
-  const danAd = capitalize(document.getElementById('f_danisman').value.trim());
-  if (danAd && !allData.danismanlar.find(d => d.ad === danAd)) {
-    try { await api('danismanlar', 'POST', { ad: danAd, token: generateToken() }); } catch(e) {}
-  }
-  const data = { ad, telefon: document.getElementById('f_tel').value.trim(), kaynak: document.getElementById('f_kaynak').value, danisman: danAd||null, durum: document.getElementById('f_durum').value, aciklama: document.getElementById('f_aciklama').value.trim(), tarih: today(), sonraki_takip: document.getElementById('f_takip').value||null };
-  try {
-    await api('gd_leads', 'POST', data);
-    document.getElementById('leadFormMsg').innerHTML = '<div class="success-msg">✅ Lead eklendi!</div>';
-    await loadData();
-    setTimeout(() => { hideLeadForm(); renderContent('gd-leads'); }, 900);
-  } catch(e) { document.getElementById('leadFormMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-// ============ RECRUITING ============
-function getRecruitDurumOptions(current) {
-  return ['Beklemede','Sıcak','1. Görüşme','2. Görüşme','Randevu','Görüşüldü','Olumsuz','Kara Liste'].map(s => '<option' + (current===s?' selected':'') + '>' + s + '</option>').join('');
-}
-
-function getRecruitSourceOptions(current) {
-  return SOURCES_RECRUIT.map(s => '<option' + (current===s?' selected':'') + '>' + s + '</option>').join('');
-}
-
-function renderRecruiting(c) {
-  let html = '<div class="table-header"><div class="table-title">👥 Recruiting (' + allData.recruiting.length + ')</div><div class="table-actions"><button class="btn btn-primary" onclick="showRecruitForm()">+ Yeni Aday</button><button class="btn btn-ghost" onclick="exportCSV(\'recruit\')">📥 CSV</button></div></div>';
-  html += '<div id="recruitFormWrap" class="hidden form-wrap"><h3>Yeni Aday</h3><div id="recruitDupWarn"></div>';
-  html += '<div class="form-grid">';
-  html += '<div class="form-group"><label>Ad Soyad *</label><input id="r_ad" placeholder="Ad Soyad" oninput="this.value=capitalize(this.value);checkDup(this.value,\'recruit\')" /></div>';
-  html += '<div class="form-group"><label>Telefon</label><input id="r_tel" placeholder="5XX XXX XX XX" /></div>';
-  html += '<div class="form-group"><label>Kaynak</label><select id="r_kaynak">' + getRecruitSourceOptions('') + '</select> <button class="btn btn-sm btn-ghost" onclick="addSource(\'recruit\')" style="margin-top:4px">+ Kaynak Ekle</button></div>';
-  html += '<div class="form-group"><label>Durum</label><select id="r_durum">' + getRecruitDurumOptions('Beklemede') + '</select></div>';
-  html += '<div class="form-group"><label>Randevu Tarihi</label><input type="date" id="r_randevu" /></div>';
-  html += '<div class="form-group"><label>Randevu Saati</label><input type="time" id="r_saat" /></div>';
-  html += '</div>';
-  html += '<div class="form-group" style="margin-top:12px"><label>Açıklama</label><textarea id="r_aciklama" placeholder="Not..."></textarea></div>';
-  html += '<div class="form-actions"><button class="btn btn-primary" onclick="saveRecruit()">Kaydet</button><button class="btn btn-ghost" onclick="hideRecruitForm()">İptal</button></div>';
-  html += '<div id="recruitFormMsg"></div></div>';
-
-  html += '<div class="search-bar"><input id="rsrch_ad" placeholder="🔍 İsim ara..." oninput="filterRecruit()" /><select id="rsrch_durum" onchange="filterRecruit()"><option value="">Tüm Durumlar</option>' + getRecruitDurumOptions('') + '</select><select id="rsrch_kaynak" onchange="filterRecruit()"><option value="">Tüm Kaynaklar</option>' + getRecruitSourceOptions('') + '</select></div>';
-  html += '<div class="table-wrap"><table><thead><tr><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Randevu</th><th>Saat</th><th>Açıklama</th><th>✏️</th></tr></thead><tbody id="recruitBody">';
-  html += renderRecruitRows(allData.recruiting);
-  html += '</tbody></table></div>';
-  c.innerHTML = html;
-}
-
-function renderRecruitRows(list) {
-  return list.map(r => '<tr><td><strong>' + (r.ad||'') + '</strong></td><td>' + waBtn(r.telefon) + (r.telefon||'') + '</td><td>' + (r.kaynak||'—') + '</td><td>' + badge(r.durum) + '</td><td>' + (r.randevu_tarihi||'—') + '</td><td>' + (r.randevu_saati||'—') + '</td><td>' + (r.aciklama||'—') + '</td><td><button class="btn btn-sm btn-ghost" onclick="editRecord(\'recruiting_candidates\',\'' + r.id + '\')">✏️</button></td></tr>').join('');
-}
-
-function filterRecruit() {
-  const ad = (document.getElementById('rsrch_ad')||{value:''}).value.toLowerCase();
-  const durum = (document.getElementById('rsrch_durum')||{value:''}).value;
-  const kaynak = (document.getElementById('rsrch_kaynak')||{value:''}).value;
-  const filtered = allData.recruiting.filter(r => (!ad||(r.ad||'').toLowerCase().includes(ad)) && (!durum||r.durum===durum) && (!kaynak||r.kaynak===kaynak));
-  const body = document.getElementById('recruitBody');
-  if (body) body.innerHTML = renderRecruitRows(filtered);
-}
-
-function showRecruitForm() { document.getElementById('recruitFormWrap').classList.remove('hidden'); }
-function hideRecruitForm() { document.getElementById('recruitFormWrap').classList.add('hidden'); }
-
-async function saveRecruit() {
-  const ad = capitalize(document.getElementById('r_ad').value.trim());
-  if (!ad) { document.getElementById('recruitFormMsg').innerHTML = '<div class="error-msg">Ad zorunlu!</div>'; return; }
-  const data = { ad, telefon: document.getElementById('r_tel').value.trim(), kaynak: document.getElementById('r_kaynak').value, durum: document.getElementById('r_durum').value, aciklama: document.getElementById('r_aciklama').value.trim(), randevu_tarihi: document.getElementById('r_randevu').value||null, randevu_saati: document.getElementById('r_saat').value||null };
-  try {
-    await api('recruiting_candidates', 'POST', data);
-    document.getElementById('recruitFormMsg').innerHTML = '<div class="success-msg">✅ Aday eklendi!</div>';
-    await loadData();
-    setTimeout(() => { hideRecruitForm(); renderContent('recruiting'); }, 900);
-  } catch(e) { document.getElementById('recruitFormMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-// ============ TAKVİM ============
-function renderTakvim(c) {
-  const dateStr = calendarDate.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const todayStr = calendarDate.toISOString().split('T')[0];
-  const dayEvents = allData.recruiting.filter(r => r.randevu_tarihi === todayStr && r.randevu_saati);
-  const allDayEvents = allData.recruiting.filter(r => r.randevu_tarihi === todayStr && !r.randevu_saati);
-
-  let html = '<div class="calendar-wrap">';
-  html += '<div class="calendar-header"><div class="cal-title">📅 ' + dateStr + '</div><div class="calendar-nav"><button class="cal-btn" onclick="changeCalDay(-1)">◀</button><button class="cal-btn" onclick="goToday()">Bugün</button><button class="cal-btn" onclick="changeCalDay(1)">▶</button></div></div>';
-
-  if (allDayEvents.length > 0) {
-    html += '<div style="padding:12px 16px;background:#f0f8ff;border-bottom:1px solid var(--border)">';
-    html += '<div style="font-size:12px;font-weight:700;color:#666;margin-bottom:8px">SAAT BELİRTİLMEYEN RANDEVULAR</div>';
-    html += allDayEvents.map(r => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="background:var(--orange);color:white;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600">' + r.ad + '</span>' + badge(r.durum) + '<span style="font-size:12px;color:#666">' + (r.aciklama||'') + '</span>' + waBtn(r.telefon) + '</div>').join('');
-    html += '</div>';
-  }
-
-  html += '<div class="time-grid">';
-  html += '<div class="time-col">';
-  for (let h = 8; h <= 20; h++) {
-    html += '<div class="time-slot">' + h.toString().padStart(2,'0') + ':00</div>';
-  }
-  html += '</div>';
-  html += '<div class="event-col">';
-  for (let h = 8; h <= 20; h++) {
-    const hStr = h.toString().padStart(2,'0');
-    const slotEvents = dayEvents.filter(r => r.randevu_saati && r.randevu_saati.startsWith(hStr));
-    html += '<div class="event-row">';
-    if (slotEvents.length > 0) {
-      slotEvents.forEach((r, idx) => {
-        const isOk = !['Olumsuz','Kara Liste'].includes(r.durum);
-        html += '<div class="event-item ' + (isOk?'confirmed':'') + '" style="top:2px;left:' + (idx*120+4) + 'px;width:110px" onclick="editRecord(\'recruiting_candidates\',\'' + r.id + '\')">';
-        html += r.randevu_saati + ' — ' + r.ad;
-        html += '</div>';
-      });
-    }
-    html += '</div>';
-  }
-  html += '</div></div></div>';
-  c.innerHTML = html;
-}
-
-function changeCalDay(d) { calendarDate.setDate(calendarDate.getDate()+d); renderContent('takvim'); }
-function goToday() { calendarDate = new Date(); renderContent('takvim'); }
-
-// ============ DANIŞMANLAR ============
-function renderDanismanlar(c) {
-  let html = '<div class="table-header"><div class="table-title">🔑 Danışman Linkleri</div><div class="table-actions"><button class="btn btn-primary" onclick="showDanForm()">+ Yeni Danışman</button></div></div>';
-  html += '<div id="danFormWrap" class="hidden form-wrap"><h3>Yeni Danışman</h3>';
-  html += '<div class="form-group" style="max-width:300px"><label>Ad Soyad *</label><input id="d_ad" placeholder="Ad Soyad" oninput="this.value=capitalize(this.value)" /></div>';
-  html += '<div class="form-actions"><button class="btn btn-primary" onclick="saveDanisman()">Token Oluştur & Kaydet</button><button class="btn btn-ghost" onclick="hideDanForm()">İptal</button></div>';
-  html += '<div id="danFormMsg"></div></div>';
-  html += '<div class="table-wrap"><table><thead><tr><th>Ad</th><th>Panel Linki</th><th>Atanan</th><th>Kazanılan</th><th>Oran</th></tr></thead><tbody>';
-  html += allData.danismanlar.map(d => {
-    const link = window.location.origin + window.location.pathname + '?token=' + d.token;
-    const ml = allData.leads.filter(l => l.danisman === d.ad);
-    const won = ml.filter(l => l.durum === 'Kazanıldı').length;
-    const rate = ml.length > 0 ? Math.round(won/ml.length*100) : 0;
-    return '<tr><td><strong>' + d.ad + '</strong></td><td><span class="token-link">' + link + '</span> <button class="btn btn-sm btn-ghost" onclick="copyLink(\'' + link + '\')">Kopyala</button></td><td>' + ml.length + '</td><td>' + won + '</td><td>' + rate + '%</td></tr>';
-  }).join('');
-  html += '</tbody></table></div>';
-  c.innerHTML = html;
-}
-
-function showDanForm() { document.getElementById('danFormWrap').classList.remove('hidden'); }
-function hideDanForm() { document.getElementById('danFormWrap').classList.add('hidden'); }
-function generateToken() { const c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'; let t=''; for(let i=0;i<14;i++) t+=c[Math.floor(Math.random()*c.length)]; return t; }
-
-async function saveDanisman() {
-  const ad = capitalize(document.getElementById('d_ad').value.trim());
-  if (!ad) { document.getElementById('danFormMsg').innerHTML = '<div class="error-msg">Ad zorunlu!</div>'; return; }
-  try {
-    await api('danismanlar', 'POST', { ad, token: generateToken() });
-    document.getElementById('danFormMsg').innerHTML = '<div class="success-msg">✅ Eklendi!</div>';
-    await loadData();
-    setTimeout(() => { hideDanForm(); renderContent('danismanlar'); }, 900);
-  } catch(e) { document.getElementById('danFormMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-function copyLink(link) {
-  navigator.clipboard.writeText(link).then(() => alert('Kopyalandı!')).catch(() => { const ta=document.createElement('textarea');ta.value=link;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Kopyalandı!'); });
-}
-
-// ============ AYARLAR ============
-function renderAyarlar(c) {
-  let html = '<div class="form-wrap"><h3>⚙️ Ofis Şifre Sıfırla</h3>';
-  html += '<div class="form-group" style="max-width:280px"><label>Yeni Şifre</label><input type="password" id="adminNewPass" /></div>';
-  html += '<div class="form-actions"><button class="btn btn-primary" onclick="adminResetPwd()">Sıfırla</button></div><div id="adminResetMsg"></div></div>';
-  c.innerHTML = html;
-}
-
-function adminResetPwd() {
-  const p = document.getElementById('adminNewPass').value.trim();
-  if (!p || p.length < 4) { document.getElementById('adminResetMsg').innerHTML = '<div class="error-msg">En az 4 karakter!</div>'; return; }
-  USERS['ofis'].pass = p; saveUsers();
-  document.getElementById('adminResetMsg').innerHTML = '<div class="success-msg">✅ Şifre güncellendi!</div>';
-}
-
-// ============ OFİS PANELİ ============
-function renderLeadGiris(c) {
-  const danOpts = allData.danismanlar.map(d => '<option value="' + d.ad + '">' + d.ad + '</option>').join('');
-  let html = '<div class="form-wrap"><h3>➕ Yeni GD Lead Ekle</h3><div id="ofisLeadDupWarn"></div>';
-  html += '<div class="form-grid">';
-  html += '<div class="form-group"><label>Ad Soyad *</label><input id="a_ad" placeholder="Ad Soyad" oninput="this.value=capitalize(this.value);checkDupOfis(this.value)" /></div>';
-  html += '<div class="form-group"><label>Telefon</label><input id="a_tel" placeholder="5XX XXX XX XX" /></div>';
-  html += '<div class="form-group"><label>Kaynak</label><select id="a_kaynak">' + getLeadSourceOptions('') + '</select></div>';
-  html += '<div class="form-group"><label>Danışman</label><select id="a_danisman"><option value="">— Seç —</option>' + danOpts + '</select></div>';
-  html += '<div class="form-group"><label>Durum</label><select id="a_durum">' + getLeadDurumOptions('Arandı') + '</select></div>';
-  html += '<div class="form-group"><label>Sonraki Takip</label><input type="date" id="a_takip" /></div>';
-  html += '</div><div class="form-group" style="margin-top:12px"><label>Not</label><textarea id="a_aciklama" placeholder="Müşteri notu..."></textarea></div>';
-  html += '<div class="form-actions"><button class="btn btn-primary" onclick="saveLeadOfis()">Kaydet</button></div><div id="ofisLeadMsg"></div></div>';
-  c.innerHTML = html;
-}
-
-function checkDupOfis(val) {
-  if (val.length < 3) return;
-  const existing = allData.leads.find(l => (l.ad||'').toLowerCase().includes(val.toLowerCase()));
-  const el = document.getElementById('ofisLeadDupWarn');
-  if (existing && el) el.innerHTML = '<div class="dup-warning">⚠️ Bu isimde kayıt var! <strong>' + existing.ad + '</strong> — ' + (existing.durum||'—') + '</div>';
-  else if (el) el.innerHTML = '';
-}
-
-async function saveLeadOfis() {
-  const ad = capitalize(document.getElementById('a_ad').value.trim());
-  if (!ad) { document.getElementById('ofisLeadMsg').innerHTML = '<div class="error-msg">Ad zorunlu!</div>'; return; }
-  const data = { ad, telefon: document.getElementById('a_tel').value.trim(), kaynak: document.getElementById('a_kaynak').value, danisman: document.getElementById('a_danisman').value||null, durum: document.getElementById('a_durum').value, aciklama: document.getElementById('a_aciklama').value.trim(), tarih: today(), sonraki_takip: document.getElementById('a_takip').value||null };
-  try {
-    await api('gd_leads', 'POST', data);
-    document.getElementById('ofisLeadMsg').innerHTML = '<div class="success-msg">✅ Lead eklendi!</div>';
-    document.getElementById('a_ad').value=''; document.getElementById('a_tel').value=''; document.getElementById('a_aciklama').value='';
-    await loadData();
-  } catch(e) { document.getElementById('ofisLeadMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-function renderLeadListesi(c) {
-  const wa = weekAgo(); const td = today();
-  let html = '<div class="table-header"><div class="table-title">📋 Son Leadler</div>';
-  html += '<div class="date-filter-bar"><label>Başlangıç:</label><input type="date" id="df_s" value="' + wa + '" min="' + wa + '" max="' + td + '" onchange="filterOfisLeads()" /><label>Bitiş:</label><input type="date" id="df_e" value="' + td + '" min="' + wa + '" max="' + td + '" onchange="filterOfisLeads()" /></div></div>';
-  const filtered = allData.leads.filter(l => l.tarih >= wa && l.tarih <= td);
-  html += '<div class="table-wrap"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th></tr></thead><tbody id="ofisLeadsBody">';
-  html += filtered.map(l => '<tr><td>' + (l.tarih||'—') + '</td><td><strong>' + (l.ad||'') + '</strong></td><td>' + waBtn(l.telefon) + (l.telefon||'') + '</td><td>' + badge(l.durum) + '</td><td>' + (l.danisman||'—') + '</td></tr>').join('');
-  html += '</tbody></table></div>';
-  c.innerHTML = html;
-}
-
-function filterOfisLeads() {
-  const s = document.getElementById('df_s').value;
-  const e = document.getElementById('df_e').value;
-  const wa = weekAgo();
-  const start = s < wa ? wa : s;
-  const filtered = allData.leads.filter(l => l.tarih >= start && l.tarih <= e);
-  const body = document.getElementById('ofisLeadsBody');
-  if (body) body.innerHTML = filtered.map(l => '<tr><td>' + (l.tarih||'—') + '</td><td><strong>' + (l.ad||'') + '</strong></td><td>' + waBtn(l.telefon) + (l.telefon||'') + '</td><td>' + badge(l.durum) + '</td><td>' + (l.danisman||'—') + '</td></tr>').join('');
-}
-
-function renderRecruitGiris(c) {
-  let html = '<div class="form-wrap"><h3>➕ Yeni Aday Ekle</h3><div id="ofisRecDupWarn"></div>';
-  html += '<div class="form-grid">';
-  html += '<div class="form-group"><label>Ad Soyad *</label><input id="ra_ad" placeholder="Ad Soyad" oninput="this.value=capitalize(this.value);checkDupRec(this.value)" /></div>';
-  html += '<div class="form-group"><label>Telefon</label><input id="ra_tel" placeholder="5XX XXX XX XX" /></div>';
-  html += '<div class="form-group"><label>Kaynak</label><select id="ra_kaynak">' + getRecruitSourceOptions('') + '</select></div>';
-  html += '<div class="form-group"><label>Durum</label><select id="ra_durum">' + getRecruitDurumOptions('Beklemede') + '</select></div>';
-  html += '<div class="form-group"><label>Randevu Tarihi</label><input type="date" id="ra_randevu" /></div>';
-  html += '<div class="form-group"><label>Randevu Saati</label><input type="time" id="ra_saat" /></div>';
-  html += '</div><div class="form-group" style="margin-top:12px"><label>Not</label><textarea id="ra_aciklama" placeholder="Aday notu..."></textarea></div>';
-  html += '<div class="form-actions"><button class="btn btn-primary" onclick="saveRecOfis()">Kaydet</button></div><div id="ofisRecMsg"></div></div>';
-  c.innerHTML = html;
-}
-
-function checkDupRec(val) {
-  if (val.length < 3) return;
-  const existing = allData.recruiting.find(r => (r.ad||'').toLowerCase().includes(val.toLowerCase()));
-  const el = document.getElementById('ofisRecDupWarn');
-  if (existing && el) el.innerHTML = '<div class="dup-warning">⚠️ Bu kişiyle daha önce görüşülmüş! <strong>' + existing.ad + '</strong> — ' + (existing.durum||'—') + '</div>';
-  else if (el) el.innerHTML = '';
-}
-
-async function saveRecOfis() {
-  const ad = capitalize(document.getElementById('ra_ad').value.trim());
-  if (!ad) { document.getElementById('ofisRecMsg').innerHTML = '<div class="error-msg">Ad zorunlu!</div>'; return; }
-  const data = { ad, telefon: document.getElementById('ra_tel').value.trim(), kaynak: document.getElementById('ra_kaynak').value, durum: document.getElementById('ra_durum').value, aciklama: document.getElementById('ra_aciklama').value.trim(), randevu_tarihi: document.getElementById('ra_randevu').value||null, randevu_saati: document.getElementById('ra_saat').value||null };
-  try {
-    await api('recruiting_candidates', 'POST', data);
-    document.getElementById('ofisRecMsg').innerHTML = '<div class="success-msg">✅ Aday eklendi!</div>';
-    document.getElementById('ra_ad').value=''; document.getElementById('ra_tel').value=''; document.getElementById('ra_aciklama').value='';
-    await loadData();
-  } catch(e) { document.getElementById('ofisRecMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-// ============ DANIŞMAN PANELİ ============
-function renderDanismanPanel(c) {
-  const myLeads = allData.leads.filter(l => l.danisman === currentUser.danismanAd);
-  const open = myLeads.filter(l => !['Kazanıldı','Kaybedildi'].includes(l.durum)).length;
-  const won = myLeads.filter(l => l.durum === 'Kazanıldı').length;
-  const hot = myLeads.filter(l => l.durum === 'Sıcak').length;
-  const rate = myLeads.length > 0 ? Math.round(won/myLeads.length*100) : 0;
-  let html = '<div class="grid">';
-  html += '<div class="card"><h3>Toplam</h3><div class="card-stat">' + myLeads.length + '</div></div>';
-  html += '<div class="card red"><h3>Açık</h3><div class="card-stat">' + open + '</div></div>';
-  html += '<div class="card green"><h3>Kazanılan</h3><div class="card-stat">' + won + '</div></div>';
-  html += '<div class="card orange"><h3>🔥 Sıcak</h3><div class="card-stat">' + hot + '</div></div>';
-  html += '<div class="card blue"><h3>Dönüşüm</h3><div class="card-stat">' + rate + '%</div></div>';
-  html += '</div>';
-  html += '<div class="table-header"><div class="table-title">📋 Bana Atanan Portföyler</div></div>';
-  html += '<div class="table-wrap"><table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Tel</th><th>Kaynak</th><th>Açıklama</th><th>Durum</th><th>Takip</th></tr></thead><tbody>';
-  html += myLeads.map(l => '<tr><td>' + (l.tarih||'—') + '</td><td><strong>' + (l.ad||'') + '</strong></td><td>' + waBtn(l.telefon) + '</td><td>' + (l.kaynak||'—') + '</td><td>' + (l.aciklama||'—') + '</td><td><select class="status-select" onchange="updateLeadStatus(\'' + l.id + '\',this.value)">' + getLeadDurumOptions(l.durum) + '</select></td><td>' + (l.sonraki_takip||'—') + '</td></tr>').join('');
-  html += '</tbody></table></div>';
-  c.innerHTML = html;
-}
-
-async function updateLeadStatus(id, durum) {
-  try {
-    await api('gd_leads', 'PATCH', { durum }, 'id=eq.' + id);
-    const lead = allData.leads.find(l => l.id === id);
-    if (lead) lead.durum = durum;
-  } catch(e) { alert('Hata: ' + e.message); }
-}
-
-// ============ EDIT ============
-function editRecord(table, id) {
-  const record = table === 'gd_leads' ? allData.leads.find(l => l.id === id) : allData.recruiting.find(r => r.id === id);
-  if (!record) return;
-  editingRecord = record; editingTable = table;
-  const danOpts = allData.danismanlar.map(d => '<option value="' + d.ad + '"' + (record.danisman===d.ad?' selected':'') + '>' + d.ad + '</option>').join('');
-  let html = '';
-  if (table === 'gd_leads') {
-    document.getElementById('editModalTitle').textContent = '✏️ Lead Düzenle — ' + record.ad;
-    html += '<div class="form-grid">';
-    html += '<div class="form-group"><label>Ad Soyad</label><input id="e_ad" value="' + (record.ad||'') + '" oninput="this.value=capitalize(this.value)" /></div>';
-    html += '<div class="form-group"><label>Telefon</label><input id="e_tel" value="' + (record.telefon||'') + '" /></div>';
-    html += '<div class="form-group"><label>Kaynak</label><select id="e_kaynak">' + getLeadSourceOptions(record.kaynak) + '</select></div>';
-    html += '<div class="form-group"><label>Danışman</label><input id="e_danisman" list="editDanList" value="' + (record.danisman||'') + '" /><datalist id="editDanList">' + danOpts + '</datalist></div>';
-    html += '<div class="form-group"><label>Durum</label><select id="e_durum">' + getLeadDurumOptions(record.durum) + '</select></div>';
-    html += '<div class="form-group"><label>Sonraki Takip</label><input type="date" id="e_takip" value="' + (record.sonraki_takip||'') + '" /></div>';
-    html += '</div><div class="form-group" style="margin-top:12px"><label>Açıklama</label><textarea id="e_aciklama">' + (record.aciklama||'') + '</textarea></div>';
-  } else {
-    document.getElementById('editModalTitle').textContent = '✏️ Aday Düzenle — ' + record.ad;
-    html += '<div class="form-grid">';
-    html += '<div class="form-group"><label>Ad Soyad</label><input id="e_ad" value="' + (record.ad||'') + '" oninput="this.value=capitalize(this.value)" /></div>';
-    html += '<div class="form-group"><label>Telefon</label><input id="e_tel" value="' + (record.telefon||'') + '" /></div>';
-    html += '<div class="form-group"><label>Kaynak</label><select id="e_kaynak">' + getRecruitSourceOptions(record.kaynak) + '</select></div>';
-    html += '<div class="form-group"><label>Durum</label><select id="e_durum">' + getRecruitDurumOptions(record.durum) + '</select></div>';
-    html += '<div class="form-group"><label>Randevu Tarihi</label><input type="date" id="e_randevu" value="' + (record.randevu_tarihi||'') + '" /></div>';
-    html += '<div class="form-group"><label>Randevu Saati</label><input type="time" id="e_saat" value="' + (record.randevu_saati||'') + '" /></div>';
-    html += '</div><div class="form-group" style="margin-top:12px"><label>Açıklama</label><textarea id="e_aciklama">' + (record.aciklama||'') + '</textarea></div>';
-  }
-  document.getElementById('editModalContent').innerHTML = html;
-  document.getElementById('editModal').classList.add('show');
-}
-
-function hideEditModal() { document.getElementById('editModal').classList.remove('show'); editingRecord = null; editingTable = null; }
-
-async function saveEdit() {
-  if (!editingRecord || !editingTable) return;
-  let data = {};
-  if (editingTable === 'gd_leads') {
-    data = { ad: capitalize(document.getElementById('e_ad').value.trim()), telefon: document.getElementById('e_tel').value.trim(), kaynak: document.getElementById('e_kaynak').value, danisman: document.getElementById('e_danisman').value.trim()||null, durum: document.getElementById('e_durum').value, aciklama: document.getElementById('e_aciklama').value.trim(), sonraki_takip: document.getElementById('e_takip').value||null };
-  } else {
-    data = { ad: capitalize(document.getElementById('e_ad').value.trim()), telefon: document.getElementById('e_tel').value.trim(), kaynak: document.getElementById('e_kaynak').value, durum: document.getElementById('e_durum').value, aciklama: document.getElementById('e_aciklama').value.trim(), randevu_tarihi: document.getElementById('e_randevu').value||null, randevu_saati: document.getElementById('e_saat').value||null };
-  }
-  try {
-    await api(editingTable, 'PATCH', data, 'id=eq.' + editingRecord.id);
-    document.getElementById('editModalMsg').innerHTML = '<div class="success-msg">✅ Güncellendi!</div>';
-    await loadData();
-    setTimeout(() => { hideEditModal(); renderContent(editingTable==='gd_leads'?'gd-leads':'recruiting'); }, 800);
-  } catch(e) { document.getElementById('editModalMsg').innerHTML = '<div class="error-msg">❌ ' + e.message + '</div>'; }
-}
-
-// ============ ŞİFRE ============
-function showPasswordModal() { document.getElementById('passwordModal').classList.add('show'); }
-function hidePasswordModal() { document.getElementById('passwordModal').classList.remove('show'); }
-
-function changePassword() {
-  const old = document.getElementById('oldPass').value;
-  const n1 = document.getElementById('newPass').value;
-  const n2 = document.getElementById('newPass2').value;
-  if (USERS[currentUser.username].pass !== old) { document.getElementById('passMsg').innerHTML = '<div class="error-msg">Mevcut şifre hatalı!</div>'; return; }
-  if (n1 !== n2) { document.getElementById('passMsg').innerHTML = '<div class="error-msg">Şifreler eşleşmiyor!</div>'; return; }
-  if (n1.length < 4) { document.getElementById('passMsg').innerHTML = '<div class="error-msg">En az 4 karakter!</div>'; return; }
-  USERS[currentUser.username].pass = n1; saveUsers();
-  document.getElementById('passMsg').innerHTML = '<div class="success-msg">✅ Şifre güncellendi!</div>';
-  setTimeout(hidePasswordModal, 1500);
-}
-
-// ============ CSV ============
-function exportCSV(type) {
-  const data = type === 'leads' ? allData.leads : allData.recruiting;
-  if (!data.length) { alert('Veri yok!'); return; }
-  const keys = Object.keys(data[0]).filter(k => k !== 'id');
-  let csv = keys.join(',') + '\n';
-  data.forEach(row => { csv += keys.map(k => '"' + (row[k]||'').toString().replace(/"/g,'""') + '"').join(',') + '\n'; });
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download=(type==='leads'?'gd_leads':'recruiting')+'_'+today()+'.csv'; a.click();
-}
-
-// ============ BAŞLAT ============
-(async function() {
-  const isToken = await checkToken();
-  if (!isToken) {
-    document.getElementById('loginPage').classList.remove('hidden');
-    ['loginUser','loginPass'].forEach(id => {
-      document.getElementById(id).addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
-    });
-  }
-})();
 </script>
 </body>
 </html>
