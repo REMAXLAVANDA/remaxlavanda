@@ -320,14 +320,15 @@ async function api(t,m,b,f){
 }
 
 async function load(){
+  const safe=async(tbl,filter)=>{try{const r=await api(tbl,'GET',null,filter);return Array.isArray(r)?r:[];}catch(e){console.warn(tbl,'hata:',e.message);return[];}};
   const[l,r,dn,h,n]=await Promise.all([
-    api('gd_leads','GET',null,'select=*&order=created_at.desc'),
-    api('recruiting_candidates','GET',null,'select=*&order=created_at.desc'),
-    api('danismanlar','GET',null,'select=*&order=created_at.asc'),
-    api('havuz','GET',null,'select=*&order=created_at.desc'),
-    api('danisman_notlar','GET',null,'select=*&order=created_at.desc')
+    safe('gd_leads','select=*&order=created_at.desc'),
+    safe('recruiting_candidates','select=*&order=created_at.desc'),
+    safe('danismanlar','select=*&order=created_at.asc'),
+    safe('havuz','select=*&order=created_at.desc'),
+    safe('danisman_notlar','select=*&order=created_at.desc')
   ]);
-  D.leads=l||[];D.rec=r||[];D.dans=dn||[];D.havuz=h||[];D.notlar=n||[];
+  D.leads=l;D.rec=r;D.dans=dn;D.havuz=h;D.notlar=n;
   D.santral=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
 }
 
