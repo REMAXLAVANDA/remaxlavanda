@@ -320,14 +320,15 @@ async function api(t,m,b,f){
 }
 
 async function load(){
+  const safe=async(tbl,filter)=>{try{const r=await api(tbl,'GET',null,filter);return Array.isArray(r)?r:[];}catch(e){console.warn(tbl,'hata:',e.message);return[];}};
   const[l,r,dn,h,n]=await Promise.all([
-    api('gd_leads','GET',null,'select=*&order=created_at.desc'),
-    api('recruiting_candidates','GET',null,'select=*&order=created_at.desc'),
-    api('danismanlar','GET',null,'select=*&order=created_at.asc'),
-    api('havuz','GET',null,'select=*&order=created_at.desc'),
-    api('danisman_notlar','GET',null,'select=*&order=created_at.desc')
+    safe('gd_leads','select=*&order=created_at.desc'),
+    safe('recruiting_candidates','select=*&order=created_at.desc'),
+    safe('danismanlar','select=*&order=created_at.asc'),
+    safe('havuz','select=*&order=created_at.desc'),
+    safe('danisman_notlar','select=*&order=created_at.desc')
   ]);
-  D.leads=l||[];D.rec=r||[];D.dans=dn||[];D.havuz=h||[];D.notlar=n||[];
+  D.leads=l;D.rec=r;D.dans=dn;D.havuz=h;D.notlar=n;
   D.santral=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
 }
 
@@ -836,7 +837,7 @@ function svSant(){
   localStorage.setItem('rmx_sant',JSON.stringify(sant));
   document.getElementById('sant-msg').innerHTML='<div class="ok-m">✅ Çağrı eklendi!</div>';
   document.getElementById('st_tel').value='';document.getElementById('st_ad').value='';document.getElementById('st_not').value='';
-  setTimeout(()=>rSant(document.getElementById('ct')),800);
+  const sl2=document.getElementById('sant-list');if(sl2)sl2.innerHTML=renderSantList(JSON.parse(localStorage.getItem('rmx_sant')||'[]'));
 }
 
 function openLead(i){
@@ -855,7 +856,7 @@ function openLead(i){
   },300);
 }
 
-function delSant(i){if(!confirm('Silinsin mi?'))return;const s=JSON.parse(localStorage.getItem('rmx_sant')||'[]');s.splice(i,1);localStorage.setItem('rmx_sant',JSON.stringify(s));rSant(document.getElementById('ct'));}
+function delSant(i){if(!confirm('Silinsin mi?'))return;const s=JSON.parse(localStorage.getItem('rmx_sant')||'[]');s.splice(i,1);localStorage.setItem('rmx_sant',JSON.stringify(s));const sl=document.getElementById('sant-list');if(sl)sl.innerHTML=renderSantList(s);}
 
 // DANIŞMANLAR
 function rDans(c){
