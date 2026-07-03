@@ -297,7 +297,7 @@ let CFG=JSON.parse(localStorage.getItem('rmx_cfg')||'null')||{
 function svU(){localStorage.setItem('rmx_u',JSON.stringify(U));}
 function svCFG(){localStorage.setItem('rmx_cfg',JSON.stringify(CFG));}
 
-let CU=null,D={leads:[],rec:[],dans:[],havuz:[],notlar:[],santral:[]};
+let CU=null,D={leads:[],rec:[],dans:[],havuz:[],notlar:[],santral:[],arayislar:[],disPortfolyo:[]};
 let eRec=null,eTbl=null,calDt=new Date();
 const tok=new URLSearchParams(window.location.search).get('token');
 
@@ -321,14 +321,16 @@ async function api(t,m,b,f){
 
 async function load(){
   const safe=async(tbl,filter)=>{try{const r=await api(tbl,'GET',null,filter);return Array.isArray(r)?r:[];}catch(e){console.warn(tbl,'hata:',e.message);return[];}};
-  const[l,r,dn,h,n]=await Promise.all([
+  const[l,r,dn,h,n,ar,dp]=await Promise.all([
     safe('gd_leads','select=*&order=created_at.desc'),
     safe('recruiting_candidates','select=*&order=created_at.desc'),
     safe('danismanlar','select=*&order=created_at.asc'),
     safe('havuz','select=*&order=created_at.desc'),
-    safe('danisman_notlar','select=*&order=created_at.desc')
+    safe('danisman_notlar','select=*&order=created_at.desc'),
+    safe('arayislar','select=*&order=created_at.desc'),
+    safe('dis_portfolyo','select=*&order=created_at.desc')
   ]);
-  D.leads=l;D.rec=r;D.dans=dn;D.havuz=h;D.notlar=n;
+  D.leads=l;D.rec=r;D.dans=dn;D.havuz=h;D.notlar=n;D.arayislar=ar;D.disPortfolyo=dp;
   D.santral=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
 }
 
@@ -405,9 +407,9 @@ function startDan(dn){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy & Santral'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy & Santral'},{id:'rec',l:'👥 Recruiting'}];
-  else tabs=[{id:'dan',l:'📋 Portföylerim'},{id:'havuz',l:'🏘️ Havuz'},{id:'notlar',l:'🔒 Notlarım'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'}];
+  else tabs=[{id:'dan',l:'📋 Portföylerim'},{id:'arayis',l:'🔍 Arayışlar'},{id:'dispf',l:'🏘️ Dış Portföy'},{id:'anaekran',l:'📋 Genel Tablo'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');b.textContent=t.l;
     b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');rC(t.id);};
@@ -425,6 +427,9 @@ function rC(id){
   else if(id==='dan')rDan(c);
   else if(id==='havuz')rHavuz(c);
   else if(id==='notlar')rNotlar(c);
+  else if(id==='arayis')rArayis(c);
+  else if(id==='dispf')rDisPF(c);
+  else if(id==='anaekran')rAnaEkran(c);
 }
 
 // GAUGE
@@ -547,18 +552,32 @@ function rPF(c){
   h+='</div><div id="lfm"></div></div>';
 
   if(!isA){
-    // OFİS SORGU
-    const r=getRights('l');
+    // OFİS - Danışman seçimi form içinde
+    h+='<div class="fgr" style="margin-top:-4px"><label>Danışman</label><input id="f_dan" list="dLO" placeholder="Danışman seç veya yaz..."/><datalist id="dLO">'+dO+'</datalist></div>';
+    // Son 1 hafta liste
+    const r2=getRights('l');
+    h+='</div><div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="f_a" placeholder="Not..."></textarea></div>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="svLead()">Kaydet</button></div><div id="lfm"></div></div>';
     h+='<div class="th" style="margin-top:14px"><div class="tt">📋 Son 1 Hafta</div></div>';
-    h+='<div class="rbox"><strong>Geçmiş Sorgu:</strong> Haftada 3 hak ('+r.left+' kaldı)<div class="rdots">';
-    for(let i=0;i<3;i++)h+='<div class="dot'+(i>=r.left?' u':'')+'"></div>';
+    h+='<div class="rbox"><strong>Geçmiş Sorgu:</strong> Haftada 3 hak ('+r2.left+' kaldı)<div class="rdots">';
+    for(let i=0;i<3;i++)h+='<div class="dot'+(i>=r2.left?' u':'')+'"></div>';
     h+='</div>';
-    if(r.left>0)h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><input type="date" id="qs" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><span>—</span><input type="date" id="qe" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><button class="btn btn-p btn-sm" onclick="qL()">Sorgula (1 hak)</button></div>';
+    if(r2.left>0)h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><input type="date" id="qs" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><span>—</span><input type="date" id="qe" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><button class="btn btn-p btn-sm" onclick="qL()">Sorgula (1 hak)</button></div>';
     h+='</div>';
-    const f=D.leads.filter(l=>l.tarih>=wAgo()&&l.tarih<=td());
-    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th></tr></thead><tbody id="ofisLB">';
-    h+=f.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
-    h+='</tbody></table></div>';
+    const todayLeads=D.leads.filter(l=>l.tarih===td());
+    const weekLeads=D.leads.filter(l=>l.tarih>=wAgo()&&l.tarih<=td()&&l.tarih!==td());
+    if(todayLeads.length){
+      h+='<div style="font-size:11px;font-weight:700;color:var(--dk);margin:10px 0 6px">Bugün Eklenenler <span style="color:#999;font-weight:400">(düzenleyebilirsiniz)</span></div>';
+      h+='<div class="tw"><table><thead><tr><th>Saat</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th><th></th></tr></thead><tbody>';
+      h+=todayLeads.map(l=>'<tr><td>'+(l.created_at||'').slice(11,16)+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button></td></tr>').join('');
+      h+='</tbody></table></div>';
+    }
+    if(weekLeads.length){
+      h+='<div style="font-size:11px;font-weight:700;color:var(--dk);margin:10px 0 6px">Bu Hafta</div>';
+      h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th></tr></thead><tbody id="ofisLB">';
+      h+=weekLeads.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
+      h+='</tbody></table></div>';
+    }
     h+=santralBlock();
     c.innerHTML=h;return;
   }
@@ -678,7 +697,13 @@ function openFromSant(i){
   if(sl)sl.innerHTML=renderSantList(sant);
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function lRows(list){return list.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td><td>'+(l.sonraki_takip||'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button></td></tr>').join('');}
+function lRows(list){return list.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td><td>'+(l.sonraki_takip||'—')+'</td><td style="display:flex;gap:4px"><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button><button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button></td></tr>').join('');}
+
+async function delLead(id){
+  if(!confirm('Bu lead silinsin mi?'))return;
+  try{await api('gd_leads','DELETE',null,'id=eq.'+id);await load();rPF(document.getElementById('ct'));}
+  catch(e){alert('Hata: '+e.message);}
+}
 function fL(){const a=(document.getElementById('sa')||{value:''}).value.toLowerCase();const d=(document.getElementById('sd')||{value:''}).value;const dn=(document.getElementById('sdn')||{value:''}).value;const f=D.leads.filter(l=>(!a||(l.ad||'').toLowerCase().includes(a))&&(!d||l.durum===d)&&(!dn||l.danisman===dn));const b=document.getElementById('lB');if(b)b.innerHTML=lRows(f);}
 function sLF(){document.getElementById('lfw').classList.remove('hidden');}
 function hLF(){document.getElementById('lfw').classList.add('hidden');}
@@ -1058,6 +1083,108 @@ function exp(t){
   const isT=await chkToken();
   if(!isT){if(!chkRem()){document.getElementById('lp').classList.remove('hidden');['lu','lpass'].forEach(id=>document.getElementById(id).addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();}));}}
 })();
+</script>
+<script>
+
+// ARAYIŞLAR
+function rArayis(c){
+  const my=D.arayislar.filter(function(a){return a.danisman_ad===CU.danAd;});
+  var h='<div class="fw"><h3>🔍 Yeni Arayış Ekle</h3>';
+  h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:10px 12px;font-size:11px;color:#5b21b6;margin-bottom:12px">🔒 Müşteri bilgilerinizi sadece siz görebilirsiniz.</div>';
+  h+='<div class="fg">';
+  h+='<div class="fgr"><label>Müşteri Adı</label><input id="ar_mad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div>';
+  h+='<div class="fgr"><label>Müşteri Tel</label><input id="ar_mtel" placeholder="5XX XXX XX XX"/></div>';
+  h+='<div class="fgr"><label>Tip</label><select id="ar_tip">'+opts(CFG.tipler,'Daire')+'</select></div>';
+  h+='<div class="fgr"><label>İşlem</label><select id="ar_is">'+opts(CFG.islemler,'Satılık')+'</select></div>';
+  h+='<div class="fgr"><label>İl</label><select id="ar_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div>';
+  h+='<div class="fgr"><label>İlçe</label><input id="ar_ilce" placeholder="İlçe..."/></div>';
+  h+='<div class="fgr"><label>m²</label><input id="ar_m2" type="number" placeholder="m2"/></div>';
+  h+='<div class="fgr"><label>Oda</label><input id="ar_oda" placeholder="2+1..."/></div>';
+  h+='<div class="fgr"><label>Bütçe</label><input id="ar_fiyat" placeholder="Fiyat"/></div>';
+  h+='</div>';
+  h+='<div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="ar_not" placeholder="Müşterinin özel istekleri..."></textarea></div>';
+  h+='<div class="fa"><button class="btn btn-p" onclick="svArayis()">Kaydet</button></div>';
+  h+='<div id="ar_msg"></div></div>';
+  h+='<div class="th"><div class="tt">Arayışlarım ('+my.length+')</div></div>';
+  if(!my.length){h+='<div style="text-align:center;padding:20px;color:#ccc;background:#fff;border-radius:10px;border:1px solid var(--bd)">Henüz arayış eklenmemiş</div>';}
+  else{
+    h+='<div class="tw"><table><thead><tr><th>Tip</th><th>İşlem</th><th>Konum</th><th>m2</th><th>Bütçe</th><th>Müşteri</th><th>Tel</th><th></th></tr></thead><tbody>';
+    my.forEach(function(a){
+      h+='<tr><td>'+a.tip+'</td><td>'+badge(a.islem)+'</td><td>'+(a.il||'')+'/'+(a.ilce||'')+'</td><td>'+(a.m2||'—')+'</td><td>'+(a.fiyat||'—')+'</td><td><strong>'+(a.musteri_ad||'—')+'</strong></td><td>'+wa(a.musteri_tel)+'</td><td><button class="btn btn-sm btn-r" onclick="delArayis(\''+a.id+'\')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  c.innerHTML=h;
+}
+
+async function svArayis(){
+  var item={danisman_ad:CU.danAd,tip:document.getElementById('ar_tip').value,islem:document.getElementById('ar_is').value,il:document.getElementById('ar_il').value,ilce:document.getElementById('ar_ilce').value,m2:document.getElementById('ar_m2').value,oda:document.getElementById('ar_oda').value,fiyat:document.getElementById('ar_fiyat').value,aciklama:document.getElementById('ar_not').value,musteri_ad:cap(document.getElementById('ar_mad').value.trim()),musteri_tel:document.getElementById('ar_mtel').value.trim()};
+  try{await api('arayislar','POST',item);document.getElementById('ar_msg').innerHTML='<div class="ok-m">✅ Arayış eklendi!</div>';await load();setTimeout(function(){rArayis(document.getElementById('ct'));},900);}
+  catch(e){document.getElementById('ar_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+async function delArayis(id){if(!confirm('Silinsin mi?'))return;try{await api('arayislar','DELETE',null,'id=eq.'+id);await load();rArayis(document.getElementById('ct'));}catch(e){alert(e.message);}}
+
+// DIŞ PORTFÖY
+function rDisPF(c){
+  var my=D.disPortfolyo.filter(function(d){return d.danisman_ad===CU.danAd;});
+  var h='<div class="fw"><h3>🏘️ Yeni Dış Portföy Ekle</h3>';
+  h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:10px 12px;font-size:11px;color:#5b21b6;margin-bottom:12px">🔒 Müşteri bilgilerinizi sadece siz görebilirsiniz.</div>';
+  h+='<div class="fg">';
+  h+='<div class="fgr"><label>Müşteri Adı</label><input id="dp_mad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div>';
+  h+='<div class="fgr"><label>Müşteri Tel</label><input id="dp_mtel" placeholder="5XX XXX XX XX"/></div>';
+  h+='<div class="fgr"><label>İşlem</label><select id="dp_is">'+opts(CFG.islemler,'Satılık')+'</select></div>';
+  h+='<div class="fgr"><label>Tip</label><select id="dp_tip">'+opts(CFG.tipler,'Daire')+'</select></div>';
+  h+='<div class="fgr"><label>İl</label><select id="dp_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div>';
+  h+='<div class="fgr"><label>İlçe</label><input id="dp_ilce" placeholder="İlçe..."/></div>';
+  h+='<div class="fgr"><label>Adres</label><input id="dp_adr" placeholder="Adres / Mahalle"/></div>';
+  h+='<div class="fgr"><label>m²</label><input id="dp_m2" type="number"/></div>';
+  h+='<div class="fgr"><label>Fiyat</label><input id="dp_fiyat" placeholder="Fiyat"/></div>';
+  h+='<div class="fgr"><label>Tapu</label><select id="dp_tapu"><option>Temiz</option><option>Hisseli</option><option>İpotekli</option><option>Belirsiz</option></select></div>';
+  h+='</div>';
+  h+='<div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="dp_not" placeholder="Portföy detayları..."></textarea></div>';
+  h+='<div class="fa"><button class="btn btn-p" onclick="svDisPF()">Kaydet</button></div>';
+  h+='<div id="dp_msg"></div></div>';
+  h+='<div class="th"><div class="tt">Dış Portföylerim ('+my.length+')</div></div>';
+  if(!my.length){h+='<div style="text-align:center;padding:20px;color:#ccc;background:#fff;border-radius:10px;border:1px solid var(--bd)">Henüz dış portföy eklenmemiş</div>';}
+  else{
+    h+='<div class="tw"><table><thead><tr><th>Tip</th><th>İşlem</th><th>Konum</th><th>m2</th><th>Fiyat</th><th>Tapu</th><th>Müşteri</th><th>Tel</th><th></th></tr></thead><tbody>';
+    my.forEach(function(d){
+      h+='<tr><td>'+d.tip+'</td><td>'+badge(d.islem)+'</td><td>'+(d.il||'')+'/'+(d.ilce||'')+'</td><td>'+(d.m2||'—')+'</td><td>'+(d.fiyat||'—')+'</td><td>'+(d.tapu||'—')+'</td><td><strong>'+(d.musteri_ad||'—')+'</strong></td><td>'+wa(d.musteri_tel)+'</td><td><button class="btn btn-sm btn-r" onclick="delDisPF(\''+d.id+'\')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  c.innerHTML=h;
+}
+
+async function svDisPF(){
+  var item={danisman_ad:CU.danAd,islem:document.getElementById('dp_is').value,tip:document.getElementById('dp_tip').value,il:document.getElementById('dp_il').value,ilce:document.getElementById('dp_ilce').value,adres:document.getElementById('dp_adr').value,m2:document.getElementById('dp_m2').value,fiyat:document.getElementById('dp_fiyat').value,tapu:document.getElementById('dp_tapu').value,aciklama:document.getElementById('dp_not').value,musteri_ad:cap(document.getElementById('dp_mad').value.trim()),musteri_tel:document.getElementById('dp_mtel').value.trim()};
+  try{await api('dis_portfolyo','POST',item);document.getElementById('dp_msg').innerHTML='<div class="ok-m">✅ Eklendi!</div>';await load();setTimeout(function(){rDisPF(document.getElementById('ct'));},900);}
+  catch(e){document.getElementById('dp_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+async function delDisPF(id){if(!confirm('Silinsin mi?'))return;try{await api('dis_portfolyo','DELETE',null,'id=eq.'+id);await load();rDisPF(document.getElementById('ct'));}catch(e){alert(e.message);}}
+
+// GENEL TABLO
+function rAnaEkran(c){
+  var h='<div class="two-col">';
+  h+='<div class="col-box"><h2>🔍 Arayışlar</h2>';
+  if(!D.arayislar.length){h+='<div style="color:#ccc;text-align:center;padding:20px">Henüz arayış yok</div>';}
+  else{
+    h+='<table class="mt"><thead><tr><th>Danışman</th><th>Tip</th><th>Konum</th><th>m2</th><th>Bütçe</th><th>Oda</th></tr></thead><tbody>';
+    D.arayislar.forEach(function(a){h+='<tr><td><strong>'+a.danisman_ad+'</strong></td><td>'+a.tip+'</td><td>'+(a.il||'')+(a.ilce?'/'+a.ilce:'')+'</td><td>'+(a.m2||'—')+'</td><td>'+(a.fiyat||'—')+'</td><td>'+(a.oda||'—')+'</td></tr>';});
+    h+='</tbody></table>';
+  }
+  h+='</div>';
+  h+='<div class="col-box"><h2>🏘️ Dış Portföyler</h2>';
+  if(!D.disPortfolyo.length){h+='<div style="color:#ccc;text-align:center;padding:20px">Henüz dış portföy yok</div>';}
+  else{
+    h+='<table class="mt"><thead><tr><th>Danışman</th><th>Tip</th><th>İşlem</th><th>Konum</th><th>m2</th><th>Fiyat</th><th>Tapu</th></tr></thead><tbody>';
+    D.disPortfolyo.forEach(function(d){h+='<tr><td><strong>'+d.danisman_ad+'</strong></td><td>'+d.tip+'</td><td>'+badge(d.islem)+'</td><td>'+(d.il||'')+(d.ilce?'/'+d.ilce:'')+'</td><td>'+(d.m2||'—')+'</td><td>'+(d.fiyat||'—')+'</td><td>'+(d.tapu||'—')+'</td></tr>';});
+    h+='</tbody></table>';
+  }
+  h+='</div></div>';
+  c.innerHTML=h;
+}
+
 </script>
 </body>
 </html>
