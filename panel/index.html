@@ -321,7 +321,7 @@ async function api(t,m,b,f){
 
 async function load(){
   const safe=async(tbl,filter)=>{try{const r=await api(tbl,'GET',null,filter);return Array.isArray(r)?r:[];}catch(e){console.warn(tbl,'hata:',e.message);return[];};};
-  const[l,r,dn,h,n,ar,dp,es,lg]=await Promise.all([
+  const[l,r,dn,h,n,ar,dp,es,lg,et,bm]=await Promise.all([
     safe('gd_leads','select=*&order=created_at.desc'),
     safe('recruiting_candidates','select=*&order=created_at.desc'),
     safe('danismanlar','select=*&order=created_at.asc'),
