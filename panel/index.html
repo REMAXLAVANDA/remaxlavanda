@@ -562,7 +562,22 @@ function rPF(c){
   h+='</div><div id="lfm"></div></div>';
 
   if(!isA){
-    // OFİS SORGU
+    // OFİS - Lead ekleme formu (danışman seçimli)
+    h+='<div class="th"><div class="tt">📞 Santral & GD Lead Ekle</div><div class="ta"><button class="btn btn-p" onclick="sLF()">+ Yeni GD Lead</button></div></div>';
+    h+='<div id="lfw" class="hidden fw"><h3>➕ Yeni GD Lead</h3>';
+    h+='<div id="ldw"></div>';
+    h+='<div class="fg">';
+    h+='<div class="fgr"><label>Ad Soyad *</label><input id="f_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value);dupC(this.value,\'l\')"/></div>';
+    h+='<div class="fgr"><label>Telefon</label><input id="f_tel" placeholder="5XX XXX XX XX"/></div>';
+    h+='<div class="fgr"><label>Kaynak</label><select id="f_k">'+opts(CFG.lSrc,'')+'</select></div>';
+    h+='<div class="fgr"><label>Danışman</label><input id="f_dan" list="dLO" placeholder="Danışman seç..."/><datalist id="dLO">'+dO+'</datalist></div>';
+    h+='<div class="fgr"><label>Durum</label><select id="f_d">'+opts(CFG.lDur,'Arandı')+'</select></div>';
+    h+='<div class="fgr"><label>Takip Tarihi</label><input type="date" id="f_t"/></div>';
+    h+='</div>';
+    h+='<div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="f_a" placeholder="Not..."></textarea></div>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="svLead()">Kaydet</button><button class="btn btn-g" onclick="hLF()">İptal</button></div>';
+    h+='<div id="lfm"></div></div>';
+    // Son 1 hafta
     const r=getRights('l');
     h+='<div class="th" style="margin-top:14px"><div class="tt">📋 Son 1 Hafta</div></div>';
     h+='<div class="rbox"><strong>Geçmiş Sorgu:</strong> Haftada 3 hak ('+r.left+' kaldı)<div class="rdots">';
@@ -571,8 +586,8 @@ function rPF(c){
     if(r.left>0)h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><input type="date" id="qs" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><span>—</span><input type="date" id="qe" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><button class="btn btn-p btn-sm" onclick="qL()">Sorgula (1 hak)</button></div>';
     h+='</div>';
     const f=D.leads.filter(l=>l.tarih>=wAgo()&&l.tarih<=td());
-    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th></tr></thead><tbody id="ofisLB">';
-    h+=f.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
+    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th><th>Notlar</th></tr></thead><tbody id="ofisLB">';
+    h+=f.map(l=>{const tlC=D.timeline.filter(t=>t.kayit_id===l.id).length;return'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td><td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 9px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' '+tlC:'')+'</button></td></tr>';}).join('');
     h+='</tbody></table></div>';
     h+=santralBlock();
     c.innerHTML=h;return;
@@ -771,40 +786,50 @@ function rRec(c){
   }
   h+='</div>';
 
-  // TAKVİM - Aylık grid
-  h+='<div><div class="cal-box">';
-  const ayLbl=calDt.toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
-  h+='<div class="cal-hd"><div class="cal-t">📅 '+ayLbl+'</div><div style="display:flex;gap:4px"><button class="cal-b" onclick="cCM(-1)">◀</button><button class="cal-b" onclick="cT()">Bugün</button><button class="cal-b" onclick="cCM(1)">▶</button></div></div>';
-  // Ay grid
-  const ay=calDt.getMonth(),yil=calDt.getFullYear();
-  const ilkGun=new Date(yil,ay,1).getDay();
-  const sonGun=new Date(yil,ay+1,0).getDate();
-  const bosluk=ilkGun===0?6:ilkGun-1;
-  const bugunStr=new Date().toISOString().split('T')[0];
-  const gunAd=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--bd)">';
-  gunAd.forEach(g=>h+='<div style="padding:6px;text-align:center;font-size:10px;font-weight:700;color:#999;background:var(--lg)">'+g+'</div>');
-  h+='</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
-  for(let i=0;i<bosluk;i++)h+='<div style="border:1px solid #f0f0f0;min-height:80px"></div>';
-  for(let gun=1;gun<=sonGun;gun++){
-    const ds=yil+'-'+String(ay+1).padStart(2,'0')+'-'+String(gun).padStart(2,'0');
-    const gunEv=D.rec.filter(r=>r.randevu_tarihi===ds);
-    const isToday=ds===bugunStr;
-    h+='<div style="border:1px solid #f0f0f0;min-height:80px;padding:4px;background:'+(isToday?'#f0f7ff':'white')+'">';
-    h+='<div style="font-size:11px;font-weight:700;color:'+(isToday?'var(--blue)':'var(--dk)')+';margin-bottom:3px">'+gun+'</div>';
-    gunEv.slice(0,3).forEach(r=>{
-      const cls=r.durum==='Görüşüldü'?'var(--gn)':r.durum==='Olumsuz'?'var(--red)':'var(--blue)';
-      h+='<div onclick="doE(\'recruiting_candidates\',\''+r.id+'\')" style="background:'+cls+'18;border-left:2px solid '+cls+';border-radius:3px;padding:2px 4px;margin-bottom:2px;cursor:pointer;font-size:10px;font-weight:600;color:'+cls+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.randevu_saati?r.randevu_saati.slice(0,5)+' ':'')+r.ad+'</div>';
-    });
-    if(gunEv.length>3)h+='<div style="font-size:9px;color:#999">+'+( gunEv.length-3)+' daha</div>';
-    h+='</div>';
+  // TAKVİM - Haftalık randevu listesi
+  h+='<div>';
+  // Bu haftanın başı (Pazartesi)
+  const cur2=new Date(calDt);
+  const day2=cur2.getDay();
+  const diff2=cur2.getDate()-(day2===0?6:day2-1);
+  const ws2=new Date(cur2);ws2.setDate(diff2);ws2.setHours(0,0,0,0);
+  const we2=new Date(ws2);we2.setDate(ws2.getDate()+6);
+  const ws2Str=ws2.toISOString().split('T')[0];
+  const we2Str=we2.toISOString().split('T')[0];
+  const wsLbl=ws2.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+  const weLbl=we2.toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
+  const bugunStr2=new Date().toISOString().split('T')[0];
+  h+='<div class="cal-box">';
+  h+='<div class="cal-hd"><div class="cal-t">📅 '+wsLbl+' — '+weLbl+'</div><div style="display:flex;gap:4px"><button class="cal-b" onclick="cC(-7)">◀</button><button class="cal-b" onclick="cT()">Bugün</button><button class="cal-b" onclick="cC(7)">▶</button></div></div>';
+  h+='<div class="cal-slots" style="padding:8px">';
+  // Bu haftanın randevularını topla
+  const haftaEv=D.rec.filter(r=>r.randevu_tarihi>=ws2Str&&r.randevu_tarihi<=we2Str).sort((a,b)=>(a.randevu_tarihi+a.randevu_saati||'').localeCompare(b.randevu_tarihi+b.randevu_saati||''));
+  const gunAd2=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+  for(let i=0;i<7;i++){
+    const d=new Date(ws2);d.setDate(ws2.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const isToday=ds===bugunStr2;
+    const gunEv=haftaEv.filter(r=>r.randevu_tarihi===ds);
+    if(gunEv.length||isToday){
+      h+='<div style="margin-bottom:8px">';
+      h+='<div style="font-size:10px;font-weight:700;color:'+(isToday?'var(--blue)':'#999')+';margin-bottom:4px;padding:2px 6px;background:'+(isToday?'#EDE9FE':'var(--lg)')+';border-radius:5px;display:inline-block">'+gunAd2[i]+' '+d.getDate()+(isToday?' • Bugün':'')+'</div>';
+      if(!gunEv.length){h+='<div style="font-size:11px;color:#ccc;padding:4px 6px">Randevu yok</div>';}
+      else gunEv.forEach(r=>{
+        const col=r.durum==='Görüşüldü'?'var(--gn)':r.durum==='Olumsuz'?'var(--red)':r.durum==='Sıcak'?'var(--or)':'var(--blue)';
+        h+='<div onclick="doE(\'recruiting_candidates\',\''+r.id+'\')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:white;border:1px solid var(--bd);border-left:3px solid '+col+';border-radius:7px;margin-bottom:4px;cursor:pointer">';
+        h+='<div style="font-size:11px;font-weight:700;color:'+col+';min-width:38px">'+(r.randevu_saati?r.randevu_saati.slice(0,5):'Saatsiz')+'</div>';
+        h+='<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--dk)">'+r.ad+'</div>';
+        h+=(r.aciklama?'<div style="font-size:10px;color:#999">'+r.aciklama.slice(0,40)+'</div>':'');
+        h+='</div>'+badge(r.durum)+'</div>';
+      });
+      h+='</div>';
+    }
   }
-  const kalanHucre=(7-(bosluk+sonGun)%7)%7;
-  for(let i=0;i<kalanHucre;i++)h+='<div style="border:1px solid #f0f0f0;min-height:80px"></div>';
+  if(!haftaEv.length)h+='<div class="cal-noev">Bu hafta randevu yok</div>';
   h+='</div></div></div></div>';
   c.innerHTML=h;
 }
+
 function rRows(list){return list.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td>'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(r.durum)+'</td><td>'+(r.randevu_tarihi||'—')+'</td><td>'+(r.randevu_saati||'—')+'</td><td>'+(r.aciklama||'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">✏️</button></td></tr>').join('');}
 function fR(){const a=(document.getElementById('ra')||{value:''}).value.toLowerCase();const d=(document.getElementById('rd')||{value:''}).value;const k=(document.getElementById('rk')||{value:''}).value;const f=D.rec.filter(r=>(!a||(r.ad||'').toLowerCase().includes(a))&&(!d||r.durum===d)&&(!k||r.kaynak===k));const b=document.getElementById('rB');if(b)b.innerHTML=rRows(f);}
 function sRF(){document.getElementById('rfw').classList.remove('hidden');}
