@@ -297,7 +297,7 @@ let CFG=JSON.parse(localStorage.getItem('rmx_cfg')||'null')||{
 function svU(){localStorage.setItem('rmx_u',JSON.stringify(U));}
 function svCFG(){localStorage.setItem('rmx_cfg',JSON.stringify(CFG));}
 
-let CU=null,D={leads:[],rec:[],dans:[],havuz:[],notlar:[],santral:[],arayislar:[],disPortfolyo:[],eslesmeler:[],log:[],etkinlikler:[],bilgiMerkezi:[]};
+let CU=null,D={leads:[],rec:[],dans:[],havuz:[],notlar:[],santral:[],arayislar:[],disPortfolyo:[],eslesmeler:[],log:[],etkinlikler:[],bilgiMerkezi:[],timeline:[]};
 let eRec=null,eTbl=null,calDt=new Date();
 const tok=new URLSearchParams(window.location.search).get('token');
 
@@ -332,11 +332,12 @@ async function load(){
     safe('eslesmeler','select=*&order=created_at.desc'),
     safe('islem_log','select=*&order=created_at.desc'),
     safe('etkinlikler','select=*&order=tarih.asc,saat.asc'),
-    safe('bilgi_merkezi','select=*&order=kategori.asc')
+    safe('bilgi_merkezi','select=*&order=kategori.asc'),
+    safe('timeline','select=*&order=created_at.desc')
   ]);
   D.leads=l;D.rec=r;D.dans=dn;D.havuz=h;D.notlar=n;
   D.arayislar=ar;D.disPortfolyo=dp;D.eslesmeler=es;D.log=lg;
-  D.etkinlikler=et;D.bilgiMerkezi=bm;
+  D.etkinlikler=et;D.bilgiMerkezi=bm;D.timeline=tl||[];
   D.santral=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
 }
 
@@ -1073,8 +1074,8 @@ function exp(t){
   if(!isT){if(!chkRem()){document.getElementById('lp').classList.remove('hidden');['lu','lpass'].forEach(id=>document.getElementById(id).addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();}));}}
 })();
 </script>
-</body>
-</html>
+
+
 <script>
 // ===== YENİ ÖZET (Dashboard) =====
 function rOzet(c){
@@ -1410,6 +1411,247 @@ function rAy(c){
   });
   h+=rBilgiYonetim();
   h+='<div class="ss2"><h3>⚙️ Ofis Şifre & PIN Sıfırla</h3><div class="fg"><div class="fgr"><label>Yeni Şifre</label><input type="password" id="anp"/></div><div class="fgr"><label>Yeni PIN (4 hane)</label><input id="anpin" maxlength="4" placeholder="4 hane"/></div></div><div class="fa"><button class="btn btn-p" onclick="adRst()">Sıfırla</button></div><div id="arm"></div></div>';
+  c.innerHTML=h;
+}
+</script>
+</body>
+</html>
+<script>
+// ===== TİMLİNE SİSTEMİ =====
+
+// Timeline paneli - bir kayıt için geçmiş + not ekleme
+function timelinePanel(kayitId, kayitTipi, containerEl) {
+  const notlar = D.timeline.filter(t => t.kayit_id === kayitId);
+  let h = '<div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:12px">';
+  h += '<div style="font-size:11px;font-weight:700;color:var(--dk);margin-bottom:8px">📋 Geçmiş & Notlar</div>';
+  
+  // Not ekleme
+  h += '<div style="display:flex;gap:6px;margin-bottom:10px">';
+  h += '<input id="tl_inp_'+kayitId+'" placeholder="Not ekle..." style="flex:1;padding:7px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;outline:none"/>';
+  h += '<button class="btn btn-p btn-sm" onclick="svTimeline(\''+kayitId+'\',\''+kayitTipi+'\')">Ekle</button>';
+  h += '</div>';
+  h += '<div id="tl_msg_'+kayitId+'"></div>';
+  
+  // Notlar listesi
+  if (!notlar.length) {
+    h += '<div style="color:#ccc;font-size:11px;text-align:center;padding:8px">Henüz not yok</div>';
+  } else {
+    h += '<div style="max-height:200px;overflow-y:auto">';
+    notlar.forEach(t => {
+      const dt = new Date(t.created_at);
+      const tarih = dt.toLocaleDateString('tr-TR', {day:'numeric',month:'short'});
+      const saat = dt.toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+      h += '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5">';
+      h += '<div style="flex-shrink:0;text-align:right;min-width:70px"><div style="font-size:10px;font-weight:700;color:var(--dk)">'+tarih+'</div><div style="font-size:9px;color:#999">'+saat+'</div></div>';
+      h += '<div style="flex:1"><div style="font-size:12px;color:var(--gr)">'+t.mesaj+'</div><div style="font-size:10px;color:#bbb;margin-top:2px">'+( t.yapan||'—')+'</div></div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  
+  if (containerEl) containerEl.innerHTML += h;
+  return h;
+}
+
+async function svTimeline(kayitId, kayitTipi) {
+  const inp = document.getElementById('tl_inp_'+kayitId);
+  const msg = document.getElementById('tl_msg_'+kayitId);
+  if (!inp) return;
+  const mesaj = inp.value.trim();
+  if (!mesaj) { if(msg)msg.innerHTML='<div class="err-m">Not boş olamaz!</div>'; return; }
+  const yapan = CU.danAd || CU.name || 'Kullanıcı';
+  try {
+    await api('timeline','POST',{kayit_id:kayitId,kayit_tipi:kayitTipi,mesaj:mesaj,yapan:yapan});
+    inp.value = '';
+    if(msg)msg.innerHTML='<div class="ok-m">✅ Not eklendi!</div>';
+    await load();
+    // Timeline'ı güncelle
+    const cont = document.getElementById('tl_cont_'+kayitId);
+    if(cont) {
+      const notlar = D.timeline.filter(t=>t.kayit_id===kayitId);
+      let nl='<div style="max-height:200px;overflow-y:auto">';
+      notlar.forEach(t=>{
+        const dt=new Date(t.created_at);
+        const tarih=dt.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+        const saat=dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+        nl+='<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5"><div style="flex-shrink:0;text-align:right;min-width:70px"><div style="font-size:10px;font-weight:700;color:var(--dk)">'+tarih+'</div><div style="font-size:9px;color:#999">'+saat+'</div></div><div style="flex:1"><div style="font-size:12px;color:var(--gr)">'+t.mesaj+'</div><div style="font-size:10px;color:#bbb;margin-top:2px">'+(t.yapan||'—')+'</div></div></div>';
+      });
+      nl+='</div>';
+      cont.innerHTML=nl;
+    }
+    setTimeout(()=>{if(msg)msg.innerHTML='';},2000);
+  } catch(e) {
+    if(msg)msg.innerHTML='<div class="err-m">❌ '+e.message+'</div>';
+  }
+}
+
+// Lead listesine timeline butonu ekle - lRows override
+function lRows(list){
+  return list.map(l=>{
+    const gecikti=l.sonraki_takip&&l.sonraki_takip<td();
+    const tlCount=D.timeline.filter(t=>t.kayit_id===l.id).length;
+    return '<tr style="background:'+(gecikti?'#fff8f8':'white')+'">'
+      +'<td>'+(l.tarih||'—')+'</td>'
+      +'<td><strong>'+(l.ad||'')+'</strong>'+(gecikti?'<span style="color:var(--red);font-size:10px;margin-left:4px">⚠️ Takip gecikti</span>':'')+'</td>'
+      +'<td>'+wa(l.telefon)+(l.telefon||'')+'</td>'
+      +'<td>'+(l.kaynak||'—')+'</td>'
+      +'<td>'+badge(l.durum)+'</td>'
+      +'<td>'+(l.danisman||'—')+'</td>'
+      +'<td style="color:'+(gecikti?'var(--red)':'inherit')+'">'+(l.sonraki_takip||'—')+'</td>'
+      +'<td style="display:flex;gap:4px">'
+      +'<button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button>'
+      +'<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 9px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlCount?'<span style="background:#5b21b6;color:white;border-radius:10px;padding:0 4px;font-size:9px;margin-left:3px">'+tlCount+'</span>':'')+'</button>'
+      +(CU.role==='admin'?'<button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button>':'')
+      +'</td></tr>';
+  }).join('');
+}
+
+function showTL(kayitId, tip, btn) {
+  // Aynı satırda açık panel varsa kapat
+  const existId = 'tl_row_'+kayitId;
+  const exist = document.getElementById(existId);
+  if (exist) { exist.remove(); btn.style.background='#EDE9FE'; return; }
+  btn.style.background='#5b21b6';btn.style.color='white';
+  
+  // Yeni satır ekle
+  const tr = btn.closest('tr');
+  const cols = tr.cells.length;
+  const newTr = document.createElement('tr');
+  newTr.id = existId;
+  newTr.style.background = '#f8f4ff';
+  const td = document.createElement('td');
+  td.colSpan = cols;
+  td.style.padding = '12px 16px';
+  
+  const notlar = D.timeline.filter(t=>t.kayit_id===kayitId);
+  let h = '<div style="display:flex;gap:6px;margin-bottom:8px">';
+  h += '<input id="tl_inp_'+kayitId+'" placeholder="Not ekle... (örn: Müşteri geri arayacak)" style="flex:1;padding:7px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;outline:none"/>';
+  h += '<button class="btn btn-p btn-sm" onclick="svTimeline(\''+kayitId+'\',\''+tip+'\')">Ekle</button>';
+  h += '</div><div id="tl_msg_'+kayitId+'"></div>';
+  h += '<div id="tl_cont_'+kayitId+'">';
+  if(!notlar.length){h+='<div style="color:#ccc;font-size:11px;padding:4px">Henüz not yok</div>';}
+  else{
+    notlar.forEach(t=>{
+      const dt=new Date(t.created_at);
+      const tarih=dt.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+      const saat=dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+      h+='<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f0e8ff">'
+        +'<div style="flex-shrink:0;min-width:65px;text-align:right"><div style="font-size:10px;font-weight:700;color:var(--dk)">'+tarih+'</div><div style="font-size:9px;color:#999">'+saat+'</div></div>'
+        +'<div style="flex:1"><div style="font-size:12px">'+t.mesaj+'</div><div style="font-size:10px;color:#bbb">'+( t.yapan||'—')+'</div></div>'
+        +'</div>';
+    });
+  }
+  h += '</div>';
+  
+  td.innerHTML = h;
+  newTr.appendChild(td);
+  tr.parentNode.insertBefore(newTr, tr.nextSibling);
+  
+  // Input'a odaklan
+  setTimeout(()=>{const inp=document.getElementById('tl_inp_'+kayitId);if(inp)inp.focus();},100);
+}
+
+// Recruiting listesine de timeline ekle
+function rRowsWithTL(list){
+  return list.map(r=>{
+    const tlCount=D.timeline.filter(t=>t.kayit_id===r.id).length;
+    return '<tr>'
+      +'<td><strong>'+(r.ad||'')+'</strong></td>'
+      +'<td>'+wa(r.telefon)+(r.telefon||'')+'</td>'
+      +'<td>'+(r.kaynak||'—')+'</td>'
+      +'<td>'+badge(r.durum)+'</td>'
+      +'<td>'+(r.randevu_tarihi||'—')+'</td>'
+      +'<td>'+(r.randevu_saati||'—')+'</td>'
+      +'<td>'+(r.aciklama||'—')+'</td>'
+      +'<td style="display:flex;gap:4px">'
+      +'<button class="btn btn-sm btn-g" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">✏️</button>'
+      +'<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 9px;font-size:11px" onclick="showTL(\''+r.id+'\',\'recruiting\',this)">📋'+(tlCount?'<span style="background:#5b21b6;color:white;border-radius:10px;padding:0 4px;font-size:9px;margin-left:3px">'+tlCount+'</span>':'')+'</button>'
+      +'</td></tr>';
+  }).join('');
+}
+
+// rRows override (recruiting)
+function rRows(list){ return rRowsWithTL(list); }
+
+// Danışman Atananlar ekranında da timeline
+function rSurecWithTL(c){
+  var myLeads=D.leads.filter(function(l){return l.danisman===CU.danAd;});
+  var durumlar=['Arandı','Aranıyor','Randevu Alındı','Görüşüldü','Devam Ediyor','Ulaşılamadı','Olumsuz'];
+  var h='<div class="th"><div class="tt">📋 Atananlar ('+myLeads.length+')</div></div>';
+  if(!myLeads.length){h+='<div style="text-align:center;padding:32px;color:#ccc;background:white;border-radius:12px;border:1px solid var(--bd)">Sana atanmış kayıt yok</div>';c.innerHTML=h;return;}
+  h+='<div class="tw"><table><thead><tr><th>Müşteri</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Takip</th><th>Notlar</th><th>İşlem</th></tr></thead><tbody id="surec_tbody">';
+  myLeads.forEach(function(l){
+    var g=l.sonraki_takip&&l.sonraki_takip<td();
+    var tlCount=D.timeline.filter(t=>t.kayit_id===l.id).length;
+    h+='<tr style="background:'+(g?'#fff8f8':'white')+'" id="sr_'+l.id+'">';
+    h+='<td><strong>'+(l.ad||'—')+'</strong>'+(g?'<br><span style="color:var(--red);font-size:10px">⚠️ Takip gecikti</span>':'')+'</td>';
+    h+='<td>'+wa(l.telefon)+(l.telefon||'')+'</td>';
+    h+='<td>'+(l.kaynak||'—')+'</td>';
+    h+='<td><select class="ss" onchange="updAtanan(\''+l.id+'\',\'durum\',this.value)">'+durumlar.map(function(s){return'<option'+(l.durum===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></td>';
+    h+='<td><input type="date" value="'+(l.sonraki_takip||'')+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px;width:110px" onchange="updAtanan(\''+l.id+'\',\'sonraki_takip\',this.value)"/></td>';
+    h+='<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 9px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlCount?' '+tlCount:'')+'</button></td>';
+    h+='<td><button class="btn btn-sm btn-ora" onclick="sonuclandirModal(\''+l.id+'\',\''+encodeURIComponent(l.ad||'')+'\')">✓ Sonuçlandır</button></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  var sonuclar=['Randevu Alındı','Portföy Gösterildi','Yetki Alındı','Satış Gerçekleşti','Ulaşılamadı','Olumsuz','Başka Danışmana Devredildi'];
+  h+='<div id="sm" class="mo hidden"><div class="md"><h3 id="sm_t">✓ Sonuçlandır</h3><div class="fg"><div class="fgr"><label>Sonuç *</label><select id="sm_s" onchange="chkOl()">'+sonuclar.map(function(s){return'<option>'+s+'</option>';}).join('')+'</select></div></div><div id="sm_ow" class="hidden" style="background:#fff0f0;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-top:8px">⚠️ Olumsuz seçildiğinde not zorunludur.</div><div class="fgr" style="margin-top:10px"><label id="sm_nl">Not</label><textarea id="sm_n" placeholder="Açıklama..."></textarea></div><div class="mda"><button class="btn btn-g" onclick="document.getElementById(\'sm\').classList.add(\'hidden\')">İptal</button><button class="btn btn-p" onclick="svSonuc()">Kaydet</button></div></div></div>';
+  c.innerHTML=h;
+}
+
+// rSurec'i override et
+function rSurec(c){ rSurecWithTL(c); }
+
+// Dashboard'da geciken takip uyarısı güçlendir
+// lRows zaten geciken takibi gösteriyor
+// Danışman girişinde geciken takip uyarısı
+function rDan(c){
+  const my=D.leads.filter(l=>l.danisman===CU.danAd);
+  const geciken=my.filter(l=>l.sonraki_takip&&l.sonraki_takip<td()&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
+  const bugun=my.filter(l=>l.sonraki_takip===td());
+  const op=my.filter(l=>!['Kazanıldı','Kaybedildi'].includes(l.durum)).length;
+  const wn=my.filter(l=>l.durum==='Kazanıldı').length;
+  const ht=my.filter(l=>l.durum==='Sıcak').length;
+  const rt=my.length>0?Math.round(wn/my.length*100):0;
+  let h='';
+
+  // Uyarılar
+  if(geciken.length){
+    h+='<div style="background:#fff0f0;border:1px solid #fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:12px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">⚠️ '+geciken.length+' müşterin takip bekliyor!</div>';
+    geciken.slice(0,3).forEach(l=>{h+='<div style="font-size:12px;color:var(--red);margin-bottom:3px">• '+l.ad+' — '+(l.sonraki_takip||'')+'</div>';});
+    if(geciken.length>3)h+='<div style="font-size:11px;color:#999">+'+( geciken.length-3)+' daha...</div>';
+    h+='</div>';
+  }
+  if(bugun.length){
+    h+='<div style="background:#fff8e1;border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin-bottom:12px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--or);margin-bottom:6px">📞 Bugün aranacak '+bugun.length+' müşteri</div>';
+    bugun.forEach(l=>{h+='<div style="font-size:12px;color:var(--or)">• '+l.ad+' '+wa(l.telefon)+'</div>';});
+    h+='</div>';
+  }
+
+  h+='<div class="grid"><div class="card"><h3>Toplam</h3><div class="cs">'+my.length+'</div></div>';
+  h+='<div class="card red"><h3>Geciken Takip</h3><div class="cs">'+geciken.length+'</div></div>';
+  h+='<div class="card green"><h3>Kazanılan</h3><div class="cs">'+wn+'</div></div>';
+  h+='<div class="card orange"><h3>🔥 Sıcak</h3><div class="cs">'+ht+'</div></div>';
+  h+='<div class="card blue"><h3>Dönüşüm</h3><div class="cs">'+rt+'%</div></div></div>';
+
+  h+='<div class="tw" style="margin-top:12px"><table><thead><tr><th>Müşteri</th><th>Tel</th><th>Kaynak</th><th>Açıklama</th><th>Durum</th><th>Takip</th><th>Notlar</th></tr></thead><tbody>';
+  my.forEach(l=>{
+    const g=l.sonraki_takip&&l.sonraki_takip<td();
+    const tlCount=D.timeline.filter(t=>t.kayit_id===l.id).length;
+    h+='<tr style="background:'+(g?'#fff8f8':'white')+'">';
+    h+='<td><strong>'+(l.ad||'')+'</strong></td>';
+    h+='<td>'+wa(l.telefon)+'</td>';
+    h+='<td>'+(l.kaynak||'—')+'</td>';
+    h+='<td>'+(l.aciklama||'—')+'</td>';
+    h+='<td><select class="ss" onchange="updS(\''+l.id+'\',this.value)">'+opts(CFG.lDur,l.durum)+'</select></td>';
+    h+='<td style="color:'+(g?'var(--red)':'inherit')+'">'+(l.sonraki_takip||'—')+'</td>';
+    h+='<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 9px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlCount?' '+tlCount:'')+'</button></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
   c.innerHTML=h;
 }
 </script>
