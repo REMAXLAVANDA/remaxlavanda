@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog | RE/MAX Lavanda - Çorlu Gayrimenkul Rehberi</title>
+<meta name="description" content="Çorlu ve Tekirdağ'da gayrimenkul, ticari mülk, arsa yatırımı ve danışmanlık kariyeri hakkında uzman rehberler.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--red:#E31837;--navy:#003087;--gray:#404041;--bg:#f8f8f8;--white:#fff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Montserrat',sans-serif;color:var(--gray);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+img{max-width:100%;display:block;}
+.container{max-width:1100px;margin:0 auto;padding:0 24px;}
+
+nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;top:0;z-index:100;}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo img{height:28px;}
+.logo-name{font-weight:800;font-size:19px;color:var(--navy);}
+.nav-back{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:6px;}
+.nav-back:hover{color:var(--red);}
+
+.blog-hero{background:var(--navy);padding:56px 24px;}
+.blog-hero h1{font-size:32px;font-weight:800;color:#fff;max-width:600px;}
+.blog-hero p{color:rgba(255,255,255,.7);margin-top:10px;font-size:15px;}
+
+.blog-list{padding:56px 0;}
+.blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+.blog-card{border:1px solid #eee;border-radius:8px;overflow:hidden;cursor:pointer;transition:box-shadow .2s;}
+.blog-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1);}
+.blog-card-img{height:180px;object-fit:cover;width:100%;}
+.blog-card-img-placeholder{height:180px;display:flex;align-items:flex-end;padding:16px;}
+.blog-card-img-placeholder span{font-size:11px;color:rgba(255,255,255,.8);font-weight:600;}
+.blog-card-body{padding:20px;}
+.blog-tag{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--red);text-transform:uppercase;margin-bottom:8px;}
+.blog-card h2{font-size:16px;font-weight:700;color:var(--navy);line-height:1.4;margin-bottom:8px;}
+.blog-card p{font-size:13px;color:var(--gray);line-height:1.6;}
+.blog-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #f0f0f0;}
+.blog-card-date{font-size:11px;color:#999;}
+.blog-card-read{font-size:12px;font-weight:700;color:var(--red);}
+
+/* MAKALE */
+.article{display:none;max-width:760px;margin:0 auto;padding:56px 24px 80px;}
+.article.active{display:block;}
+.article-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:32px;cursor:pointer;}
+.article-back:hover{color:var(--red);}
+.article-tag{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--red);text-transform:uppercase;margin-bottom:12px;}
+.article h1{font-size:30px;font-weight:800;color:var(--navy);line-height:1.3;margin-bottom:16px;}
+.article-meta{font-size:13px;color:#999;margin-bottom:32px;display:flex;gap:16px;flex-wrap:wrap;}
+.article-img{width:100%;border-radius:8px;object-fit:cover;height:360px;margin-bottom:36px;}
+.article-img-placeholder{width:100%;border-radius:8px;height:360px;margin-bottom:36px;display:flex;align-items:center;justify-content:center;}
+.article h2{font-size:21px;font-weight:700;color:var(--navy);margin:36px 0 12px;}
+.article h3{font-size:17px;font-weight:700;color:var(--navy);margin:24px 0 10px;}
+.article p{font-size:15px;line-height:1.85;margin-bottom:16px;color:#333;}
+.article ul,.article ol{margin:0 0 16px 20px;}
+.article li{font-size:15px;line-height:1.8;color:#333;margin-bottom:6px;}
+.article-faq{background:var(--bg);border-radius:8px;padding:28px;margin:40px 0;}
+.article-faq h2{margin-top:0;}
+.faq-item{border-bottom:1px solid #e8e8e8;padding:14px 0;}
+.faq-item:last-child{border:none;padding-bottom:0;}
+.faq-q{font-size:14px;font-weight:700;color:var(--navy);cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.faq-q::after{content:"+";font-size:18px;color:var(--red);font-weight:300;}
+.faq-item.open .faq-q::after{content:"−";}
+.faq-a{display:none;font-size:14px;color:var(--gray);line-height:1.7;padding-top:10px;}
+.faq-item.open .faq-a{display:block;}
+.article-cta{background:var(--navy);border-radius:8px;padding:32px;text-align:center;margin:40px 0;}
+.article-cta h3{font-size:20px;font-weight:700;color:#fff;margin-bottom:10px;}
+.article-cta p{font-size:14px;color:rgba(255,255,255,.75);margin-bottom:20px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:#B5122C;}
+.btn svg{width:18px;height:18px;fill:currentColor;}
+
+footer{background:#0a1628;padding:32px 24px;text-align:center;}
+.footer-logo{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:8px;}
+.footer-logo img{height:20px;filter:brightness(0) invert(1);}
+.footer-logo span{font-size:14px;font-weight:700;color:rgba(255,255,255,.7);}
+footer p{font-size:12px;color:rgba(255,255,255,.3);}
+
+.wa-float{position:fixed;bottom:20px;right:20px;background:#25D366;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999;}
+.wa-float svg{width:26px;height:26px;fill:#fff;}
+
+@media(max-width:768px){
+  .blog-grid{grid-template-columns:1fr;}
+  .article h1{font-size:24px;}
+  .article-img,.article-img-placeholder{height:220px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <img src="assets/remax_logotype.png" alt="RE/MAX Lavanda">
+      <span class="logo-name">Lavanda</span>
+    </a>
+    <a href="/" class="nav-back">← Ana Siteye Dön</a>
+  </div>
+</nav>
+
+<!-- BLOG LİSTESİ -->
+<div id="blog-list">
+  <div class="blog-hero">
+    <div class="container">
+      <h1>Gayrimenkul Rehberi</h1>
+      <p>Çorlu ve Tekirdağ'da gayrimenkul, yatırım ve kariyer hakkında uzman içerikler.</p>
+    </div>
+  </div>
+
+  <section class="blog-list">
+    <div class="container">
+      <div class="blog-grid" id="blog-grid">
+
+        <div class="blog-card" onclick="openArticle('a1')">
+          <img class="blog-card-img" src="https://images.unsplash.com/photo-1565514158740-064f34bd5b33?w=600&q=75&auto=format&fit=crop" alt="Çorlu Fabrika Kiralama" loading="lazy">
+          <div class="blog-card-body">
+            <div class="blog-tag">Ticari Gayrimenkul</div>
+            <h2>Çorlu'da Fabrika Kiralamak: Fiyatlar, Bölgeler ve Dikkat Edilecekler</h2>
+            <p>Çorlu'da fabrika veya üretim tesisi kiralamak isteyenler için kapsamlı rehber.</p>
+            <div class="blog-card-footer">
+              <span class="blog-card-date">2025</span>
+              <span class="blog-card-read">Okumaya devam →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-card" onclick="openArticle('a2')">
+          <img class="blog-card-img" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&q=75&auto=format&fit=crop" alt="Gayrimenkul Danışmanı Olmak" loading="lazy">
+          <div class="blog-card-body">
+            <div class="blog-tag">Kariyer</div>
+            <h2>Gayrimenkul Danışmanı Olmak: Gerçekler, Beklentiler ve Başlangıç Rehberi</h2>
+            <p>Sektöre girmeyi düşünenlerin sorduğu soruları yanıtlıyoruz.</p>
+            <div class="blog-card-footer">
+              <span class="blog-card-date">2025</span>
+              <span class="blog-card-read">Okumaya devam →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-card" onclick="openArticle('a3')">
+          <img class="blog-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=75&auto=format&fit=crop" alt="Çorlu Ticari Gayrimenkul" loading="lazy">
+          <div class="blog-card-body">
+            <div class="blog-tag">Yatırım</div>
+            <h2>Çorlu'da Ticari Gayrimenkul Yatırımı: 2025 Piyasa Analizi</h2>
+            <p>Çorlu'nun sanayi ve ticaret potansiyeli, yatırım için doğru bölgeler.</p>
+            <div class="blog-card-footer">
+              <span class="blog-card-date">2025</span>
+              <span class="blog-card-read">Okumaya devam →</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- MAKALE 1: FABRIKA KİRALAMA -->
+<div class="article" id="article-a1">
+  <div class="container">
+    <span class="article-back" onclick="closArticle()">← Blog'a Dön</span>
+    <div class="article-tag">Ticari Gayrimenkul</div>
+    <h1>Çorlu'da Fabrika Kiralamak: Fiyatlar, Bölgeler ve Dikkat Edilecekler</h1>
+    <div class="article-meta">
+      <span>RE/MAX Lavanda</span>
+      <span>2025</span>
+      <span>7 dakika okuma</span>
+    </div>
+    <img class="article-img" src="https://images.unsplash.com/photo-1565514158740-064f34bd5b33?w=1200&q=80&auto=format&fit=crop" alt="Çorlu Sanayi Bölgesi Fabrika" loading="lazy">
+
+    <p>Çorlu, Türkiye'nin Avrupa'ya en yakın organize sanayi bölgelerinden birine sahip olmasıyla üretim, lojistik ve depolama alanında kritik bir konumdadır. İstanbul'a 80 km mesafesi, E5 ve TEM otoyollarına erişimi ve güçlü demiryolu bağlantısıyla Çorlu'da fabrika kiralamak hem yerli hem yabancı yatırımcılar için cazip olmaya devam ediyor.</p>
+
+    <p>Bu rehberde Çorlu'da fabrika kiralama sürecini adım adım ele alacağız: hangi bölgeler öne çıkıyor, fiyatlar ne seviyede, kira sözleşmesinde nelere dikkat etmek gerekiyor.</p>
+
+    <h2>Çorlu'da Fabrika Kiralama Bölgeleri</h2>
+
+    <h3>Çorlu Organize Sanayi Bölgesi (OSB)</h3>
+    <p>Çorlu OSB, altyapısı tamamlanmış parselleri ve kurumsal yönetim yapısıyla en çok tercih edilen bölgedir. Elektrik, doğalgaz, atık su arıtma ve güvenlik altyapısı hazır. Ancak OSB içinde kiralık fabrika arzı sınırlı; mevcut tesisler genellikle uzun vadeli kira anlaşmalarıyla tutulmaktadır.</p>
+
+    <h3>OSB Çevresi ve Sanayi Parselleri</h3>
+    <p>OSB dışında, ana ulaşım aksları boyunca konumlanmış özel mülkiyet sanayi binaları kira piyasasının büyük bölümünü oluşturur. 500 m²'den başlayıp 10.000 m²'yi aşan büyüklüklerde seçenekler mevcuttur. Fiyatlar lokasyona ve altyapı kalitesine göre önemli ölçüde farklılaşır.</p>
+
+    <h3>Cerkezkoy Sınırı ve Lojistik Koridor</h3>
+    <p>Çorlu-Çerkezköy hattı boyunca konumlanan lojistik depolar ve fabrikalar, TEM otoyolu erişimi nedeniyle özellikle dağıtım ve depolama operasyonları için tercih edilmektedir.</p>
+
+    <h2>Çorlu'da Fabrika Kira Fiyatları (2025)</h2>
+    <p>Kira fiyatları metrekare büyüklüğüne, yapı kalitesine, konum ve altyapıya göre değişmektedir:</p>
+    <ul>
+      <li><strong>Küçük ölçekli (500–1.500 m²):</strong> m² başına aylık 35–65 TL</li>
+      <li><strong>Orta ölçekli (1.500–5.000 m²):</strong> m² başına aylık 25–45 TL</li>
+      <li><strong>Büyük ölçekli (5.000 m² ve üzeri):</strong> m² başına aylık 18–35 TL</li>
+    </ul>
+    <p>OSB içi parseller ve yeni yapılar bu aralığın üst bandına yakın seyrederken, eski yapılar ve ulaşım akslarından uzak konumlar alt bandda yer alır.</p>
+
+    <h2>Kira Sözleşmesinde Dikkat Edilecekler</h2>
+    <ul>
+      <li><strong>Kira artış klozu:</strong> TÜFE veya sabit oran mı? Uzun vadeli kira anlaşmalarında bu madde kritiktir.</li>
+      <li><strong>Depozito miktarı:</strong> Piyasada genellikle 2–3 aylık kira tutarında depozito talep edilmektedir.</li>
+      <li><strong>Tapu ve ruhsat durumu:</strong> Bina imar durumu ve yapı kullanım iznini mutlaka kontrol edin.</li>
+      <li><strong>Elektrik bağlantı kapasitesi:</strong> Üretim gereksiniminize göre trafo kapasitesi yeterli mi?</li>
+      <li><strong>Yükleme rampası ve tır erişimi:</strong> Operasyonel ihtiyaçlarınıza uygunluğu kontrol edin.</li>
+      <li><strong>Kira sözleşmesi süresi:</strong> 3–5 yıllık sözleşmelerde kiracı lehine avantajlar pazarlık konusu olabilir.</li>
+    </ul>
+
+    <h2>Kiracı Olarak Avantajınızı Artırmak</h2>
+    <p>Çorlu fabrika kiralama piyasasında rekabetçi teklifler almak için birkaç pratik öneri:</p>
+    <ul>
+      <li>Uzun vadeli kira teklifi yapın — mal sahipleri genellikle 3+ yıllık kiracılara indirim uygular.</li>
+      <li>Birden fazla lokasyonu aynı anda değerlendirin ve alternatifleriniz olduğunu karşı tarafa hissettirin.</li>
+      <li>Profesyonel danışman desteği alın — görünmez arzı bulmak ve fiyat müzakeresi için kritiktir.</li>
+    </ul>
+
+    <div class="article-faq">
+      <h2>Sıkça Sorulan Sorular</h2>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Çorlu OSB'de boş fabrika bulmak zor mu?</div>
+        <div class="faq-a">OSB içi arz oldukça kısıtlıdır. Mevcut tesislerin büyük çoğunluğu uzun vadeli kira anlaşmalarıyla doludur. OSB çevresi özel sanayi binaları çok daha geniş seçenek sunar.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Çorlu'da depo ile fabrika arasındaki kira fiyatı farkı nedir?</div>
+        <div class="faq-a">Depo binaları genellikle fabrikaya kıyasla %15–25 daha ucuzdur. Fabrikalar ek altyapı (trafo, vinç rayı, havalandırma) gerektirdiğinden maliyetleri daha yüksektir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Çorlu'da fabrika kiralamak için yabancı şirket olabilir miyim?</div>
+        <div class="faq-a">Evet. Türkiye'de tescilli yabancı şirketler kira sözleşmesi yapabilir. Vergi mükellefi olmak ve kira bedelini belgelemek yeterlidir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Kira sözleşmesi kaç yıl olmalı?</div>
+        <div class="faq-a">Operasyonel ihtiyacınıza bağlı olmakla birlikte, 3–5 yıllık sözleşmeler hem kiracı hem kiraya veren açısından en yaygın tercihlerdir. Uzun vadeli sözleşmelerde kira avantajı pazarlık konusu yapılabilir.</div>
+      </div>
+    </div>
+
+    <div class="article-cta">
+      <h3>Çorlu'da Fabrika Arayışınız İçin Bize Ulaşın</h3>
+      <p>ACP akreditasyonlu danışmanlarımız, ticari gayrimenkul piyasasındaki görünmez arzı da dahil ederek size en uygun seçenekleri sunar.</p>
+      <a href="https://wa.me/902825022222?text=Merhaba%2C%20Çorlu'da%20fabrika%20kiralamak%20istiyorum.%20Bilgi%20alabilir%20miyim%3F" target="_blank" class="btn btn-red">
+        <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        WhatsApp ile Bilgi Al
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAKALE 2: GAYRİMENKUL DANIŞMANI OLMAK -->
+<div class="article" id="article-a2">
+  <div class="container">
+    <span class="article-back" onclick="closArticle()">← Blog'a Dön</span>
+    <div class="article-tag">Kariyer</div>
+    <h1>Gayrimenkul Danışmanı Olmak: Gerçekler, Beklentiler ve Başlangıç Rehberi</h1>
+    <div class="article-meta">
+      <span>RE/MAX Lavanda</span>
+      <span>2025</span>
+      <span>8 dakika okuma</span>
+    </div>
+    <img class="article-img" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200&q=80&auto=format&fit=crop" alt="Gayrimenkul Danışmanı Kariyer" loading="lazy">
+
+    <p>Gayrimenkul danışmanlığı, Türkiye'de giderek daha fazla kişinin ilgi gösterdiği bir kariyer alanı. Ancak sektörün gerçek tablosu, dışarıdan göründüğünden hem daha karmaşık hem de daha fırsat dolu.</p>
+
+    <p>Bu yazıda sektöre girmeyi düşünenlerin sorduğu soruları yanıtlıyoruz. Romanize edilmemiş, gerçekçi bir bakış açısıyla.</p>
+
+    <h2>Gayrimenkul Danışmanlığı Gerçekte Ne İş?</h2>
+    <p>Kısaca: insanların hayatlarındaki en büyük finansal kararlarına eşlik etmek. Ev satın alma, fabrika kiralama, arsa yatırımı — bunlar kişi veya şirket için kritik kararlardır. Danışmanın görevi doğru bilgiyi sağlamak, süreci yönetmek ve taraflar arasında güvenilir bir köprü olmaktır.</p>
+
+    <p>Ama pratikte bu şu anlama gelir: aktif prospecting (müşteri bulma), portföy geliştirme, pazar araştırması, müzakere, evrak takibi ve bazen hayal kırıklığı yönetimi. Saha işi ağır basar.</p>
+
+    <h2>Kimler Başarılı Olur?</h2>
+    <p>Sektördeki başarı belirli karakteristiklerle yüksek korelasyon gösteriyor:</p>
+    <ul>
+      <li><strong>İnsanlara güven veren iletişim tarzı</strong> — teknik bilgiden önce gelir</li>
+      <li><strong>Uzun vadeli düşünme</strong> — ilk 6 ay gelir gelmeyebilir</li>
+      <li><strong>Sistem ve disiplin</strong> — takip etmeyen satar değil, takip eden satar</li>
+      <li><strong>Yerel pazar bilgisi merakı</strong> — rakiplerden fark burada açılır</li>
+      <li><strong>Reddedilmeyle başa çıkabilmek</strong> — satışın doğasında var</li>
+    </ul>
+
+    <h2>Kazanç Modeli Nasıl Çalışır?</h2>
+    <p>Türkiye'de gayrimenkul danışmanlığı komisyon bazlı çalışır. Satış işlemlerinde toplam komisyon genellikle %2–4 arasındadır (alıcı ve satıcıdan ayrı ayrı alınabilir). Bu komisyon danışman ve ofis arasında paylaşılır.</p>
+    <p>RE/MAX gibi kurumsal sistemlerde danışman komisyon oranı performansa ve deneyime göre artar. Başlangıç döneminde oran daha düşük olabilir, ancak destek ve eğitim altyapısı çok daha güçlüdür.</p>
+
+    <h2>Bağımsız mı, Franchised Ofis mi?</h2>
+    <p>Bağımsız çalışmak cazip görünür — komisyonun tamamı sizde kalır. Ama gerçek şu: marka desteği olmadan müşteri güveni oluşturmak yıllar alır. Kurumsal sistemin sağladığı eğitim, teknoloji ve marka bilinirliği başlangıç maliyetinin çok üzerinde değer üretir. Özellikle RE/MAX gibi global bir ağa dahil olmak, Türkiye sınırlarının dışındaki müşteriyle de iş yapma kapısı açar.</p>
+
+    <h2>RE/MAX Lavanda'da Başlamak Nasıl Bir Deneyim?</h2>
+    <p>Çorlu ve Tekirdağ'ın yerel pazar dinamiklerini bilen, ticari gayrimenkul ve konut segmentlerinde aktif bir ofis olarak yeni danışmanlara üç şey sunuyoruz: yapılandırılmış başlangıç eğitimi, aktif portföy desteği ve sahada deneyimli ekiple çalışma ortamı. Başlangıç için lisans veya sektör deneyimi zorunluluğu yoktur.</p>
+
+    <div class="article-faq">
+      <h2>Sıkça Sorulan Sorular</h2>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Gayrimenkul danışmanı olmak için lisans gerekiyor mu?</div>
+        <div class="faq-a">Türkiye'de gayrimenkul danışmanlığı yapmak için SPK lisansı gerekmektedir. Ancak RE/MAX Lavanda bünyesinde çalışmaya başladığınızda lisans sürecinizde destek alırsınız. Staj döneminde ofis desteğiyle çalışmaya başlanabilir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">İlk ayda ne kadar kazanabilirim?</div>
+        <div class="faq-a">İlk 1–3 ay portföy geliştirme dönemdir, bu sürede satış geliri gelmeyebilir. Ortalama bir danışman 3–6 ay içinde ilk satışını gerçekleştirir. Uzun vadede aylık gelir tamamen portföy büyüklüğü ve dönüşüm oranına bağlıdır.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Part-time başlayabilir miyim?</div>
+        <div class="faq-a">Teorik olarak evet, pratikte hayır. Gayrimenkul danışmanlığı müşteri takibi, saha çalışması ve sürekli iletişim gerektiren bir iştir. Part-time yaklaşım genellikle hayal kırıklığıyla sonuçlanır.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Çorlu piyasası küçük değil mi?</div>
+        <div class="faq-a">Tersine. Çorlu ve Tekirdağ bölgesi hem konut hem ticari gayrimenkul açısından büyüyen bir pazar. Sanayi bölgelerinin yoğunluğu, ticari danışmanlık segmentinde ciddi hacim yaratıyor.</div>
+      </div>
+    </div>
+
+    <div class="article-cta">
+      <h3>Danışmanlık Kariyerine Başlamayı Düşünüyorsunuz?</h3>
+      <p>Bir görüşme yapalım. Sektörün gerçeklerini, RE/MAX Lavanda'daki çalışma modelini ve size özel başlangıç planını konuşalım.</p>
+      <a href="https://wa.me/902825022222?text=Merhaba%2C%20RE%2FMAX%20Lavanda'da%20gayrimenkul%20dan%C4%B1%C5%9Fman%C4%B1%20olmak%20istiyorum.%20Bilgi%20alabilir%20miyim%3F" target="_blank" class="btn btn-red">
+        <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c:.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        WhatsApp ile Görüşme Ayarla
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAKALE 3: TİCARİ GAYRİMENKUL YATIRIM -->
+<div class="article" id="article-a3">
+  <div class="container">
+    <span class="article-back" onclick="closArticle()">← Blog'a Dön</span>
+    <div class="article-tag">Yatırım</div>
+    <h1>Çorlu'da Ticari Gayrimenkul Yatırımı: 2025 Piyasa Analizi</h1>
+    <div class="article-meta">
+      <span>RE/MAX Lavanda</span>
+      <span>2025</span>
+      <span>7 dakika okuma</span>
+    </div>
+    <img class="article-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80&auto=format&fit=crop" alt="Çorlu Ticari Gayrimenkul" loading="lazy">
+
+    <p>Çorlu, son on yılda Türkiye'nin en hızlı büyüyen ticari gayrimenkul pazarlarından biri haline geldi. İstanbul'un taşınan sanayi kapasitesinin önemli bir kısmını absorbe eden şehir, hem yatırımcı hem de kiracı talebiyle canlı bir piyasaya sahip.</p>
+
+    <h2>Neden Çorlu?</h2>
+    <p>Coğrafi konumu belirleyicidir. E5 ve TEM otoyollarına, demiryolu ağına ve Kapıkule sınır kapısına yakınlığıyla Çorlu lojistik açıdan İstanbul'un üretim hinterlandı konumunda. Üstelik İstanbul fiyatlarına kıyasla ciddi bir kira ve satış fiyatı avantajı sunuyor.</p>
+
+    <h2>Piyasadaki Segmentler</h2>
+
+    <h3>Sanayi ve Üretim Binaları</h3>
+    <p>Talep en yoğun segment. OSB içi ve çevresi sanayi binaları, makul kira getirileriyle uzun vadeli kiracı profili çekiyor. Boşluk oranı düşük, satılık arz kısıtlı.</p>
+
+    <h3>Lojistik ve Depolama</h3>
+    <p>E-ticaret büyümesiyle birlikte depo talebi artıyor. Özellikle 1.000–5.000 m² aralığındaki modern depo binaları yatırımcı için cazip kira getirisi sunuyor.</p>
+
+    <h3>Zemin Kat Ticari</h3>
+    <p>Merkezi cadde ve çarşı konumundaki zemin kat dükkanlar perakende talebini karşılıyor. Yatırım değeri lokasyona son derece bağımlı — yanlış seçim uzun boşluk süreleriyle sonuçlanabiliyor.</p>
+
+    <h3>Ofis</h3>
+    <p>Kurumsal ofis talebi sınırlı. Büyük şirketlerin bölgesel temsilcilikleri veya lojistik koordinasyon ofisleri temel talep kaynağı. Yatırım açısından en düşük öncelikli segment.</p>
+
+    <h2>Yatırım Açısından Değerlendirme</h2>
+    <p>Sanayi ve depo segmenti yatırım için öne çıkıyor. Uzun vadeli kiracı profili (3–10 yıl), düşük boşluk riski ve makul kira getirisi bu segmentin avantajları. Dezavantaj: giriş maliyeti yüksek, likidite düşük.</p>
+    <p>Zemin kat ticari lokasyon seçiminde yanılmak maliyetli. Profesyonel danışman desteği olmadan yapılan yatırımlarda sık yapılan hata: trafik yoğunluğu yerine sadece fiyata odaklanmak.</p>
+
+    <h2>2025 Piyasa Görünümü</h2>
+    <p>Enflasyon ortamında kira gelirleri TL bazında artmaya devam ediyor. Ancak gerçek getiriyi ölçmek için dolar veya Euro bazında kira trendini takip etmek gerekiyor. Çorlu piyasasında dövize endeksli kira sözleşmeleri ticari segmentte yaygınlaşıyor.</p>
+
+    <div class="article-faq">
+      <h2>Sıkça Sorulan Sorular</h2>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Çorlu'da ticari gayrimenkul kira getirisi ne kadar?</div>
+        <div class="faq-a">Segment ve lokasyona göre değişmekle birlikte sanayi binalarında brüt kira getirisi yıllık %6–9 aralığında seyrediyor. Zemin kat ticari mülklerde bu oran lokasyona bağlı olarak daha geniş bir bant oluşturuyor.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Çorlu'da satılık fabrika bulmak mümkün mü?</div>
+        <div class="faq-a">Satılık fabrika arzı kiralığa kıyasla oldukça kısıtlıdır. Mevcut sahipler genellikle satmak yerine kiraya vermeyi tercih ediyor. Piyasaya çıkmayan off-market fırsatlar için yerel danışman ağı kritiktir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Yabancı uyruklu yatırımcı Çorlu'da ticari mülk satın alabilir mi?</div>
+        <div class="faq-a">Evet. Türkiye'de yabancı uyruklu gerçek ve tüzel kişiler bazı bölge kısıtlamaları dışında ticari gayrimenkul satın alabilir. Çorlu bu kısıtlamalar kapsamında değil.</div>
+      </div>
+    </div>
+
+    <div class="article-cta">
+      <h3>Çorlu'da Yatırım Fırsatlarını Değerlendirin</h3>
+      <p>Piyasaya çıkmayan off-market fırsatlar dahil, ticari portföyümüzü ve yatırım analizimizi paylaşalım.</p>
+      <a href="https://wa.me/902825022222?text=Merhaba%2C%20Çorlu'da%20ticari%20gayrimenkul%20yatırımı%20yapmak%20istiyorum.%20Bilgi%20alabilir%20miyim%3F" target="_blank" class="btn btn-red">
+        <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        WhatsApp ile Bilgi Al
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">
+    <img src="assets/remax_logotype.png" alt="RE/MAX Lavanda">
+    <span>Lavanda</span>
+  </div>
+  <p>Çorlu ve Tekirdağ Gayrimenkul Danışmanlığı © 2026</p>
+</footer>
+
+<a href="https://wa.me/902825022222" target="_blank" class="wa-float" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+</a>
+
+<script>
+function openArticle(id){
+  document.getElementById('blog-list').style.display='none';
+  document.querySelectorAll('.article').forEach(a=>a.classList.remove('active'));
+  document.getElementById('article-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function closArticle(){
+  document.querySelectorAll('.article').forEach(a=>a.classList.remove('active'));
+  document.getElementById('blog-list').style.display='block';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
