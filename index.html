@@ -50,6 +50,21 @@
   --gray:#404041;
   --gray-light:#f5f5f5;
   --white:#ffffff;
+  /* Madde kutu renkleri — tech premium palette */
+  --chip-1:#1a1f3c;  /* koyu lacivert */
+  --chip-2:#0d3b2e;  /* koyu yeşil */
+  --chip-3:#2a1a3e;  /* mor */
+  --chip-4:#1a2f3c;  /* çelik mavi */
+  --chip-5:#3c1a1a;  /* koyu bordo */
+  --chip-6:#1a3c2a;  /* zümrüt yeşil */
+  --chip-7:#2e2a1a;  /* bronz */
+  --chip-r-1:#e8f0fe;  /* açık mavi — sağ panel */
+  --chip-r-2:#e6f4ea;  /* açık yeşil */
+  --chip-r-3:#fce8e6;  /* açık kırmızı */
+  --chip-r-4:#e8eaf6;  /* lavanta */
+  --chip-r-5:#fff3e0;  /* turuncu */
+  --chip-r-6:#f3e5f5;  /* mor */
+  --chip-r-7:#e0f2f1;  /* teal */
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
@@ -88,12 +103,24 @@ nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;t
 .hero-panel .sub{font-size:16px;line-height:1.75;margin-bottom:28px;opacity:.9;}
 .hero-panel.left .sub{color:rgba(255,255,255,.8);}
 .hero-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;}
-.hero-list li{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;padding:12px 14px;border-radius:6px;}
-.hero-panel.left .hero-list li{background:rgba(255,255,255,.1);color:rgba(255,255,255,.95);border:1px solid rgba(255,255,255,.15);}
-.hero-panel.right .hero-list li{background:var(--white);color:var(--navy);border:1px solid #e0e0e0;box-shadow:0 2px 6px rgba(0,0,0,.06);}
-.hero-list li::before{content:"✓";font-weight:700;font-size:11px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.hero-panel.left .hero-list li::before{background:rgba(255,255,255,.2);color:var(--white);}
-.hero-panel.right .hero-list li::before{background:rgba(227,24,55,.12);color:var(--red);}
+.hero-list li{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;padding:11px 14px;border-radius:8px;letter-spacing:.1px;}
+/* Sol panel — koyu renkli kutular, beyaz metin */
+.hero-panel.left .hero-list li:nth-child(1){background:var(--chip-1);color:#a8b4ff;border:1px solid rgba(168,180,255,.2);}
+.hero-panel.left .hero-list li:nth-child(2){background:var(--chip-2);color:#86efac;border:1px solid rgba(134,239,172,.2);}
+.hero-panel.left .hero-list li:nth-child(3){background:var(--chip-3);color:#c4b5fd;border:1px solid rgba(196,181,253,.2);}
+.hero-panel.left .hero-list li:nth-child(4){background:var(--chip-4);color:#7dd3fc;border:1px solid rgba(125,211,252,.2);}
+.hero-panel.left .hero-list li:nth-child(5){background:var(--chip-5);color:#fca5a5;border:1px solid rgba(252,165,165,.2);}
+.hero-panel.left .hero-list li:nth-child(6){background:var(--chip-6);color:#6ee7b7;border:1px solid rgba(110,231,183,.2);}
+.hero-panel.left .hero-list li:nth-child(7){background:var(--chip-7);color:#fcd34d;border:1px solid rgba(252,211,77,.2);}
+/* Sağ panel — açık renkli kutular, renkli metin */
+.hero-panel.right .hero-list li:nth-child(1){background:var(--chip-r-1);color:#1a56db;border:1px solid #c7d8fb;}
+.hero-panel.right .hero-list li:nth-child(2){background:var(--chip-r-2);color:#166534;border:1px solid #bbf7d0;}
+.hero-panel.right .hero-list li:nth-child(3){background:var(--chip-r-3);color:#9b1c1c;border:1px solid #fecaca;}
+.hero-panel.right .hero-list li:nth-child(4){background:var(--chip-r-4);color:#3730a3;border:1px solid #c7d2fe;}
+.hero-panel.right .hero-list li:nth-child(5){background:var(--chip-r-5);color:#92400e;border:1px solid #fed7aa;}
+.hero-panel.right .hero-list li:nth-child(6){background:var(--chip-r-6);color:#6b21a8;border:1px solid #e9d5ff;}
+.hero-panel.right .hero-list li:nth-child(7){background:var(--chip-r-7);color:#134e4a;border:1px solid #99f6e4;}
+.hero-list li::before{content:"✓";font-weight:700;font-size:10px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.2);}
 .hero-img{width:100%;height:220px;border-radius:8px;object-fit:cover;margin-bottom:28px;display:block;}
 .hero-divider{width:100%;height:1px;background:rgba(255,255,255,.1);margin-bottom:24px;}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .2s;text-align:center;justify-content:center;}
@@ -235,7 +262,8 @@ footer{background:#0a1628;color:var(--white);padding:48px 20px 24px;}
     <!-- SOL: Danışman Ol -->
     <div class="hero-panel left" id="kariyer-anchor">
       <p class="hero-label">Kariyer</p>
-      <h1>RE/MAX Lavanda'da Gayrimenkul Danışmanı Ol</h1>
+      <h1 style="font-size:42px;line-height:1.1;margin-bottom:8px;">Gayrimenkul<br>Danışmanı Ol</h1>
+      <p style="font-size:15px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:20px;letter-spacing:.5px;">RE/MAX Lavanda ile</p>
       <p class="sub">Kendi işini kurmak, yüksek gelir hedeflemek ve güçlü bir sistemin içinde büyümek isteyen girişimci ruhlu kişiler için profesyonel ofis, eğitim ve marka desteği sunuyoruz.</p>
 
       <!-- Görsel alanı: Ofis/ekip/profesyonel çalışma ortamı fotoğrafı -->
@@ -259,8 +287,9 @@ footer{background:#0a1628;color:var(--white);padding:48px 20px 24px;}
 
     <!-- SAĞ: Gayrimenkul Yönet -->
     <div class="hero-panel right" id="portfoy-anchor">
-      <p class="hero-label">Gayrimenkul Sahipleri</p>
-      <h1>Gayrimenkulünüz İçin Doğru Fiyat, Doğru Pazarlama, Güvenli Süreç</h1>
+      <p class="hero-label">Satmak · Kiralamak · Almak</p>
+      <h1 style="font-size:40px;line-height:1.1;margin-bottom:8px;color:var(--navy);">Gayrimenkulüm Var<br><span style="color:var(--red);">veya</span> Arıyorum</h1>
+      <p style="font-size:13px;font-weight:600;color:#888;margin-bottom:20px;">Doğru fiyat · Doğru pazarlama · Güvenli süreç</p>
       <p class="sub">Konut, arsa, ticari gayrimenkul, fabrika, dükkan ve yatırım amaçlı taşınmazlarınız için RE/MAX Lavanda güvencesiyle profesyonel pazarlama ve süreç yönetimi sunuyoruz.</p>
 
       <!-- Görsel alanı: Ticari gayrimenkul / modern bina / sanayi alanı -->
@@ -452,6 +481,7 @@ footer{background:#0a1628;color:var(--white);padding:48px 20px 24px;}
         <a href="#" onclick="goPage('home')">Ana Sayfa</a>
         <a href="#" onclick="goPage('hakkimizda')">Hakkımızda</a>
         <a href="#" onclick="goPage('iletisim')">İletişim</a>
+        <a href="/blog.html">Gayrimenkul Rehberi</a>
         <a href="https://www.remax.com.tr/tr/ofis/portfoy/lavanda" target="_blank">Portföyler</a>
         <a href="https://www.remax.com.tr/tr/ofis/detay/lavanda" target="_blank">Danışmanlar</a>
       </div>
