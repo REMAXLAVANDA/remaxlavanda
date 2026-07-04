@@ -414,7 +414,7 @@ function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
   if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log Raporu'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'},{id:'takvim',l:'📅 Takvim'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
   else tabs=[{id:'takvim',l:'📅 Takvim'},{id:'havuz',l:'➕ Yeni Alıcı'},{id:'dispf',l:'🏘️ Dış Portföy'},{id:'surec',l:'📋 Atananlar'},{id:'genel',l:'🔍 Genel Tablo'},{id:'bilgi',l:'ℹ️ Bilgi Merkezi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');b.textContent=t.l;
@@ -665,8 +665,10 @@ function rPF(c){
 
 function santralBlock(){
   const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
-  let h='<div class="div" style="margin:20px 0"></div>';
-  h+='<div class="th"><div class="tt">📞 Santral — Gelen Çağrılar</div><div class="ta"><button class="btn btn-p" onclick="newSantRow()">+ Yeni Çağrı</button></div></div>';
+  const acik=sant.filter(s=>s.dur==='open');
+  let h='<div class="div" style="margin:16px 0"></div>';
+  h+='<div class="th"><div class="tt">📞 Santral Kuyruğu'+(acik.length?'<span style="background:var(--red);color:white;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:8px">'+acik.length+' Açık</span>':' ')+'</div>';
+  h+='<div class="ta"><button class="btn btn-p" onclick="newSantRow()">+ Gelen Çağrı</button></div></div>';
   h+='<div id="sant-list">';
   h+=renderSantList(sant);
   h+='</div>';
@@ -696,12 +698,15 @@ function renderSantList(sant){
 }
 
 function newSantRow(){
+  // Çağrıyı doğrudan santral listesine ekle - lead formu açılır
   const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
-  sant.unshift({tel:'',ad:'',saat:new Date().toTimeString().slice(0,5),konu:'Portföy Sorusu',not:'',dur:'open',tarih:td()});
+  const yeni={tel:'',ad:'',saat:new Date().toTimeString().slice(0,5),konu:'Portföy Sorusu',not:'',dur:'open',tarih:td()};
+  sant.unshift(yeni);
   localStorage.setItem('rmx_sant',JSON.stringify(sant));
+  // Sant listesini güncelle
   const sl=document.getElementById('sant-list');
   if(sl)sl.innerHTML=renderSantList(sant);
-  // İlk satırı hemen edit moduna al
+  // Hemen düzenleme modalını aç
   setTimeout(()=>editSant(0),100);
 }
 
