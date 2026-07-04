@@ -552,12 +552,12 @@ function rPF(c){
   h+='</div><div id="lfm"></div></div>';
 
   if(!isA){
-    // OFİS - Danışman seçimi form içinde
-    h+='<div class="fgr" style="margin-top:-4px"><label>Danışman</label><input id="f_dan" list="dLO" placeholder="Danışman seç veya yaz..."/><datalist id="dLO">'+dO+'</datalist></div>';
-    // Son 1 hafta liste
-    const r2=getRights('l');
-    h+='</div><div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="f_a" placeholder="Not..."></textarea></div>';
+    // OFİS - Danışman + Açıklama form içinde, sonra kapat
+    h+='<div class="fgr"><label>Danışman</label><input id="f_dan" list="dLO" placeholder="Danışman seç veya yaz..."/><datalist id="dLO">'+dO+'</datalist></div>';
+    h+='</div>';
+    h+='<div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="f_a" placeholder="Not..."></textarea></div>';
     h+='<div class="fa"><button class="btn btn-p" onclick="svLead()">Kaydet</button></div><div id="lfm"></div></div>';
+    const r2=getRights('l');
     h+='<div class="th" style="margin-top:14px"><div class="tt">📋 Son 1 Hafta</div></div>';
     h+='<div class="rbox"><strong>Geçmiş Sorgu:</strong> Haftada 3 hak ('+r2.left+' kaldı)<div class="rdots">';
     for(let i=0;i<3;i++)h+='<div class="dot'+(i>=r2.left?' u':'')+'"></div>';
