@@ -562,22 +562,7 @@ function rPF(c){
   h+='</div><div id="lfm"></div></div>';
 
   if(!isA){
-    // OFİS - Lead ekleme formu (danışman seçimli)
-    h+='<div class="th"><div class="tt">📞 Santral & GD Lead Ekle</div><div class="ta"><button class="btn btn-p" onclick="sLF()">+ Yeni GD Lead</button></div></div>';
-    h+='<div id="lfw" class="hidden fw"><h3>➕ Yeni GD Lead</h3>';
-    h+='<div id="ldw"></div>';
-    h+='<div class="fg">';
-    h+='<div class="fgr"><label>Ad Soyad *</label><input id="f_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value);dupC(this.value,\'l\')"/></div>';
-    h+='<div class="fgr"><label>Telefon</label><input id="f_tel" placeholder="5XX XXX XX XX"/></div>';
-    h+='<div class="fgr"><label>Kaynak</label><select id="f_k">'+opts(CFG.lSrc,'')+'</select></div>';
-    h+='<div class="fgr"><label>Danışman</label><input id="f_dan" list="dLO" placeholder="Danışman seç..."/><datalist id="dLO">'+dO+'</datalist></div>';
-    h+='<div class="fgr"><label>Durum</label><select id="f_d">'+opts(CFG.lDur,'Arandı')+'</select></div>';
-    h+='<div class="fgr"><label>Takip Tarihi</label><input type="date" id="f_t"/></div>';
-    h+='</div>';
-    h+='<div class="fgr" style="margin-top:10px"><label>Açıklama</label><textarea id="f_a" placeholder="Not..."></textarea></div>';
-    h+='<div class="fa"><button class="btn btn-p" onclick="svLead()">Kaydet</button><button class="btn btn-g" onclick="hLF()">İptal</button></div>';
-    h+='<div id="lfm"></div></div>';
-    // Son 1 hafta
+    // OFİS - Son 1 hafta + santral kuyruğu
     const r=getRights('l');
     h+='<div class="th" style="margin-top:14px"><div class="tt">📋 Son 1 Hafta</div></div>';
     h+='<div class="rbox"><strong>Geçmiş Sorgu:</strong> Haftada 3 hak ('+r.left+' kaldı)<div class="rdots">';
@@ -603,7 +588,9 @@ function rPF(c){
 function santralBlock(){
   const sant=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
   let h='<div class="div" style="margin:20px 0"></div>';
-  h+='<div class="th"><div class="tt">📞 Santral — Gelen Çağrılar</div><div class="ta"><button class="btn btn-p" onclick="newSantRow()">+ Yeni Çağrı</button></div></div>';
+  const acik=sant.filter(s=>s.dur==='open');
+  h+='<div class="th"><div class="tt">📞 Santral Kuyruğu'+(acik.length?'<span style="background:var(--red);color:white;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:8px">'+acik.length+' Açık</span>':' ')+'</div>';
+  h+='<div class="ta"><button class="btn btn-g" onclick="sLF()" style="margin-right:6px">+ Yeni GD Oluştur</button><button class="btn btn-p" onclick="newSantRow()">+ Gelen Çağrı</button></div></div>';
   h+='<div id="sant-list">';
   h+=renderSantList(sant);
   h+='</div>';
@@ -1987,8 +1974,8 @@ function startDan(dn){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'📞 Santral'},{id:'rec',l:'👥 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Atananlar'},{id:'havuz',l:'➕ Yeni Alıcı'},{id:'dispf',l:'🏘️ Dış Portföy'},{id:'genel',l:'🔍 Genel Tablo'},{id:'bilgi',l:'ℹ️ Bilgi Merkezi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');b.textContent=t.l;
