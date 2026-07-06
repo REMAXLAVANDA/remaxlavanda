@@ -632,6 +632,15 @@ function rPF(c){
   h+='</div><div id="lfm"></div></div>';
 
   if(!isA){
+    // OFİS KPI KARTLARI
+    const bugunLeads=D.leads.filter(l=>(l.created_at||l.tarih||'').slice(0,10)===td());
+    const atanmayanlar=D.leads.filter(l=>!l.danisman||l.danisman.trim()==='');
+    const gecikenTakip=D.leads.filter(l=>l.sonraki_takip&&l.sonraki_takip<td()&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
+    h+='<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">';
+    [{val:bugunLeads.length,lbl:'Bugün Gelen',icon:'🔔',col:'var(--blue)'},{val:atanmayanlar.length,lbl:'Atanmayan Kayıt',icon:'📋',col:'var(--or)'},{val:gecikenTakip.length,lbl:'Geciken Takip',icon:'⚠️',col:'var(--red)'}].forEach(k=>{
+      h+='<div style="flex:1;min-width:120px;background:#fff;border:1.5px solid var(--red);border-radius:10px;padding:14px;text-align:center"><div style="font-size:18px;margin-bottom:4px">'+k.icon+'</div><div style="font-size:26px;font-weight:800;color:'+k.col+'">'+k.val+'</div><div style="font-size:11px;color:#64748b;margin-top:2px">'+k.lbl+'</div></div>';
+    });
+    h+='</div>';
     // OFİS SORGU
     const r=getRights('l');
     h+='<div class="th" style="margin-top:14px"><div class="tt">📋 Son 1 Hafta</div></div>';
@@ -1338,7 +1347,7 @@ function lRows(list){
       +'<td>'+(l.danisman||'—')+'</td>'
       +'<td style="color:'+(g?'var(--red)':'inherit')+'">'+(l.sonraki_takip||'—')+'</td>'
       +'<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' <b>'+tlC+'</b>':'')+'</button></td>'
-      +(CU.role==='admin'?'<td style="display:flex;gap:3px"><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button><button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button></td>':'')
+      +('<td style="display:flex;gap:3px"><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button>'+(CU.role==='admin'?'<button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button>':'')+('</td>'))
       +'</tr>';
   }).join('');
 }
@@ -1691,7 +1700,7 @@ function rYeniAlici(c){
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;gap:10px"><input type="checkbox" id="ya_p" style="width:15px;height:15px"/><label for="ya_p" style="font-size:12px;font-weight:600;color:#5b21b6;cursor:pointer">Ofis Havuzuyla Paylaş — Müşteri bilgisi gizli kalır</label></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svYeniAlici()">Kaydet</button></div><div id="ya_m"></div></div>';
   h+='<div class="th"><div class="tt">Alıcılarım ('+my.length+')</div></div>';
-  if(!my.length){h+='<div style="text-align:center;padding:20px;color:#ccc;background:white;border-radius:10px;border:1px solid var(--bd)">Henüz alıcı eklenmemiş</div>';}
+  if(!my.length){h+='<div style="text-align:center;padding:24px;color:#94a3b8;background:white;border-radius:10px;border:1px solid var(--bd)"><div style="font-size:20px;margin-bottom:8px">🔍</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Henüz alıcı talebi eklenmedi.</div><div style="font-size:12px">➕ Yeni Alıcı butonuyla kişisel CRM&apos;inizi başlatın.</div></div>';}
   else my.forEach(a=>{
     h+='<div style="background:white;border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px">';
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div><div style="font-size:13px;font-weight:700">'+(a.musteri_ad||'—')+'</div><div style="font-size:11px;color:#999">'+wa(a.musteri_tel)+a.tip+' · '+a.il+(a.ilce?'/'+a.ilce:'')+'</div></div>';
@@ -1726,7 +1735,7 @@ function rDisPF2(c){
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;gap:10px"><input type="checkbox" id="dp_p" style="width:15px;height:15px"/><label for="dp_p" style="font-size:12px;font-weight:600;color:#5b21b6;cursor:pointer">Ofis Havuzuyla Paylaş — Adın gizli kalır</label></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svDisPF2()">Kaydet</button></div><div id="dp_m"></div></div>';
   h+='<div class="th"><div class="tt">Harici Portföylerim ('+my.length+')</div></div>';
-  if(!my.length)h+='<div style="text-align:center;padding:20px;color:#ccc;background:white;border-radius:10px;border:1px solid var(--bd)">Henüz portföy eklenmemiş</div>';
+  if(!my.length)h+='<div style="text-align:center;padding:24px;color:#94a3b8;background:white;border-radius:10px;border:1px solid var(--bd)"><div style="font-size:20px;margin-bottom:8px">🏘️</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Henüz harici portföy eklenmedi.</div><div style="font-size:12px">Yetki alınmamış portföy eklemek için ➕ Harici Portföy butonuna tıklayın.</div></div>';
   else my.forEach(d=>{
     h+='<div style="background:white;border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px">';
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:13px;font-weight:700">'+d.tip+' · '+badge(d.islem)+'</div><div style="font-size:11px;color:#999">'+d.il+(d.ilce?'/'+d.ilce:'')+(d.m2?' · '+d.m2+' m²':'')+(d.fiyat?' · '+d.fiyat:'')+'</div></div>';
@@ -1754,7 +1763,7 @@ function rSurec(c){
   const myLeads=D.leads.filter(l=>l.danisman===CU.danAd);
   const durumlar=['Arandı','Aranıyor','Randevu Alındı','Görüşüldü','Devam Ediyor','Ulaşılamadı','Olumsuz'];
   let h='<div class="th"><div class="tt">📋 Bana Atananlar ('+myLeads.length+')</div></div>';
-  if(!myLeads.length){h+='<div style="text-align:center;padding:28px;color:#ccc;background:white;border-radius:12px;border:1px solid var(--bd)">Sana atanmış kayıt yok</div>';c.innerHTML=h;return;}
+  if(!myLeads.length){h+='<div style="text-align:center;padding:32px;color:#94a3b8;background:white;border-radius:12px;border:1px solid var(--bd)"><div style="font-size:20px;margin-bottom:8px">📋</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Şu an size atanan kayıt yok.</div><div style="font-size:12px">Santral veya ofis tarafından atama yapıldığında burada görünecek.</div></div>';c.innerHTML=h;return;}
   h+='<div class="tw"><table><thead><tr><th>Müşteri</th><th>Telefon</th><th>Kaynak</th><th>Durum</th><th>Takip</th><th>Notlar</th><th>İşlem</th></tr></thead><tbody>';
   myLeads.forEach(l=>{
     const g=l.sonraki_takip&&l.sonraki_takip<td();
