@@ -414,8 +414,8 @@ function startDan(dn){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy & Santral'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy & Santral'},{id:'rec',l:'👥 Recruiting'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');b.textContent=t.l;
@@ -431,9 +431,15 @@ function rC(id){
   else if(id==='rec')rRec(c);
   else if(id==='dans')rDans(c);
   else if(id==='ay')rAy(c);
+  else if(id==='lograp')rLogRap(c);
+  else if(id==='dash')rDanDash(c);
+  else if(id==='takvim')rTakvim(c);
+  else if(id==='surec')rSurec(c);
+  else if(id==='havuz')rYeniAlici(c);
+  else if(id==='dispf')rDisPF2(c);
+  else if(id==='genel')rGenelTablo(c);
+  else if(id==='bilgi')rBilgiMerkezi(c);
   else if(id==='dan')rDan(c);
-  else if(id==='havuz')rHavuz(c);
-  else if(id==='notlar')rNotlar(c);
 }
 
 // GAUGE
@@ -718,7 +724,7 @@ async function svLead(){
   const danEl=document.getElementById('f_dan');const danAd=danEl?cap(danEl.value.trim()):'';
   if(danAd&&!D.dans.find(d=>d.ad===danAd)){try{await api('danismanlar','POST',{ad:danAd,token:gTok(),pin:gPin()});}catch(e){}}
   const data={ad,telefon:document.getElementById('f_tel').value.trim(),kaynak:document.getElementById('f_k').value,danisman:danAd||null,durum:document.getElementById('f_d').value,aciklama:document.getElementById('f_a').value.trim(),tarih:td(),sonraki_takip:document.getElementById('f_t').value||null};
-  try{await api('gd_leads','POST',data);document.getElementById('lfm').innerHTML='<div class="ok-m">✅ Lead eklendi!</div>';document.getElementById('f_ad').value='';document.getElementById('f_tel').value='';document.getElementById('f_a').value='';await load();if(CU.role==='admin')setTimeout(()=>{hLF();rPF(document.getElementById('ct'));},900);}
+  try{await api('gd_leads','POST',data);document.getElementById('lfm').innerHTML='<div class="ok-m">✅ Lead eklendi!</div>';document.getElementById('f_ad').value='';document.getElementById('f_tel').value='';document.getElementById('f_a').value='';await load();setTimeout(()=>{hLF();rPF(document.getElementById('ct'));},900);}
   catch(e){document.getElementById('lfm').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 
@@ -1190,7 +1196,7 @@ function rPF(c){
   h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'pf-form\').classList.toggle(\'hidden\')">+ Yeni GD</button>';
   h+='</div></div>';
 
-  h+='<div id="pf-form" class="hidden fw" style="margin-bottom:12px"><h3>➕ Yeni GD Lead</h3>';
+  h+='<div id="pf-form" class="'+(isA?'hidden ':'')+'fw" style="margin-bottom:12px"><h3>➕ Yeni GD Lead</h3>';
   h+='<div id="ldw"></div>';
   h+='<div class="fg">';
   h+='<div class="fgr"><label>Ad Soyad *</label><input id="f_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value);dupC(this.value,\'l\')"/></div>';
