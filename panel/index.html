@@ -1038,7 +1038,7 @@ function rPF(c){
   h+='<button class="btn btn-g btn-sm" onclick="clearPFFilter()">✕</button>';
   h+='</div>';
 
-  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Notlar</th>';
+  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Notlar</th>';
   if(isA)h+='<th></th>';
   h+='</tr></thead><tbody id="lB">';
   h+=lRows(D.leads);
@@ -1088,6 +1088,7 @@ function lRows(list){
       +'<td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td>'
       +'<td>'+(l.kaynak||'—')+'</td>'
       +'<td>'+badge(l.durum)+'</td>'
+      +'<td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc;font-size:11px">—</span>')+'</td>'
       +'<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' <b>'+tlC+'</b>':'')+'</button></td>'
       +('<td style="display:flex;gap:3px"><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button>'+(CU.role==='admin'?'<button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button>':'')+'</td>')
       +'</tr>';
