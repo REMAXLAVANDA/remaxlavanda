@@ -667,15 +667,15 @@ function rPF(c){
     if(r.left>0)h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><input type="date" id="qs" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><span>—</span><input type="date" id="qe" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><button class="btn btn-p btn-sm" onclick="qL()">Sorgula (1 hak)</button></div>';
     h+='</div>';
     const f=D.leads.filter(l=>l.tarih>=wAgo()&&l.tarih<=td());
-    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Durum</th><th>Danışman</th></tr></thead><tbody id="ofisLB">';
-    h+=f.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
+    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th></tr></thead><tbody id="ofisLB">';
+    h+=f.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(l.durum)+'</td></tr>').join('');
     h+='</tbody></table></div>';
     h+=santralBlock();
     c.innerHTML=h;return;
   }
 
   h+='<div class="sb"><input id="sa" placeholder="🔍 Ad..." oninput="fL()"/><select id="sd" onchange="fL()"><option value="">Tüm Durumlar</option>'+opts(CFG.lDur,'')+'</select><select id="sdn" onchange="fL()"><option value="">Tüm Danışmanlar</option>'+dO+'</select></div>';
-  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Takip</th><th></th></tr></thead><tbody id="lB">';
+  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Notlar</th><th></th></tr></thead><tbody id="lB">';
   h+=lRows(D.leads);h+='</tbody></table></div>';
   h+=santralBlock();
   c.innerHTML=h;
@@ -693,7 +693,7 @@ function santralBlock(){
 
 function renderSantList(sant){
   if(!sant.length)return'<div style="text-align:center;padding:20px;color:#ccc;background:#fff;border-radius:10px;border:1px solid var(--bd)">Henüz çağrı yok</div>';
-  let h='<div class="tw"><table><thead><tr><th>Saat</th><th>Telefon</th><th>Ad</th><th>Konu</th><th>Not</th><th>Durum</th><th></th></tr></thead><tbody>';
+  let h='<div class="tw"><table><thead><tr><th>Telefon</th><th>Ad</th><th>Konu</th><th>Not</th><th>Durum</th><th></th></tr></thead><tbody>';
   h+=sant.map((s,i)=>{
     const isOpen=s.dur==='open';
     return'<tr style="background:'+(isOpen?'#fff8f8':'#f9fff9')+'">'
@@ -862,7 +862,7 @@ function rRec(c){
     h+='</tbody></table></div>';
   }else{
     h+='<div class="sb"><input id="ra" placeholder="🔍 Ad..." oninput="fR()"/><select id="rd" onchange="fR()"><option value="">Tüm Durumlar</option>'+opts(CFG.rDur,'')+'</select><select id="rk" onchange="fR()"><option value="">Tüm Kaynaklar</option>'+opts(CFG.rSrc,'')+'</select></div>';
-    h+='<div class="tw"><table><thead><tr><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Randevu</th><th>Saat</th><th>Açıklama</th><th></th></tr></thead><tbody id="rB">';
+    h+='<div class="tw"><table><thead><tr><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Randevu</th><th>Açıklama</th><th></th></tr></thead><tbody id="rB">';
     h+=rRows(D.rec);h+='</tbody></table></div>';
   }
   h+='</div>';
@@ -895,7 +895,7 @@ function rRec(c){
   h+='</div></div></div></div>';
   c.innerHTML=h;
 }
-function rRows(list){return list.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td>'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(r.durum)+'</td><td>'+(r.randevu_tarihi||'—')+'</td><td>'+(r.randevu_saati||'—')+'</td><td>'+(r.aciklama||'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">✏️</button></td></tr>').join('');}
+function rRows(list){return list.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+(r.randevu_tarihi||'—')+'</td><td>'+(r.aciklama?r.aciklama.slice(0,50):'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">✏️</button></td></tr>').join('');}
 function fR(){const a=(document.getElementById('ra')||{value:''}).value.toLowerCase();const d=(document.getElementById('rd')||{value:''}).value;const k=(document.getElementById('rk')||{value:''}).value;const f=D.rec.filter(r=>(!a||(r.ad||'').toLowerCase().includes(a))&&(!d||r.durum===d)&&(!k||r.kaynak===k));const b=document.getElementById('rB');if(b)b.innerHTML=rRows(f);}
 function sRF(){document.getElementById('rfw').classList.remove('hidden');}
 function hRF(){document.getElementById('rfw').classList.add('hidden');}
@@ -1317,7 +1317,7 @@ function rPF(c){
   h+='<button class="btn btn-g btn-sm" onclick="clearPFFilter()">✕</button>';
   h+='</div>';
 
-  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Takip</th><th>Notlar</th>';
+  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Notlar</th>';
   if(isA)h+='<th></th>';
   h+='</tr></thead><tbody id="lB">';
   h+=lRows(D.leads);
@@ -1353,16 +1353,13 @@ function fL(){
 
 function lRows(list){
   return list.map(l=>{
-    const g=l.sonraki_takip&&l.sonraki_takip<td();
     const tlC=D.timeline.filter(t=>t.kayit_id===l.id).length;
-    return '<tr style="background:'+(g?'#fff8f8':'white')+'">'
+    return '<tr>'
       +'<td>'+(l.tarih||'—')+'</td>'
-      +'<td><strong>'+(l.ad||'')+'</strong>'+(g?'<span style="color:var(--red);font-size:10px;margin-left:3px">⚠️</span>':'')+'</td>'
+      +'<td><strong>'+(l.ad||'')+'</strong></td>'
       +'<td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td>'
       +'<td>'+(l.kaynak||'—')+'</td>'
       +'<td>'+badge(l.durum)+'</td>'
-      +'<td>'+(l.danisman||'—')+'</td>'
-      +'<td style="color:'+(g?'var(--red)':'inherit')+'">'+(l.sonraki_takip||'—')+'</td>'
       +'<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' <b>'+tlC+'</b>':'')+'</button></td>'
       +('<td style="display:flex;gap:3px"><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button>'+(CU.role==='admin'?'<button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button>':'')+'</td>')
       +'</tr>';
@@ -1388,7 +1385,7 @@ function santralBlock(){
 
 function renderSantList(sant){
   if(!sant.length)return'<div style="text-align:center;padding:16px;color:#ccc;background:white;border-radius:10px;border:1px solid var(--bd);font-size:12px">Henüz çağrı yok</div>';
-  let h='<div class="tw"><table><thead><tr><th>Saat</th><th>Telefon</th><th>Ad</th><th>Konu</th><th>Durum</th><th></th></tr></thead><tbody>';
+  let h='<div class="tw"><table><thead><tr><th>Telefon</th><th>Ad</th><th>Konu</th><th>Durum</th><th></th></tr></thead><tbody>';
   sant.forEach((s,i)=>{
     const isOpen=s.dur==='open';
     h+='<tr style="background:'+(isOpen?'#fff8f8':'#f9fff9')+'">';
