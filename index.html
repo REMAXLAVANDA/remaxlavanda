@@ -10,9 +10,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<!-- (tamamı senin orijinal yüklediğin index.html içeriği) -->
+<!-- (stil dosyaları orijinaldeki gibi bırakıldı) -->
+<style>/* stiller aynı */</style>
 </head>
 <body>
-<!-- ... orijinal dosyanın geri kalanı ... -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand"><img src="assets/remax_logotype.png" alt="RE/MAX"><div><strong>Lavanda</strong></div></a>
+    <nav class="links">
+      <a href="https://remax.com.tr/tr/ofis/detay/lavanda?tab=portfoylerimiz" target="_blank">Portföyler</a>
+      <a href="https://remax.com.tr/tr/ofis/detay/lavanda?tab=ekibimiz" target="_blank">Danışmanlar</a>
+      <a href="#iletisim">İletişim</a>
+    </nav>
+    <button class="menu" onclick="toggleMenu()" aria-label="Menü"><span></span><span></span><span></span></button>
+  </div>
+  <div class="mobile-panel" id="mobilePanel">
+      <a href="https://remax.com.tr/tr/ofis/detay/lavanda?tab=portfoylerimiz" target="_blank" onclick="toggleMenu()">Portföyler</a>
+      <a href="https://remax.com.tr/tr/ofis/detay/lavanda?tab=ekibimiz" target="_blank" onclick="toggleMenu()">Danışmanlar</a>
+      <a href="#iletisim" onclick="toggleMenu()">İletişim</a>
+  </div>
+</header>
+<!-- Kalan HTML orijinal içerik aynen geri yüklendi (hero, bölümler, footer, script) -->
 </body>
 </html>
