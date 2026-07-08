@@ -1388,7 +1388,7 @@ async function svEtkinlik(){
   const atanan=[];
   if(hedef==='secili'){document.querySelectorAll('.dcb:checked').forEach(cb=>atanan.push(cb.value));if(!atanan.length){document.getElementById('ef_m').innerHTML='<div class="err-m">Danışman seçin!</div>';return;}}
   try{
-    await api('etkinlikler','POST',{baslik:b,tur:document.getElementById('ef_t').value,tarih:document.getElementById('ef_d').value,saat:document.getElementById('ef_s').value||null,bitis_saati:document.getElementById('ef_e').value||null,hedef:hedef,atanan_danismanlar:JSON.stringify(atanan),aciklama:document.getElementById('ef_a').value.trim(),olusturan:CU.name||'Ofis'});
+    await api('etkinlikler','POST',{baslik:b,tur:document.getElementById('ef_t').value,tarih:document.getElementById('ef_d').value,saat:document.getElementById('ef_s').value||null,bitis_saati:document.getElementById('ef_e').value||null,hedef:hedef,atanan_danismanlar:atanan,aciklama:document.getElementById('ef_a').value.trim(),olusturan:CU.name||'Ofis'});
     document.getElementById('ef_m').innerHTML='<div class="ok-m">✅ Eklendi!</div>';
     await load();setTimeout(()=>{document.getElementById('ef').classList.add('hidden');rTakvim(document.getElementById('ct'));},800);
   }catch(e){document.getElementById('ef_m').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
@@ -1423,7 +1423,7 @@ async function svYeniAlici(){
   const ad=cap(document.getElementById('ya_ad').value.trim());
   if(!ad){document.getElementById('ya_m').innerHTML='<div class="err-m">Müşteri adı zorunlu!</div>';return;}
   try{
-    await api('arayislar','POST',{danisman_ad:CU.danAd,musteri_ad:ad,musteri_tel:document.getElementById('ya_tel').value.trim(),tip:document.getElementById('ya_tip').value,islem:document.getElementById('ya_is').value,il:document.getElementById('ya_il').value,ilce:document.getElementById('ya_ilce').value,m2:document.getElementById('ya_m2').value,oda:document.getElementById('ya_oda').value,fiyat:document.getElementById('ya_f').value,takip_tarihi:document.getElementById('ya_tk').value||null,aciklama:document.getElementById('ya_not').value.trim(),paylas:document.getElementById('ya_p').checked});
+    await api('arayislar','POST',{danisman_ad:CU.danAd,musteri_ad:ad,musteri_tel:document.getElementById('ya_tel').value.trim(),tip:document.getElementById('ya_tip').value,il:document.getElementById('ya_il').value,ilce:document.getElementById('ya_ilce').value,m2:document.getElementById('ya_m2').value,oda:document.getElementById('ya_oda').value,fiyat:document.getElementById('ya_f').value,takip_tarihi:document.getElementById('ya_tk').value||null,aciklama:document.getElementById('ya_not').value.trim(),paylas:document.getElementById('ya_p').checked});
     await logIslem('arayislar','ekle',CU.danAd);
     document.getElementById('ya_m').innerHTML='<div class="ok-m">✅ Alıcı eklendi!</div>';
     await load();setTimeout(()=>rYeniAlici(document.getElementById('ct')),900);
