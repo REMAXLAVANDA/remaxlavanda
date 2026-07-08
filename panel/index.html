@@ -375,9 +375,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 
 
-const SB='https://vfqkmluqjaihpgxhqlqt.supabase.co';
-const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
-
+const SB = import.meta.env.VITE_SUPABASE_URL;
+const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 let U=JSON.parse(localStorage.getItem('rmx_u')||'null')||{
   admin:{pass:'lavanda2024',pin:'1234',role:'admin',name:'Admin'},
   ofis:{pass:'1234',pin:'5678',role:'ofis',name:'Ofis'}
