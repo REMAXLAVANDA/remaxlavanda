@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İletişim | RE/MAX Lavanda — Çorlu Gayrimenkul Ofisi</title>
+<meta name="description" content="RE/MAX Lavanda ofisi iletişim bilgileri. Çorlu, Tekirdağ. Telefon, WhatsApp, adres ve harita.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRF2BXPL52"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-TRF2BXPL52');</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Manrope',sans-serif;color:#17243A;background:#fff;-webkit-font-smoothing:antialiased;line-height:1.6;}
+a{text-decoration:none;color:inherit;}
+img{max-width:100%;display:block;}
+
+/* NAV */
+nav{height:68px;background:#fff;border-bottom:1px solid #E8ECF2;position:sticky;top:0;z-index:100;}
+.nav-in{max-width:1200px;margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand img{height:30px;width:auto;}
+.brand strong{font-size:22px;font-weight:800;color:#003087;}
+.nav-back{font-size:13px;font-weight:700;color:#657084;display:flex;align-items:center;gap:6px;padding:9px 18px;border:1px solid #E8ECF2;border-radius:999px;transition:.2s;}
+.nav-back:hover{color:#E31837;border-color:#E31837;}
+
+/* PAGE LAYOUT */
+.page-wrap{max-width:1200px;margin:0 auto;padding:56px 24px 80px;}
+
+/* HEADER */
+.page-header{margin-bottom:48px;}
+.page-header h1{font-size:clamp(28px,4vw,44px);font-weight:800;color:#17243A;letter-spacing:-1px;margin-bottom:8px;}
+.page-header p{font-size:15px;color:#657084;}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:32px;align-items:start;}
+
+/* INFO PANEL */
+.info-panel{display:flex;flex-direction:column;gap:16px;}
+.info-card{background:#F7F9FD;border-radius:16px;padding:24px;border:1px solid #E8ECF2;}
+.info-card-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.info-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-card-icon.red{background:#FEE2E2;}
+.info-card-icon.navy{background:#DBEAFE;}
+.info-card-icon.green{background:#D1FAE5;}
+.info-card-icon.gray{background:#F1F5F9;}
+.info-card-icon svg{width:20px;height:20px;}
+.info-card-icon.red svg{stroke:#E31837;}
+.info-card-icon.navy svg{stroke:#003087;}
+.info-card-icon.green svg{stroke:#059669;}
+.info-card-icon.gray svg{stroke:#64748B;}
+.info-card h3{font-size:11px;font-weight:800;letter-spacing:1.5px;color:#657084;text-transform:uppercase;}
+.info-card-body{}
+.info-val{font-size:18px;font-weight:800;color:#17243A;margin-bottom:4px;}
+.info-desc{font-size:13px;color:#657084;line-height:1.6;}
+.info-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:800;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:.2s;}
+.info-btn.red{background:#E31837;color:#fff;}
+.info-btn.red:hover{background:#B5122C;}
+.info-btn.navy{background:#003087;color:#fff;}
+.info-btn.navy:hover{background:#002060;}
+.info-btn.ghost{background:#fff;color:#17243A;border:1px solid #E8ECF2;}
+.info-btn.ghost:hover{border-color:#003087;color:#003087;}
+.info-btn svg{width:16px;height:16px;fill:currentColor;flex-shrink:0;}
+.info-btn svg.stroke{fill:none;stroke:currentColor;stroke-width:2;}
+
+/* HOURS */
+.hours-grid{display:grid;gap:8px;}
+.hours-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+.hours-row .day{font-weight:600;color:#17243A;}
+.hours-row .time{color:#657084;}
+.hours-row .badge{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;}
+.badge-open{background:#D1FAE5;color:#065F46;}
+.badge-closed{background:#FEE2E2;color:#991B1B;}
+
+/* MAP PANEL */
+.map-panel{border-radius:16px;overflow:hidden;border:1px solid #E8ECF2;background:#F7F9FD;}
+.map-wrap iframe{width:100%;height:260px;border:0;display:block;}
+.map-footer{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#F7F9FD;border-top:1px solid #E8ECF2;}
+.map-address{font-size:13px;color:#17243A;}
+.map-address strong{display:block;font-weight:700;font-size:13px;margin-bottom:1px;}
+.map-address span{font-size:13px;color:#657084;}
+
+/* SOSYAL */
+.social-section{margin-top:32px;}
+.social-title{font-size:11px;font-weight:800;letter-spacing:1.5px;color:#657084;text-transform:uppercase;margin-bottom:16px;}
+.social-row{display:flex;flex-wrap:wrap;gap:10px;}
+.social-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid #E8ECF2;color:#17243A;background:#fff;transition:.2s;}
+.social-btn:hover{border-color:#E31837;color:#E31837;background:#FFF5F5;}
+.social-btn svg{width:17px;height:17px;flex-shrink:0;}
+
+/* AKRED */
+.accred-section{margin-top:32px;background:#F7F9FD;border-radius:16px;padding:24px;border:1px solid #E8ECF2;}
+.accred-title{font-size:11px;font-weight:800;letter-spacing:1.5px;color:#657084;text-transform:uppercase;margin-bottom:16px;}
+.accred-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+.accred-row img{height:36px;width:auto;object-fit:contain;}
+
+/* FOOTER */
+footer{background:#061B3A;padding:28px 24px;text-align:center;}
+footer p{font-size:12px;color:rgba(255,255,255,.35);}
+
+@media(max-width:900px){
+  .main-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .page-wrap{padding:40px 16px 60px;}
+  .social-row{gap:8px;}
+}
+
+.wa-float{position:fixed;bottom:22px;right:22px;width:54px;height:54px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:999;transition:.2s;}
+.wa-float:hover{background:#1ebd5a;transform:scale(1.05);}
+.wa-float svg{width:28px;height:28px;fill:#fff;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a href="/" class="brand">
+      <img src="assets/remax_logotype.png" alt="RE/MAX Lavanda">
+      <strong>Lavanda</strong>
+    </a>
+    <a href="/" class="nav-back">← Ana Sayfa</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <h1>RE/MAX Lavanda — İletişim</h1>
+    <p>Çorlu ve Tekirdağ'da gayrimenkul danışmanlığı için bize ulaşın.</p>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- SOL: Bilgi Kartları -->
+    <div class="info-panel">
+
+      
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-icon red">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <h3>Adres</h3>
+        </div>
+        <div class="info-val" style="font-size:16px;line-height:1.4;">Rumeli Mah. Yücetürk Cad.<br>No:20/3, Çorlu / Tekirdağ</div>
+        <a href="https://maps.google.com/?q=RE/MAX+Lavanda+Çorlu+Yücetürk+Caddesi" target="_blank" class="info-btn ghost">
+          <svg class="stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Yol Tarifi Al
+        </a>
+      </div>
+
+    </div>
+
+    <!-- SAĞ: Harita + Akred + Sosyal -->
+    <div>
+      <div class="map-panel" style="border-radius:12px;overflow:hidden;border:1px solid #E8ECF2;">
+        <div class="map-wrap">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d750.9!2d27.8009!3d41.1568!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14b3f6cb6ca8888b%3A0x68c5efcbc2df73a0!2sRE%2FMAX%20Lavanda!5e0!3m2!1str!2str!4v1700000000000"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        <div class="map-footer">
+          <div class="map-address">
+            <strong>RE/MAX Lavanda</strong>
+            <span>Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ</span>
+          </div>
+          <a href="https://maps.google.com/?q=RE/MAX+Lavanda+Çorlu" target="_blank" class="info-btn ghost" style="margin:0;">
+            <svg class="stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Google Maps'te Aç
+          </a>
+        </div>
+      </div>
+
+      <div class="accred-section">
+        <p class="accred-title">Akreditasyonlarımız</p>
+        <div class="accred-row">
+          <img src="assets/ACP_Logo.jpg" alt="ACP" style="background:#555;padding:6px;border-radius:4px;">
+          <img src="assets/remax_ticari_logo.jpg" alt="RE/MAX Ticari">
+          <img src="assets/remax_ticari_kulup.jpg" alt="RE/MAX Ticari Kulüp" style="background:#111;padding:6px;border-radius:4px;">
+          <img src="assets/remax_collection_logo.jpg" alt="RE/MAX Collection">
+        </div>
+      </div>
+
+      <div class="social-section">
+        <p class="social-title">Sosyal Medya</p>
+        <div class="social-row">
+          <a href="https://www.instagram.com/remaxlavanda/" target="_blank" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+            Instagram
+          </a>
+          <a href="https://www.facebook.com/remaxlavanda/" target="_blank" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06z"/></svg>
+            Facebook
+          </a>
+          <a href="https://www.youtube.com/@remaxlavanda" target="_blank" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.4-.43-5a3 3 0 0 0-2.1-2.1C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.47.4A3 3 0 0 0 1.43 7C1 8.6 1 12 1 12s0 3.4.43 5a3 3 0 0 0 2.1 2.1C5.1 19.5 12 19.5 12 19.5s6.9 0 8.47-.4a3 3 0 0 0 2.1-2.1c.43-1.6.43-5 .43-5z"/><path d="M9.8 15.3V8.7L15.8 12z" fill="#fff"/></svg>
+            YouTube
+          </a>
+          <a href="https://x.com/RemaxLavanda" target="_blank" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-7.1l-5.6-7.3L4.2 22H1l8.1-9.3L.9 2H8.2l5 6.7L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg>
+            X
+          </a>
+          <a href="https://tr.pinterest.com/remaxlavanda/" target="_blank" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.64 7.86 6.36 9.3-.09-.79-.17-2.01.04-2.87.19-.79 1.23-5.07 1.23-5.07s-.31-.63-.31-1.55c0-1.46.85-2.55 1.9-2.55.9 0 1.33.67 1.33 1.48 0 .9-.57 2.25-.87 3.5-.25 1.05.52 1.9 1.55 1.9 1.86 0 3.29-1.96 3.29-4.79 0-2.5-1.8-4.25-4.37-4.25-2.98 0-4.72 2.23-4.72 4.54 0 .9.34 1.86.78 2.39.09.1.1.2.07.3-.08.32-.25 1.05-.29 1.2-.05.18-.15.22-.35.13-1.3-.6-2.11-2.5-2.11-4.02 0-3.27 2.38-6.28 6.86-6.28 3.6 0 6.4 2.57 6.4 6 0 3.58-2.26 6.46-5.39 6.46-1.05 0-2.04-.55-2.38-1.2l-.65 2.46c-.23.9-.87 2.02-1.3 2.7.98.3 2.02.46 3.1.46 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            Pinterest
+          </a>
+          <a href="https://www.tiktok.com/@remax.lavanda" target="_blank" class="social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.2v13.2c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .6.05.85.13V9.4a6 6 0 0 0-.85-.06A6 6 0 0 0 4.7 15.3a6 6 0 0 0 6 6 6 6 0 0 0 6-6V8.3a8.3 8.3 0 0 0 4.6 1.4V6.5a5 5 0 0 1-4.7-4.5z"/></svg>
+            TikTok
+          </a>
+          
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>RE/MAX Lavanda © 2026 · Rumeli Mah. Yücetürk Cad. No:20/3, Çorlu / Tekirdağ · Her ofis bağımsız olarak sahiplenilir ve işletilir.</p>
+</footer>
+
+
+<a href="https://wa.me/905325535559?text=Merhaba%2C%20RE%2FMAX%20Lavanda%20sitesinden%20ula%C5%9F%C4%B1yorum." target="_blank" class="wa-float" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+</a>
+</body>
+</html>
