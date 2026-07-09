@@ -3,17 +3,18 @@
    PWA: Service Worker + FCM + Standalone detect
 ───────────────────────────────────────────── */
 
-// ── Firebase config placeholder ──
-// TODO: Firebase konsolundan gerçek değerleri doldurun
+// ==== Firebase ====
 const FIREBASE_CONFIG = {
-  apiKey:            'YOUR_API_KEY',
-  authDomain:        'YOUR_PROJECT.firebaseapp.com',
-  projectId:         'YOUR_PROJECT_ID',
-  storageBucket:     'YOUR_PROJECT.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId:             'YOUR_APP_ID',
-  vapidKey:          'YOUR_VAPID_PUBLIC_KEY', // Cloud Messaging > Web Push sertifikası
+  apiKey: "AIzaSyCTuQUv1wO5OtGhW2GuV0QVMyhJ6UFVKvE",
+  authDomain: "lavandacrm.firebaseapp.com",
+  projectId: "lavandacrm",
+  storageBucket: "lavandacrm.firebasestorage.app",
+  messagingSenderId: "95549904499",
+  appId: "1:95549904499:web:2d34a208eaa4e474bffc06"
 };
+// ==== PWA Service-Worker kaydı ====
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+export { FIREBASE_CONFIG };
 
 // Supabase endpoint — index.html'deki SB/KEY ile aynı
 const _SB  = 'https://vfqkmluqjaihpgxhqlqt.supabase.co';
@@ -50,12 +51,6 @@ function registerSW() {
 
 // ── 3. FCM token al → Supabase'e kaydet ──
 async function initFCM() {
-  // Firebase placeholder dolmamışsa çalıştırma
-  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
-    console.info('[FCM] Firebase config henüz yapılandırılmadı — atlandı.');
-    return;
-  }
-
   if (!('Notification' in window)) return;
 
   try {
@@ -127,9 +122,7 @@ function detectPlatform() {
 }
 
 // ── Başlat ──
-registerSW();
-// FCM kullanıcı giriş yaptıktan sonra çağrılabilir;
-// burada sayfa yüklenince çalıştırıyoruz, izin zaten istenmiş olabilir.
+// SW kaydı dosya başında yapıldı.
 window.addEventListener('load', () => {
   initFCM();
 });
