@@ -2401,14 +2401,26 @@ async function santralTest() {
   const el = document.getElementById('santral-test-result');
   el.innerHTML = '⏳ Test ediliyor...';
   try {
-    const r = await telsamAPI('test');
+    const url = TELSAM_FN + '/test';
+    el.innerHTML = '⏳ İstek gönderiliyor: ' + url;
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
+    });
+    const txt = await r.text();
     if (r.ok) {
-      el.innerHTML = '<span style="color:var(--gn);font-weight:700">✅ Bağlantı başarılı!</span> <span style="color:#94a3b8;font-size:11px">TELSAM API erişilebilir.</span>';
+      let data;
+      try { data = JSON.parse(txt); } catch(e) { data = txt; }
+      if (data && data.ok) {
+        el.innerHTML = '<span style="color:var(--gn);font-weight:700">✅ Bağlantı başarılı!</span>';
+      } else {
+        el.innerHTML = '<span style="color:var(--red)">❌ API Hatası: ' + txt + '</span>';
+      }
     } else {
-      el.innerHTML = '<span style="color:var(--red);font-weight:700">❌ Bağlanamadı:</span> ' + (r.error || 'Bilinmeyen hata');
+      el.innerHTML = '<span style="color:var(--red)">❌ HTTP ' + r.status + ': ' + txt + '</span>';
     }
   } catch (e) {
-    el.innerHTML = '<span style="color:var(--red)">❌ Hata: ' + e.message + '</span>';
+    el.innerHTML = '<span style="color:var(--red)">❌ ' + e.name + ': ' + e.message + '</span><br><small>URL: ' + TELSAM_FN + '/test</small>';
   }
 }
 
