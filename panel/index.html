@@ -551,21 +551,25 @@ function rTabs(){
 
 function rC(id){
   const c=document.getElementById('ct');
-  if(id==='ozet')rOzet(c);
-  else if(id==='pf')rPF(c);
-  else if(id==='rec')rRec(c);
-  else if(id==='dans')rDans(c);
-  else if(id==='ay')rAy(c);
-  else if(id==='lograp')rLogRap(c);
-  else if(id==='dash')rDanDash(c);
-  else if(id==='takvim')rTakvim(c);
-  else if(id==='surec')rSurec(c);
-  else if(id==='havuz')rYeniAlici(c);
-  else if(id==='dispf')rDisPF2(c);
-  else if(id==='genel')rGenelTablo(c);
-  else if(id==='bilgi')rBilgiMerkezi(c);
-  else if(id==='dan')rDan(c);
-  else if(id==='rapor')rRapor(c);
+  try{
+    if(id==='ozet')rOzet(c);
+    else if(id==='pf')rPF(c);
+    else if(id==='rec')rRec(c);
+    else if(id==='dans')rDans(c);
+    else if(id==='ay')rAy(c);
+    else if(id==='lograp')rLogRap(c);
+    else if(id==='dash')rDanDash(c);
+    else if(id==='takvim')rTakvim(c);
+    else if(id==='surec')rSurec(c);
+    else if(id==='havuz')rYeniAlici(c);
+    else if(id==='dispf')rDisPF2(c);
+    else if(id==='genel')rGenelTablo(c);
+    else if(id==='bilgi')rBilgiMerkezi(c);
+    else if(id==='dan')rDan(c);
+    else if(id==='rapor')rRapor(c);
+  }catch(e){
+    c.innerHTML='<div class="err-m">❌ Sayfa yüklenemedi: '+e.message+'<br><small style="opacity:.7">'+id+' — '+e.stack.split('\n')[1]+'</small></div>';
+  }
 }
 
 // GAUGE
