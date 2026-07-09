@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="RE/MAX Lavanda">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
 :root{
   --red:#DC1C2E;--blue:#003DA5;--dk:#0C2749;--navy:#0C2749;
@@ -1153,23 +1154,60 @@ function rPF(c){
 
 function toggleKanban(){window._kanban=!window._kanban;rPF(document.getElementById('ct'));}
 
+function toast(msg,ok){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:'+(ok===false?'var(--red)':'var(--dk)')+';color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2200);
+}
+
+function initKanbanDD(){
+  if(typeof Sortable==='undefined')return;
+  ['yeni','sicak','randevu','kazanildi'].forEach(colId=>{
+    const el=document.getElementById('col-'+colId);
+    if(!el)return;
+    new Sortable(el,{
+      group:'kanban',
+      animation:150,
+      filter:'.btn',          // edit butonuna tıklamayı engelle
+      preventOnFilter:false,
+      onEnd:async ev=>{
+        const id=ev.item.dataset.id;
+        const yeni=ev.to.dataset.col;
+        const eski=ev.from.dataset.col;
+        if(!id||yeni===eski)return;
+        try{
+          await api('gd_leads','PATCH',{durum:yeni},'id=eq.'+id);
+          const l=D.leads.find(x=>x.id===id);
+          if(l)l.durum=yeni;
+          toast('✅ '+yeni);
+        }catch(e){
+          ev.from.insertBefore(ev.item,ev.from.children[ev.oldIndex]||null);
+          toast('Kaydedilemedi',false);
+        }
+      }
+    });
+  });
+}
+
 function rKanbanHTML(leads,isA){
   const cols=[
-    {lbl:'🆕 Yeni',    color:'#64748b', durumlar:['Arandı','Çağrıldı','Soğuk']},
-    {lbl:'🔥 Sıcak',   color:'var(--or)', durumlar:['Sıcak','Görüşüldü']},
-    {lbl:'📅 Randevu', color:'var(--blue)', durumlar:['Randevu','1. Görüşme','2. Görüşme']},
-    {lbl:'✅ Kazanıldı',color:'var(--gn)', durumlar:['Kazanıldı']},
+    {lbl:'🆕 Yeni',     colId:'yeni',     color:'#64748b',    durumlar:['Arandı','Çağrıldı','Soğuk'],             durum:'Arandı'},
+    {lbl:'🔥 Sıcak',    colId:'sicak',    color:'var(--or)',  durumlar:['Sıcak','Görüşüldü'],                     durum:'Sıcak'},
+    {lbl:'📅 Randevu',  colId:'randevu',  color:'var(--blue)',durumlar:['Randevu','1. Görüşme','2. Görüşme'],     durum:'Randevu'},
+    {lbl:'✅ Kazanıldı',colId:'kazanildi',color:'var(--gn)',  durumlar:['Kazanıldı'],                             durum:'Kazanıldı'},
   ];
   let h='<div class="kanban-grid">';
   cols.forEach(col=>{
     const cards=leads.filter(l=>col.durumlar.includes(l.durum));
-    h+='<div class="kanban-col">';
+    h+='<div class="kanban-col" id="col-'+col.colId+'" data-col="'+col.durum+'">';
     h+='<div class="kanban-col-hd" style="color:'+col.color+'">'+col.lbl+'<span class="kanban-cnt">'+cards.length+'</span></div>';
     if(!cards.length){
       h+='<div style="text-align:center;padding:16px 0;font-size:11px;color:#ccc">Kayıt yok</div>';
     }else{
       cards.forEach(l=>{
-        h+='<div class="lead-card" style="border-left-color:'+col.color+'">';
+        h+='<div class="lead-card" data-id="'+l.id+'" style="border-left-color:'+col.color+';cursor:grab">';
         h+='<div class="lc-name">'+wa(l.telefon)+(l.ad||'—')+'</div>';
         h+='<div class="lc-meta">'+(l.kaynak||'—')+(l.danisman?' · '+l.danisman:'')+(l.sonraki_takip?' · 📅'+l.sonraki_takip:'')+'</div>';
         if(isA)h+='<div style="margin-top:4px"><button class="btn btn-xs btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button></div>';
@@ -1179,6 +1217,8 @@ function rKanbanHTML(leads,isA){
     h+='</div>';
   });
   h+='</div>';
+  window.ddInit=false; // reset so initKanbanDD runs after each render
+  setTimeout(()=>{if(!window.ddInit){initKanbanDD();window.ddInit=true;}},50);
   return h;
 }
 
