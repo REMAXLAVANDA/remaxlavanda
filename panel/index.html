@@ -519,11 +519,11 @@ function pok(){
     else{document.getElementById('perr').textContent='PIN hatalı!';pV='';document.getElementById('pi').value='';}
     return;
   }
-  if(U[pU]&&U[pU].pin===pV){document.getElementById('po').classList.remove('show');CU={...U[pU],username:pU};localStorage.setItem('ll_'+pU,new Date().toLocaleString('tr-TR'));localStorage.setItem('rmx_lpin',Date.now().toString());startApp();}
+  if(U[pU]&&U[pU].pin===pV){document.getElementById('po').classList.remove('show');CU={...U[pU],username:pU};localStorage.setItem('ll_'+pU,new Date().toLocaleString('tr-TR'));localStorage.setItem('rmx_lpin',Date.now().toString());localStorage.setItem('rmx_sess',JSON.stringify({user:CU,ts:Date.now()}));startApp();}
   else{document.getElementById('perr').textContent='PIN hatalı!';pV='';document.getElementById('pi').value='';}
 }
 
-function logout(){CU=null;localStorage.removeItem('rmx_rem');document.getElementById('app').classList.add('hidden');document.getElementById('lp').classList.remove('hidden');document.getElementById('lu').value='';document.getElementById('lpass').value='';}
+function logout(){CU=null;localStorage.removeItem('rmx_rem');localStorage.removeItem('rmx_sess');document.getElementById('app').classList.add('hidden');document.getElementById('lp').classList.remove('hidden');document.getElementById('lu').value='';document.getElementById('lpass').value='';}
 
 async function startApp(){
   document.getElementById('lp').classList.add('hidden');document.getElementById('po').classList.remove('show');document.getElementById('app').classList.remove('hidden');
@@ -972,7 +972,19 @@ function exp(t){
 // BAŞLAT
 (async()=>{
   const isT=await chkToken();
-  if(!isT){if(!chkRem()){document.getElementById('lp').classList.remove('hidden');['lu','lpass'].forEach(id=>document.getElementById(id).addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();}));}}
+  if(!isT){
+    // 30 dk oturum kontrolü
+    const _s=JSON.parse(localStorage.getItem('rmx_sess')||'null');
+    if(_s&&Date.now()-_s.ts<1800000){
+      CU=_s.user;
+      // ts'i yenile (her açılışta süreyi uzat)
+      localStorage.setItem('rmx_sess',JSON.stringify({user:CU,ts:Date.now()}));
+      startApp();
+      return;
+    }
+    localStorage.removeItem('rmx_sess');
+    if(!chkRem()){document.getElementById('lp').classList.remove('hidden');['lu','lpass'].forEach(id=>document.getElementById(id).addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();}));}
+  }
 })();
 
 
