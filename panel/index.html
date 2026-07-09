@@ -462,8 +462,8 @@ async function api(t,m,b,f){
 async function load(){
   const safe=async(tbl,q)=>{try{const r=await api(tbl,'GET',null,q);return Array.isArray(r)?r:[];}catch(e){console.warn(tbl,e.message);return[];}};
   const[l,r,dn,h,n,ar,dp,es,lg,et,bm,tl]=await Promise.all([
-    safe('gd_leads','select=*&order=tarih.desc,created_at.desc'+(window._showArsiv?'':'&arsiv=eq.false')),
-    safe('recruiting_candidates','select=*&order=created_at.desc&arsiv=eq.false'),
+    safe('gd_leads','select=*&order=tarih.desc,created_at.desc'+(window._showArsiv?'':'&arsiv=eq.false')+'&is_deleted=eq.false'),
+    safe('recruiting_candidates','select=*&order=created_at.desc&arsiv=eq.false&is_deleted=eq.false'),
     safe('danismanlar','select=*&order=created_at.asc'),
     safe('havuz','select=*&order=created_at.desc'),
     safe('danisman_notlar','select=*&order=created_at.desc'),
@@ -1318,10 +1318,18 @@ function lRows(list){
   }).join('');
 }
 
+async function softDel(tbl,id,refreshFn){
+  if(!confirm('Kaydı silmek üzeresiniz!'))return;
+  try{
+    await api(tbl,'PATCH',{is_deleted:true},'id=eq.'+id);
+    toast('Silindi');
+    await load();
+    if(refreshFn)refreshFn(document.getElementById('ct'));
+  }catch(e){toast('Hata: '+e.message,false);}
+}
+
 async function delLead(id){
-  if(!confirm('Bu lead silinsin mi?'))return;
-  try{await api('gd_leads','DELETE',null,'id=eq.'+id);await load();rPF(document.getElementById('ct'));}
-  catch(e){alert('Hata: '+e.message);}
+  await softDel('gd_leads',id,rPF);
 }
 
 // --- SANTRAL ---
@@ -2349,10 +2357,14 @@ async function rRecruit(c){
 }
 
 function recCard(r,cls){
+  const delBtn=(CU.role==='admin'||CU.role==='ofis')
+    ?'<div style="margin-top:4px;text-align:right"><button class="btn btn-xs btn-r" onclick="softDel(\'recruiting_candidates\',\''+r.id+'\',rRecruit)">🗑</button></div>'
+    :'';
   return'<div class="rec-card '+cls+'" data-id="'+r.id+'" data-durum="'+(r.durum||'')+'">'
     +'<div class="rc-name">'+(r.ad||'—')+'</div>'
     +'<div class="rc-meta">'+wa(r.telefon)+(r.telefon||'—')+'</div>'
     +'<div class="rc-meta" style="margin-top:2px">'+(r.kaynak||'')+(r.kaynak&&r.gorusmeci?' · ':''+(r.gorusmeci||''))+(r.gorusmeci?r.gorusmeci:'')+'</div>'
+    +delBtn
     +'</div>';
 }
 
