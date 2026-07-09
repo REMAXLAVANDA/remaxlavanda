@@ -1727,7 +1727,7 @@ function rSurec(c){
     const tlC=D.timeline.filter(t=>t.kayit_id===l.id).length;
     h+='<tr style="background:'+(g?'#fff8f8':'white')+'">';
     h+='<td><strong>'+(l.ad||'—')+'</strong>'+(g?'<br><span style="color:var(--red);font-size:10px">⚠️ Gecikti</span>':'')+'</td>';
-    h+='<td>'+wa(l.telefon)+'</td>';
+    h+='<td style="white-space:nowrap">'+(l.telefon||'—')+' '+wa(l.telefon)+'</td>';
     h+='<td>'+(l.kaynak||'—')+'</td>';
     h+='<td><select class="ss" onchange="updAtanan(\''+l.id+'\',\'durum\',this.value)">'+durumlar.map(s=>'<option'+(l.durum===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';
     h+='<td><input type="date" value="'+(l.sonraki_takip||'')+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px;width:108px" onchange="updAtanan(\''+l.id+'\',\'sonraki_takip\',this.value)"/></td>';
