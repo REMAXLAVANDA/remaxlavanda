@@ -1139,6 +1139,10 @@ function rPF(c){
   if(isA)h+='<select id="sdn" onchange="fL()"><option value="">Tüm Danışmanlar</option>'+dO+'</select>';
   h+='<input type="date" id="pf_d1" onchange="fL()" title="Başlangıç tarihi"/>';
   h+='<input type="date" id="pf_d2" onchange="fL()" title="Bitiş tarihi"/>';
+  h+='<input type="number" id="flt-m2min" placeholder="m² Min" oninput="fL()" style="width:90px"/>';
+  h+='<input type="number" id="flt-m2max" placeholder="m² Max" oninput="fL()" style="width:90px"/>';
+  h+='<input type="number" id="flt-fmin" placeholder="₺ Min" oninput="fL()" style="width:100px"/>';
+  h+='<input type="number" id="flt-fmax" placeholder="₺ Max" oninput="fL()" style="width:100px"/>';
   h+='<button class="btn btn-g btn-sm" onclick="clearPFFilter()">✕</button>';
   h+='</div>';
 
@@ -1259,7 +1263,7 @@ async function toggleArsiv(){
   rPF(document.getElementById('ct'));
 }
 function clearPFFilter(){
-  ['sa','sd','sdn','pf_d1','pf_d2'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['sa','sd','sdn','pf_d1','pf_d2','flt-m2min','flt-m2max','flt-fmin','flt-fmax'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   fL();
 }
 
@@ -1269,11 +1273,23 @@ function fL(){
   const dn=(document.getElementById('sdn')||{value:''}).value;
   const d1=(document.getElementById('pf_d1')||{value:''}).value;
   const d2=(document.getElementById('pf_d2')||{value:''}).value;
-  const f=D.leads.filter(l=>
-    (!a||(l.ad||'').toLowerCase().includes(a)||(l.telefon||'').includes(a))&&
-    (!d||l.durum===d)&&(!dn||l.danisman===dn)&&
-    (!d1||l.tarih>=d1)&&(!d2||l.tarih<=d2)
-  );
+  const m2Min=+(document.getElementById('flt-m2min')||{value:''}).value||null;
+  const m2Max=+(document.getElementById('flt-m2max')||{value:''}).value||null;
+  const fMin=+(document.getElementById('flt-fmin')||{value:''}).value||null;
+  const fMax=+(document.getElementById('flt-fmax')||{value:''}).value||null;
+  const f=D.leads.filter(l=>{
+    if(!(!a||(l.ad||'').toLowerCase().includes(a)||(l.telefon||'').includes(a)))return false;
+    if(!(!d||l.durum===d))return false;
+    if(!(!dn||l.danisman===dn))return false;
+    if(!(!d1||l.tarih>=d1))return false;
+    if(!(!d2||l.tarih<=d2))return false;
+    if(m2Min&&+l.m2<m2Min)return false;
+    if(m2Max&&+l.m2>m2Max)return false;
+    const fiyat=parseFloat((l.fiyat||'').toString().replace(/[^\d.]/g,''));
+    if(fMin&&fiyat<fMin)return false;
+    if(fMax&&fiyat>fMax)return false;
+    return true;
+  });
   const b=document.getElementById('lB');if(b)b.innerHTML=lRows(f);
 }
 
