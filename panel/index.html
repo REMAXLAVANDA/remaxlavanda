@@ -192,6 +192,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .cal-ev.def{background:#EFF6FF;color:var(--blue);}
 .cal-noev{text-align:center;padding:24px;color:#94a3b8;font-size:12px;}
 
+/* Monthly Calendar */
+.cal-month-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--bd);border-top:1px solid var(--bd);}
+.cal-month-dow{padding:7px 4px;text-align:center;font-size:10px;font-weight:700;color:#64748b;background:var(--lg);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);text-transform:uppercase;letter-spacing:.4px;}
+.cal-day-cell{min-height:110px;padding:4px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);background:#fff;vertical-align:top;position:relative;}
+.cal-day-cell.other-month{background:#fafafa;}
+.cal-day-cell.today{background:#EFF6FF;}
+.cal-day-num{font-size:11px;font-weight:700;color:var(--dk);display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;margin-bottom:3px;}
+.cal-day-cell.today .cal-day-num{background:var(--dk);color:#fff;}
+.cal-day-cell.other-month .cal-day-num{color:#c0c0c0;}
+.cal-ev-chip{display:block;padding:2px 5px;border-radius:4px;font-size:10px;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;line-height:1.5;}
+.cal-ev-more{font-size:9px;font-weight:700;color:#94a3b8;padding:1px 4px;cursor:default;}
+
 /* WA */
 .wa-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#25D366;border-radius:50%;color:#fff;font-size:11px;text-decoration:none;margin-right:3px;flex-shrink:0;}
 
@@ -242,9 +254,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   .pb{padding:24px 20px;}
   #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;}
   #overlay.show{display:block;}
+  .cal-month-grid{grid-template-columns:repeat(2,1fr);}
+  .cal-day-cell{min-height:80px;font-size:11px;}
+  .cal-ev-chip{font-size:10px;line-height:1.2;white-space:normal;}
+  .cal-month-dow:nth-child(n+3){display:none;}
 }
 @media(max-width:480px){
   .kpi-grid{grid-template-columns:1fr 1fr;}
+  .cal-month-grid{grid-template-columns:repeat(1,1fr);}
+  .cal-month-dow:nth-child(n+2){display:none;}
+  .cal-day-num{display:block;text-align:center;}
 }
 
 /* Sant */
@@ -1316,40 +1335,47 @@ function isAssignedToCurrentUser(etk){
   return normalizeAssigned(etk.atanan_danismanlar).includes(name);
 }
 
-// --- TAKVİM (haftalık) ---
+// --- TAKVİM (aylık grid) ---
 function rTakvim(c){
   const isY=CU.role==='ofis'||CU.role==='admin';
   if(!window._calDt2)window._calDt2=new Date();
   const cur=new Date(window._calDt2);
-  const day=cur.getDay();
-  const diff=cur.getDate()-(day===0?6:day-1);
-  const ws=new Date(cur);ws.setDate(diff);ws.setHours(0,0,0,0);
-  const days=[];
-  for(let i=0;i<7;i++){const d=new Date(ws);d.setDate(ws.getDate()+i);days.push(d);}
-  const gunler=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-  const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','tapu':'#C9821A','randevu':'#5b21b6','etkinlik':'#0891b2','nöbet':'#DC1C2E'};
-  const turI={'toplantı':'🤝','eğitim':'📚','tapu':'📋','randevu':'📞','etkinlik':'🎯','nöbet':'🔰'};
   const toStr=td();
-  const wsStr=ws.toISOString().split('T')[0];
-  const we=new Date(ws);we.setDate(ws.getDate()+6);
-  const weStr=we.toISOString().split('T')[0];
   const aktifFiltre=window._calFiltre||'tumu';
-  const wsLbl=ws.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
-  const weLbl=we.toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
 
+  // Ay başı ve sonu
+  const ayBaslangic=new Date(cur.getFullYear(),cur.getMonth(),1);
+  const ayBitis=new Date(cur.getFullYear(),cur.getMonth()+1,0);
+  const ayLbl=cur.toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
+
+  // Grid başlangıcı: Pazartesi hizalı
+  const ilkGunHaftaIci=ayBaslangic.getDay()===0?6:ayBaslangic.getDay()-1;
+  const gridBaslangic=new Date(ayBaslangic);gridBaslangic.setDate(1-ilkGunHaftaIci);
+
+  // Grid hücreleri: 6 hafta × 7 gün = 42 hücre
+  const cells=[];
+  for(let i=0;i<42;i++){const d=new Date(gridBaslangic);d.setDate(gridBaslangic.getDate()+i);cells.push(d);}
+
+  const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','tapu':'#C9821A','randevu':'#5b21b6','etkinlik':'#0891b2','nöbet':'#DC1C2E','recruiting':'#0f766e'};
+  const turI={'toplantı':'🤝','eğitim':'📚','tapu':'📋','randevu':'📞','etkinlik':'🎯','nöbet':'🔰','recruiting':'👤'};
+
+  // ── Üst başlık ──
   let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">';
-  h+='<div style="display:flex;gap:6px;align-items:center"><button class="btn btn-g btn-sm" onclick="chCal2(-7)">◀</button>';
-  h+='<span style="font-size:13px;font-weight:700;color:var(--dk)">'+wsLbl+' — '+weLbl+'</span>';
-  h+='<button class="btn btn-g btn-sm" onclick="chCal2(7)">▶</button>';
+  h+='<div style="display:flex;gap:6px;align-items:center">';
+  h+='<button class="btn btn-g btn-sm" onclick="chCal2(-1)">◀</button>';
+  h+='<span style="font-size:15px;font-weight:800;color:var(--dk);min-width:160px;text-align:center">'+ayLbl+'</span>';
+  h+='<button class="btn btn-g btn-sm" onclick="chCal2(1)">▶</button>';
   h+='<button class="btn btn-g btn-sm" onclick="goToday2()">Bugün</button></div>';
   if(isY)h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'ef\').classList.toggle(\'hidden\')">+ Etkinlik</button>';
   h+='</div>';
 
+  // ── Filtre butonları ──
   const filtreler=[{id:'tumu',l:'Tümü'},{id:'benim',l:'Benim'},{id:'eğitim',l:'Eğitim'},{id:'tapu',l:'Tapu'},{id:'toplantı',l:'Toplantı'},{id:'recruiting',l:'Recruiting'}];
-  h+='<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
+  h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">';
   filtreler.forEach(f=>{h+='<button class="btn btn-sm '+(aktifFiltre===f.id?'btn-p':'btn-g')+'" onclick="setCalFiltre(\''+f.id+'\')">'+f.l+'</button>';});
   h+='</div>';
 
+  // ── Etkinlik ekleme formu (sadece admin/ofis) ──
   if(isY){
     const dO=D.dans.map(d=>'<option value="'+d.ad+'">'+d.ad+'</option>').join('');
     h+='<div id="ef" class="hidden fw" style="margin-bottom:12px"><h3>Yeni Etkinlik</h3><div class="fg">';
@@ -1364,49 +1390,62 @@ function rTakvim(c){
     h+='<div class="fa"><button class="btn btn-p" onclick="svEtkinlik()">Kaydet</button><button class="btn btn-g" onclick="document.getElementById(\'ef\').classList.add(\'hidden\')">İptal</button></div><div id="ef_m"></div></div>';
   }
 
+  // ── Aylık grid ──
   h+='<div style="background:white;border:1px solid var(--bd);border-radius:12px;overflow:hidden">';
-  h+='<div style="display:grid;grid-template-columns:48px repeat(7,1fr);border-bottom:1px solid var(--bd)">';
-  h+='<div style="background:var(--lg)"></div>';
-  days.forEach((d,i)=>{const ds=d.toISOString().split('T')[0];const isT=ds===toStr;h+='<div style="padding:7px 4px;text-align:center;background:'+(isT?'var(--dk)':'var(--lg)')+';border-left:1px solid var(--bd)"><div style="font-size:10px;font-weight:700;color:'+(isT?'rgba(255,255,255,.7)':'#999')+'">'+gunler[i]+'</div><div style="font-size:13px;font-weight:800;color:'+(isT?'white':'var(--dk)')+'">'+d.getDate()+'</div></div>';});
-  h+='</div>';
-  h+='<div style="overflow-y:auto;max-height:550px">';
-  [8,9,10,11,12,13,14,15,16,17,18,19,20].forEach(hr=>{
-    const hS=hr.toString().padStart(2,'0');
-    h+='<div style="display:grid;grid-template-columns:48px repeat(7,1fr);min-height:48px;border-bottom:1px solid #f0f0f0">';
-    h+='<div style="font-size:10px;color:#aaa;padding:4px;text-align:center;border-right:1px solid #f0f0f0;padding-top:5px">'+hS+'</div>';
-    days.forEach(d=>{
-      const ds=d.toISOString().split('T')[0];
-      const isT=ds===toStr;
-      let evs=D.etkinlikler.filter(e=>{
-        if(e.tarih!==ds||!e.saat||!e.saat.startsWith(hS))return false;
-        // "Benim" filtresi: tum_ofis etkinlikleri + kullanıcıya atanmış secili etkinlikler
-        if(aktifFiltre==='benim'){
-          if(e.hedef==='secili')return isAssignedToCurrentUser(e);
-          return true;
-        }
-        // Tür filtresi (eğitim, tapu vb.)
-        if(aktifFiltre!=='tumu'&&aktifFiltre!=='recruiting'&&e.tur!==aktifFiltre)return false;
-        // secili hedefli etkinlik görünürlüğü
-        if(e.hedef==='secili'){
-          // Admin/ofis hepsini görür; danışman sadece kendisine atananları görür
-          return isY||isAssignedToCurrentUser(e);
-        }
+
+  // Gün başlıkları
+  h+='<div class="cal-month-grid">';
+  ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].forEach(g=>{h+='<div class="cal-month-dow">'+g+'</div>';});
+
+  // Hücreler
+  cells.forEach(d=>{
+    const ds=d.toISOString().split('T')[0];
+    const buAy=d.getMonth()===cur.getMonth();
+    const isToday=ds===toStr;
+    const cls='cal-day-cell'+(buAy?'':' other-month')+(isToday?' today':'');
+
+    // Bu güne ait etkinlikleri topla ve filtrele
+    let evs=D.etkinlikler.filter(e=>{
+      if(e.tarih!==ds)return false;
+      if(aktifFiltre==='benim'){
+        if(e.hedef==='secili')return isAssignedToCurrentUser(e);
         return true;
-      });
-      if(aktifFiltre==='tumu'||aktifFiltre==='recruiting'){
-        D.rec.filter(r=>r.randevu_tarihi===ds&&r.randevu_saati&&r.randevu_saati.startsWith(hS)).forEach(r=>{evs.push({id:r.id,baslik:r.ad,tur:'recruiting',saat:r.randevu_saati,_tip:'rec'});});
       }
-      h+='<div style="padding:2px;border-left:1px solid #f0f0f0;background:'+(isT?'#f8faff':'white')+'">';
-      evs.forEach(e=>{const rk=turR[e.tur]||'#666';const ic=turI[e.tur]||(e.tur==='recruiting'?'👤':'📌');h+='<div style="background:'+rk+'18;border-left:2px solid '+rk+';border-radius:3px;padding:2px 4px;margin-bottom:2px;font-size:10px;font-weight:700;color:'+rk+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e.baslik+'">'+ic+' '+(e.saat||'').slice(0,5)+' '+e.baslik+'</div>';});
-      h+='</div>';
+      if(aktifFiltre!=='tumu'&&aktifFiltre!=='recruiting'&&e.tur!==aktifFiltre)return false;
+      if(e.hedef==='secili')return isY||isAssignedToCurrentUser(e);
+      return true;
+    }).sort((a,b)=>(a.saat||'').localeCompare(b.saat||''));
+
+    // Recruiting randevularını ekle
+    if(aktifFiltre==='tumu'||aktifFiltre==='recruiting'){
+      D.rec.filter(r=>r.randevu_tarihi===ds).forEach(r=>{
+        evs.push({id:r.id,baslik:r.ad,tur:'recruiting',saat:r.randevu_saati||null,_tip:'rec'});
+      });
+    }
+
+    h+='<div class="'+cls+'">';
+    h+='<div class="cal-day-num">'+d.getDate()+'</div>';
+
+    // İlk 3 etkinlik göster
+    const limit=3;
+    evs.slice(0,limit).forEach(e=>{
+      const rk=turR[e.tur]||'#666';
+      const ic=turI[e.tur]||'📌';
+      const saat=e.saat?(e.saat.slice(0,5)+' '):'';
+      h+='<span class="cal-ev-chip" style="background:'+rk+'18;color:'+rk+';border-left:2px solid '+rk+'" title="'+e.baslik+(e.saat?' — '+e.saat.slice(0,5):'')+'">'+ic+' '+saat+e.baslik+'</span>';
     });
+    if(evs.length>limit){
+      h+='<span class="cal-ev-more">+'+(evs.length-limit)+' daha</span>';
+    }
+
     h+='</div>';
   });
+
   h+='</div></div>';
   c.innerHTML=h;
 }
 
-function chCal2(d){if(!window._calDt2)window._calDt2=new Date();window._calDt2.setDate(window._calDt2.getDate()+d);rTakvim(document.getElementById('ct'));}
+function chCal2(d){if(!window._calDt2)window._calDt2=new Date();window._calDt2.setDate(1);window._calDt2.setMonth(window._calDt2.getMonth()+d);rTakvim(document.getElementById('ct'));}
 function goToday2(){window._calDt2=new Date();rTakvim(document.getElementById('ct'));}
 function setCalFiltre(f){window._calFiltre=f;rTakvim(document.getElementById('ct'));}
 
@@ -1858,11 +1897,9 @@ function rDanDash(c){
   const my=D.leads.filter(l=>l.danisman===CU.danAd);
   const geciken=my.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
   const bugunAra=my.filter(l=>l.sonraki_takip===toStr);
-  const bugunEtk=D.etkinlikler.filter(e=>{
-    if(e.tarih!==toStr)return false;
-    if(e.hedef==='secili'){let a=e.atanan_danismanlar||[];try{if(typeof a==='string')a=JSON.parse(a);}catch(x){}return a.includes(CU.danAd);}
-    return true;
-  });
+  const bugunEtk=D.etkinlikler.filter(e=>
+    e.tarih===toStr&&(e.hedef==='tum_ofis'||isAssignedToCurrentUser(e))
+  );
   const bugunRandevu=D.rec.filter(r=>r.randevu_tarihi===toStr);
   const yeniAtanan=my.filter(l=>(l.created_at||'').slice(0,10)===toStr);
   const sonIslem=my.sort((a,b)=>new Date(b.updated_at||b.created_at||0)-new Date(a.updated_at||a.created_at||0))[0];
