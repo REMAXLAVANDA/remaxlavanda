@@ -2631,34 +2631,6 @@ function santralKaydet(){
   toast('✅ Kaydedildi');
 }
 
-async function santralTest2(){
-  const el = document.getElementById('santral-test-result');
-  el.innerHTML = '⏳ Test ediliyor...';
-  const user = document.getElementById('sc-user').value.trim();
-  const pass = document.getElementById('sc-pass').value.trim();
-  if(!user||!pass){ el.innerHTML='<span style="color:var(--or)">⚠️ Kullanıcı adı ve şifre girin.</span>'; return; }
-  try{
-    const url = SB + '/functions/v1/telsam/test';
-    const r = await fetch(url, {
-      method: 'GET',
-      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
-    });
-    const txt = await r.text();
-    let data; try{ data=JSON.parse(txt); }catch(e){ data={ok:false,error:txt}; }
-    const cfg = santralCfgLoad();
-    cfg.son_test = new Date().toLocaleString('tr-TR');
-    cfg.durum = (r.ok && data.ok) ? 'baglandi' : 'hata';
-    santralCfgSave(cfg);
-    if(r.ok && data.ok){
-      el.innerHTML = '<span style="color:var(--gn);font-weight:700">✅ Bağlantı başarılı!</span>';
-    } else {
-      el.innerHTML = '<span style="color:var(--red)">❌ HTTP '+r.status+': '+(data.error||txt)+'</span>';
-    }
-  }catch(e){
-    el.innerHTML = '<span style="color:var(--red)">❌ '+e.name+': '+e.message+'</span>';
-  }
-}
-
 // ── RECRUIT KANBAN ──
 const RC_COLS=[
   {id:'aday',     lbl:'🧑 Aday',        durum:'Aday',        cls:'bg-gray'},
