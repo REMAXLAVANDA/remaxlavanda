@@ -2723,7 +2723,13 @@ function recCard(r,cls){
   if(r.durum==='Evrak')h+='<div style="margin-top:5px;display:flex;gap:3px">'+rcEvrakBar(r)+'</div>';
   // İlk 30 gün
   if(r.durum==='İlk 30 Gün')h+=rc30Bar(r);
-  if(isAdmin)h+='<div style="margin-top:6px;display:flex;gap:4px"><button class="btn btn-xs btn-g" onclick="rcDetay(\''+r.id+'\')" style="font-size:10px;padding:2px 6px">✏️</button><button class="btn btn-xs btn-r" onclick="softDel(\'recruiting_candidates\',\''+r.id+'\',rRecruit)" style="font-size:10px;padding:2px 6px">🗑</button></div>';
+  if(isAdmin)h+='<div style="margin-top:6px;display:flex;gap:4px;align-items:center">'
+    +'<select style="flex:1;padding:3px 5px;border:1px solid var(--bd);border-radius:6px;font-size:10px;color:var(--dk)" onchange="rcDurumDegistir(\''+r.id+'\',this.value)">'
+    +RC_COLS.map(c=>'<option'+(r.durum===c.durum?' selected':'')+'>'+c.durum+'</option>').join('')
+    +'</select>'
+    +'<button class="btn btn-xs btn-g" onclick="rcDetay(\''+r.id+'\')" style="font-size:10px;padding:2px 6px">✏️</button>'
+    +'<button class="btn btn-xs btn-r" onclick="softDel(\'recruiting_candidates\',\''+r.id+'\',rRecruit)" style="font-size:10px;padding:2px 6px">🗑</button>'
+    +'</div>';
   h+='</div>';
   return h;
 }
@@ -2822,6 +2828,16 @@ function rcModalHTML(){
 function rcYeniModal(){document.getElementById('rc-modal').classList.add('show');document.getElementById('rc_ad').focus();}
 function showRecModal(){rcYeniModal();}
 function hideRecModal(){document.getElementById('rc-modal').classList.remove('show');}
+
+async function rcDurumDegistir(id, yeniDurum){
+  try{
+    await api('recruiting_candidates','PATCH',{durum:yeniDurum,son_islem_tarihi:td()},'id=eq.'+id);
+    const r=D.rc&&D.rc.find(x=>x.id===id);
+    if(r){r.durum=yeniDurum;r.son_islem_tarihi=td();}
+    toast('✅ '+yeniDurum);
+    rRecruit(document.getElementById('ct'));
+  }catch(e){toast('❌ '+e.message,false);}
+}
 
 function rcFiltrele(){
   const ara=(document.getElementById('rc-ara')?.value||'').toLowerCase();
