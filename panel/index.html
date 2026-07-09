@@ -2335,7 +2335,9 @@ async function rRecruit(c){
   // Modal
   h+='<div id="rec-modal" class="mo"><div class="md"><h3>➕ Yeni Aday</h3>';
   h+='<div class="fg"><div class="fgr"><label>Ad Soyad *</label><input id="rc_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div>';
-  h+='<div class="fgr"><label>Telefon</label><input id="rc_tel" placeholder="5XX XXX XX XX"/></div></div>';
+  h+='<div class="fgr"><label>Telefon</label><input id="rc_tel" placeholder="5XX XXX XX XX"/></div>';
+  h+='<div class="fgr"><label>Kaynak</label><select id="rc-kaynak"><option>LinkedIn</option><option>Referans</option><option>İş İlanı</option><option>Diğer</option></select></div>';
+  h+='<div class="fgr"><label>Görüşen</label><input id="rc-goru" value="'+(CU.name||CU.danAd||'')+'" placeholder="Görüşen"/></div></div>';
   h+='<div class="fgr" style="margin-top:8px"><label>Not</label><textarea id="rc_not" placeholder="Not..."></textarea></div>';
   h+='<div id="rc_msg"></div>';
   h+='<div class="mda"><button class="btn btn-g" onclick="hideRecModal()">İptal</button><button class="btn btn-p" onclick="svRecAday()">Kaydet</button></div>';
@@ -2349,7 +2351,8 @@ async function rRecruit(c){
 function recCard(r,cls){
   return'<div class="rec-card '+cls+'" data-id="'+r.id+'" data-durum="'+(r.durum||'')+'">'
     +'<div class="rc-name">'+(r.ad||'—')+'</div>'
-    +'<div class="rc-meta">'+wa(r.telefon)+(r.telefon||'—')+(r.kaynak?' · '+r.kaynak:'')+'</div>'
+    +'<div class="rc-meta">'+wa(r.telefon)+(r.telefon||'—')+'</div>'
+    +'<div class="rc-meta" style="margin-top:2px">'+(r.kaynak||'')+(r.kaynak&&r.gorusmeci?' · ':''+(r.gorusmeci||''))+(r.gorusmeci?r.gorusmeci:'')+'</div>'
     +'</div>';
 }
 
@@ -2364,8 +2367,9 @@ async function svRecAday(){
       ad,
       telefon:document.getElementById('rc_tel').value.trim()||null,
       aciklama:document.getElementById('rc_not').value.trim()||null,
+      kaynak:document.getElementById('rc-kaynak').value||null,
+      gorusmeci:document.getElementById('rc-goru').value.trim()||null,
       durum:'Aday',
-      kaynak:'Manuel'
     });
     const newRow=Array.isArray(row)?row[0]:row;
     if(newRow){
@@ -2377,6 +2381,8 @@ async function svRecAday(){
     document.getElementById('rc_ad').value='';
     document.getElementById('rc_tel').value='';
     document.getElementById('rc_not').value='';
+    document.getElementById('rc-kaynak').value='LinkedIn';
+    document.getElementById('rc-goru').value=CU.name||CU.danAd||'';
     toast('✅ Aday eklendi');
   }catch(e){document.getElementById('rc_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
