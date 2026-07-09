@@ -1500,6 +1500,13 @@ async function svTimeline(kayitId,kayitTipi){
   }catch(e){if(msg)msg.innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 
+function fmtFiyat(val){
+  if(!val&&val!==0)return'—';
+  const n=parseFloat(val.toString().replace(/[^\d.]/g,''));
+  if(isNaN(n)||n===0)return val||'—';
+  return n.toLocaleString('tr-TR',{maximumFractionDigits:0})+' ₺';
+}
+
 // --- GD ANA SAYFA ---
 
 // --- TAKVİM HELPER ---
@@ -1669,7 +1676,7 @@ function rYeniAlici(c){
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div><div style="font-size:13px;font-weight:700">'+(a.musteri_ad||'—')+'</div><div style="font-size:11px;color:#999">'+wa(a.musteri_tel)+a.tip+' · '+a.il+(a.ilce?'/'+a.ilce:'')+'</div></div>';
     h+='<div style="display:flex;gap:5px;align-items:center"><span style="font-size:11px">'+msChip(a._score)+'</span>'+(a.paylas?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">Paylaşıldı</span>':'<span style="background:#f0f0f0;color:#999;padding:2px 7px;border-radius:10px;font-size:10px">Özel</span>');
     h+='<button class="btn btn-sm btn-r" onclick="delArayis(\''+a.id+'\')">🗑</button></div></div>';
-    const tags=[a.m2?a.m2+' m²':'',a.oda||'',a.fiyat||''].filter(Boolean);
+    const tags=[a.m2?a.m2+' m²':'',a.oda||'',a.fiyat?fmtFiyat(a.fiyat):''].filter(Boolean);
     if(tags.length)h+='<div style="display:flex;gap:5px;flex-wrap:wrap">'+tags.map(t=>'<span style="background:var(--lg);border:1px solid var(--bd);padding:2px 7px;border-radius:5px;font-size:10px">'+t+'</span>').join('')+'</div>';
     if(a.takip_tarihi){const g=a.takip_tarihi<td();h+='<div style="font-size:11px;color:'+(g?'var(--red)':'var(--or)')+';margin-top:4px">📅 '+a.takip_tarihi+(g?' ⚠️':'')+'</div>';}
     h+='</div>';
@@ -1713,7 +1720,7 @@ function rDisPF2(c){
   if(!my.length)h+='<div style="text-align:center;padding:24px;color:#94a3b8;background:white;border-radius:10px;border:1px solid var(--bd)"><div style="font-size:20px;margin-bottom:8px">🏘️</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Henüz harici portföy eklenmedi.</div><div style="font-size:12px">Yetki alınmamış portföy eklemek için ➕ Harici Portföy butonuna tıklayın.</div></div>';
   else my.forEach(d=>{
     h+='<div style="background:white;border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:13px;font-weight:700">'+d.tip+' · '+badge(d.islem)+'</div><div style="font-size:11px;color:#999">'+d.il+(d.ilce?'/'+d.ilce:'')+(d.m2?' · '+d.m2+' m²':'')+(d.fiyat?' · '+d.fiyat:'')+'</div></div>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:13px;font-weight:700">'+d.tip+' · '+badge(d.islem)+'</div><div style="font-size:11px;color:#999">'+d.il+(d.ilce?'/'+d.ilce:'')+(d.m2?' · '+d.m2+' m²':'')+(d.fiyat?' · '+fmtFiyat(d.fiyat):'')+'</div></div>';
     h+='<div style="display:flex;gap:5px;align-items:center">'+(d.paylas?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">Paylaşıldı</span>':'<span style="background:#f0f0f0;color:#999;padding:2px 7px;border-radius:10px;font-size:10px">Özel</span>');
     h+='<button class="btn btn-sm btn-r" onclick="delDisPF2(\''+d.id+'\')">🗑</button></div></div>';
     if(d.aciklama)h+='<div style="font-size:11px;color:#666;margin-top:5px">'+d.aciklama+'</div>';
@@ -1819,7 +1826,7 @@ function rGenelTablo(c){
     // Danışmanın portföylerini eşleştirme referansı olarak kullan
     const myPf=D.disPortfolyo.filter(d=>d.danisman_ad===CU.danAd);
     const scoredA=pA.map(a=>{const best=myPf.length?Math.max(...myPf.map(p=>matchScore(p,a))):0;return{...a,_score:best};}).sort((a,b)=>b._score-a._score);
-    scoredA.forEach(a=>{const bm=CU.danAd===a.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(a.il||'')+' '+(a.ilce||'')+' '+a.tip+'" data-i="'+(a.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+a.tip+'</td><td style="padding:7px 10px">'+badge(a.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(a.il||'')+(a.ilce?'/'+a.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.oda||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.fiyat||'—')+'</td><td style="padding:7px 10px">'+msChip(a._score)+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Senin</span>':'<button class="btn btn-sm btn-p" onclick="talepEslesme(\'arayis\',\''+a.id+'\',\''+encodeURIComponent(a.danisman_ad||'')+'\')">✋ Uygun portföyüm var</button>')+'</td></tr>';});
+    scoredA.forEach(a=>{const bm=CU.danAd===a.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(a.il||'')+' '+(a.ilce||'')+' '+a.tip+'" data-i="'+(a.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+a.tip+'</td><td style="padding:7px 10px">'+badge(a.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(a.il||'')+(a.ilce?'/'+a.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.oda||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(fmtFiyat(a.fiyat))+'</td><td style="padding:7px 10px">'+msChip(a._score)+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Senin</span>':'<button class="btn btn-sm btn-p" onclick="talepEslesme(\'arayis\',\''+a.id+'\',\''+encodeURIComponent(a.danisman_ad||'')+'\')">✋ Uygun portföyüm var</button>')+'</td></tr>';});
     h+='</tbody></table></div>';
   }
   h+='</div>';
@@ -1833,7 +1840,7 @@ function rGenelTablo(c){
     h+='</tr></thead><tbody>';
     const myAr=D.arayislar.filter(a=>a.danisman_ad===CU.danAd);
     const scoredD=pD.map(d=>{const best=myAr.length?Math.max(...myAr.map(a=>matchScore(d,a))):0;return{...d,_score:best};}).sort((a,b)=>b._score-a._score);
-    scoredD.forEach(d=>{const bm=CU.danAd===d.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(d.il||'')+' '+(d.ilce||'')+' '+d.tip+'" data-i="'+(d.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+d.tip+'</td><td style="padding:7px 10px">'+badge(d.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(d.il||'')+(d.ilce?'/'+d.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.fiyat||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.tapu||'—')+'</td><td style="padding:7px 10px">'+msChip(d._score)+'</td><td style="padding:7px 10px;font-size:12px" id="sp_'+d.id+'">'+(bm?'<span style="color:#999;font-size:10px">Senin</span>':'<span style="color:#ccc">—</span>')+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Portföy sahibisin</span>':'<button class="btn btn-sm btn-p" onclick="acSahip(\''+d.id+'\',\''+encodeURIComponent(d.danisman_ad||'')+'\')">👁 İlgileniyorum</button>')+'</td></tr>';});
+    scoredD.forEach(d=>{const bm=CU.danAd===d.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(d.il||'')+' '+(d.ilce||'')+' '+d.tip+'" data-i="'+(d.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+d.tip+'</td><td style="padding:7px 10px">'+badge(d.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(d.il||'')+(d.ilce?'/'+d.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(fmtFiyat(d.fiyat))+'</td><td style="padding:7px 10px;font-size:12px">'+(d.tapu||'—')+'</td><td style="padding:7px 10px">'+msChip(d._score)+'</td><td style="padding:7px 10px;font-size:12px" id="sp_'+d.id+'">'+(bm?'<span style="color:#999;font-size:10px">Senin</span>':'<span style="color:#ccc">—</span>')+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Portföy sahibisin</span>':'<button class="btn btn-sm btn-p" onclick="acSahip(\''+d.id+'\',\''+encodeURIComponent(d.danisman_ad||'')+'\')">👁 İlgileniyorum</button>')+'</td></tr>';});
     h+='</tbody></table></div>';
   }
   h+='</div>';
