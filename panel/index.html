@@ -1507,6 +1507,11 @@ function fmtFiyat(val){
   return n.toLocaleString('tr-TR',{maximumFractionDigits:0})+' ₺';
 }
 
+function fmtInput(el){
+  // Sadece rakam kalsın, format gösterimi için blur'da yapılır
+  el.value=el.value.replace(/[^\d]/g,'');
+}
+
 // --- GD ANA SAYFA ---
 
 // --- TAKVİM HELPER ---
@@ -1662,7 +1667,13 @@ function rYeniAlici(c){
   const my=D.arayislar.filter(a=>a.danisman_ad===CU.danAd);
   let h='<div class="fw"><h3>➕ Yeni Alıcı Talebi</h3>';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#5b21b6">🔒 Müşteri bilgilerinizi sadece siz görebilirsiniz.</div>';
-  h+='<div class="fg"><div class="fgr"><label>Müşteri Adı *</label><input id="ya_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>Telefon</label><input id="ya_tel" placeholder="5XX XXX XX XX"/></div><div class="fgr"><label>Emlak Tipi</label><select id="ya-emlakTip" onchange="yapiCascade()"><option value="">Seçin...</option><option>Konut</option><option>Ticari</option><option>Arsa/Arazi</option></select></div><div class="fgr"><label>Yapı Tipi</label><select id="ya-yapiTip" disabled><option value="">Önce emlak tipi seçin</option></select></div><div class="fgr"><label>İşlem</label><select id="ya_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>İl</label><select id="ya_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="ya_ilce" placeholder="İlçe..."/></div><div class="fgr"><label>m²</label><input id="ya_m2" type="number"/></div><div class="fgr"><label>Oda</label><input id="ya_oda" placeholder="2+1..."/></div><div class="fgr"><label>Bütçe</label><input id="ya_f" placeholder="Bütçe"/></div><div class="fgr"><label>Takip Tarihi</label><input type="date" id="ya_tk"/></div></div>';
+  h+='<div class="fg"><div class="fgr"><label>Müşteri Adı *</label><input id="ya_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>Telefon</label><input id="ya_tel" placeholder="5XX XXX XX XX"/></div><div class="fgr"><label>Emlak Tipi</label><select id="ya-emlakTip" onchange="yapiCascade()"><option value="">Seçin...</option><option>Konut</option><option>Ticari</option><option>Arsa/Arazi</option></select></div><div class="fgr"><label>Yapı Tipi</label><select id="ya-yapiTip" disabled><option value="">Önce emlak tipi seçin</option></select></div><div class="fgr"><label>İşlem</label><select id="ya_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>İl</label><select id="ya_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="ya_ilce" placeholder="İlçe..."/></div>'
+  +'<div class="fgr"><label>m² (Min)</label><input id="ya_m2_min" type="number" placeholder="örn. 80" oninput="fmtInput(this)"/></div>'
+  +'<div class="fgr"><label>m² (Max)</label><input id="ya_m2_max" type="number" placeholder="örn. 150" oninput="fmtInput(this)"/></div>'
+  +'<div class="fgr"><label>Oda</label><input id="ya_oda" placeholder="2+1..."/></div>'
+  +'<div class="fgr"><label>Bütçe Min ₺</label><input id="ya_f_min" type="number" placeholder="örn. 1000000" oninput="fmtInput(this)"/></div>'
+  +'<div class="fgr"><label>Bütçe Max ₺</label><input id="ya_f_max" type="number" placeholder="örn. 2000000" oninput="fmtInput(this)"/></div>'
+  +'<div class="fgr"><label>Takip Tarihi</label><input type="date" id="ya_tk"/></div></div>';
   h+='<div class="fgr" style="margin-top:8px"><label>Not</label><textarea id="ya_not" placeholder="Özel istekler..."></textarea></div>';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;gap:10px"><input type="checkbox" id="ya_p" style="width:15px;height:15px"/><label for="ya_p" style="font-size:12px;font-weight:600;color:#5b21b6;cursor:pointer">Ofis Havuzuyla Paylaş — Müşteri bilgisi gizli kalır</label></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svYeniAlici()">Kaydet</button></div><div id="ya_m"></div></div>';
@@ -1688,7 +1699,7 @@ async function svYeniAlici(){
   const ad=cap(document.getElementById('ya_ad').value.trim());
   if(!ad){document.getElementById('ya_m').innerHTML='<div class="err-m">Müşteri adı zorunlu!</div>';return;}
   try{
-    await api('arayislar','POST',{danisman_ad:CU.danAd,musteri_ad:ad,musteri_tel:document.getElementById('ya_tel').value.trim(),tip:(document.getElementById('ya-yapiTip').value||document.getElementById('ya-emlakTip').value||''),il:document.getElementById('ya_il').value,ilce:document.getElementById('ya_ilce').value,m2:document.getElementById('ya_m2').value,oda:document.getElementById('ya_oda').value,fiyat:document.getElementById('ya_f').value,takip_tarihi:document.getElementById('ya_tk').value||null,aciklama:document.getElementById('ya_not').value.trim(),paylas:document.getElementById('ya_p').checked});
+    await api('arayislar','POST',{danisman_ad:CU.danAd,musteri_ad:ad,musteri_tel:document.getElementById('ya_tel').value.trim(),tip:(document.getElementById('ya-yapiTip').value||document.getElementById('ya-emlakTip').value||''),il:document.getElementById('ya_il').value,ilce:document.getElementById('ya_ilce').value,m2:(document.getElementById('ya_m2_min').value||'')+(document.getElementById('ya_m2_max').value?'–'+document.getElementById('ya_m2_max').value:''),oda:document.getElementById('ya_oda').value,fiyat:(document.getElementById('ya_f_min').value?fmtFiyat(document.getElementById('ya_f_min').value):'')+(document.getElementById('ya_f_max').value?' – '+fmtFiyat(document.getElementById('ya_f_max').value):''),takip_tarihi:document.getElementById('ya_tk').value||null,aciklama:document.getElementById('ya_not').value.trim(),paylas:document.getElementById('ya_p').checked});
     await logIslem('arayislar','ekle',CU.danAd);
     document.getElementById('ya_m').innerHTML='<div class="ok-m">✅ Alıcı eklendi!</div>';
     await load();setTimeout(()=>rYeniAlici(document.getElementById('ct')),900);
@@ -1712,7 +1723,7 @@ function yapiCascade(){
 function rDisPF2(c){
   const my=D.disPortfolyo.filter(d=>d.danisman_ad===CU.danAd);
   let h='<div class="fw"><h3>🏘️ Yeni Harici Portföy</h3>';
-  h+='<div class="fg"><div class="fgr"><label>İşlem</label><select id="dp_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>Tip</label><select id="dp_tip">'+opts(CFG.tipler,'Daire')+'</select></div><div class="fgr"><label>İl</label><select id="dp_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="dp_ilce"/></div><div class="fgr"><label>Adres</label><input id="dp_adr"/></div><div class="fgr"><label>m²</label><input id="dp_m2" type="number"/></div><div class="fgr"><label>Fiyat</label><input id="dp_f"/></div><div class="fgr"><label>Tapu</label><select id="dp_tp"><option>Temiz</option><option>Hisseli</option><option>İpotekli</option><option>Belirsiz</option></select></div></div>';
+  h+='<div class="fg"><div class="fgr"><label>İşlem</label><select id="dp_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>Tip</label><select id="dp_tip">'+opts(CFG.tipler,'Daire')+'</select></div><div class="fgr"><label>İl</label><select id="dp_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="dp_ilce"/></div><div class="fgr"><label>Adres</label><input id="dp_adr"/></div><div class="fgr"><label>m²</label><input id="dp_m2" type="number"/></div><div class="fgr"><label>Fiyat ₺</label><input id="dp_f" type="number" placeholder="örn. 1500000" oninput="fmtInput(this)"/></div><div class="fgr"><label>Tapu</label><select id="dp_tp"><option>Temiz</option><option>Hisseli</option><option>İpotekli</option><option>Belirsiz</option></select></div></div>';
   h+='<div class="fgr" style="margin-top:8px"><label>Açıklama</label><textarea id="dp_not"></textarea></div>';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;gap:10px"><input type="checkbox" id="dp_p" style="width:15px;height:15px"/><label for="dp_p" style="font-size:12px;font-weight:600;color:#5b21b6;cursor:pointer">Ofis Havuzuyla Paylaş — Adın gizli kalır</label></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svDisPF2()">Kaydet</button></div><div id="dp_m"></div></div>';
@@ -1731,7 +1742,7 @@ function rDisPF2(c){
 
 async function svDisPF2(){
   try{
-    await api('dis_portfolyo','POST',{danisman_ad:CU.danAd,islem:document.getElementById('dp_is').value,tip:document.getElementById('dp_tip').value,il:document.getElementById('dp_il').value,ilce:document.getElementById('dp_ilce').value,adres:document.getElementById('dp_adr').value,m2:document.getElementById('dp_m2').value,fiyat:document.getElementById('dp_f').value,tapu:document.getElementById('dp_tp').value,aciklama:document.getElementById('dp_not').value,paylas:document.getElementById('dp_p').checked});
+    await api('dis_portfolyo','POST',{danisman_ad:CU.danAd,islem:document.getElementById('dp_is').value,tip:document.getElementById('dp_tip').value,il:document.getElementById('dp_il').value,ilce:document.getElementById('dp_ilce').value,adres:document.getElementById('dp_adr').value,m2:document.getElementById('dp_m2').value,fiyat:fmtFiyat(document.getElementById('dp_f').value),tapu:document.getElementById('dp_tp').value,aciklama:document.getElementById('dp_not').value,paylas:document.getElementById('dp_p').checked});
     await logIslem('dis_portfolyo','ekle',CU.danAd);
     document.getElementById('dp_m').innerHTML='<div class="ok-m">✅ Eklendi!</div>';
     await load();setTimeout(()=>rDisPF2(document.getElementById('ct')),900);
