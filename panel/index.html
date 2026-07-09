@@ -680,7 +680,7 @@ async function svLead(){
   const danEl=document.getElementById('f_dan');const danAd=danEl?cap(danEl.value.trim()):'';
   if(danAd&&!D.dans.find(d=>d.ad===danAd)){try{await api('danismanlar','POST',{ad:danAd,token:gTok(),pin:gPin()});}catch(e){}}
   const data={ad,telefon:document.getElementById('f_tel').value.trim(),kaynak:document.getElementById('f_k').value,danisman:danAd||null,durum:document.getElementById('f_d').value,aciklama:document.getElementById('f_a').value.trim(),tarih:td(),sonraki_takip:document.getElementById('f_t').value||null};
-  try{await api('gd_leads','POST',data);document.getElementById('lfm').innerHTML='<div class="ok-m">✅ Lead eklendi!</div>';document.getElementById('f_ad').value='';document.getElementById('f_tel').value='';document.getElementById('f_a').value='';await load();setTimeout(()=>{hLF();rPF(document.getElementById('ct'));},900);}
+  try{await api('gd_leads','POST',data);await logIslem('gd_leads','ekle',CU.name||CU.danAd||'?');document.getElementById('lfm').innerHTML='<div class="ok-m">✅ Lead eklendi!</div>';document.getElementById('f_ad').value='';document.getElementById('f_tel').value='';document.getElementById('f_a').value='';await load();setTimeout(()=>{hLF();rPF(document.getElementById('ct'));},900);}
   catch(e){document.getElementById('lfm').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 
@@ -1003,9 +1003,17 @@ function exp(t){
 // ============================================================
 
 // --- YARDIMCI ---
+async function getClientIP(){
+  try{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();return d.ip||'?';}
+  catch(e){return'?';}
+}
+
 async function logIslem(tablo,aksiyon,yapan){
-  try{await api('islem_log','POST',{tablo:tablo,aksiyon:aksiyon,yapan:yapan});}
-  catch(e){console.warn('Log:',e.message);}
+  try{
+    const ip=await getClientIP();
+    const ua=navigator.userAgent.slice(0,120);
+    await api('islem_log','POST',{tablo,aksiyon,yapan,ip,user_agent:ua});
+  }catch(e){console.warn('Log:',e.message);}
 }
 
 // --- DASHBOARD (ADMIN) ---
@@ -1322,6 +1330,7 @@ async function softDel(tbl,id,refreshFn){
   if(!confirm('Kaydı silmek üzeresiniz!'))return;
   try{
     await api(tbl,'PATCH',{is_deleted:true},'id=eq.'+id);
+    await logIslem(tbl,'soft_delete',CU.name||CU.danAd||'?');
     toast('Silindi');
     await load();
     if(refreshFn)refreshFn(document.getElementById('ct'));
@@ -1737,7 +1746,7 @@ function rSurec(c){
     h+='<td><strong>'+(l.ad||'—')+'</strong>'+(g?'<br><span style="color:var(--red);font-size:10px">⚠️ Gecikti</span>':'')+'</td>';
     h+='<td style="white-space:nowrap">'+(l.telefon||'—')+' '+wa(l.telefon)+'</td>';
     h+='<td>'+(l.kaynak||'—')+'</td>';
-    h+='<td><select class="ss" onchange="updAtanan(\''+l.id+'\',\'durum\',this.value)">'+durumlar.map(s=>'<option'+(l.durum===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';
+    h+='<td><select class="ss" onchange="updAtanan(\''+l.id+'\',\'durum\',this.value)">'+opts(['—','Atandı','Arandı','Randevu','Kazanıldı','Kaybedildi'],l.durum||'—')+'</select></td>';
     h+='<td><input type="date" value="'+(l.sonraki_takip||'')+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px;width:108px" onchange="updAtanan(\''+l.id+'\',\'sonraki_takip\',this.value)"/></td>';
     h+='<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' '+tlC:'')+'</button></td>';
     h+='<td><button class="btn btn-sm btn-ora" onclick="sonuclandirModal(\''+l.id+'\',\''+encodeURIComponent(l.ad||'')+'\')">✓ Sonuçlandır</button></td>';
@@ -1908,17 +1917,44 @@ function rLogRap(c){
     h+='</tbody></table></div></div>';
   }
   h+='<div style="background:white;border:1px solid var(--bd);border-radius:12px;overflow:hidden"><div style="padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;color:var(--dk)">📋 İşlem Logları ('+lg.length+')</div>';
+
+  // Güvenlik uyarısı: son 10 dk içinde aynı IP'den 5+ silme/export
+  const son10=new Date(Date.now()-600000).toISOString();
+  const riskli=lg.filter(l=>l.created_at>son10&&['soft_delete','export','toplu'].some(k=>(l.aksiyon||'').includes(k)));
+  if(riskli.length>=5){
+    const ipSay={};riskli.forEach(l=>{if(l.ip)ipSay[l.ip]=(ipSay[l.ip]||0)+1;});
+    const tehdit=Object.entries(ipSay).filter(([,v])=>v>=5);
+    if(tehdit.length){
+      h+='<div style="background:#fff0f0;border:1px solid #fca5a5;padding:10px 14px;font-size:12px;color:var(--red);font-weight:600">⚠️ GÜVENLİK UYARISI: Kısa sürede yoğun işlem tespit edildi → '+tehdit.map(([ip,c])=>ip+' ('+c+'×)').join(', ')+'</div>';
+    }
+  }
+
   if(!lg.length){h+='<div style="padding:16px;text-align:center;color:#ccc;font-size:12px">Henüz log yok</div>';}
-  else{h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)"><th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">Tarih</th><th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">Kim</th><th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">Tablo</th><th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">Aksiyon</th></tr></thead><tbody>';
-  lg.slice(0,100).forEach(l=>{h+='<tr style="border-bottom:1px solid #f5f5f5"><td style="padding:7px 10px;font-size:11px;color:#999">'+(l.created_at||'').slice(0,16)+'</td><td style="padding:7px 10px;font-size:12px;font-weight:600">'+(l.yapan||'—')+'</td><td style="padding:7px 10px;font-size:11px">'+(l.tablo||'—')+'</td><td style="padding:7px 10px;font-size:11px">'+(l.aksiyon||'—')+'</td></tr>';});
-  h+='</tbody></table></div>';}
+  else{
+    const isAdmin=CU.role==='admin';
+    const hdrs=['Tarih','Kim','Tablo','Aksiyon'].concat(isAdmin?['IP','Tarayıcı']:[]);
+    h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+    hdrs.forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
+    h+='</tr></thead><tbody>';
+    lg.slice(0,100).forEach(l=>{
+      h+='<tr style="border-bottom:1px solid #f5f5f5">'
+        +'<td style="padding:7px 10px;font-size:11px;color:#999">'+(l.created_at||'').slice(0,16)+'</td>'
+        +'<td style="padding:7px 10px;font-size:12px;font-weight:600">'+(l.yapan||'—')+'</td>'
+        +'<td style="padding:7px 10px;font-size:11px">'+(l.tablo||'—')+'</td>'
+        +'<td style="padding:7px 10px;font-size:11px">'+(l.aksiyon||'—')+'</td>'
+        +(isAdmin?'<td style="padding:7px 10px;font-size:11px;font-family:monospace;color:#5b21b6">'+(l.ip||'—')+'</td><td style="padding:7px 10px;font-size:10px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(l.user_agent||'—')+'</td>':'')
+        +'</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
   h+='</div>';
   c.innerHTML=h;
 }
 
 function expLogCSV(){
   if(!D.log.length){alert('Log yok!');return;}
-  const keys=['created_at','yapan','tablo','aksiyon'];
+  const isAdmin=CU.role==='admin';
+  const keys=['created_at','yapan','tablo','aksiyon',...(isAdmin?['ip','user_agent']:[])];
   let csv=keys.join(',')+'\n';
   D.log.forEach(r=>{csv+=keys.map(k=>'"'+(r[k]||'').toString().replace(/"/g,'""')+'"').join(',')+'\n';});
   const b2=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
