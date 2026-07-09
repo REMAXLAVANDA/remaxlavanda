@@ -565,8 +565,8 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'dash2',l:'📊 Panel'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'dash2',l:'📊 Panel'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');
