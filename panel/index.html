@@ -2364,7 +2364,10 @@ function telsamURL(action, extra={}){
 
 async function telsamCall(action, extra={}){
   const url = telsamURL(action, extra);
-  const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
+  // HTTPS sayfasından HTTP'ye istek Mixed Content engeline takılır
+  // Proxy ile dene
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+  const r = await fetch(proxyUrl, {signal: AbortSignal.timeout(10000)});
   if(!r.ok) throw new Error('HTTP '+r.status);
   const txt = await r.text();
   try{ return JSON.parse(txt); }catch(e){ return txt; }
