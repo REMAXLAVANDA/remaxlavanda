@@ -223,6 +223,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 @media(max-width:768px){.kanban-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:480px){.kanban-grid{grid-template-columns:repeat(1,minmax(0,1fr));}}
 
+/* Recruit Kanban */
+.rec-kanban-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:12px;}
+.rec-col{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:8px;min-height:200px;}
+.rec-col-hd{font-size:11px;font-weight:700;padding:4px 4px 8px;border-bottom:1px solid var(--bd);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.rec-card{margin-bottom:6px;padding:8px 10px;border-radius:8px;font-size:12px;cursor:grab;border:1px solid transparent;}
+.rec-card.bg-gray{background:#f1f5f9;border-color:#e2e8f0;color:#475569;}
+.rec-card.bg-blue{background:#dbeafe;border-color:#93c5fd;color:#1e40af;}
+.rec-card.bg-orange{background:#fff7ed;border-color:#fdba74;color:#c2410c;}
+.rec-card.bg-green{background:#dcfce7;border-color:#86efac;color:#15803d;}
+.rec-card .rc-name{font-weight:700;margin-bottom:2px;}
+.rec-card .rc-meta{font-size:10px;opacity:.75;}
+@media(max-width:768px){.rec-kanban-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:480px){.rec-kanban-grid{grid-template-columns:1fr;}}
+
 /* Match Score */
 .ms-high{color:var(--gn);font-weight:700;}
 .ms-mid{color:var(--or);font-weight:700;}
@@ -389,7 +403,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <script>
 
-
+const YAPI_BY_EMLAK={
+  'Konut':['Daire','Müstakil Ev','Villa','Çiftlik Evi'],
+  'Ticari':['Endüstriyel','Büro & Ofis','Perakende','Turizm / Konaklama','Özel Amaçlı Bina','Spor / Eğlence'],
+  'Arsa/Arazi':['Arsa','Tarla']
+};
 
 const SB='https://vfqkmluqjaihpgxhqlqt.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
@@ -539,8 +557,8 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');
@@ -569,6 +587,7 @@ function rC(id){
     else if(id==='bilgi')rBilgiMerkezi(c);
     else if(id==='dan')rDan(c);
     else if(id==='rapor')rRapor(c);
+    else if(id==='recruit')rRecruit(c);
   }catch(e){
     c.innerHTML='<div class="err-m">❌ Sayfa yüklenemedi: '+e.message+'<br><small style="opacity:.7">'+id+' — '+e.stack.split('\n')[1]+'</small></div>';
   }
@@ -1581,7 +1600,7 @@ function rYeniAlici(c){
   const my=D.arayislar.filter(a=>a.danisman_ad===CU.danAd);
   let h='<div class="fw"><h3>➕ Yeni Alıcı Talebi</h3>';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#5b21b6">🔒 Müşteri bilgilerinizi sadece siz görebilirsiniz.</div>';
-  h+='<div class="fg"><div class="fgr"><label>Müşteri Adı *</label><input id="ya_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>Telefon</label><input id="ya_tel" placeholder="5XX XXX XX XX"/></div><div class="fgr"><label>Tip</label><select id="ya_tip">'+opts(CFG.tipler,'Daire')+'</select></div><div class="fgr"><label>İşlem</label><select id="ya_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>İl</label><select id="ya_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="ya_ilce" placeholder="İlçe..."/></div><div class="fgr"><label>m²</label><input id="ya_m2" type="number"/></div><div class="fgr"><label>Oda</label><input id="ya_oda" placeholder="2+1..."/></div><div class="fgr"><label>Bütçe</label><input id="ya_f" placeholder="Bütçe"/></div><div class="fgr"><label>Takip Tarihi</label><input type="date" id="ya_tk"/></div></div>';
+  h+='<div class="fg"><div class="fgr"><label>Müşteri Adı *</label><input id="ya_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>Telefon</label><input id="ya_tel" placeholder="5XX XXX XX XX"/></div><div class="fgr"><label>Emlak Tipi</label><select id="ya-emlakTip" onchange="yapiCascade()"><option value="">Seçin...</option><option>Konut</option><option>Ticari</option><option>Arsa/Arazi</option></select></div><div class="fgr"><label>Yapı Tipi</label><select id="ya-yapiTip" disabled><option value="">Önce emlak tipi seçin</option></select></div><div class="fgr"><label>İşlem</label><select id="ya_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>İl</label><select id="ya_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="ya_ilce" placeholder="İlçe..."/></div><div class="fgr"><label>m²</label><input id="ya_m2" type="number"/></div><div class="fgr"><label>Oda</label><input id="ya_oda" placeholder="2+1..."/></div><div class="fgr"><label>Bütçe</label><input id="ya_f" placeholder="Bütçe"/></div><div class="fgr"><label>Takip Tarihi</label><input type="date" id="ya_tk"/></div></div>';
   h+='<div class="fgr" style="margin-top:8px"><label>Not</label><textarea id="ya_not" placeholder="Özel istekler..."></textarea></div>';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;gap:10px"><input type="checkbox" id="ya_p" style="width:15px;height:15px"/><label for="ya_p" style="font-size:12px;font-weight:600;color:#5b21b6;cursor:pointer">Ofis Havuzuyla Paylaş — Müşteri bilgisi gizli kalır</label></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svYeniAlici()">Kaydet</button></div><div id="ya_m"></div></div>';
@@ -1607,13 +1626,25 @@ async function svYeniAlici(){
   const ad=cap(document.getElementById('ya_ad').value.trim());
   if(!ad){document.getElementById('ya_m').innerHTML='<div class="err-m">Müşteri adı zorunlu!</div>';return;}
   try{
-    await api('arayislar','POST',{danisman_ad:CU.danAd,musteri_ad:ad,musteri_tel:document.getElementById('ya_tel').value.trim(),tip:document.getElementById('ya_tip').value,il:document.getElementById('ya_il').value,ilce:document.getElementById('ya_ilce').value,m2:document.getElementById('ya_m2').value,oda:document.getElementById('ya_oda').value,fiyat:document.getElementById('ya_f').value,takip_tarihi:document.getElementById('ya_tk').value||null,aciklama:document.getElementById('ya_not').value.trim(),paylas:document.getElementById('ya_p').checked});
+    await api('arayislar','POST',{danisman_ad:CU.danAd,musteri_ad:ad,musteri_tel:document.getElementById('ya_tel').value.trim(),tip:(document.getElementById('ya-yapiTip').value||document.getElementById('ya-emlakTip').value||''),il:document.getElementById('ya_il').value,ilce:document.getElementById('ya_ilce').value,m2:document.getElementById('ya_m2').value,oda:document.getElementById('ya_oda').value,fiyat:document.getElementById('ya_f').value,takip_tarihi:document.getElementById('ya_tk').value||null,aciklama:document.getElementById('ya_not').value.trim(),paylas:document.getElementById('ya_p').checked});
     await logIslem('arayislar','ekle',CU.danAd);
     document.getElementById('ya_m').innerHTML='<div class="ok-m">✅ Alıcı eklendi!</div>';
     await load();setTimeout(()=>rYeniAlici(document.getElementById('ct')),900);
   }catch(e){document.getElementById('ya_m').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 async function delArayis(id){if(!confirm('Silinsin mi?'))return;try{await api('arayislar','DELETE',null,'id=eq.'+id);await load();rYeniAlici(document.getElementById('ct'));}catch(e){alert(e.message);}}
+
+function yapiCascade(){
+  const emlakSel=document.getElementById('ya-emlakTip');
+  const yapiSel=document.getElementById('ya-yapiTip');
+  if(!emlakSel||!yapiSel)return;
+  const lst=YAPI_BY_EMLAK[emlakSel.value]||[];
+  yapiSel.innerHTML=lst.length
+    ?lst.map(t=>'<option>'+t+'</option>').join('')
+    :'<option value="">Önce emlak tipi seçin</option>';
+  yapiSel.value='';
+  yapiSel.disabled=!lst.length;
+}
 
 // --- HARİCİ PORTFÖY (GD) ---
 function rDisPF2(c){
@@ -2154,7 +2185,116 @@ function rDanDash(c){
   c.innerHTML=h;
 }
 
-// startDan override
+// ── RECRUIT KANBAN ──
+const RC_COLS=[
+  {id:'aday',     lbl:'🧑 Aday',        durum:'Aday',        cls:'bg-gray'},
+  {id:'on-gorusme',lbl:'💬 Ön Görüşme', durum:'Ön Görüşme',  cls:'bg-blue'},
+  {id:'egitim',   lbl:'📚 Eğitim',      durum:'Eğitim',      cls:'bg-blue'},
+  {id:'teklif',   lbl:'📄 Teklif',      durum:'Teklif',      cls:'bg-orange'},
+  {id:'basladi',  lbl:'✅ Başladı',     durum:'Başladı',     cls:'bg-green'},
+];
+
+async function rRecruit(c){
+  c.innerHTML='<div class="loading">⏳ Yükleniyor...</div>';
+  try{
+    const rows=await api('recruiting_candidates','GET',null,'select=*&order=created_at.desc');
+    D.rc=rows||[];
+  }catch(e){D.rc=[];}
+
+  let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h+='<div style="font-size:14px;font-weight:700;color:var(--dk)">🧑‍💼 Recruiting Kanban</div>';
+  h+='<button class="btn btn-p btn-sm" onclick="showRecModal()">+ Aday</button></div>';
+
+  h+='<div class="rec-kanban-grid" id="rec-kanban">';
+  RC_COLS.forEach(col=>{
+    const cards=(D.rc||[]).filter(r=>r.durum===col.durum);
+    h+='<div class="rec-col" id="rc-col-'+col.id+'" data-col="'+col.durum+'">';
+    h+='<div class="rec-col-hd">'+col.lbl+'<span class="kanban-cnt">'+cards.length+'</span></div>';
+    cards.forEach(r=>{
+      h+=recCard(r,col.cls);
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Modal
+  h+='<div id="rec-modal" class="mo"><div class="md"><h3>➕ Yeni Aday</h3>';
+  h+='<div class="fg"><div class="fgr"><label>Ad Soyad *</label><input id="rc_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div>';
+  h+='<div class="fgr"><label>Telefon</label><input id="rc_tel" placeholder="5XX XXX XX XX"/></div></div>';
+  h+='<div class="fgr" style="margin-top:8px"><label>Not</label><textarea id="rc_not" placeholder="Not..."></textarea></div>';
+  h+='<div id="rc_msg"></div>';
+  h+='<div class="mda"><button class="btn btn-g" onclick="hideRecModal()">İptal</button><button class="btn btn-p" onclick="svRecAday()">Kaydet</button></div>';
+  h+='</div></div>';
+
+  c.innerHTML=h;
+  window.rcDD=false;
+  setTimeout(()=>{if(!window.rcDD){initRecDD();window.rcDD=true;}},50);
+}
+
+function recCard(r,cls){
+  return'<div class="rec-card '+cls+'" data-id="'+r.id+'" data-durum="'+(r.durum||'')+'">'
+    +'<div class="rc-name">'+(r.ad||'—')+'</div>'
+    +'<div class="rc-meta">'+wa(r.telefon)+(r.telefon||'—')+(r.kaynak?' · '+r.kaynak:'')+'</div>'
+    +'</div>';
+}
+
+function showRecModal(){document.getElementById('rec-modal').classList.add('show');document.getElementById('rc_ad').focus();}
+function hideRecModal(){document.getElementById('rec-modal').classList.remove('show');}
+
+async function svRecAday(){
+  const ad=cap((document.getElementById('rc_ad').value||'').trim());
+  if(!ad){document.getElementById('rc_msg').innerHTML='<div class="err-m">Ad zorunlu!</div>';return;}
+  try{
+    const row=await api('recruiting_candidates','POST',{
+      ad,
+      telefon:document.getElementById('rc_tel').value.trim()||null,
+      aciklama:document.getElementById('rc_not').value.trim()||null,
+      durum:'Aday',
+      kaynak:'Manuel'
+    });
+    const newRow=Array.isArray(row)?row[0]:row;
+    if(newRow){
+      D.rc=(D.rc||[]).concat(newRow);
+      const col=document.getElementById('rc-col-aday');
+      if(col){const div=document.createElement('div');div.outerHTML='x';col.insertAdjacentHTML('beforeend',recCard(newRow,'bg-gray'));}
+    }
+    hideRecModal();
+    document.getElementById('rc_ad').value='';
+    document.getElementById('rc_tel').value='';
+    document.getElementById('rc_not').value='';
+    toast('✅ Aday eklendi');
+  }catch(e){document.getElementById('rc_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+function initRecDD(){
+  if(typeof Sortable==='undefined')return;
+  RC_COLS.forEach(col=>{
+    const el=document.getElementById('rc-col-'+col.id);
+    if(!el)return;
+    new Sortable(el,{
+      group:'recruit',
+      animation:150,
+      filter:'.btn',
+      onEnd:async ev=>{
+        const id=ev.item.dataset.id;
+        const yeni=ev.to.dataset.col;
+        const eski=ev.from.dataset.col;
+        if(!id||yeni===eski)return;
+        try{
+          await api('recruiting_candidates','PATCH',{durum:yeni},'id=eq.'+id);
+          const r=D.rc&&D.rc.find(x=>x.id===id);
+          if(r)r.durum=yeni;
+          toast('✅ '+yeni);
+        }catch(e){
+          ev.from.insertBefore(ev.item,ev.from.children[ev.oldIndex]||null);
+          toast('Kaydedilemedi',false);
+        }
+      }
+    });
+  });
+}
+
+
 function startDan(dn){
   CU={role:'dan',name:dn.ad,danAd:dn.ad,danId:dn.id};
   document.getElementById('app').classList.remove('hidden');
