@@ -565,7 +565,7 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
+  if(CU.role==='admin')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'takvim',l:'📅 Takvim'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
   else if(CU.role==='ofis')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
@@ -1026,13 +1026,13 @@ function rOzet(c){
   const todayTakip=D.leads.filter(l=>l.sonraki_takip===toStr);
   const geciken=D.leads.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
   const bugunRandevu=D.rec.filter(r=>r.randevu_tarihi===toStr);
-  const sicak=D.leads.filter(l=>l.durum==='Sıcak');
   const ayL=D.leads.filter(l=>(l.tarih||'')>=d30s);
+  const sicak=ayL.filter(l=>l.durum==='Sıcak');
   const kazanilan=ayL.filter(l=>l.durum==='Kazanıldı');
   const donusum=ayL.length>0?Math.round(kazanilan.length/ayL.length*100):0;
 
   const danMap={};
-  D.leads.forEach(l=>{
+  ayL.forEach(l=>{
     if(!l.danisman)return;
     if(!danMap[l.danisman])danMap[l.danisman]={ad:l.danisman,lead:0,kazan:0,aktif:0,son:''};
     danMap[l.danisman].lead++;
@@ -1210,7 +1210,39 @@ function rOzet(c){
   h+='</div>';
   h+='</div>'; // alt grid
 
-  // Huni grafiği
+  // GD Kullanım Oranı
+  const gd30=D.log.filter(l=>(l.created_at||'')>=d30s);
+  const gdDanMap={};
+  D.dans.forEach(d=>gdDanMap[d.ad]={ad:d.ad,islem:0,sonGiris:''});
+  gd30.forEach(l=>{
+    if(l.yapan&&gdDanMap[l.yapan]){
+      gdDanMap[l.yapan].islem++;
+      if((l.created_at||'')>gdDanMap[l.yapan].sonGiris)gdDanMap[l.yapan].sonGiris=l.created_at;
+    }
+  });
+  const gdList=Object.values(gdDanMap).sort((a,b)=>b.islem-a.islem);
+  const maxIslem=Math.max(...gdList.map(d=>d.islem),1);
+
+  h+='<div style="background:#fff;border-radius:16px;'+sh+';padding:20px;margin-bottom:20px">';
+  h+=lbl('GD Kullanım Oranı — Danışman Aktivitesi ('+( window._dateFilter==='7d'?'7 gün':window._dateFilter==='90d'?'90 gün':window._dateFilter==='all'?'Tüm zamanlar':'30 gün')+')')+'</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:8px">';
+  gdList.forEach(d=>{
+    const pct=Math.round(d.islem/maxIslem*100);
+    const aktif=d.sonGiris&&d.sonGiris>=d7s;
+    const bar=pct>=70?'#1C8C4B':pct>=30?'#C9821A':'#DC1C2E';
+    h+='<div style="background:#f8fafc;border-radius:10px;padding:10px 12px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    h+='<span style="font-size:12px;font-weight:700;color:#0f172a">'+d.ad+'</span>';
+    h+='<span style="font-size:10px;background:'+(aktif?'#dcfce7':'#fee2e2')+';color:'+(aktif?'#15803d':'#dc2626')+';padding:2px 7px;border-radius:10px;font-weight:600">'+(aktif?'Aktif':'Pasif')+'</span>';
+    h+='</div>';
+    h+='<div style="background:#e2e8f0;border-radius:5px;height:6px;margin-bottom:5px">';
+    h+='<div style="background:'+bar+';height:100%;width:'+pct+'%;border-radius:5px;transition:width .4s"></div></div>';
+    h+='<div style="display:flex;justify-content:space-between">';
+    h+='<span style="font-size:10px;color:#64748b">'+d.islem+' işlem</span>';
+    h+='<span style="font-size:10px;color:#94a3b8">'+(d.sonGiris?d.sonGiris.slice(0,10):'—')+'</span>';
+    h+='</div></div>';
+  });
+  h+='</div></div>';
   h+='<div style="background:#fff;border-radius:16px;'+sh+';padding:20px;margin-bottom:16px">';
   h+=lbl('Dönüşüm Hunisi');
   h+='<div style="height:160px;position:relative"><canvas id="pipe-chart"></canvas></div>';
