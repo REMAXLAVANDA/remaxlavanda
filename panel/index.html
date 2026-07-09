@@ -565,7 +565,7 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'santral',l:'📞 Santral'}];
+  if(CU.role==='admin')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'}];
   else if(CU.role==='ofis')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
@@ -1020,8 +1020,8 @@ async function logIslem(tablo,aksiyon,yapan){
 // --- DASHBOARD (ADMIN) ---
 function rOzet(c){
   const toStr=td();
+  const d30s=dateFrom();
   const d7=new Date();d7.setDate(d7.getDate()-7);const d7s=d7.toISOString().split('T')[0];
-  const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
 
   // Veriler
   const todayTakip=D.leads.filter(l=>l.sonraki_takip===toStr);
@@ -1066,6 +1066,7 @@ function rOzet(c){
   const th='font-size:11px;font-weight:700;color:var(--dk);margin-bottom:10px;display:flex;align-items:center;gap:6px';
 
   let h='';
+  h+=dateFilterBar('rOzet(document.getElementById(\'ct\'))');
 
   // ── Yönetici Özeti ──
   h+='<div style="background:linear-gradient(135deg,#0C2749 0%,#003DA5 100%);border-radius:14px;padding:16px 20px;margin-bottom:16px;color:#fff">';
@@ -2137,16 +2138,134 @@ function expLogCSV(){
 }
 
 // --- AYARLAR (rAy override) ---
+// Global tarih filtresi
+window._dateFilter = window._dateFilter || '30d';
+
+function dateFilterBar(onchange){
+  const opts=[{v:'7d',l:'Son 7 Gün'},{v:'30d',l:'Son 30 Gün'},{v:'90d',l:'Son 90 Gün'},{v:'all',l:'Tümü'}];
+  return '<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">'
+    +opts.map(o=>'<button class="btn btn-sm '+(window._dateFilter===o.v?'btn-p':'btn-g')+'" onclick="window._dateFilter=\''+o.v+'\';'+onchange+'">'+o.l+'</button>').join('')
+    +'</div>';
+}
+
+function dateFrom(){
+  if(window._dateFilter==='all')return'2000-01-01';
+  const d=new Date();
+  const days={'7d':7,'30d':30,'90d':90};
+  d.setDate(d.getDate()-(days[window._dateFilter]||30));
+  return d.toISOString().split('T')[0];
+}
+
 function rAy(c){
-  const secs=[{k:'lSrc',t:'🏠 Portföy Kaynakları'},{k:'rSrc',t:'👥 Recruiting Kaynakları'},{k:'lDur',t:'🏠 Portföy Durumları'},{k:'rDur',t:'👥 Recruiting Durumları'},{k:'tipler',t:'🏘️ Gayrimenkul Tipleri'},{k:'islemler',t:'🏘️ İşlem Türleri'},{k:'iller',t:'📍 İller'}];
-  let h='';
-  secs.forEach(s=>{
-    h+='<div class="ss2"><h3>'+s.t+'</h3><div class="tag-l">';
-    CFG[s.k].forEach((v,i)=>{h+='<div class="tag-i"><span>'+v+'</span><button class="tag-ed" onclick="edTag(\''+s.k+'\','+i+')" title="Düzenle">✏️</button><button class="tag-del" onclick="dlTag(\''+s.k+'\','+i+')" title="Sil">×</button></div>';});
-    h+='</div><div class="tag-add"><input id="na_'+s.k+'" placeholder="Yeni ekle..."/><button class="btn btn-p btn-sm" onclick="addTag(\''+s.k+'\')">+ Ekle</button></div></div>';
-  });
-  h+=rBilgiYonetim();
-  h+='<div class="ss2"><h3>⚙️ Ofis Şifre & PIN Sıfırla</h3><div class="fg"><div class="fgr"><label>Yeni Şifre</label><input type="password" id="anp"/></div><div class="fgr"><label>Yeni PIN (4 hane)</label><input id="anpin" maxlength="4" placeholder="4 hane"/></div></div><div class="fa"><button class="btn btn-p" onclick="adRst()">Sıfırla</button></div><div id="arm"></div></div>';
+  const tab=window._ayTab||'kategoriler';
+  const tabBtn=(id,lbl)=>'<button class="btn btn-sm '+(tab===id?'btn-p':'btn-g')+'" onclick="window._ayTab=\''+id+'\';rAy(document.getElementById(\'ct\'))">'+lbl+'</button>';
+
+  let h='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">';
+  h+=tabBtn('kategoriler','⚙️ Kategoriler');
+  h+=tabBtn('log','📋 Log');
+  h+=tabBtn('santral','📞 Santral');
+  h+='</div>';
+
+  if(tab==='kategoriler'){
+    // Kullanılan kategoriler — gereksizleri çıkardık
+    const secs=[
+      {k:'lSrc', t:'📌 Lead Kaynakları'},
+      {k:'lDur', t:'📊 Lead Durumları'},
+      {k:'tipler',t:'🏘️ Gayrimenkul Tipleri'},
+      {k:'islemler',t:'🔄 İşlem Türleri'},
+      {k:'iller', t:'📍 İller'},
+    ];
+    secs.forEach(s=>{
+      h+='<div class="ss2">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0">'+s.t+'</h3></div>';
+      h+='<div class="tag-l">';
+      (CFG[s.k]||[]).forEach((v,i)=>{
+        h+='<div class="tag-i"><span>'+v+'</span>'
+          +'<button class="tag-ed" onclick="edTag(\''+s.k+'\','+i+')" title="Düzenle">✏️</button>'
+          +'<button class="tag-del" onclick="dlTag(\''+s.k+'\','+i+')" title="Sil">×</button></div>';
+      });
+      h+='</div>';
+      h+='<div class="tag-add" style="margin-top:8px;display:flex;gap:6px">';
+      h+='<input id="na_'+s.k+'" placeholder="Yeni kategori ekle..." style="flex:1"/>';
+      h+='<button class="btn btn-p btn-sm" onclick="addTag(\''+s.k+'\')">+ Ekle</button></div>';
+      h+='</div>';
+    });
+    h+=rBilgiYonetim();
+    h+='<div class="ss2"><h3>⚙️ Şifre & PIN Sıfırla</h3><div class="fg"><div class="fgr"><label>Yeni Şifre</label><input type="password" id="anp"/></div><div class="fgr"><label>Yeni PIN (4 hane)</label><input id="anpin" maxlength="4" placeholder="4 hane"/></div></div><div class="fa"><button class="btn btn-p" onclick="adRst()">Sıfırla</button></div><div id="arm"></div></div>';
+
+  } else if(tab==='log'){
+    const es=D.eslesmeler||[];const lg=D.log||[];
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--dk)">📋 İşlem Logları</div>';
+    h+='<button class="btn btn-g btn-sm" onclick="expLogCSV()">📥 CSV</button></div>';
+
+    if(es.length){
+      h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:14px">';
+      h+='<div style="padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;color:var(--dk)">🤝 Eşleşmeler ('+es.length+')</div>';
+      h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+      ['Tarih','Kim','İşlem'].forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
+      h+='</tr></thead><tbody>';
+      es.slice(0,50).forEach(e=>{h+='<tr style="border-bottom:1px solid #f5f5f5"><td style="padding:7px 10px;font-size:11px;color:#999">'+(e.created_at||'').slice(0,16)+'</td><td style="padding:7px 10px;font-size:12px;font-weight:600">'+(e.talep_eden||'—')+'</td><td style="padding:7px 10px"><span style="background:#EDE9FE;color:#5b21b6;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">'+(e.dis_pf_id?'Portföy Açtı':'Arayış Eşleşmesi')+'</span></td></tr>';});
+      h+='</tbody></table></div></div>';
+    }
+
+    // Güvenlik uyarısı
+    const son10=new Date(Date.now()-600000).toISOString();
+    const riskli=lg.filter(l=>l.created_at>son10&&['soft_delete','export','toplu'].some(k=>(l.aksiyon||'').includes(k)));
+    if(riskli.length>=5){
+      const ipSay={};riskli.forEach(l=>{if(l.ip)ipSay[l.ip]=(ipSay[l.ip]||0)+1;});
+      const tehdit=Object.entries(ipSay).filter(([,v])=>v>=5);
+      if(tehdit.length)h+='<div style="background:#fff0f0;border:1px solid #fca5a5;padding:10px 14px;border-radius:10px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:12px">⚠️ GÜVENLİK UYARISI: Yoğun işlem tespit edildi → '+tehdit.map(([ip,c])=>ip+' ('+c+'×)').join(', ')+'</div>';
+    }
+
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden">';
+    h+='<div style="padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;color:var(--dk)">📋 İşlem Logları ('+lg.length+')</div>';
+    if(!lg.length){
+      h+='<div style="padding:16px;text-align:center;color:#ccc;font-size:12px">Henüz log yok</div>';
+    } else {
+      const isAdmin=CU.role==='admin';
+      const hdrs=['Tarih','Kim','Tablo','Aksiyon'].concat(isAdmin?['IP']:[] );
+      h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+      hdrs.forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
+      h+='</tr></thead><tbody>';
+      lg.slice(0,100).forEach(l=>{
+        h+='<tr style="border-bottom:1px solid #f5f5f5">'
+          +'<td style="padding:7px 10px;font-size:11px;color:#999">'+(l.created_at||'').slice(0,16)+'</td>'
+          +'<td style="padding:7px 10px;font-size:12px;font-weight:600">'+(l.yapan||'—')+'</td>'
+          +'<td style="padding:7px 10px;font-size:11px">'+(l.tablo||'—')+'</td>'
+          +'<td style="padding:7px 10px;font-size:11px">'+(l.aksiyon||'—')+'</td>'
+          +(isAdmin?'<td style="padding:7px 10px;font-size:11px;font-family:monospace;color:#5b21b6">'+(l.ip||'—')+'</td>':'')
+          +'</tr>';
+      });
+      h+='</tbody></table></div>';
+    }
+    h+='</div>';
+
+  } else if(tab==='santral'){
+    // Santral içeriğini inline çiz
+    const cfg=santralCfgLoad();
+    const durumR={beklemede:{lbl:'⏳ Beklemede',c:'#94a3b8'},baglandi:{lbl:'✅ Bağlandı',c:'var(--gn)'},hata:{lbl:'❌ Hata',c:'var(--red)'}};
+    const d=durumR[cfg.durum||'beklemede']||durumR.beklemede;
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--dk)">📞 Santral Entegrasyonu</div>';
+    h+='<span style="font-size:12px;font-weight:700;color:'+d.c+'">'+d.lbl+'</span></div>';
+    h+='<div style="background:#FFF7ED;border:1px solid #fdba74;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#92400e">';
+    h+='⚠️ TELSAM API dökümantasyonu bekleniyor. Bilgiler kaydedilmekte, bağlantı test edilebilir.</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px">';
+    h+='<div class="fg">';
+    h+='<div class="fgr"><label>Panel URL</label><input id="sc-url" value="'+(cfg.url||'http://45.10.253.211')+'"/></div>';
+    h+='<div class="fgr"><label>Kullanıcı Adı</label><input id="sc-user" value="'+(cfg.user||'')+'"/></div>';
+    h+='<div class="fgr"><label>Şifre</label><input id="sc-pass" type="password" value="'+(cfg.pass||'')+'"/></div>';
+    h+='<div class="fgr"><label>API Base URL</label><input id="sc-api" value="'+(cfg.api||'')+'" placeholder="Firmadan gelecek..."/></div>';
+    h+='</div>';
+    h+='<div style="margin-top:10px;display:flex;gap:8px">';
+    h+='<button class="btn btn-p" onclick="santralKaydet()">💾 Kaydet</button>';
+    h+='<button class="btn btn-g" onclick="santralTest2()">🔌 Test Et</button></div>';
+    h+='<div id="santral-test-result" style="margin-top:8px;font-size:12px;color:#94a3b8">'+(cfg.son_test?'Son test: '+cfg.son_test:'Henüz test edilmedi.')+'</div></div>';
+    h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:10px;padding:12px 14px;font-size:12px;color:#5b21b6">';
+    h+='📌 Webhook URL: <code style="display:block;margin-top:6px;padding:6px;background:#fff;border-radius:6px;font-size:11px;word-break:break-all">https://vfqkmluqjaihpgxhqlqt.supabase.co/functions/v1/telsam/log</code></div>';
+  }
+
   c.innerHTML=h;
 }
 
