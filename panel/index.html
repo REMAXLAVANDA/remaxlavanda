@@ -397,7 +397,7 @@ let U=JSON.parse(localStorage.getItem('rmx_u')||'null')||{
   admin:{pass:'lavanda2024',pin:'1234',role:'admin',name:'Admin'},
   ofis:{pass:'1234',pin:'5678',role:'ofis',name:'Ofis'}
 };
-let CFG=JSON.parse(localStorage.getItem('rmx_cfg')||'null')||{
+const _CFG_DEFAULT={
   lSrc:['Sponsorlu','Remax','Selen','Referans','Diğer'],
   rSrc:['Leman','Eren','Secret','Remax','Halk Eğitim','Kariyer','Sahibinden','Seminer','Diğer'],
   lDur:['Arandı','Çağrıldı','Görüşüldü','Sıcak','Soğuk','Kazanıldı','Kaybedildi','Kara Liste'],
@@ -406,6 +406,7 @@ let CFG=JSON.parse(localStorage.getItem('rmx_cfg')||'null')||{
   islemler:['Satılık','Kiralık','Devren'],
   iller:['Tekirdağ','İstanbul','Edirne','Kırklareli','Çanakkale','Diğer']
 };
+let CFG=Object.assign({},_CFG_DEFAULT,JSON.parse(localStorage.getItem('rmx_cfg')||'null')||{});
 function svU(){localStorage.setItem('rmx_u',JSON.stringify(U));}
 function svCFG(){localStorage.setItem('rmx_cfg',JSON.stringify(CFG));}
 
@@ -460,7 +461,7 @@ function badge(d){
   return'<span class="badge b-'+(m[d]||'so')+'">'+(d||'—')+'</span>';
 }
 function wa(t){if(!t)return'';const c=t.replace(/\D/g,'');const n=c.startsWith('0')?'90'+c.slice(1):(c.startsWith('90')?c:'90'+c);return'<a href="https://wa.me/'+n+'" target="_blank" class="btn-wa">💬</a> ';}
-function opts(a,cur){return a.map(s=>'<option'+(cur===s?' selected':'')+'>'+s+'</option>').join('');}
+function opts(a,cur){if(!Array.isArray(a))return'';return a.map(s=>'<option'+(cur===s?' selected':'')+'>'+s+'</option>').join('');}
 
 // LOGIN
 function doLogin(){
