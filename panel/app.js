@@ -8,9 +8,9 @@ const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCTuQUv1wO5OtGhW2GuV0QVMyhJ6UFVKvE",
   authDomain: "lavandacrm.firebaseapp.com",
   projectId: "lavandacrm",
-  storageBucket: "lavandacrm.firebasestorage.app",
-  messagingSenderId: "95549904499",
-  appId: "1:95549904499:web:2d34a208eaa4e474bffc06"
+  storageBucket: "lavandacrm.appspot.com",
+  messagingSenderId: "955429904499",
+  appId: "1:955429904499:web:2d34a208eaa4e474bffc06"
 };
 // ==== PWA Service-Worker kaydı ====
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
