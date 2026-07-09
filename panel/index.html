@@ -571,7 +571,7 @@ function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
   if(CU.role==='admin')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'takvim',l:'📅 Takvim'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'skor',l:'🏆 Skorboard'},{id:'ay',l:'⚙️ Ayarlar'}];
-  else if(CU.role==='ofis')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'skor',l:'🏆 Skorboard'}];
+  else if(CU.role==='ofis')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'takip',l:'📋 Takip'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');
@@ -604,6 +604,7 @@ function rC(id){
     else if(id==='dash2')rDash(c);
     else if(id==='santral')rSantral(c);
     else if(id==='skor')rSkorboard(c);
+    else if(id==='takip')rTakip(c);
   }catch(e){
     c.innerHTML='<div class="err-m">❌ Sayfa yüklenemedi: '+e.message+'<br><small style="opacity:.7">'+id+' — '+e.stack.split('\n')[1]+'</small></div>';
   }
@@ -3365,6 +3366,9 @@ function danSkor(d){
 }
 
 async function rSkorboard(c){
+  // Ofis kullanıcısı veri girişine yönlendir
+  if(CU.role==='ofis'){rTakip(c);return;}
+
   c.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">⏳ Yükleniyor...</div>';
   await load();
 
@@ -3811,7 +3815,234 @@ END:VCALENDAR`;
   toast('✅ .ics dosyası indirildi');
 }
 
-// ── SKORBOARD SONU ──
+// ── TAKİP (Ofis veri girişi) ──
+async function rTakip(c){
+  c.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">⏳ Yükleniyor...</div>';
+  await load();
+
+  const tab=window._takipTab||'toplanti';
+  const sh='box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04)';
+  const danList=D.dans.map(d=>'<option>'+d.ad+'</option>').join('');
+
+  const tabBtn=(id,lbl)=>'<button class="btn btn-sm '+(tab===id?'btn-p':'btn-g')+'" onclick="window._takipTab=\''+id+'\';rTakip(document.getElementById(\'ct\'))">'+lbl+'</button>';
+
+  let h='<div style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:6px">📋 Takip Girişi</div>';
+  h+='<div style="font-size:12px;color:#94a3b8;margin-bottom:16px">Toplantı, eğitim, memnuniyet ve recruiting katkısı kayıtları</div>';
+
+  // Tab seçici
+  h+='<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">';
+  h+=tabBtn('toplanti','📅 Toplantı Katılımı');
+  h+=tabBtn('egitim','📚 Eğitim Katılımı');
+  h+=tabBtn('memnuniyet','⭐ Müşteri Memnuniyeti');
+  h+=tabBtn('rekruting','👤 Recruiting Katkısı');
+  h+='</div>';
+
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">';
+
+  // Sol: Form
+  h+='<div style="background:#fff;border-radius:16px;'+sh+';padding:24px">';
+
+  if(tab==='toplanti'){
+    h+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px">📅 Toplantı Katılımı Ekle</div>';
+    h+='<div class="fg">';
+    h+='<div class="fgr"><label>Toplantı Adı *</label><input id="tk_toplanti_adi" placeholder="Haftalık toplantı, eğitim..."/></div>';
+    h+='<div class="fgr"><label>Tarih *</label><input type="date" id="tk_tarih" value="'+td()+'"/></div>';
+    h+='</div>';
+    h+='<div style="margin-top:14px;font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px">Katılım Durumları</div>';
+    h+='<div id="tk_katilim_list">';
+    D.dans.forEach(d=>{
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:130px;flex-shrink:0">'+d.ad+'</div>';
+      h+='<select id="tk_k_'+d.id+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;flex:1">';
+      h+='<option>Katıldı</option><option>Katılmadı</option><option>Mazeretli</option>';
+      h+='</select></div>';
+    });
+    h+='</div>';
+    h+='<div id="tk_msg" style="margin-top:8px"></div>';
+    h+='<div class="fa" style="margin-top:12px"><button class="btn btn-p" onclick="svTakipToplanti()">💾 Kaydet</button></div>';
+  }
+
+  else if(tab==='egitim'){
+    h+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px">📚 Eğitim Katılımı Ekle</div>';
+    h+='<div class="fg">';
+    h+='<div class="fgr"><label>Eğitim Adı *</label><input id="tk_egitim_adi" placeholder="RE/MAX Temel Eğitim..."/></div>';
+    h+='<div class="fgr"><label>Tarih *</label><input type="date" id="tk_tarih" value="'+td()+'"/></div>';
+    h+='<div class="fgr"><label>Eğitim Tipi</label><select id="tk_tip"><option>Online</option><option>Yüz yüze</option><option>Sertifika</option><option>Diğer</option></select></div>';
+    h+='</div>';
+    h+='<div style="margin-top:14px;font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px">Katılım Durumları</div>';
+    D.dans.forEach(d=>{
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:130px;flex-shrink:0">'+d.ad+'</div>';
+      h+='<select id="tk_e_'+d.id+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;flex:1">';
+      h+='<option>Tamamlandı</option><option>Katılmadı</option><option>Eksik</option>';
+      h+='</select></div>';
+    });
+    h+='<div id="tk_msg" style="margin-top:8px"></div>';
+    h+='<div class="fa" style="margin-top:12px"><button class="btn btn-p" onclick="svTakipEgitim()">💾 Kaydet</button></div>';
+  }
+
+  else if(tab==='memnuniyet'){
+    h+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px">⭐ Müşteri Memnuniyeti Ekle</div>';
+    h+='<div class="fg">';
+    h+='<div class="fgr"><label>Danışman *</label><select id="tk_dan"><option value="">Seçin...</option>'+danList+'</select></div>';
+    h+='<div class="fgr"><label>Müşteri Adı *</label><input id="tk_musteri" placeholder="Müşteri adı..."/></div>';
+    h+='<div class="fgr"><label>İşlem Tipi</label><select id="tk_islem"><option>Satış</option><option>Kiralama</option><option>Değerleme</option><option>Diğer</option></select></div>';
+    h+='<div class="fgr"><label>Memnuniyet (1-5 ⭐)</label><input type="number" id="tk_puan" min="1" max="5" placeholder="1-5"/></div>';
+    h+='<div class="fgr" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="tk_gyorum"/><label for="tk_gyorum" style="font-size:12px;cursor:pointer">Google Yorum Geldi ✅</label></div>';
+    h+='<div class="fgr"><label>Google Yorum Tarihi</label><input type="date" id="tk_gyorum_tarih"/></div>';
+    h+='<div class="fgr"><label>Açıklama</label><textarea id="tk_aciklama" style="min-height:60px" placeholder="Müşteri geri bildirimi..."></textarea></div>';
+    h+='</div>';
+    h+='<div id="tk_msg" style="margin-top:8px"></div>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="svTakipMemnuniyet()">💾 Kaydet</button></div>';
+  }
+
+  else if(tab==='rekruting'){
+    h+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px">👤 Recruiting Katkısı Ekle</div>';
+    h+='<div class="fg">';
+    h+='<div class="fgr"><label>Danışman *</label><select id="tk_dan"><option value="">Seçin...</option>'+danList+'</select></div>';
+    h+='<div class="fgr"><label>Getirdiği Aday *</label><input id="tk_aday" placeholder="Aday adı..."/></div>';
+    h+='<div class="fgr"><label>Aday Durumu</label><select id="tk_aday_durum"><option>Görüşme Yapıldı</option><option>Başladı</option><option>Devam Ediyor</option><option>Olumsuz</option></select></div>';
+    h+='<div class="fgr"><label>Tarih</label><input type="date" id="tk_tarih" value="'+td()+'"/></div>';
+    h+='<div class="fgr"><label>Açıklama</label><textarea id="tk_aciklama" style="min-height:60px"></textarea></div>';
+    h+='</div>';
+    h+='<div id="tk_msg" style="margin-top:8px"></div>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="svTakipRekruting()">💾 Kaydet</button></div>';
+  }
+
+  h+='</div>'; // sol form
+
+  // Sağ: Son kayıtlar
+  h+='<div style="background:#fff;border-radius:16px;'+sh+';padding:24px">';
+  h+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px">📋 Son Kayıtlar</div>';
+
+  if(tab==='toplanti'){
+    const son=D.danToplanti.slice(0,20);
+    if(!son.length)h+='<div style="color:#cbd5e1;text-align:center;padding:20px;font-size:12px">Henüz kayıt yok</div>';
+    else{
+      // Toplantıları grupla
+      const gruplar={};
+      son.forEach(t=>{const k=t.toplanti_adi+'|'+t.toplanti_tarihi;if(!gruplar[k])gruplar[k]={adi:t.toplanti_adi,tarih:t.toplanti_tarihi,kayitlar:[]};gruplar[k].kayitlar.push(t);});
+      Object.values(gruplar).slice(0,5).forEach(g=>{
+        h+='<div style="margin-bottom:12px;background:#f8fafc;border-radius:10px;padding:10px">';
+        h+='<div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:6px">'+g.adi+' <span style="color:#94a3b8;font-weight:400">'+g.tarih+'</span></div>';
+        g.kayitlar.forEach(t=>{
+          const c=t.durum==='Katıldı'?'#1C8C4B':t.durum==='Mazeretli'?'#C9821A':'#DC1C2E';
+          h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0">';
+          h+='<span style="color:#475569">'+t.danisman_ad+'</span>';
+          h+='<span style="color:'+c+';font-weight:600">'+t.durum+'</span></div>';
+        });
+        h+='</div>';
+      });
+    }
+  } else if(tab==='egitim'){
+    const son=D.danEgitim.slice(0,15);
+    if(!son.length)h+='<div style="color:#cbd5e1;text-align:center;padding:20px;font-size:12px">Henüz kayıt yok</div>';
+    else son.forEach(e=>{
+      const c=e.durum==='Tamamlandı'?'#1C8C4B':e.durum==='Eksik'?'#C9821A':'#DC1C2E';
+      h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<div><div style="font-size:11px;font-weight:600;color:#0f172a">'+e.danisman_ad+'</div>';
+      h+='<div style="font-size:10px;color:#94a3b8">'+e.egitim_adi+' · '+e.egitim_tarihi+'</div></div>';
+      h+='<span style="font-size:10px;font-weight:700;color:'+c+'">'+e.durum+'</span></div>';
+    });
+  } else if(tab==='memnuniyet'){
+    const son=D.danMemnuniyet.slice(0,15);
+    if(!son.length)h+='<div style="color:#cbd5e1;text-align:center;padding:20px;font-size:12px">Henüz kayıt yok</div>';
+    else son.forEach(m=>{
+      h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<div><div style="font-size:11px;font-weight:600;color:#0f172a">'+m.danisman_ad+'</div>';
+      h+='<div style="font-size:10px;color:#94a3b8">'+m.musteri_adi+(m.google_yorum?' · ✅ Google':'')+'</div></div>';
+      h+='<span style="font-size:14px">'+('⭐'.repeat(m.puan||0))+'</span></div>';
+    });
+  } else if(tab==='rekruting'){
+    const son=D.danRekruting.slice(0,15);
+    if(!son.length)h+='<div style="color:#cbd5e1;text-align:center;padding:20px;font-size:12px">Henüz kayıt yok</div>';
+    else son.forEach(r=>{
+      h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<div><div style="font-size:11px;font-weight:600;color:#0f172a">'+r.danisman_ad+'</div>';
+      h+='<div style="font-size:10px;color:#94a3b8">'+r.aday_adi+' · '+r.tarih+'</div></div>';
+      h+='<span style="font-size:10px;font-weight:600;color:#5b21b6">'+r.aday_durumu+'</span></div>';
+    });
+  }
+
+  h+='</div></div>'; // sağ + grid
+
+  c.innerHTML=h;
+}
+
+// Toplantı toplu kaydet (tüm danışmanlar tek seferde)
+async function svTakipToplanti(){
+  const adi=document.getElementById('tk_toplanti_adi')?.value.trim();
+  const tarih=document.getElementById('tk_tarih')?.value;
+  if(!adi||!tarih){document.getElementById('tk_msg').innerHTML='<div class="err-m">Toplantı adı ve tarih zorunlu!</div>';return;}
+  try{
+    const kayitlar=D.dans.map(d=>({
+      danisman_ad:d.ad,
+      toplanti_adi:adi,
+      toplanti_tarihi:tarih,
+      durum:document.getElementById('tk_k_'+d.id)?.value||'Katılmadı'
+    }));
+    for(const k of kayitlar)await api('dan_toplanti','POST',k);
+    toast('✅ '+D.dans.length+' danışman kaydedildi');
+    await load();rTakip(document.getElementById('ct'));
+  }catch(e){document.getElementById('tk_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+async function svTakipEgitim(){
+  const adi=document.getElementById('tk_egitim_adi')?.value.trim();
+  const tarih=document.getElementById('tk_tarih')?.value;
+  const tip=document.getElementById('tk_tip')?.value;
+  if(!adi||!tarih){document.getElementById('tk_msg').innerHTML='<div class="err-m">Eğitim adı ve tarih zorunlu!</div>';return;}
+  try{
+    const kayitlar=D.dans.map(d=>({
+      danisman_ad:d.ad,
+      egitim_adi:adi,
+      egitim_tarihi:tarih,
+      egitim_tipi:tip,
+      durum:document.getElementById('tk_e_'+d.id)?.value||'Katılmadı'
+    }));
+    for(const k of kayitlar)await api('dan_egitim','POST',k);
+    toast('✅ '+D.dans.length+' danışman kaydedildi');
+    await load();rTakip(document.getElementById('ct'));
+  }catch(e){document.getElementById('tk_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+async function svTakipMemnuniyet(){
+  const dan=document.getElementById('tk_dan')?.value;
+  const musteri=document.getElementById('tk_musteri')?.value.trim();
+  if(!dan||!musteri){document.getElementById('tk_msg').innerHTML='<div class="err-m">Danışman ve müşteri adı zorunlu!</div>';return;}
+  try{
+    await api('dan_memnuniyet','POST',{
+      danisman_ad:dan,
+      musteri_adi:musteri,
+      islem_tipi:document.getElementById('tk_islem')?.value,
+      puan:parseInt(document.getElementById('tk_puan')?.value)||0,
+      google_yorum:document.getElementById('tk_gyorum')?.checked||false,
+      google_yorum_tarihi:document.getElementById('tk_gyorum_tarih')?.value||null,
+      aciklama:document.getElementById('tk_aciklama')?.value.trim()||null,
+    });
+    toast('✅ Kaydedildi');
+    await load();rTakip(document.getElementById('ct'));
+  }catch(e){document.getElementById('tk_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+async function svTakipRekruting(){
+  const dan=document.getElementById('tk_dan')?.value;
+  const aday=document.getElementById('tk_aday')?.value.trim();
+  if(!dan||!aday){document.getElementById('tk_msg').innerHTML='<div class="err-m">Danışman ve aday adı zorunlu!</div>';return;}
+  try{
+    await api('dan_recruiting_katki','POST',{
+      danisman_ad:dan,
+      aday_adi:aday,
+      aday_durumu:document.getElementById('tk_aday_durum')?.value,
+      tarih:document.getElementById('tk_tarih')?.value||td(),
+      aciklama:document.getElementById('tk_aciklama')?.value.trim()||null,
+    });
+    toast('✅ Kaydedildi');
+    await load();rTakip(document.getElementById('ct'));
+  }catch(e){document.getElementById('tk_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+// ── TAKİP SONU ──
 
 function startDan(dn){
   document.getElementById('app').classList.remove('hidden');
