@@ -2355,6 +2355,214 @@ function santralCfgSave(cfg){
   localStorage.setItem(SANTRAL_KEY, JSON.stringify(cfg));
 }
 
+function telsamURL(action, extra={}){
+  const cfg = santralCfgLoad();
+  const base = (cfg.url||'http://45.10.253.211').replace(/\/+$/,'');
+  const p = new URLSearchParams({username:cfg.user||'',password:cfg.pass||'',action,...extra});
+  return base+'/?'+p.toString();
+}
+
+async function telsamCall(action, extra={}){
+  const url = telsamURL(action, extra);
+  const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const txt = await r.text();
+  try{ return JSON.parse(txt); }catch(e){ return txt; }
+}
+
+async function rSantral(c){
+  const cfg = santralCfgLoad();
+  const durum = cfg.durum || 'beklemede';
+  const durumR = {
+    beklemede:{lbl:'⏳ Beklemede',c:'#94a3b8'},
+    baglandi: {lbl:'✅ Bağlandı',  c:'var(--gn)'},
+    hata:     {lbl:'❌ Hata',      c:'var(--red)'},
+  };
+  const d = durumR[durum]||durumR.beklemede;
+
+  let h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--dk)">📞 Santral Paneli</div>';
+  h += '<span style="font-size:12px;font-weight:700;color:'+d.c+'">'+d.lbl+'</span></div>';
+
+  // Konfigürasyon
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:12px">⚙️ Bağlantı Bilgileri</div>';
+  h += '<div class="fg">';
+  h += '<div class="fgr"><label>Santral IP / URL</label><input id="sc-url" value="'+(cfg.url||'http://45.10.253.211')+'" placeholder="http://..."/></div>';
+  h += '<div class="fgr"><label>Kullanıcı Adı</label><input id="sc-user" value="'+(cfg.user||'')+'" placeholder="API kullanıcı adı"/></div>';
+  h += '<div class="fgr"><label>Şifre</label><input id="sc-pass" type="password" value="'+(cfg.pass||'')+'" placeholder="API şifresi"/></div>';
+  h += '</div>';
+  h += '<div style="margin-top:10px;display:flex;gap:8px">';
+  h += '<button class="btn btn-p" onclick="santralKaydet()">💾 Kaydet</button>';
+  h += '<button class="btn btn-g" onclick="santralTest2()">🔌 Bağlantı Test Et</button></div>';
+  h += '<div id="santral-test-result" style="margin-top:10px;font-size:12px;color:#94a3b8">';
+  h += cfg.son_test?('Son test: '+cfg.son_test+' → '+(durumR[cfg.durum]?.lbl||'?')):'Henüz test edilmedi.';
+  h += '</div></div>';
+
+  // Aktif çağrılar
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk)">📲 Aktif Çağrılar</div>';
+  h += '<button class="btn btn-g btn-sm" onclick="santralAktif()">🔄 Yenile</button></div>';
+  h += '<div id="santral-aktif"><span style="font-size:12px;color:#94a3b8">Yenile butonuna bas.</span></div></div>';
+
+  // CDR / Günlük rapor
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk)">📊 Çağrı Kayıtları (CDR)</div>';
+  h += '<div style="display:flex;gap:6px;align-items:center">';
+  h += '<input type="date" id="sc-d1" value="'+td()+'" style="padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:11px"/>';
+  h += '<span style="color:#94a3b8;font-size:11px">—</span>';
+  h += '<input type="date" id="sc-d2" value="'+td()+'" style="padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:11px"/>';
+  h += '<button class="btn btn-g btn-sm" onclick="santralCDR()">Getir</button></div></div>';
+  h += '<div id="santral-cdr"><span style="font-size:12px;color:#94a3b8">Tarih seçip getir butonuna bas.</span></div></div>';
+
+  // Çağrı log tablosu
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">📋 Kaydedilen Çağrılar</div>';
+  h += '<div id="santral-log">⏳ Yükleniyor...</div></div>';
+
+  c.innerHTML = h;
+  santralLogYukle();
+}
+
+function santralKaydet(){
+  const cfg = {
+    url:  document.getElementById('sc-url').value.trim(),
+    user: document.getElementById('sc-user').value.trim(),
+    pass: document.getElementById('sc-pass').value.trim(),
+    durum: santralCfgLoad().durum||'beklemede',
+    son_test: santralCfgLoad().son_test||null,
+  };
+  santralCfgSave(cfg);
+  toast('✅ Kaydedildi');
+}
+
+async function santralTest2(){
+  const el = document.getElementById('santral-test-result');
+  // Önce formdaki değerleri geçici kaydet
+  santralKaydet();
+  el.innerHTML = '⏳ Test ediliyor...';
+  try{
+    const data = await telsamCall('activecalls');
+    const cfg = santralCfgLoad();
+    cfg.durum = 'baglandi';
+    cfg.son_test = new Date().toLocaleString('tr-TR');
+    santralCfgSave(cfg);
+    el.innerHTML = '<span style="color:var(--gn);font-weight:700">✅ Bağlantı başarılı!</span> <span style="color:#94a3b8;font-size:11px">'+JSON.stringify(data).slice(0,80)+'</span>';
+  }catch(e){
+    const cfg = santralCfgLoad();
+    cfg.durum = 'hata';
+    cfg.son_test = new Date().toLocaleString('tr-TR');
+    santralCfgSave(cfg);
+    el.innerHTML = '<span style="color:var(--red)">❌ '+e.message+'</span>';
+  }
+}
+
+async function santralAktif(){
+  const el = document.getElementById('santral-aktif');
+  el.innerHTML = '⏳ Yükleniyor...';
+  try{
+    const data = await telsamCall('activecalls');
+    const list = Array.isArray(data)?data:(data?.data||[]);
+    if(!list.length){el.innerHTML='<span style="font-size:12px;color:#94a3b8">Şu an aktif çağrı yok.</span>';return;}
+    let h='<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+    ['Arayan','Aranan','Süre','İşlem'].forEach(t=>h+='<th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">'+t+'</th>');
+    h+='</tr></thead><tbody>';
+    list.forEach(cg=>{
+      const arayan=cg.callerid||cg.src||cg.arayan||'?';
+      const aranan=cg.extension||cg.dst||cg.aranan||'?';
+      const sure=cg.duration||cg.sure||'—';
+      const mevcut=D.leads.find(l=>l.telefon===arayan);
+      h+='<tr style="border-bottom:1px solid #f5f5f5">';
+      h+='<td style="padding:6px 10px;font-size:12px;font-weight:600">'+arayan+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+aranan+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+sure+'s</td>';
+      h+='<td style="padding:6px 10px">';
+      if(mevcut) h+='<button class="btn btn-sm btn-p" onclick="doE(\'gd_leads\',\''+mevcut.id+'\')">👤 '+( mevcut.ad||'Müşteri')+'</button>';
+      else h+='<button class="btn btn-sm btn-ora" onclick="santralYeniLead(\''+arayan+'\')">➕ Lead Oluştur</button>';
+      h+='</td></tr>';
+    });
+    h+='</tbody></table>';
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}
+}
+
+async function santralCDR(){
+  const el = document.getElementById('santral-cdr');
+  const d1 = document.getElementById('sc-d1').value;
+  const d2 = document.getElementById('sc-d2').value;
+  el.innerHTML = '⏳ Yükleniyor...';
+  try{
+    const data = await telsamCall('cdr',{date1:d1,date2:d2,uf:'yes'});
+    const list = Array.isArray(data)?data:(data?.data||[]);
+    if(!list.length){el.innerHTML='<span style="font-size:12px;color:#94a3b8">Bu tarih aralığında kayıt yok.</span>';return;}
+    let h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+    ['Tarih','Arayan','Aranan','Süre','Durum'].forEach(t=>h+='<th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">'+t+'</th>');
+    h+='</tr></thead><tbody>';
+    list.slice(0,50).forEach(r=>{
+      h+='<tr style="border-bottom:1px solid #f5f5f5">';
+      h+='<td style="padding:6px 10px;font-size:11px;color:#94a3b8">'+(r.calldate||r.date||'—')+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+(r.src||r.arayan||'—')+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+(r.dst||r.aranan||'—')+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+(r.duration||r.billsec||'—')+'s</td>';
+      h+='<td style="padding:6px 10px;font-size:11px">'+(r.disposition||r.durum||'—')+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    el.innerHTML=h;
+    // Supabase'e kaydet
+    list.slice(0,50).forEach(async r=>{
+      try{await api('cagri_log','POST',{
+        cagri_id:r.uniqueid||r.id||null,
+        arayan:r.src||r.arayan||null,
+        aranan:r.dst||r.aranan||null,
+        yon:'gelen',
+        durum:r.disposition==='ANSWERED'?'tamamlandi':'cevapsiz',
+        sure:parseInt(r.billsec||r.duration||0),
+        danisman:CU.name||null,
+      });}catch(e){}
+    });
+  }catch(e){el.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}
+}
+
+async function santralLogYukle(){
+  const el = document.getElementById('santral-log');
+  if(!el)return;
+  try{
+    const r = await fetch(SB+'/rest/v1/cagri_log?select=*&order=created_at.desc&limit=50',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    const rows = await r.json();
+    if(!rows.length){el.innerHTML='<span style="font-size:12px;color:#94a3b8">Henüz kayıt yok.</span>';return;}
+    let h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+    ['Tarih','Arayan','Aranan','Durum','Süre','Danışman'].forEach(t=>h+='<th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">'+t+'</th>');
+    h+='</tr></thead><tbody>';
+    rows.forEach(l=>{
+      const dc=l.durum==='cevapsiz'?'var(--red)':l.durum==='aktif'?'var(--gn)':'#64748b';
+      h+='<tr style="border-bottom:1px solid #f5f5f5">';
+      h+='<td style="padding:6px 10px;font-size:11px;color:#94a3b8">'+(l.created_at||'').slice(0,16)+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px;font-weight:600">'+(l.arayan||'—')+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+(l.aranan||'—')+'</td>';
+      h+='<td style="padding:6px 10px"><span style="color:'+dc+';font-size:11px;font-weight:700">'+(l.durum||'—')+'</span></td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+(l.sure?l.sure+'s':'—')+'</td>';
+      h+='<td style="padding:6px 10px;font-size:12px">'+(l.danisman||'—')+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}
+}
+
+function santralYeniLead(telefon){
+  rC('pf');
+  setTimeout(()=>{
+    document.getElementById('pf-form')?.classList.remove('hidden');
+    const tel=document.getElementById('f_tel');
+    if(tel){tel.value=telefon;tel.focus();}
+  },400);
+}
+
 async function rSantral(c){
   const cfg = santralCfgLoad();
   const durum = cfg.durum || 'beklemede';
