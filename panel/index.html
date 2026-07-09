@@ -565,7 +565,7 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'},{id:'santral',l:'📞 Santral'}];
   else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'dash2',l:'📊 Panel'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
@@ -597,6 +597,7 @@ function rC(id){
     else if(id==='rapor')rRapor(c);
     else if(id==='recruit')rRecruit(c);
     else if(id==='dash2')rDash(c);
+    else if(id==='santral')rSantral(c);
   }catch(e){
     c.innerHTML='<div class="err-m">❌ Sayfa yüklenemedi: '+e.message+'<br><small style="opacity:.7">'+id+' — '+e.stack.split('\n')[1]+'</small></div>';
   }
@@ -2342,6 +2343,167 @@ function barFiyatBant(list){
     data:{labels:bands.map(b=>b.lbl),datasets:[{data:counts,backgroundColor:['#64748b','#C9821A','#003DA5','#1C8C4B'],borderRadius:6,borderSkipped:false}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}}}}
   });
+}
+
+// ── SANTRAL PANELİ ──
+const TELSAM_FN = SB + '/functions/v1/telsam';
+
+async function telsamAPI(path, body = null) {
+  const opts = {
+    method: body ? 'POST' : 'GET',
+    headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(TELSAM_FN + '/' + path, opts);
+  return r.json();
+}
+
+async function rSantral(c) {
+  let h = '<div style="font-size:14px;font-weight:700;color:var(--dk);margin-bottom:14px">📞 Santral Paneli</div>';
+
+  // Bağlantı testi kartı
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk)">🔌 Santral Bağlantısı</div>';
+  h += '<button class="btn btn-p btn-sm" onclick="santralTest()">Bağlantıyı Test Et</button></div>';
+  h += '<div id="santral-test-result" style="margin-top:10px;font-size:12px;color:#94a3b8">Test edilmedi.</div>';
+  h += '</div>';
+
+  // Aktif çağrılar
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk)">📲 Aktif Çağrılar</div>';
+  h += '<button class="btn btn-g btn-sm" onclick="santralAktif()">🔄 Yenile</button></div>';
+  h += '<div id="santral-aktif"><span style="font-size:12px;color:#94a3b8">Yüklemek için yenile butonuna bas.</span></div>';
+  h += '</div>';
+
+  // Günlük rapor
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk)">📊 Günlük Çağrı Raporu</div>';
+  h += '<div style="display:flex;gap:6px;align-items:center">';
+  h += '<input type="date" id="santral-gun" value="' + td() + '" style="padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:11px"/>';
+  h += '<button class="btn btn-g btn-sm" onclick="santralRapor()">Getir</button></div></div>';
+  h += '<div id="santral-rapor"><span style="font-size:12px;color:#94a3b8">Tarih seçip getir butonuna bas.</span></div>';
+  h += '</div>';
+
+  // Çağrı geçmişi (cagri_log tablosu)
+  h += '<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">📋 Çağrı Geçmişi (Son 50)</div>';
+  h += '<div id="santral-log">⏳ Yükleniyor...</div>';
+  h += '</div>';
+
+  c.innerHTML = h;
+  santralLogYukle();
+}
+
+async function santralTest() {
+  const el = document.getElementById('santral-test-result');
+  el.innerHTML = '⏳ Test ediliyor...';
+  try {
+    const r = await telsamAPI('test');
+    if (r.ok) {
+      el.innerHTML = '<span style="color:var(--gn);font-weight:700">✅ Bağlantı başarılı!</span> <span style="color:#94a3b8;font-size:11px">TELSAM API erişilebilir.</span>';
+    } else {
+      el.innerHTML = '<span style="color:var(--red);font-weight:700">❌ Bağlanamadı:</span> ' + (r.error || 'Bilinmeyen hata');
+    }
+  } catch (e) {
+    el.innerHTML = '<span style="color:var(--red)">❌ Hata: ' + e.message + '</span>';
+  }
+}
+
+async function santralAktif() {
+  const el = document.getElementById('santral-aktif');
+  el.innerHTML = '⏳ Yükleniyor...';
+  try {
+    const r = await telsamAPI('active');
+    if (!r.ok) { el.innerHTML = '<span style="color:var(--red)">❌ ' + (r.error || 'Hata') + '</span>'; return; }
+    const cagrilar = Array.isArray(r.data) ? r.data : (r.data ? [r.data] : []);
+    if (!cagrilar.length) { el.innerHTML = '<span style="color:#94a3b8;font-size:12px">Şu an aktif çağrı yok.</span>'; return; }
+    let h = '<table style="width:100%;border-collapse:collapse">';
+    h += '<thead><tr style="background:var(--lg)"><th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">Arayan</th><th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">Aranan</th><th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">Süre</th><th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">İşlem</th></tr></thead><tbody>';
+    cagrilar.forEach(cg => {
+      const arayan = cg.callerid || cg.arayan || '?';
+      const aranan = cg.extension || cg.aranan || '?';
+      const sure = cg.duration || cg.sure || '—';
+      const mevcut = D.leads.find(l => l.telefon === arayan);
+      h += '<tr style="border-bottom:1px solid #f5f5f5">';
+      h += '<td style="padding:6px 10px;font-size:12px;font-weight:600">' + arayan + '</td>';
+      h += '<td style="padding:6px 10px;font-size:12px">' + aranan + '</td>';
+      h += '<td style="padding:6px 10px;font-size:12px">' + sure + 's</td>';
+      h += '<td style="padding:6px 10px">';
+      if (mevcut) {
+        h += '<button class="btn btn-sm btn-p" onclick="doE(\'gd_leads\',\'' + mevcut.id + '\')">👤 ' + (mevcut.ad || 'Müşteri') + '</button>';
+      } else {
+        h += '<button class="btn btn-sm btn-ora" onclick="santralYeniLead(\'' + arayan + '\')">➕ Lead Oluştur</button>';
+      }
+      h += '</td></tr>';
+    });
+    h += '</tbody></table>';
+    el.innerHTML = h;
+  } catch (e) {
+    el.innerHTML = '<span style="color:var(--red)">❌ ' + e.message + '</span>';
+  }
+}
+
+async function santralRapor() {
+  const gun = document.getElementById('santral-gun').value;
+  const el = document.getElementById('santral-rapor');
+  el.innerHTML = '⏳ Yükleniyor...';
+  try {
+    const r = await telsamAPI('rapor?gun=' + gun);
+    if (!r.ok) { el.innerHTML = '<span style="color:var(--red)">❌ ' + (r.error || 'Hata') + '</span>'; return; }
+    const o = r.ozet || {};
+    let h = '<div class="kpi-grid" style="margin-bottom:12px">';
+    [{lbl:'Toplam',val:o.toplam||0},{lbl:'Gelen',val:o.gelen||0},{lbl:'Giden',val:o.giden||0},{lbl:'Cevapsız',val:o.cevapsiz||0},{lbl:'Ort. Süre',val:(o.ort_sure||0)+'s'}].forEach(k=>{
+      h += '<div class="kpi-card"><div class="kc-val">'+k.val+'</div><div class="kc-lbl">'+k.lbl+'</div></div>';
+    });
+    h += '</div>';
+    el.innerHTML = h;
+  } catch (e) {
+    el.innerHTML = '<span style="color:var(--red)">❌ ' + e.message + '</span>';
+  }
+}
+
+async function santralLogYukle() {
+  const el = document.getElementById('santral-log');
+  if (!el) return;
+  try {
+    const r = await fetch(SB + '/rest/v1/cagri_log?select=*&order=created_at.desc&limit=50', {
+      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
+    });
+    const rows = await r.json();
+    if (!rows.length) { el.innerHTML = '<span style="font-size:12px;color:#94a3b8">Henüz çağrı kaydı yok.</span>'; return; }
+    let h = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+    ['Tarih','Arayan','Aranan','Yön','Durum','Süre','Danışman'].forEach(t => h += '<th style="padding:6px 10px;font-size:10px;font-weight:700;color:#666;text-align:left">' + t + '</th>');
+    h += '</tr></thead><tbody>';
+    rows.forEach(l => {
+      const durumC = l.durum === 'cevapsiz' ? 'var(--red)' : l.durum === 'aktif' ? 'var(--gn)' : '#64748b';
+      h += '<tr style="border-bottom:1px solid #f5f5f5">';
+      h += '<td style="padding:6px 10px;font-size:11px;color:#94a3b8">' + (l.created_at || '').slice(0, 16) + '</td>';
+      h += '<td style="padding:6px 10px;font-size:12px;font-weight:600">' + (l.arayan || '—') + '</td>';
+      h += '<td style="padding:6px 10px;font-size:12px">' + (l.aranan || '—') + '</td>';
+      h += '<td style="padding:6px 10px;font-size:11px">' + (l.yon === 'gelen' ? '📲 Gelen' : '📤 Giden') + '</td>';
+      h += '<td style="padding:6px 10px"><span style="color:' + durumC + ';font-size:11px;font-weight:700">' + (l.durum || '—') + '</span></td>';
+      h += '<td style="padding:6px 10px;font-size:12px">' + (l.sure ? l.sure + 's' : '—') + '</td>';
+      h += '<td style="padding:6px 10px;font-size:12px">' + (l.danisman || '—') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+    el.innerHTML = h;
+  } catch (e) {
+    el.innerHTML = '<span style="color:var(--red)">❌ ' + e.message + '</span>';
+  }
+}
+
+function santralYeniLead(telefon) {
+  // Lead ekleme formunu aç, telefonu doldur
+  rC('pf');
+  setTimeout(() => {
+    document.getElementById('pf-form')?.classList.remove('hidden');
+    const telEl = document.getElementById('f_tel');
+    if (telEl) { telEl.value = telefon; telEl.focus(); }
+  }, 400);
 }
 
 // ── RECRUIT KANBAN ──
