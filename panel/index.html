@@ -242,6 +242,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ms-mid{color:var(--or);font-weight:700;}
 .ms-low{color:#999;font-weight:700;}
 
+/* Dash */
+.kpi-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+.kpi-card{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:12px;text-align:center;}
+.kpi-card .kc-val{font-size:22px;font-weight:800;color:var(--dk);margin:6px 0 2px;}
+.kpi-card .kc-lbl{font-size:11px;color:#94a3b8;font-weight:600;}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+@media(max-width:768px){.dash-grid{grid-template-columns:1fr;}}
+
 /* WA */
 .wa-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#25D366;border-radius:50%;color:#fff;font-size:11px;text-decoration:none;margin-right:3px;flex-shrink:0;}
 
@@ -557,8 +565,8 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
+  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'rapor',l:'📊 Rapor'}];
+  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'dash2',l:'📊 Panel'},{id:'rec',l:'👥 Recruiting'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'},{id:'rapor',l:'📊 Rapor'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');
@@ -588,6 +596,7 @@ function rC(id){
     else if(id==='dan')rDan(c);
     else if(id==='rapor')rRapor(c);
     else if(id==='recruit')rRecruit(c);
+    else if(id==='dash2')rDash(c);
   }catch(e){
     c.innerHTML='<div class="err-m">❌ Sayfa yüklenemedi: '+e.message+'<br><small style="opacity:.7">'+id+' — '+e.stack.split('\n')[1]+'</small></div>';
   }
@@ -2211,6 +2220,84 @@ function rDanDash(c){
   h+='</div>';
 
   c.innerHTML=h;
+}
+
+// ── ÖZET PANELİ (rDash) ──
+function rDash(c){
+  const p=D.disPortfolyo||[];
+  const leads=D.leads||[];
+  const curMonth=new Date().toISOString().slice(0,7); // YYYY-MM
+
+  const kazanilan=leads.filter(l=>l.durum==='Kazanıldı'&&(l.tarih||'').startsWith(curMonth));
+  const gelir=kazanilan.reduce((s,l)=>s+parseFloat((l.fiyat||'0').toString().replace(/[^\d.]/g,'')||0),0);
+
+  const fmt=n=>n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(0)+'K':n.toString();
+
+  let h='<div style="margin-bottom:14px;font-size:14px;font-weight:700;color:var(--dk)">📊 Özet Panel</div>';
+
+  // KPI grid
+  h+=metricsGrid([
+    {lbl:'Toplam Portföy',val:p.length},
+    {lbl:'Aktif Lead',val:leads.filter(l=>!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length},
+    {lbl:'Bu Ay Kapanan',val:kazanilan.length},
+    {lbl:'Bu Ay Gelir',val:gelir?fmt(gelir)+' ₺':'—'},
+  ]);
+
+  // Grafik grid
+  h+='<div class="dash-grid">';
+  h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px">';
+  h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">🥧 Portföy Tip Dağılımı</div>';
+  h+='<div style="height:220px;position:relative"><canvas id="dash-pie"></canvas></div></div>';
+  h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px">';
+  h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">📊 Fiyat Bantları</div>';
+  h+='<div style="height:220px;position:relative"><canvas id="dash-bar"></canvas></div></div>';
+  h+='</div>';
+
+  // Lead durum dağılımı
+  const durumMap={};
+  leads.forEach(l=>{const k=l.durum||'Belirsiz';durumMap[k]=(durumMap[k]||0)+1;});
+  const durumlar=Object.entries(durumMap).sort((a,b)=>b[1]-a[1]);
+  h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px;margin-top:14px">';
+  h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">📋 Lead Durum Dağılımı</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  durumlar.forEach(([k,v])=>{h+='<span style="background:var(--lg);border:1px solid var(--bd);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600">'+k+' <b style="color:var(--dk)">'+v+'</b></span>';});
+  h+='</div></div>';
+
+  c.innerHTML=h;
+  setTimeout(()=>{piePortfoyTip(p);barFiyatBant(p);},80);
+}
+
+function metricsGrid(arr){
+  return'<div class="kpi-grid">'+arr.map(m=>'<div class="kpi-card"><div class="kc-val">'+m.val+'</div><div class="kc-lbl">'+m.lbl+'</div></div>').join('')+'</div>';
+}
+
+let _chartDashPie=null,_chartDashBar=null;
+
+function piePortfoyTip(list){
+  const cv=document.getElementById('dash-pie');if(!cv)return;
+  const tipMap={};
+  list.forEach(p=>{const k=p.tip||'Belirsiz';tipMap[k]=(tipMap[k]||0)+1;});
+  const labels=Object.keys(tipMap);
+  const data=labels.map(k=>tipMap[k]);
+  const colors=['#003DA5','#C9821A','#1C8C4B','#DC1C2E','#5b21b6','#0891b2','#64748b','#f59e0b'];
+  if(_chartDashPie){_chartDashPie.destroy();}
+  _chartDashPie=new Chart(cv,{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors.slice(0,labels.length),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}
+  });
+}
+
+function barFiyatBant(list){
+  const cv=document.getElementById('dash-bar');if(!cv)return;
+  const bands=[{lbl:'0–1M',min:0,max:1e6},{lbl:'1–3M',min:1e6,max:3e6},{lbl:'3–5M',min:3e6,max:5e6},{lbl:'5M+',min:5e6,max:Infinity}];
+  const counts=bands.map(b=>list.filter(p=>{const f=parseFloat((p.fiyat||'0').toString().replace(/[^\d.]/g,''));return f>=b.min&&f<b.max;}).length);
+  if(_chartDashBar){_chartDashBar.destroy();}
+  _chartDashBar=new Chart(cv,{
+    type:'bar',
+    data:{labels:bands.map(b=>b.lbl),datasets:[{data:counts,backgroundColor:['#64748b','#C9821A','#003DA5','#1C8C4B'],borderRadius:6,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}}}}
+  });
 }
 
 // ── RECRUIT KANBAN ──
