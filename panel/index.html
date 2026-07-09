@@ -537,7 +537,7 @@ async function startApp(){
   document.getElementById('lp').classList.add('hidden');document.getElementById('po').classList.remove('show');document.getElementById('app').classList.remove('hidden');
   document.getElementById('ub').textContent='👤 '+CU.name;
   const ll=localStorage.getItem('ll_'+CU.username);if(ll)document.getElementById('li').textContent='Son: '+ll;
-  try{await load();rTabs();rC(CU.role==='admin'?'ozet':CU.role==='ofis'?'pf':'dan');}
+  try{await load();rTabs();rC(CU.role==='admin'?'dash2':CU.role==='ofis'?'dash2':'dan');}
   catch(e){document.getElementById('ct').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 
@@ -565,8 +565,8 @@ async function chkToken(){
 function rTabs(){
   const nav=document.getElementById('tabs');nav.innerHTML='';
   let tabs=[];
-  if(CU.role==='admin')tabs=[{id:'ozet',l:'📊 Özet'},{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'santral',l:'📞 Santral'}];
-  else if(CU.role==='ofis')tabs=[{id:'pf',l:'🏠 Portföy'},{id:'dash2',l:'📊 Panel'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
+  if(CU.role==='admin')tabs=[{id:'dash2',l:'📊 Panel'},{id:'ozet',l:'📊 Özet'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'dans',l:'🔑 Danışmanlar'},{id:'ay',l:'⚙️ Ayarlar'},{id:'lograp',l:'📊 Log'},{id:'santral',l:'📞 Santral'}];
+  else if(CU.role==='ofis')tabs=[{id:'dash2',l:'📊 Panel'},{id:'pf',l:'🏠 Portföy'},{id:'recruit',l:'🧑‍💼 Recruiting'},{id:'takvim',l:'📅 Takvim'},{id:'dans',l:'🔑 Danışmanlar'}];
   else tabs=[{id:'dash',l:'🏠 Ana Sayfa'},{id:'takvim',l:'📅 Takvim'},{id:'surec',l:'📋 Bana Atananlar'},{id:'havuz',l:'➕ Alıcı Talebi'},{id:'dispf',l:'🏘️ Harici Portföy'},{id:'genel',l:'🔍 Ofis Havuzu'},{id:'bilgi',l:'ℹ️ Ofis Bilgi'}];
   tabs.forEach((t,i)=>{
     const b=document.createElement('button');b.className='tab'+(i===0?' active':'');
@@ -2443,27 +2443,30 @@ function rDanDash(c){
 
 // ── ÖZET PANELİ (rDash) ──
 function rDash(c){
+  // Önce Özet içeriğini render et
+  rOzet(c);
+
+  // Sonra Panel içeriğini altına ekle
   const p=D.disPortfolyo||[];
   const leads=D.leads||[];
-  const curMonth=new Date().toISOString().slice(0,7); // YYYY-MM
-
+  const curMonth=new Date().toISOString().slice(0,7);
   const kazanilan=leads.filter(l=>l.durum==='Kazanıldı'&&(l.tarih||'').startsWith(curMonth));
   const gelir=kazanilan.reduce((s,l)=>s+parseFloat((l.fiyat||'0').toString().replace(/[^\d.]/g,'')||0),0);
-
   const fmt=n=>n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(0)+'K':n.toString();
 
-  let h='<div style="margin-bottom:14px;font-size:14px;font-weight:700;color:var(--dk)">📊 Özet Panel</div>';
+  let h='<div style="margin-top:20px;padding-top:16px;border-top:2px solid var(--bd)">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--dk);margin-bottom:12px">🏘️ Portföy Analizi</div>';
 
-  // KPI grid
+  // Portföy KPI
   h+=metricsGrid([
-    {lbl:'Toplam Portföy',val:p.length},
+    {lbl:'Harici Portföy',val:p.length},
     {lbl:'Aktif Lead',val:leads.filter(l=>!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length},
     {lbl:'Bu Ay Kapanan',val:kazanilan.length},
     {lbl:'Bu Ay Gelir',val:gelir?fmt(gelir)+' ₺':'—'},
   ]);
 
   // Grafik grid
-  h+='<div class="dash-grid">';
+  h+='<div class="dash-grid" style="margin-top:14px">';
   h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px">';
   h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">🥧 Portföy Tip Dağılımı</div>';
   h+='<div style="height:220px;position:relative"><canvas id="dash-pie"></canvas></div></div>';
@@ -2481,9 +2484,11 @@ function rDash(c){
   h+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
   durumlar.forEach(([k,v])=>{h+='<span style="background:var(--lg);border:1px solid var(--bd);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600">'+k+' <b style="color:var(--dk)">'+v+'</b></span>';});
   h+='</div></div>';
+  h+='</div>';
 
-  c.innerHTML=h;
-  setTimeout(()=>{piePortfoyTip(p);barFiyatBant(p);},80);
+  // Mevcut içeriğin sonuna ekle
+  c.innerHTML+=h;
+  setTimeout(()=>{piePortfoyTip(p);barFiyatBant(p);},150);
 }
 
 function metricsGrid(arr){
