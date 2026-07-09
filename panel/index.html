@@ -215,6 +215,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 @media(max-width:768px){.kanban-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:480px){.kanban-grid{grid-template-columns:repeat(1,minmax(0,1fr));}}
 
+/* Match Score */
+.ms-high{color:var(--gn);font-weight:700;}
+.ms-mid{color:var(--or);font-weight:700;}
+.ms-low{color:#999;font-weight:700;}
+
 /* WA */
 .wa-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#25D366;border-radius:50%;color:#fff;font-size:11px;text-decoration:none;margin-right:3px;flex-shrink:0;}
 
@@ -1530,16 +1535,19 @@ function rYeniAlici(c){
   h+='<div class="fa"><button class="btn btn-p" onclick="svYeniAlici()">Kaydet</button></div><div id="ya_m"></div></div>';
   h+='<div class="th"><div class="tt">Alıcılarım ('+my.length+')</div></div>';
   if(!my.length){h+='<div style="text-align:center;padding:24px;color:#94a3b8;background:white;border-radius:10px;border:1px solid var(--bd)"><div style="font-size:20px;margin-bottom:8px">🔍</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Henüz alıcı talebi eklenmedi.</div><div style="font-size:12px">➕ Yeni Alıcı butonuyla kişisel CRM&apos;inizi başlatın.</div></div>';}
-  else my.forEach(a=>{
+  else{
+    const pD2=D.disPortfolyo.filter(d=>d.paylas);
+    const scoredMy=my.map(a=>{const best=pD2.length?Math.max(...pD2.map(p=>matchScore(p,a))):0;return{...a,_score:best};}).sort((a,b)=>b._score-a._score);
+    scoredMy.forEach(a=>{
     h+='<div style="background:white;border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:8px">';
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div><div style="font-size:13px;font-weight:700">'+(a.musteri_ad||'—')+'</div><div style="font-size:11px;color:#999">'+wa(a.musteri_tel)+a.tip+' · '+a.il+(a.ilce?'/'+a.ilce:'')+'</div></div>';
-    h+='<div style="display:flex;gap:5px;align-items:center">'+(a.paylas?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">Paylaşıldı</span>':'<span style="background:#f0f0f0;color:#999;padding:2px 7px;border-radius:10px;font-size:10px">Özel</span>');
+    h+='<div style="display:flex;gap:5px;align-items:center"><span style="font-size:11px">'+msChip(a._score)+'</span>'+(a.paylas?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">Paylaşıldı</span>':'<span style="background:#f0f0f0;color:#999;padding:2px 7px;border-radius:10px;font-size:10px">Özel</span>');
     h+='<button class="btn btn-sm btn-r" onclick="delArayis(\''+a.id+'\')">🗑</button></div></div>';
     const tags=[a.m2?a.m2+' m²':'',a.oda||'',a.fiyat||''].filter(Boolean);
     if(tags.length)h+='<div style="display:flex;gap:5px;flex-wrap:wrap">'+tags.map(t=>'<span style="background:var(--lg);border:1px solid var(--bd);padding:2px 7px;border-radius:5px;font-size:10px">'+t+'</span>').join('')+'</div>';
     if(a.takip_tarihi){const g=a.takip_tarihi<td();h+='<div style="font-size:11px;color:'+(g?'var(--red)':'var(--or)')+';margin-top:4px">📅 '+a.takip_tarihi+(g?' ⚠️':'')+'</div>';}
     h+='</div>';
-  });
+  });}
   c.innerHTML=h;
 }
 
@@ -1633,6 +1641,28 @@ async function svSonuc(){
 }
 async function updAtanan(id,k,v){const data={};data[k]=v;try{await api('gd_leads','PATCH',data,'id=eq.'+id);const l=D.leads.find(x=>x.id===id);if(l)l[k]=v;}catch(e){alert('Hata: '+e.message);}}
 
+// --- EŞLEŞME SKORU ---
+function matchScore(pf, a){
+  let s=0;
+  // m² ±%10 → 20p
+  const pm=parseFloat(pf.m2),am=parseFloat(a.m2);
+  if(pm&&am&&Math.abs(pm-am)/am<=0.10)s+=20;
+  // Fiyat ±%15 → 20p
+  const pf2=parseFloat((pf.fiyat||'').replace(/[^\d.]/g,'')),af=parseFloat((a.fiyat||'').replace(/[^\d.]/g,''));
+  if(pf2&&af&&Math.abs(pf2-af)/af<=0.15)s+=20;
+  // İşlem türü tam eşleşme → 15p
+  if(pf.islem&&a.islem&&pf.islem===a.islem)s+=15;
+  // Tip tam eşleşme → 15p
+  if(pf.tip&&a.tip&&pf.tip===a.tip)s+=15;
+  // İl tam eşleşme → 15p
+  if(pf.il&&a.il&&pf.il===a.il)s+=15;
+  // İlçe tam eşleşme → 15p
+  if(pf.ilce&&a.ilce&&pf.ilce.trim().toLowerCase()===a.ilce.trim().toLowerCase())s+=15;
+  return Math.min(s,100);
+}
+function msClass(s){return s>=70?'ms-high':s>=40?'ms-mid':'ms-low';}
+function msChip(s){return'<span class="'+msClass(s)+'">%'+s+'</span>';}
+
 // --- OFİS HAVUZU (Genel Tablo) ---
 function rGenelTablo(c){
   const pA=D.arayislar.filter(a=>a.paylas);
@@ -1646,9 +1676,12 @@ function rGenelTablo(c){
   if(!pA.length){h+='<div style="padding:16px;text-align:center;color:#ccc;font-size:12px">Paylaşılan alıcı talebi yok</div>';}
   else{
     h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:400px" id="gt_at"><thead><tr style="background:var(--lg)">';
-    ['Tip','İşlem','Konum','m²','Oda','Bütçe',''].forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
+    ['Tip','İşlem','Konum','m²','Oda','Bütçe','%Skor',''].forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
     h+='</tr></thead><tbody>';
-    pA.forEach(a=>{const bm=CU.danAd===a.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(a.il||'')+' '+(a.ilce||'')+' '+a.tip+'" data-i="'+(a.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+a.tip+'</td><td style="padding:7px 10px">'+badge(a.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(a.il||'')+(a.ilce?'/'+a.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.oda||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.fiyat||'—')+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Senin</span>':'<button class="btn btn-sm btn-p" onclick="talepEslesme(\'arayis\',\''+a.id+'\',\''+encodeURIComponent(a.danisman_ad||'')+'\')">✋ Uygun portföyüm var</button>')+'</td></tr>';});
+    // Danışmanın portföylerini eşleştirme referansı olarak kullan
+    const myPf=D.disPortfolyo.filter(d=>d.danisman_ad===CU.danAd);
+    const scoredA=pA.map(a=>{const best=myPf.length?Math.max(...myPf.map(p=>matchScore(p,a))):0;return{...a,_score:best};}).sort((a,b)=>b._score-a._score);
+    scoredA.forEach(a=>{const bm=CU.danAd===a.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(a.il||'')+' '+(a.ilce||'')+' '+a.tip+'" data-i="'+(a.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+a.tip+'</td><td style="padding:7px 10px">'+badge(a.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(a.il||'')+(a.ilce?'/'+a.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.oda||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(a.fiyat||'—')+'</td><td style="padding:7px 10px">'+msChip(a._score)+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Senin</span>':'<button class="btn btn-sm btn-p" onclick="talepEslesme(\'arayis\',\''+a.id+'\',\''+encodeURIComponent(a.danisman_ad||'')+'\')">✋ Uygun portföyüm var</button>')+'</td></tr>';});
     h+='</tbody></table></div>';
   }
   h+='</div>';
@@ -1658,9 +1691,11 @@ function rGenelTablo(c){
   if(!pD.length){h+='<div style="padding:16px;text-align:center;color:#ccc;font-size:12px">Paylaşılan harici portföy yok</div>';}
   else{
     h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:400px" id="gt_dt"><thead><tr style="background:var(--lg)">';
-    ['Tip','İşlem','Konum','m²','Fiyat','Tapu','Sahip',''].forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
+    ['Tip','İşlem','Konum','m²','Fiyat','Tapu','%Skor','Sahip',''].forEach(t=>h+='<th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#666;border-bottom:1px solid var(--bd)">'+t+'</th>');
     h+='</tr></thead><tbody>';
-    pD.forEach(d=>{const bm=CU.danAd===d.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(d.il||'')+' '+(d.ilce||'')+' '+d.tip+'" data-i="'+(d.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+d.tip+'</td><td style="padding:7px 10px">'+badge(d.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(d.il||'')+(d.ilce?'/'+d.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.fiyat||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.tapu||'—')+'</td><td style="padding:7px 10px;font-size:12px" id="sp_'+d.id+'">'+(bm?'<span style="color:#999;font-size:10px">Senin</span>':'<span style="color:#ccc">—</span>')+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Portföy sahibisin</span>':'<button class="btn btn-sm btn-p" onclick="acSahip(\''+d.id+'\',\''+encodeURIComponent(d.danisman_ad||'')+'\')">👁 İlgileniyorum</button>')+'</td></tr>';});
+    const myAr=D.arayislar.filter(a=>a.danisman_ad===CU.danAd);
+    const scoredD=pD.map(d=>{const best=myAr.length?Math.max(...myAr.map(a=>matchScore(d,a))):0;return{...d,_score:best};}).sort((a,b)=>b._score-a._score);
+    scoredD.forEach(d=>{const bm=CU.danAd===d.danisman_ad;h+='<tr style="border-bottom:1px solid #f5f5f5" data-k="'+(d.il||'')+' '+(d.ilce||'')+' '+d.tip+'" data-i="'+(d.islem||'')+'"><td style="padding:7px 10px;font-size:12px">'+d.tip+'</td><td style="padding:7px 10px">'+badge(d.islem)+'</td><td style="padding:7px 10px;font-size:12px">'+(d.il||'')+(d.ilce?'/'+d.ilce:'')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.m2||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.fiyat||'—')+'</td><td style="padding:7px 10px;font-size:12px">'+(d.tapu||'—')+'</td><td style="padding:7px 10px">'+msChip(d._score)+'</td><td style="padding:7px 10px;font-size:12px" id="sp_'+d.id+'">'+(bm?'<span style="color:#999;font-size:10px">Senin</span>':'<span style="color:#ccc">—</span>')+'</td><td style="padding:7px 10px">'+(bm?'<span style="font-size:10px;color:#999">Portföy sahibisin</span>':'<button class="btn btn-sm btn-p" onclick="acSahip(\''+d.id+'\',\''+encodeURIComponent(d.danisman_ad||'')+'\')">👁 İlgileniyorum</button>')+'</td></tr>';});
     h+='</tbody></table></div>';
   }
   h+='</div>';
