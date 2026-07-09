@@ -2465,6 +2465,30 @@ function rDash(c){
     {lbl:'Bu Ay Gelir',val:gelir?fmt(gelir)+' ₺':'—'},
   ]);
 
+  // Recruiting KPI
+  const rcData=D.rc||[];
+  const rcAy=td().slice(0,7);
+  const rcTotal=rcData.length;
+  const rcBuAy=rcData.filter(r=>(r.created_at||'').slice(0,7)===rcAy).length;
+  const rcGorusme=rcData.filter(r=>['Ön Görüşme','Ofis Tanıtımı'].includes(r.durum)).length;
+  const rcDevam=rcData.filter(r=>!['Başladı','İlk 30 Gün','Olumsuz','Kara Liste'].includes(r.durum)).length;
+  const rcBasladi=rcData.filter(r=>['Başladı','İlk 30 Gün'].includes(r.durum)).length;
+  const rcDonusum=rcTotal>0?Math.round(rcBasladi/rcTotal*100):0;
+  const rcOrtGun=rcBasladi>0?Math.round(rcData.filter(r=>r.durum==='Başladı'&&r.baslangic_tarihi).reduce((s,r)=>s+rcGunFark(r.created_at),0)/Math.max(1,rcData.filter(r=>r.durum==='Başladı'&&r.baslangic_tarihi).length)):0;
+
+  h+='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bd)">';
+  h+='<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🧑‍💼 Recruiting</div>';
+  h+=metricsGrid([
+    {lbl:'Toplam Başvuru',val:rcTotal,c:'var(--dk)'},
+    {lbl:'Bu Ay',val:rcBuAy,c:'var(--blue)'},
+    {lbl:'Görüşme',val:rcGorusme,c:'var(--or)'},
+    {lbl:'Devam Eden',val:rcDevam,c:'#5b21b6'},
+    {lbl:'Başlayan',val:rcBasladi,c:'var(--gn)'},
+    {lbl:'Dönüşüm',val:'%'+rcDonusum,c:rcDonusum>=20?'var(--gn)':rcDonusum>=10?'var(--or)':'var(--red)'},
+    {lbl:'Ort. Süre',val:rcOrtGun?rcOrtGun+'g':'—',c:'#64748b'},
+  ]);
+  h+='</div>';
+
   // Grafik grid
   h+='<div class="dash-grid" style="margin-top:14px">';
   h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px">';
@@ -2898,80 +2922,52 @@ function recCard(r,cls){
 async function rRecruit(c){
   c.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">⏳ Yükleniyor...</div>';
   try{
-    const rows=await api('recruiting_candidates','GET',null,'select=*&order=created_at.desc&is_deleted=eq.false');
+    const rows=await api('recruiting_candidates','GET',null,'select=*&order=created_at.asc&is_deleted=eq.false');
     D.rc=rows||[];
   }catch(e){D.rc=[];}
 
-  const today=td();
-  const ayBaslangic=today.slice(0,7);
-  const total=D.rc.length;
-  const buAy=D.rc.filter(r=>(r.created_at||'').slice(0,7)===ayBaslangic).length;
-  const gorusme=D.rc.filter(r=>['Ön Görüşme','Ofis Tanıtımı'].includes(r.durum)).length;
-  const devam=D.rc.filter(r=>!['Başladı','İlk 30 Gün','Olumsuz','Kara Liste'].includes(r.durum)).length;
-  const basladi=D.rc.filter(r=>['Başladı','İlk 30 Gün'].includes(r.durum)).length;
-  const donusum=total>0?Math.round(basladi/total*100):0;
-  const ortGun=basladi>0?Math.round(D.rc.filter(r=>r.durum==='Başladı'&&r.baslangic_tarihi).reduce((s,r)=>s+rcGunFark(r.created_at),0)/Math.max(1,D.rc.filter(r=>r.durum==='Başladı'&&r.baslangic_tarihi).length)):0;
-
-  // Yönetici listesi
   const yoneticiList=[...new Set(D.rc.map(r=>r.atanan_yonetici).filter(Boolean))];
   const kaynakList=[...new Set(D.rc.map(r=>r.kaynak).filter(Boolean))];
 
   let h='';
 
-  // KPI Kartları
-  h+='<div class="kpi-grid" style="margin-bottom:16px">';
-  [
-    {lbl:'Toplam Başvuru',val:total,c:'var(--dk)'},
-    {lbl:'Bu Ay',val:buAy,c:'var(--blue)'},
-    {lbl:'Görüşme',val:gorusme,c:'var(--or)'},
-    {lbl:'Devam Eden',val:devam,c:'#5b21b6'},
-    {lbl:'Başlayan',val:basladi,c:'var(--gn)'},
-    {lbl:'Dönüşüm',val:'%'+donusum,c:donusum>=20?'var(--gn)':donusum>=10?'var(--or)':'var(--red)'},
-    {lbl:'Ort. Süre',val:ortGun?ortGun+'g':'—',c:'#64748b'},
-  ].forEach(k=>{
-    h+='<div class="kpi-card"><div class="kc-val" style="color:'+k.c+'">'+k.val+'</div><div class="kc-lbl">'+k.lbl+'</div></div>';
-  });
-  h+='</div>';
+  // Yeni Aday Formu — otomatik açık
+  h+=rcModalInlineHTML();
 
-  // Filtreler + Arama + Butonlar
+  // Filtreler + Arama
   h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
   h+='<input id="rc-ara" placeholder="🔍 İsim, telefon, not..." style="padding:6px 10px;border:1px solid var(--bd);border-radius:7px;font-size:12px;flex:1;min-width:160px" oninput="rcFiltrele()">';
   h+='<select id="rc-f-yonetici" style="padding:6px 8px;border:1px solid var(--bd);border-radius:7px;font-size:12px" onchange="rcFiltrele()"><option value="">Tüm Yöneticiler</option>'+yoneticiList.map(y=>'<option>'+y+'</option>').join('')+'</select>';
   h+='<select id="rc-f-kaynak" style="padding:6px 8px;border:1px solid var(--bd);border-radius:7px;font-size:12px" onchange="rcFiltrele()"><option value="">Tüm Kaynaklar</option>'+kaynakList.map(k=>'<option>'+k+'</option>').join('')+'</select>';
-  h+='<button class="btn btn-p btn-sm" onclick="rcYeniModal()">➕ Yeni Aday</button>';
+  h+='<select id="rc-f-durum" style="padding:6px 8px;border:1px solid var(--bd);border-radius:7px;font-size:12px" onchange="rcFiltrele()"><option value="">Tüm Durumlar</option>'+RC_COLS.map(col=>'<option>'+col.durum+'</option>').join('')+'</select>';
   h+='<button class="btn btn-g btn-sm" onclick="rcFiltrele()">🔄</button>';
   h+='</div>';
 
-  // Kanban
-  h+='<div id="rc-kanban" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
-  RC_COLS.forEach(col=>{
-    const cards=D.rc.filter(r=>r.durum===col.durum);
-    h+='<div style="min-width:220px;max-width:240px;flex-shrink:0">';
-    h+='<div style="background:#f8fafc;border:1px solid var(--bd);border-radius:10px;padding:8px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd)">';
-    h+='<span style="font-size:11px;font-weight:700;color:var(--dk)">'+col.lbl+'</span>';
-    h+='<span style="background:var(--lg);border:1px solid var(--bd);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;color:#64748b">'+cards.length+'</span></div>';
-    h+='<div class="rc-col-body" id="rc-col-'+col.id+'" data-col="'+col.durum+'" style="min-height:60px">';
-    if(!cards.length)h+='<div style="text-align:center;padding:12px 0;font-size:11px;color:#cbd5e1">Kayıt yok</div>';
-    cards.forEach(r=>h+=recCard(r,col.cls));
-    h+='</div></div></div>';
-  });
-  h+='</div>';
+  // Liste
+  h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden">';
+  h+='<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+  ['Ad Soyad','Telefon','Kaynak','Durum','Yönetici','Puan','Son İşlem','Aksiyon'].forEach(t=>
+    h+='<th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#64748b;border-bottom:1px solid var(--bd)">'+t+'</th>'
+  );
+  h+='</tr></thead><tbody id="rc-list-body">';
+  h+=rcListRows(D.rc);
+  h+='</tbody></table></div>';
 
-  // Yeni Aday Modal
-  h+=rcModalHTML();
-
-  // Detay/Düzenle Modal
+  // Detay Modal
   h+='<div id="rc-detay-modal" class="mo"><div class="md" style="max-width:560px;max-height:85vh;overflow-y:auto"><div id="rc-detay-icerik"></div></div></div>';
 
   c.innerHTML=h;
-  window.rcDD=false;
-  setTimeout(()=>{if(!window.rcDD){initRecDD();window.rcDD=true;}},80);
 }
 
-function rcModalHTML(){
+function rcModalHTML(){ return ''; } // artık inline form kullanılıyor
+function rcYeniModal(){ const el=document.getElementById('rc_ad'); if(el)el.focus(); }
+function showRecModal(){ rcYeniModal(); }
+function hideRecModal(){}
+
+function rcModalInlineHTML(){
   const danList=D.dans.map(d=>'<option>'+d.ad+'</option>').join('');
-  return'<div id="rc-modal" class="mo"><div class="md"><h3>➕ Yeni Aday</h3>'
+  return'<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">➕ Yeni Aday Ekle</div>'
     +'<div class="fg">'
     +'<div class="fgr"><label>Ad Soyad *</label><input id="rc_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div>'
     +'<div class="fgr"><label>Telefon</label><input id="rc_tel" placeholder="5XX XXX XX XX"/></div>'
@@ -2980,33 +2976,42 @@ function rcModalHTML(){
     +'<div class="fgr"><label>İl</label><select id="rc-il">'+opts(CFG.iller,'Tekirdağ')+'</select></div>'
     +'<div class="fgr"><label>İlçe</label><input id="rc-ilce" placeholder="İlçe..."/></div>'
     +'</div>'
-    +'<div class="fgr" style="margin-top:8px"><label>Not</label><textarea id="rc_not" placeholder="Not..."></textarea></div>'
+    +'<div class="fgr" style="margin-top:8px"><label>Not</label><textarea id="rc_not" placeholder="Not..." style="min-height:44px"></textarea></div>'
     +'<div id="rc_msg"></div>'
-    +'<div class="mda"><button class="btn btn-g" onclick="hideRecModal()">İptal</button><button class="btn btn-p" onclick="svRecAday()">Kaydet</button></div>'
-    +'</div></div>';
+    +'<div class="fa"><button class="btn btn-p" onclick="svRecAday()">✅ Kaydet</button></div>'
+    +'</div>';
 }
 
-function rcYeniModal(){document.getElementById('rc-modal').classList.add('show');document.getElementById('rc_ad').focus();}
-function showRecModal(){rcYeniModal();}
-function hideRecModal(){document.getElementById('rc-modal').classList.remove('show');}
-
-async function rcDurumDegistir(id, yeniDurum){
-  try{
-    await api('recruiting_candidates','PATCH',{durum:yeniDurum,son_islem_tarihi:td()},'id=eq.'+id);
-    const r=D.rc&&D.rc.find(x=>x.id===id);
-    if(r){r.durum=yeniDurum;r.son_islem_tarihi=td();}
-    toast('✅ '+yeniDurum);
-    rRecruit(document.getElementById('ct'));
-  }catch(e){toast('❌ '+e.message,false);}
+function rcListRows(list){
+  if(!list.length)return'<tr><td colspan="8" style="padding:20px;text-align:center;color:#cbd5e1;font-size:12px">Kayıt yok</td></tr>';
+  return list.map(r=>{
+    const gun=rcGunFark(r.son_islem_tarihi||r.created_at);
+    const gc=gun>7?'var(--red)':gun>3?'var(--or)':'var(--gn)';
+    return'<tr style="border-bottom:1px solid #f5f5f5">'
+      +'<td style="padding:8px 10px;font-size:12px;font-weight:600;color:var(--dk)">'+(r.ad||'—')+'</td>'
+      +'<td style="padding:8px 10px;font-size:12px">'+wa(r.telefon)+(r.telefon||'—')+'</td>'
+      +'<td style="padding:8px 10px;font-size:11px;color:#64748b">'+(r.kaynak||'—')+'</td>'
+      +'<td style="padding:8px 10px"><select style="padding:3px 5px;border:1px solid var(--bd);border-radius:6px;font-size:10px" onchange="rcDurumDegistir(\''+r.id+'\',this.value)">'
+        +RC_COLS.map(c=>'<option'+(r.durum===c.durum?' selected':'')+'>'+c.durum+'</option>').join('')
+        +'</select></td>'
+      +'<td style="padding:8px 10px;font-size:11px;color:#64748b">'+(r.atanan_yonetici||'—')+'</td>'
+      +'<td style="padding:8px 10px;font-size:11px">'+(r.aday_puani?'★'+r.aday_puani:'—')+'</td>'
+      +'<td style="padding:8px 10px;font-size:10px;color:'+gc+'">'+(gun===0?'Bugün':gun+'g önce')+'</td>'
+      +'<td style="padding:8px 10px"><button class="btn btn-xs btn-g" onclick="rcDetay(\''+r.id+'\')" style="font-size:10px;padding:2px 8px">✏️</button> '
+        +'<button class="btn btn-xs btn-r" onclick="softDel(\'recruiting_candidates\',\''+r.id+'\',rRecruit)" style="font-size:10px;padding:2px 8px">🗑</button></td>'
+      +'</tr>';
+  }).join('');
 }
 
 function rcFiltrele(){
   const ara=(document.getElementById('rc-ara')?.value||'').toLowerCase();
   const yonetici=document.getElementById('rc-f-yonetici')?.value||'';
   const kaynak=document.getElementById('rc-f-kaynak')?.value||'';
+  const durum=document.getElementById('rc-f-durum')?.value||'';
   const filtered=D.rc.filter(r=>{
     if(yonetici&&r.atanan_yonetici!==yonetici)return false;
     if(kaynak&&r.kaynak!==kaynak)return false;
+    if(durum&&r.durum!==durum)return false;
     if(ara&&!(
       (r.ad||'').toLowerCase().includes(ara)||
       (r.telefon||'').includes(ara)||
@@ -3015,14 +3020,8 @@ function rcFiltrele(){
     ))return false;
     return true;
   });
-  RC_COLS.forEach(col=>{
-    const el=document.getElementById('rc-col-'+col.id);
-    if(!el)return;
-    const cards=filtered.filter(r=>r.durum===col.durum);
-    el.innerHTML=cards.length
-      ?cards.map(r=>recCard(r,col.cls)).join('')
-      :'<div style="text-align:center;padding:12px 0;font-size:11px;color:#cbd5e1">Kayıt yok</div>';
-  });
+  const b=document.getElementById('rc-list-body');
+  if(b)b.innerHTML=rcListRows(filtered);
 }
 
 async function rcDetay(id){
