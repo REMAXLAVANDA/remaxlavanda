@@ -204,6 +204,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .cal-ev-chip{display:block;padding:2px 5px;border-radius:4px;font-size:10px;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;line-height:1.5;}
 .cal-ev-more{font-size:9px;font-weight:700;color:#94a3b8;padding:1px 4px;cursor:default;}
 
+/* Kanban */
+.kanban-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+.kanban-col{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:8px;}
+.kanban-col-hd{font-size:11px;font-weight:700;padding:4px 4px 8px;border-bottom:1px solid var(--bd);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.kanban-cnt{font-size:10px;font-weight:700;background:var(--lg);border-radius:10px;padding:1px 7px;}
+.lead-card{margin-bottom:6px;padding:6px 8px;border-left:4px solid var(--or);background:#f8fafc;border-radius:6px;font-size:12px;}
+.lead-card .lc-name{font-weight:700;color:var(--dk);margin-bottom:2px;}
+.lead-card .lc-meta{font-size:10px;color:#94a3b8;}
+@media(max-width:768px){.kanban-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:480px){.kanban-grid{grid-template-columns:repeat(1,minmax(0,1fr));}}
+
 /* WA */
 .wa-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#25D366;border-radius:50%;color:#fff;font-size:11px;text-decoration:none;margin-right:3px;flex-shrink:0;}
 
@@ -1034,7 +1045,15 @@ function rOzet(c){
   });
   if(!Object.keys(srcMap).length)h+='<div style="color:#ccc;font-size:11px;text-align:center;padding:8px">Veri yok</div>';
   h+='</div>';
+
+  // Pipeline hunisi grafiği
+  h+='<div style="background:white;border:1px solid var(--bd);border-radius:12px;padding:12px;margin-top:14px">';
+  h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:10px">🔽 Dönüşüm Hunisi</div>';
+  h+='<div style="height:160px;position:relative"><canvas id="pipe-chart"></canvas></div>';
+  h+='</div>';
+
   c.innerHTML=h;
+  setTimeout(()=>renderPipeChart('pipe-chart'),100);
 }
 
 // --- PORTFÖY SAYFASI ---
@@ -1046,6 +1065,7 @@ function rPF(c){
   h+='<div class="ta">';
   if(isA)h+='<button class="btn btn-g btn-sm" onclick="toggleArsiv()" style="margin-right:4px">'+(showArsiv?'📋 Aktif':'📦 Arşiv')+'</button>';
   if(isA)h+='<button class="btn btn-g btn-sm" onclick="exp(\'l\')">📥 CSV</button>';
+  h+='<button class="btn btn-g btn-sm btn-kanban" onclick="toggleKanban()" id="btn-kanban">'+(window._kanban?'☰ Liste':'⬛ Kanban')+'</button>';
   h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'pf-form\').classList.toggle(\'hidden\')">+ Lead Ekle</button>';
   h+='</div></div>';
 
@@ -1094,9 +1114,13 @@ function rPF(c){
     return;
   }
 
-  h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Notlar</th><th></th></tr></thead><tbody id="lB">';
-  h+=lRows(D.leads);
-  h+='</tbody></table></div>';
+  if(window._kanban){
+    h+=rKanbanHTML(D.leads,true);
+  }else{
+    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Notlar</th><th></th></tr></thead><tbody id="lB">';
+    h+=lRows(D.leads);
+    h+='</tbody></table></div>';
+  }
   h+=santralBlock();
   c.innerHTML=h;
   // Ofis için grafikleri çiz
@@ -1108,6 +1132,37 @@ function rPF(c){
   }
 }
 
+
+function toggleKanban(){window._kanban=!window._kanban;rPF(document.getElementById('ct'));}
+
+function rKanbanHTML(leads,isA){
+  const cols=[
+    {lbl:'🆕 Yeni',    color:'#64748b', durumlar:['Arandı','Çağrıldı','Soğuk']},
+    {lbl:'🔥 Sıcak',   color:'var(--or)', durumlar:['Sıcak','Görüşüldü']},
+    {lbl:'📅 Randevu', color:'var(--blue)', durumlar:['Randevu','1. Görüşme','2. Görüşme']},
+    {lbl:'✅ Kazanıldı',color:'var(--gn)', durumlar:['Kazanıldı']},
+  ];
+  let h='<div class="kanban-grid">';
+  cols.forEach(col=>{
+    const cards=leads.filter(l=>col.durumlar.includes(l.durum));
+    h+='<div class="kanban-col">';
+    h+='<div class="kanban-col-hd" style="color:'+col.color+'">'+col.lbl+'<span class="kanban-cnt">'+cards.length+'</span></div>';
+    if(!cards.length){
+      h+='<div style="text-align:center;padding:16px 0;font-size:11px;color:#ccc">Kayıt yok</div>';
+    }else{
+      cards.forEach(l=>{
+        h+='<div class="lead-card" style="border-left-color:'+col.color+'">';
+        h+='<div class="lc-name">'+wa(l.telefon)+(l.ad||'—')+'</div>';
+        h+='<div class="lc-meta">'+(l.kaynak||'—')+(l.danisman?' · '+l.danisman:'')+(l.sonraki_takip?' · 📅'+l.sonraki_takip:'')+'</div>';
+        if(isA)h+='<div style="margin-top:4px"><button class="btn btn-xs btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button></div>';
+        h+='</div>';
+      });
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  return h;
+}
 
 async function toggleArsiv(){
   window._showArsiv=!window._showArsiv;
@@ -1841,6 +1896,37 @@ function renderDailyChart(canvasId){
       responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false}},
       scales:{x:{ticks:{font:{size:9},maxTicksLimit:10}},y:{ticks:{font:{size:10},stepSize:1},beginAtZero:true}}
+    }
+  });
+}
+
+let _chartPipe=null;
+function renderPipeChart(canvasId){
+  const ttl=D.leads.length;
+  const sic=D.leads.filter(l=>l.durum==='Sıcak').length;
+  const rnd=D.rec.filter(r=>r.randevu_tarihi).length;
+  const kaz=D.leads.filter(l=>l.durum==='Kazanıldı').length;
+  const cv=document.getElementById(canvasId);
+  if(!cv)return;
+  if(_chartPipe){_chartPipe.destroy();_chartPipe=null;}
+  _chartPipe=new Chart(cv,{
+    type:'bar',
+    data:{
+      labels:['Toplam','Sıcak','Randevu','Kazanıldı'],
+      datasets:[{
+        data:[ttl,sic,rnd,kaz],
+        backgroundColor:['#64748b','#C9821A','#003DA5','#1C8C4B'],
+        borderRadius:6,
+        borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y+' kayıt'}}},
+      scales:{
+        x:{ticks:{font:{size:11},color:'#64748b'},grid:{display:false}},
+        y:{ticks:{font:{size:10},stepSize:1},beginAtZero:true,grid:{color:'#f0f0f0'}}
+      }
     }
   });
 }
