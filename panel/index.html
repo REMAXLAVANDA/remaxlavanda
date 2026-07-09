@@ -1296,6 +1296,26 @@ async function svTimeline(kayitId,kayitTipi){
 
 // --- GD ANA SAYFA ---
 
+// --- TAKVİM HELPER ---
+function normalizeAssigned(val){
+  if(!val)return[];
+  if(Array.isArray(val))return val.map(s=>String(s).trim().toLowerCase());
+  if(typeof val==='string'){
+    const v=val.trim();
+    if(!v)return[];
+    // JSON array string: ["Ad Soyad", ...]
+    if(v.startsWith('[')){try{const p=JSON.parse(v);if(Array.isArray(p))return p.map(s=>String(s).trim().toLowerCase());}catch(x){}}
+    // Virgüllü string: "Ad Soyad, Ad Soyad2"
+    return v.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  }
+  return[];
+}
+function isAssignedToCurrentUser(etk){
+  const name=(CU.danAd||CU.name||'').trim().toLowerCase();
+  if(!name)return false;
+  return normalizeAssigned(etk.atanan_danismanlar).includes(name);
+}
+
 // --- TAKVİM (haftalık) ---
 function rTakvim(c){
   const isY=CU.role==='ofis'||CU.role==='admin';
@@ -1359,9 +1379,18 @@ function rTakvim(c){
       const isT=ds===toStr;
       let evs=D.etkinlikler.filter(e=>{
         if(e.tarih!==ds||!e.saat||!e.saat.startsWith(hS))return false;
-        if(aktifFiltre==='benim'){if(e.hedef==='secili'){let a=e.atanan_danismanlar||[];try{if(typeof a==='string')a=JSON.parse(a);}catch(x){}return a.includes(CU.danAd||CU.name);}return true;}
-        if(aktifFiltre!=='tumu'&&e.tur!==aktifFiltre)return false;
-        if(e.hedef==='secili'){let a=e.atanan_danismanlar||[];try{if(typeof a==='string')a=JSON.parse(a);}catch(x){}return isY||a.includes(CU.danAd);}
+        // "Benim" filtresi: tum_ofis etkinlikleri + kullanıcıya atanmış secili etkinlikler
+        if(aktifFiltre==='benim'){
+          if(e.hedef==='secili')return isAssignedToCurrentUser(e);
+          return true;
+        }
+        // Tür filtresi (eğitim, tapu vb.)
+        if(aktifFiltre!=='tumu'&&aktifFiltre!=='recruiting'&&e.tur!==aktifFiltre)return false;
+        // secili hedefli etkinlik görünürlüğü
+        if(e.hedef==='secili'){
+          // Admin/ofis hepsini görür; danışman sadece kendisine atananları görür
+          return isY||isAssignedToCurrentUser(e);
+        }
         return true;
       });
       if(aktifFiltre==='tumu'||aktifFiltre==='recruiting'){
@@ -1388,7 +1417,7 @@ async function svEtkinlik(){
   const atanan=[];
   if(hedef==='secili'){document.querySelectorAll('.dcb:checked').forEach(cb=>atanan.push(cb.value));if(!atanan.length){document.getElementById('ef_m').innerHTML='<div class="err-m">Danışman seçin!</div>';return;}}
   try{
-    await api('etkinlikler','POST',{baslik:b,tur:document.getElementById('ef_t').value,tarih:document.getElementById('ef_d').value,saat:document.getElementById('ef_s').value||null,bitis_saati:document.getElementById('ef_e').value||null,hedef:hedef,atanan_danismanlar:atanan,aciklama:document.getElementById('ef_a').value.trim(),olusturan:CU.name||'Ofis'});
+    await api('etkinlikler','POST',{baslik:b,tur:document.getElementById('ef_t').value,tarih:document.getElementById('ef_d').value,saat:document.getElementById('ef_s').value||null,bitis_saati:document.getElementById('ef_e').value||null,hedef:hedef,atanan_danismanlar:hedef==='secili'?JSON.stringify(atanan):null,aciklama:document.getElementById('ef_a').value.trim(),olusturan:CU.name||'Ofis'});
     document.getElementById('ef_m').innerHTML='<div class="ok-m">✅ Eklendi!</div>';
     await load();setTimeout(()=>{document.getElementById('ef').classList.add('hidden');rTakvim(document.getElementById('ct'));},800);
   }catch(e){document.getElementById('ef_m').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
