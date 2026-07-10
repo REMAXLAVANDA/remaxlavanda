@@ -484,7 +484,7 @@ async function load(_force){
     safe('dan_memnuniyet','select=*&order=created_at.desc'),
     safe('dan_recruiting_katki','select=*&order=tarih.desc'),
     // v20: Onboarding + Eğitim Takip tabloları
-    safe('gd_onboarding_tasks','select=*&order=sira.asc'),
+    Promise.resolve([]),// gd_onboarding_tasks tablo yok
     safe('gd_onboarding_progress','select=*&order=created_at.desc'),
     safe('training_programs','select=*&order=created_at.desc'),
     safe('training_modules','select=*&order=program_id.asc,modul_no.asc'),
@@ -585,6 +585,7 @@ async function chkToken(){
 
 // ── rTabs v19: Gruplu Sidebar Menüsü ──
 function rTabs(){
+  if(!CU)return;
   const nav=document.getElementById('tabs');nav.innerHTML='';
 
   if(CU.role==='admin'||CU.role==='ofis'){
@@ -4158,10 +4159,12 @@ async function svTakipRekruting(){
 // ── TAKİP SONU ──
 
 function startDan(dn){
+  CU={role:'dan',danAd:dn.ad,name:dn.ad,username:dn.token};
+  document.getElementById('lp').classList.add('hidden');
+  document.getElementById('po').classList.remove('show');
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('ub').textContent='👤 '+dn.ad;
-  rTabs();
-  rDanDash(document.getElementById('ct'));
+  load(true).then(()=>{rTabs();rDanDash(document.getElementById('ct'));}).catch(e=>{rTabs();rDanDash(document.getElementById('ct'));});
 }
 
 // ── RAPOR ──
