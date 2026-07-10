@@ -558,7 +558,7 @@ async function startApp(){
   document.getElementById('lp').classList.add('hidden');document.getElementById('po').classList.remove('show');document.getElementById('app').classList.remove('hidden');
   document.getElementById('ub').textContent='👤 '+CU.name;
   const ll=localStorage.getItem('ll_'+CU.username);if(ll)document.getElementById('li').textContent='Son: '+ll;
-  try{await load(true);rTabs();rC(CU.role==='admin'?'dash2':CU.role==='ofis'?'dash2':'dan');}
+  try{await load(true);rTabs();rC(CU.role==='admin'?'hub_panel':CU.role==='ofis'?'hub_panel':'dan');}
   catch(e){document.getElementById('ct').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 
@@ -590,94 +590,25 @@ function rTabs(){
 
   if(CU.role==='admin'||CU.role==='ofis'){
     const isA=CU.role==='admin';
-    // Grup yapısı
-    const groups=[
-      {
-        label:'GENEL',
-        items:[
-          {id:'dash2',icon:'📊',l:'Yönetim Kokpiti'},
-        ]
-      },
-      {
-        label:'PORTföY',
-        items:[
-          {id:'pf',icon:'🏠',l:'Portföy Leadler'},
-          {id:'pf_rapor',icon:'📈',l:'Lead Raporu'},
-          {id:'pf_huni',icon:'🔻',l:'Durum Hunisi'},
-          {id:'pf_geciken',icon:'⏰',l:'Geciken Takipler'},
-          {id:'pf_danisman',icon:'👤',l:'Danışman Bazlı'},
-          {id:'pf_kazankaybeden',icon:'🏷️',l:'Kazanılan / Kaybedilen'},
-        ]
-      },
-      {
-        label:'RECRUİTİNG',
-        items:[
-          {id:'recruit',icon:'🧑‍💼',l:'Aday Listesi'},
-          {id:'rec_rapor',icon:'📊',l:'Aday Raporu'},
-          {id:'rec_huni',icon:'🔻',l:'Recruiting Hunisi'},
-          {id:'rec_kaynak',icon:'🧲',l:'Kaynak Bazlı'},
-          {id:'rec_randevu',icon:'📅',l:'Randevu Raporu'},
-          {id:'rec_olumlu',icon:'✅',l:'Olumlu / Olumsuz'},
-        ]
-      },
-      {
-        label:'DANIŞMAN SKORBOARD',
-        items:[
-          {id:'skor',icon:'🏆',l:'Performans Kartları'},
-          {id:'skor_etkinlik',icon:'➕',l:'Etkinlik Oluştur'},
-          {id:'skor_toplanti',icon:'🤝',l:'Toplantı Katılımı'},
-          {id:'skor_egitim',icon:'📚',l:'Eğitim Katılımı'},
-          {id:'skor_etkinlik_liste',icon:'🎯',l:'Etkinlik Katılımı'},
-          {id:'skor_yorum',icon:'⭐',l:'Google Yorum'},
-          {id:'skor_recruiting',icon:'👤',l:'Recruiting Katkısı'},
-          {id:'skor_ilkislem',icon:'🔥',l:'İlk İşlem Takibi'},
-        ]
-      },
-      {
-        label:'GD ONBOARDİNG & EĞİTİM',
-        items:[
-          {id:'ob_onboarding',icon:'🚀',l:'GD Onboarding'},
-          {id:'ob_egitim',icon:'📚',l:'Eğitim Takibi'},
-          {id:'ob_eksik',icon:'⚠️',l:'Eksik Eğitimler'},
-          {id:'ob_rozetler',icon:'🏅',l:'Rozetler'},
-        ]
-      },
-      {
-        label:'TAKVİM',
-        items:[
-          {id:'takvim',icon:'📅',l:'Aylık Takvim'},
-          {id:'takvim_randevu',icon:'📞',l:'Randevular'},
-          {id:'takvim_dogumgunu',icon:'🎂',l:'Doğum Günleri'},
-          {id:'takvim_egitim',icon:'📚',l:'Eğitimler'},
-          {id:'takvim_toplanti',icon:'🤝',l:'Toplantılar'},
-        ]
-      },
-      {
-        label:'YÖNETİM',
-        items:[
-          {id:'dans',icon:'🔑',l:'Danışmanlar'},
-          ...(isA?[{id:'ay',icon:'⚙️',l:'Ayarlar'}]:[]),
-        ]
-      },
+    const mainMenus=[
+      {id:'hub_panel',   icon:'📊', l:'PANEL'},
+      {id:'hub_pf',      icon:'🏠', l:'PORTFÖY'},
+      {id:'hub_rec',     icon:'🧑\u200d💼', l:'RECRUİTİNG'},
+      {id:'hub_skor',    icon:'🏆', l:'DANIŞMAN SKORBOARD'},
+      {id:'hub_ob',      icon:'🚀', l:'GD ONBOARDİNG & EĞİTİM'},
+      {id:'hub_takvim',  icon:'📅', l:'TAKVİM'},
+      ...(isA?[{id:'hub_yonetim',icon:'⚙️',l:'YÖNETİM'}]:[]),
     ];
-
-    let firstSet=false;
-    groups.forEach(g=>{
-      // Grup etiketi
-      const lbl=document.createElement('div');lbl.className='sidebar-label';lbl.textContent=g.label;nav.appendChild(lbl);
-      g.items.forEach(t=>{
-        const b=document.createElement('button');
-        b.className='tab'+(!firstSet?' active':'');
-        b.dataset.tabId=t.id;
-        b.innerHTML='<span class="tab-icon">'+t.icon+'</span><span>'+t.l+'</span>';
-        b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');rC(t.id);};
-        nav.appendChild(b);
-        if(!firstSet)firstSet=true;
-      });
+    const lbl=document.createElement('div');lbl.className='sidebar-label';lbl.textContent='MENÜ';nav.appendChild(lbl);
+    mainMenus.forEach((t,i)=>{
+      const b=document.createElement('button');
+      b.className='tab'+(i===0?' active':'');
+      b.dataset.tabId=t.id;
+      b.innerHTML='<span class="tab-icon">'+t.icon+'</span><span>'+t.l+'</span>';
+      b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');rC(t.id);};
+      nav.appendChild(b);
     });
-
   } else {
-    // Danışman rolü — Onboarding eklendi
     const tabs=[{id:'dash',icon:'🏠',l:'Ana Sayfa'},{id:'takvim',icon:'📅',l:'Takvim'},{id:'surec',icon:'📋',l:'Bana Atananlar'},{id:'havuz',icon:'➕',l:'Alıcı Talebi'},{id:'dispf',icon:'🏘️',l:'Harici Portföy'},{id:'genel',icon:'🔍',l:'Ofis Havuzu'},{id:'bilgi',icon:'ℹ️',l:'Ofis Bilgi'},{id:'ob_onboarding',icon:'🚀',l:'Onboarding'}];
     const lbl=document.createElement('div');lbl.className='sidebar-label';lbl.textContent='MENÜ';nav.appendChild(lbl);
     tabs.forEach((t,i)=>{
@@ -690,10 +621,21 @@ function rTabs(){
   }
 }
 
-// Sidebar tab aktif güncelle
 function setActiveTab(id){
   document.querySelectorAll('.tab').forEach(b=>{
-    b.classList.toggle('active',b.dataset.tabId===id);
+    // Hub sayfasına gidildiğinde direkt eşleştir
+    // Alt sayfaya gidildiğinde ilgili hub butonunu aktif tut
+    const hubMap={
+      'dash2':'hub_panel','ozet':'hub_panel','lograp':'hub_panel','santral':'hub_panel',
+      'pf':'hub_pf','pf_rapor':'hub_pf','pf_huni':'hub_pf','pf_geciken':'hub_pf','pf_danisman':'hub_pf','pf_kazankaybeden':'hub_pf',
+      'recruit':'hub_rec','rec_rapor':'hub_rec','rec_huni':'hub_rec','rec_kaynak':'hub_rec','rec_randevu':'hub_rec','rec_olumlu':'hub_rec',
+      'skor':'hub_skor','skor_etkinlik':'hub_skor','skor_toplanti':'hub_skor','skor_egitim':'hub_skor','skor_etkinlik_liste':'hub_skor','skor_yorum':'hub_skor','skor_recruiting':'hub_skor','skor_ilkislem':'hub_skor',
+      'ob_onboarding':'hub_ob','ob_egitim':'hub_ob','ob_eksik':'hub_ob','ob_rozetler':'hub_ob',
+      'takvim':'hub_takvim','takvim_randevu':'hub_takvim','takvim_dogumgunu':'hub_takvim','takvim_egitim':'hub_takvim','takvim_toplanti':'hub_takvim',
+      'dans':'hub_yonetim','ay':'hub_yonetim','takip':'hub_yonetim',
+    };
+    const activeId=hubMap[id]||id;
+    b.classList.toggle('active',b.dataset.tabId===activeId);
   });
 }
 
@@ -743,6 +685,13 @@ function rC(id){
   else if(id==='takvim_dogumgunu')_run(()=>rTakvimFiltreli(c,'dogumgunu'));
   else if(id==='takvim_egitim')_run(()=>rTakvimFiltreli(c,'eğitim'));
   else if(id==='takvim_toplanti')_run(()=>rTakvimFiltreli(c,'toplantı'));
+  else if(id==='hub_panel')_run(()=>rHub(c,'panel'));
+  else if(id==='hub_pf')_run(()=>rHub(c,'pf'));
+  else if(id==='hub_rec')_run(()=>rHub(c,'rec'));
+  else if(id==='hub_skor')_run(()=>rHub(c,'skor'));
+  else if(id==='hub_ob')_run(()=>rHub(c,'ob'));
+  else if(id==='hub_takvim')_run(()=>rHub(c,'takvim'));
+  else if(id==='hub_yonetim')_run(()=>rHub(c,'yonetim'));
   else if(id==='ob_onboarding')_run(()=>rObOnboarding(c));
   else if(id==='ob_egitim')_run(()=>rObEgitim(c));
   else if(id==='ob_eksik')_run(()=>rObEksik(c));
@@ -5139,6 +5088,109 @@ async function rObRozetler(c){
 // ═══════════════════════════════════════════════════════════════
 
 // ── Sayfa üst başlık helper ──
+
+// ── HUB SAYFALARI (Ana menü tıklama) ──
+function rHub(c, tip){
+  const cardS='background:#fff;border:1px solid var(--bd);border-radius:14px;padding:22px 20px;cursor:pointer;transition:all .15s;text-align:left;border-left:4px solid transparent;';
+  const cardH='box-shadow:0 4px 16px rgba(0,0,0,.08);border-left-color:var(--red);transform:translateY(-1px);';
+
+  const hubs={
+    panel:{
+      title:'📊 Panel',
+      desc:'Yönetim kokpiti ve genel özet',
+      items:[
+        {id:'dash2',      icon:'📊', label:'Yönetim Kokpiti',   desc:'Portföy, recruiting ve danışman özetleri'},
+        {id:'ozet',       icon:'📋', label:'Genel Özet',        desc:'Günlük ve haftalık aktivite özeti'},
+        {id:'lograp',     icon:'📝', label:'İşlem Logu',        desc:'Tüm kullanıcı hareketleri'},
+        {id:'santral',    icon:'📞', label:'Santral',           desc:'Gelen çağrı takibi ve log'},
+      ]
+    },
+    pf:{
+      title:'🏠 Portföy',
+      desc:'Portföy leadleri ve raporlar',
+      items:[
+        {id:'pf',                  icon:'🏠', label:'Portföy Leadler',      desc:'Tüm lead listesi ve durum takibi'},
+        {id:'pf_rapor',            icon:'📈', label:'Lead Raporu',          desc:'Tarih ve kaynak bazlı raporlar'},
+        {id:'pf_huni',             icon:'🔻', label:'Durum Hunisi',         desc:'Leadlerin aşama dağılımı'},
+        {id:'pf_geciken',          icon:'⏰', label:'Geciken Takipler',     desc:'Takip tarihi geçmiş leadler'},
+        {id:'pf_danisman',         icon:'👤', label:'Danışman Bazlı',       desc:'Danışman performans karşılaştırması'},
+        {id:'pf_kazankaybeden',    icon:'🏷️', label:'Kazanılan / Kaybedilen', desc:'Sonuçlanan leadlerin analizi'},
+      ]
+    },
+    rec:{
+      title:'🧑‍💼 Recruiting',
+      desc:'Aday takibi ve recruiting raporları',
+      items:[
+        {id:'recruit',      icon:'🧑‍💼', label:'Aday Listesi',      desc:'Tüm adaylar ve durum takibi'},
+        {id:'rec_rapor',    icon:'📊',  label:'Aday Raporu',        desc:'Aday bazlı detaylı raporlar'},
+        {id:'rec_huni',     icon:'🔻',  label:'Recruiting Hunisi',  desc:'Aşama dağılımı ve dönüşüm'},
+        {id:'rec_kaynak',   icon:'🧲',  label:'Kaynak Bazlı',       desc:'Hangi kanaldan kaç aday geldi'},
+        {id:'rec_randevu',  icon:'📅',  label:'Randevu Raporu',     desc:'Planlanan ve tamamlanan randevular'},
+        {id:'rec_olumlu',   icon:'✅',  label:'Olumlu / Olumsuz',   desc:'Sonuçlanan adayların analizi'},
+      ]
+    },
+    skor:{
+      title:'🏆 Danışman Skorboard',
+      desc:'Performans takibi ve veri girişi',
+      items:[
+        {id:'skor',                   icon:'🏆', label:'Performans Kartları',  desc:'100 puanlık uygunluk skorları'},
+        {id:'skor_etkinlik',          icon:'➕', label:'Etkinlik Oluştur',    desc:'Toplantı, eğitim, etkinlik ekle'},
+        {id:'skor_toplanti',          icon:'🤝', label:'Toplantı Katılımı',   desc:'Toplantı katılım kayıtları'},
+        {id:'skor_egitim',            icon:'📚', label:'Eğitim Katılımı',     desc:'Eğitim katılım kayıtları'},
+        {id:'skor_etkinlik_liste',    icon:'🎯', label:'Etkinlik Katılımı',   desc:'Etkinlik katılım kayıtları'},
+        {id:'skor_yorum',             icon:'⭐', label:'Google Yorum',        desc:'Müşteri memnuniyeti ve yorumlar'},
+        {id:'skor_recruiting',        icon:'👥', label:'Recruiting Katkısı',  desc:'Danışman bazlı referans katkısı'},
+        {id:'skor_ilkislem',          icon:'🔥', label:'İlk İşlem Takibi',    desc:'Yeni danışmanların ilk işlem süreci'},
+      ]
+    },
+    ob:{
+      title:'🚀 GD Onboarding & Eğitim',
+      desc:'Yeni danışman başlangıç ve eğitim takibi',
+      items:[
+        {id:'ob_onboarding', icon:'🚀', label:'GD Onboarding',    desc:'Danışman bazlı onboarding checklist'},
+        {id:'ob_egitim',     icon:'📚', label:'Eğitim Modülleri', desc:'Modüllü ve tek seferlik eğitimler'},
+        {id:'ob_eksik',      icon:'⚠️', label:'Eksik Eğitimler', desc:'Kaçırılan modüller ve telafi takibi'},
+        {id:'ob_rozetler',   icon:'🏅', label:'Rozetler',         desc:'Danışman başarı rozetleri'},
+      ]
+    },
+    takvim:{
+      title:'📅 Takvim',
+      desc:'Etkinlik ve randevu takvimi',
+      items:[
+        {id:'takvim',              icon:'📅', label:'Genel Takvim',     desc:'Aylık tüm etkinlikler'},
+        {id:'takvim_randevu',      icon:'📞', label:'Randevu Takvimi',  desc:'Müşteri randevuları'},
+        {id:'takvim_dogumgunu',    icon:'🎂', label:'Doğum Günleri',   desc:'Danışman doğum günü takvimi'},
+        {id:'takvim_egitim',       icon:'📚', label:'Eğitimler',        desc:'Eğitim takvimi'},
+        {id:'takvim_toplanti',     icon:'🤝', label:'Toplantılar',      desc:'Toplantı takvimi'},
+      ]
+    },
+    yonetim:{
+      title:'⚙️ Yönetim',
+      desc:'Danışman ve sistem yönetimi',
+      items:[
+        {id:'dans',   icon:'🔑', label:'Danışmanlar',         desc:'Danışman listesi ve yönetimi'},
+        {id:'ay',     icon:'⚙️', label:'Ayarlar',             desc:'Sistem ayarları ve konfigürasyon'},
+        {id:'takip',  icon:'📋', label:'Veri Girişi',         desc:'Toplantı, eğitim ve etkinlik veri girişi'},
+      ]
+    },
+  };
+
+  const h=hubs[tip];
+  if(!h){c.innerHTML='<div class="err-m">❌ Bilinmeyen bölüm</div>';return;}
+
+  let html=pageHeader(h.title, h.desc);
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">';
+  h.items.forEach(item=>{
+    html+='<div style="'+cardS+'" onmouseover="this.style.cssText=''+cardS+cardH+''" onmouseout="this.style.cssText=''+cardS+''" onclick="rC(''+item.id+'')">';
+    html+='<div style="font-size:24px;margin-bottom:10px">'+item.icon+'</div>';
+    html+='<div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:4px">'+item.label+'</div>';
+    html+='<div style="font-size:12px;color:#64748b">'+item.desc+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  c.innerHTML=html;
+}
+
 function pageHeader(baslik,aciklama,butonHTML){
   return'<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--bd)">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">'
