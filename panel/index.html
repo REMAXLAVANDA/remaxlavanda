@@ -5206,7 +5206,7 @@ function rHub(c, tip){
   let html=pageHeader(h.title, h.desc);
   html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">';
   h.items.forEach(item=>{
-    html+='<div style="'+cardS+'" onmouseover="this.style.cssText=''+cardS+cardH+''" onmouseout="this.style.cssText=''+cardS+''" onclick="rC(''+item.id+'')">';
+    html+='<div style="'+cardS+'" onclick="rC(\''+item.id+'\')" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,.08)\';this.style.transform=\'translateY(-1px)\';this.style.borderLeftColor=\'#DC1C2E\'" onmouseout="this.style.boxShadow=\'\';this.style.transform=\'\';this.style.borderLeftColor=\'transparent\'">'
     html+='<div style="font-size:24px;margin-bottom:10px">'+item.icon+'</div>';
     html+='<div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:4px">'+item.label+'</div>';
     html+='<div style="font-size:12px;color:#64748b">'+item.desc+'</div>';
