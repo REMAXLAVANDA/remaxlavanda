@@ -421,10 +421,18 @@ const YAPI_BY_EMLAK={
 const SB='https://vfqkmluqjaihpgxhqlqt.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8';
 
-let U=JSON.parse(localStorage.getItem('rmx_u')||'null')||{
+let U={
   admin:{pass:'lavanda2024',pin:'1234',role:'admin',name:'Admin'},
   ofis:{pass:'1234',pin:'5678',role:'ofis',name:'Ofis'}
 };
+// Ayarlardan şifre değişikliği varsa üzerine yaz
+const _savedU=JSON.parse(localStorage.getItem('rmx_u')||'null');
+if(_savedU){
+  if(_savedU.admin?.pass)U.admin.pass=_savedU.admin.pass;
+  if(_savedU.admin?.pin)U.admin.pin=_savedU.admin.pin;
+  if(_savedU.ofis?.pass)U.ofis.pass=_savedU.ofis.pass;
+  if(_savedU.ofis?.pin)U.ofis.pin=_savedU.ofis.pin;
+}
 const _CFG_DEFAULT={
   lSrc:['Sponsorlu','Remax','Selen','Referans','Diğer'],
   rSrc:['Leman','Eren','Secret','Remax','Halk Eğitim','Kariyer','Sahibinden','Seminer','Diğer'],
