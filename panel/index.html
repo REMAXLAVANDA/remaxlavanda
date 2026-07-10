@@ -512,12 +512,19 @@ function wa(t){if(!t)return'';const c=t.replace(/\D/g,'');const n=c.startsWith('
 function opts(a,cur){if(!Array.isArray(a))return'';return a.map(s=>'<option'+(cur===s?' selected':'')+'>'+s+'</option>').join('');}
 
 // LOGIN
-function doLogin(){
+function doLogin(e){
+  if(e&&e.preventDefault)e.preventDefault();
   const u=document.getElementById('lu').value.trim();
   const p=document.getElementById('lpass').value.trim();
-  const r=document.getElementById('rem').checked;
-  if(U[u]&&U[u].pass===p){if(r)localStorage.setItem('rmx_rem',JSON.stringify({u,exp:Date.now()+30*24*60*60*1000}));showPin(u);}
-  else document.getElementById('lerr').textContent='Hatalı kullanıcı adı veya şifre!';
+  const r=document.getElementById('rem')?.checked||false;
+  document.getElementById('lerr').textContent='';
+  if(!u||!p){document.getElementById('lerr').textContent='Kullanıcı adı ve şifre gerekli!';return;}
+  if(U[u]&&U[u].pass===p){
+    if(r)localStorage.setItem('rmx_rem',JSON.stringify({u,exp:Date.now()+30*24*60*60*1000}));
+    showPin(u);
+  } else {
+    document.getElementById('lerr').textContent='Hatalı kullanıcı adı veya şifre!';
+  }
 }
 function chkRem(){const r=JSON.parse(localStorage.getItem('rmx_rem')||'null');if(r&&r.exp>Date.now()&&U[r.u]){const lp=parseInt(localStorage.getItem('rmx_lpin')||'0');if(Date.now()-lp>2*60*60*1000){showPin(r.u);}else{CU={...U[r.u],username:r.u};startApp();}return true;}return false;}
 
@@ -548,11 +555,11 @@ function pok(){
     else{document.getElementById('perr').textContent='PIN hatalı!';pV='';document.getElementById('pi').value='';}
     return;
   }
-  if(U[pU]&&U[pU].pin===pV){document.getElementById('po').classList.remove('show');CU={...U[pU],username:pU};localStorage.setItem('ll_'+pU,new Date().toLocaleString('tr-TR'));localStorage.setItem('rmx_lpin',Date.now().toString());localStorage.setItem('rmx_sess',JSON.stringify({user:CU,ts:Date.now()}));startApp();}
+  if(U[pU]&&U[pU].pin===pV){document.getElementById('po').classList.remove('show');CU={...U[pU],username:pU};localStorage.setItem('ll_'+pU,new Date().toLocaleString('tr-TR'));localStorage.setItem('rmx_lpin',Date.now().toString());localStorage.setItem('rmx_sess',JSON.stringify({user:CU,ts:Date.now()}));localStorage.setItem('lavanda_logged_in','true');localStorage.setItem('lavanda_user',JSON.stringify(CU));startApp();}
   else{document.getElementById('perr').textContent='PIN hatalı!';pV='';document.getElementById('pi').value='';}
 }
 
-function logout(){CU=null;localStorage.removeItem('rmx_rem');localStorage.removeItem('rmx_sess');document.getElementById('app').classList.add('hidden');document.getElementById('lp').classList.remove('hidden');document.getElementById('lu').value='';document.getElementById('lpass').value='';}
+function logout(){CU=null;localStorage.removeItem('rmx_rem');localStorage.removeItem('rmx_sess');localStorage.removeItem('lavanda_logged_in');localStorage.removeItem('lavanda_user');document.getElementById('app').classList.add('hidden');document.getElementById('lp').classList.remove('hidden');document.getElementById('lu').value='';document.getElementById('lpass').value='';}
 
 async function startApp(){
   document.getElementById('lp').classList.add('hidden');document.getElementById('po').classList.remove('show');document.getElementById('app').classList.remove('hidden');
@@ -1079,11 +1086,21 @@ function exp(t){
 (async()=>{
   const isT=await chkToken();
   if(!isT){
-    // 30 dk oturum kontrolü
+    // Kalıcı oturum kontrolü
+    const _li=localStorage.getItem('lavanda_logged_in');
+    const _lu=JSON.parse(localStorage.getItem('lavanda_user')||'null');
+    if(_li==='true'&&_lu){
+      CU=_lu;
+      localStorage.setItem('rmx_sess',JSON.stringify({user:CU,ts:Date.now()}));
+      startApp();
+      return;
+    }
+    // Eski oturum kontrolü (30dk - geriye dönük uyumluluk)
     const _s=JSON.parse(localStorage.getItem('rmx_sess')||'null');
-    if(_s&&Date.now()-_s.ts<1800000){
+    if(_s&&_s.user){
       CU=_s.user;
-      // ts'i yenile (her açılışta süreyi uzat)
+      localStorage.setItem('lavanda_logged_in','true');
+      localStorage.setItem('lavanda_user',JSON.stringify(CU));
       localStorage.setItem('rmx_sess',JSON.stringify({user:CU,ts:Date.now()}));
       startApp();
       return;
