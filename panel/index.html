@@ -4105,13 +4105,15 @@ async function rTakip(c){
     h+='<div class="fgr"><label>Toplantı Adı *</label><input id="tk_toplanti_adi" placeholder="Haftalık toplantı, eğitim..."/></div>';
     h+='<div class="fgr"><label>Tarih *</label><input type="date" id="tk_tarih" value="'+td()+'"/></div>';
     h+='</div>';
-    h+='<div style="margin-top:14px;font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px">Katılım Durumları</div>';
+    h+='<div style="margin-top:14px;font-size:12px;font-weight:600;color:#64748b;margin-bottom:4px">Katılımcılar <span style="font-size:10px;font-weight:400">(sadece dahil edilenler kaydedilir)</span></div>';
+    h+='<div style="display:flex;gap:8px;margin-bottom:8px"><button type="button" class="btn btn-sm btn-g" onclick="document.querySelectorAll(\'.tk-dahil\').forEach(c=>c.checked=true)">Tümünü Seç</button><button type="button" class="btn btn-sm btn-g" onclick="document.querySelectorAll(\'.tk-dahil\').forEach(c=>c.checked=false)">Tümünü Kaldır</button></div>';
     h+='<div id="tk_katilim_list">';
     D.dans.forEach(d=>{
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8fafc">';
+      h+='<input type="checkbox" id="tk_dahil_'+d.id+'" class="tk-dahil" checked style="width:14px;height:14px;cursor:pointer"/>';
       h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:130px;flex-shrink:0">'+d.ad+'</div>';
       h+='<select id="tk_k_'+d.id+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;flex:1">';
-      h+='<option>Katıldı</option><option>Katılmadı</option><option>Mazeretli</option>';
+      h+='<option>Katıldı</option><option>Geç Geldi</option><option>Mazeretli</option><option>Katılmadı</option>';
       h+='</select></div>';
     });
     h+='</div>';
@@ -4298,14 +4300,15 @@ async function svTakipToplanti(){
   const tarih=document.getElementById('tk_tarih')?.value;
   if(!adi||!tarih){document.getElementById('tk_msg').innerHTML='<div class="err-m">Toplantı adı ve tarih zorunlu!</div>';return;}
   try{
-    const kayitlar=D.dans.map(d=>({
+    const kayitlar=D.dans.filter(d=>document.getElementById('tk_dahil_'+d.id)?.checked).map(d=>({
       danisman_ad:d.ad,
       toplanti_adi:adi,
       toplanti_tarihi:tarih,
-      durum:document.getElementById('tk_k_'+d.id)?.value||'Katılmadı'
+      durum:document.getElementById('tk_k_'+d.id)?.value||'Katıldı'
     }));
+    if(!kayitlar.length){document.getElementById('tk_msg').innerHTML='<div class="err-m">En az bir danışman seçin!</div>';return;}
     for(const k of kayitlar)await api('dan_toplanti','POST',k);
-    toast('✅ '+D.dans.length+' danışman kaydedildi');
+    toast('✅ '+kayitlar.length+' danışman kaydedildi');
     await load();rTakip(document.getElementById('ct'));
   }catch(e){document.getElementById('tk_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
