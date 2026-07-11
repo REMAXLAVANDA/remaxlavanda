@@ -4115,7 +4115,7 @@ async function rTakip(c){
       son.forEach(t=>{const k=t.toplanti_adi+'|'+t.toplanti_tarihi;if(!gruplar[k])gruplar[k]={adi:t.toplanti_adi,tarih:t.toplanti_tarihi,kayitlar:[]};gruplar[k].kayitlar.push(t);});
       Object.values(gruplar).slice(0,5).forEach(g=>{
         h+='<div style="margin-bottom:12px;background:#f8fafc;border-radius:10px;padding:10px">';
-        h+='<div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:6px">'+g.adi+' <span style="color:#94a3b8;font-weight:400">'+g.tarih+'</span></div>';
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:12px;font-weight:700;color:#0f172a">'+g.adi+' <span style="color:#94a3b8;font-weight:400">'+g.tarih+'</span></div><button class="btn btn-sm btn-g" onclick="topDuzenle(\''+g.adi+'\',\''+g.tarih+'\')" style="font-size:10px;padding:2px 8px">Düzenle</button></div>';
         g.kayitlar.forEach(t=>{
           const c=t.durum==='Katıldı'?'#1C8C4B':t.durum==='Mazeretli'?'#C9821A':'#DC1C2E';
           h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0">';
@@ -4161,6 +4161,72 @@ async function rTakip(c){
 }
 
 // Toplantı toplu kaydet (tüm danışmanlar tek seferde)
+function topDuzenle(adi, tarih){
+  // Mevcut kayıtları bul
+  const kayitlar=D.danToplanti.filter(t=>t.toplanti_adi===adi&&t.toplanti_tarihi===tarih);
+  const durumMap={};
+  kayitlar.forEach(k=>{durumMap[k.danisman_ad]={id:k.id,durum:k.durum||'Katılmadı'};});
+
+  let h='<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:4px">'+adi+'</div>';
+  h+='<div style="font-size:11px;color:#94a3b8;margin-bottom:16px">'+tarih+'</div>';
+  h+='<div id="top-duz-list">';
+  D.dans.forEach(d=>{
+    const mevcut=durumMap[d.ad]||{id:null,durum:'Katılmadı'};
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f8fafc">';
+    h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:140px;flex-shrink:0">'+d.ad+'</div>';
+    h+='<select id="tduz_'+d.id+'" data-danid="'+d.id+'" data-danad="'+d.ad+'" data-recid="'+(mevcut.id||'')+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;flex:1">';
+    ['Katıldı','Geç Geldi','Mazeretli','Katılmadı'].forEach(s=>{
+      h+='<option'+(mevcut.durum===s?' selected':'')+'>'+s+'</option>';
+    });
+    h+='</select></div>';
+  });
+  h+='</div>';
+  h+='<div id="top-duz-msg" style="margin-top:8px"></div>';
+  h+='<div style="display:flex;gap:8px;margin-top:14px">';
+  h+='<button class="btn btn-p" onclick="topDuzenleKaydet(\''+adi+'\',\''+tarih+'\')">💾 Kaydet</button>';
+  h+='<button class="btn btn-g" onclick="document.getElementById(\'top-duz-modal\').classList.remove(\'show\')">İptal</button>';
+  h+='</div>';
+
+  let modal=document.getElementById('top-duz-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='top-duz-modal';
+    modal.className='mo';
+    modal.innerHTML='<div class="md" style="max-width:500px;max-height:88vh;overflow-y:auto"><div id="top-duz-icerik"></div></div>';
+    document.body.appendChild(modal);
+  }
+  document.getElementById('top-duz-icerik').innerHTML=h;
+  modal.classList.add('show');
+}
+
+async function topDuzenleKaydet(adi, tarih){
+  const msg=document.getElementById('top-duz-msg');
+  msg.innerHTML='<div style="font-size:11px;color:#64748b">Kaydediliyor...</div>';
+  try{
+    const kayitlar=D.danToplanti.filter(t=>t.toplanti_adi===adi&&t.toplanti_tarihi===tarih);
+    const idMap={};
+    kayitlar.forEach(k=>{idMap[k.danisman_ad]=k.id;});
+
+    for(const d of D.dans){
+      const sel=document.getElementById('tduz_'+d.id);
+      if(!sel)continue;
+      const durum=sel.value;
+      const recId=idMap[d.ad];
+      if(recId){
+        await api('dan_toplanti','PATCH',{durum},'id=eq.'+recId);
+      } else {
+        await api('dan_toplanti','POST',{danisman_ad:d.ad,toplanti_adi:adi,toplanti_tarihi:tarih,durum});
+      }
+    }
+    await load(true);
+    toast('✅ Katılım kayıtları güncellendi');
+    document.getElementById('top-duz-modal').classList.remove('show');
+    rTakip(document.getElementById('ct'));
+  }catch(e){
+    msg.innerHTML='<div class="err-m">❌ '+e.message+'</div>';
+  }
+}
+
 async function svTakipToplanti(){
   const adi=document.getElementById('tk_toplanti_adi')?.value.trim();
   const tarih=document.getElementById('tk_tarih')?.value;
