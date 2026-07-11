@@ -5356,93 +5356,97 @@ function rDash2Kokpit(c){
   const rec=D.rec||[];
   const dans=D.dans||[];
   const log=D.log||[];
+  const etk=D.etkinlikler||[];
 
-  // ── Portföy hesapları
-  const pfBugun=leads.filter(l=>l.tarih===toStr).length;
-  const pfHafta=leads.filter(l=>l.tarih>=d7s).length;
-  const pfAktif=leads.filter(l=>!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
-  const pfYetkiBekleyen=leads.filter(l=>l.durum==='Arandı').length;
-  const pfSatilan=leads.filter(l=>l.durum==='Kazanıldı').length;
-  const pfPasif=leads.filter(l=>['Kaybedildi','Kara Liste'].includes(l.durum)).length;
-  const pfAtanmamis=leads.filter(l=>!l.danisman&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
-  const pfGeciken=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
-  const pfBugunAranacak=leads.filter(l=>l.sonraki_takip===toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  // Yönlendirme yardımcısı - filtreyi geçici değişkene yazıp sayfayı aç
+  const git=(sayfa,filFn)=>{
+    rC(sayfa);
+    if(filFn)setTimeout(filFn,200);
+  };
 
-  // ── Recruiting hesapları
-  const recBugun=rec.filter(r=>(r.tarih||r.created_at||'').slice(0,10)===toStr).length;
-  const recHafta=rec.filter(r=>(r.tarih||r.created_at||'').slice(0,10)>=d7s).length;
-  const recBekleyen=rec.filter(r=>r.durum==='Beklemede').length;
+  const secH='font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bd)';
+  const barWrap='display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px';
+  const bar=(renk,baslik,sayi,tikFn)=>{
+    const bg=renk+'18';
+    return '<div onclick="'+tikFn+'" style="flex:1;min-width:120px;cursor:pointer;background:'+bg+';border-left:3px solid '+renk+';border-radius:6px;padding:10px 14px;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">'
+      +'<div style="font-size:20px;font-weight:800;color:'+renk+'">'+sayi+'</div>'
+      +'<div style="font-size:11px;color:#475569;margin-top:2px">'+baslik+'</div>'
+      +'</div>';
+  };
+
+  let h=pageHeader('📊 Yönetim Paneli',new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
+
+  // ── 1. PORTFÖY ──
+  const pfYeni=leads.filter(l=>l.durum==='Arandı'||l.durum==='Sıcak').length;
+  const pfTakip=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip>=toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  const pfYetkiBekleyen=leads.filter(l=>l.durum==='Yetki Bekleyen').length;
+  const pfKazanilan=leads.filter(l=>l.durum==='Kazanıldı').length;
+  const pfKaybedilen=leads.filter(l=>l.durum==='Kaybedildi').length;
+
+  h+='<div style="'+secH+'">PORTFÖY</div>';
+  h+='<div style="'+barWrap+'">';
+  h+=bar('#003DA5','Yeni / Sıcak',pfYeni,"rC('hub_pf');setTimeout(()=>{const el=document.getElementById('sd');if(el){el.value='Sıcak';fL();}},300)");
+  h+=bar('#0891b2','Takipte',pfTakip,"rC('hub_pf')");
+  h+=bar('#C9821A','Yetki Bekleyen',pfYetkiBekleyen,"rC('hub_pf');setTimeout(()=>{const el=document.getElementById('sd');if(el){el.value='Yetki Bekleyen';fL();}},300)");
+  h+=bar('#1C8C4B','Kazanılan',pfKazanilan,"rC('hub_pf');setTimeout(()=>{const el=document.getElementById('sd');if(el){el.value='Kazanıldı';fL();}},300)");
+  h+=bar('#DC1C2E','Kaybedilen',pfKaybedilen,"rC('hub_pf');setTimeout(()=>{const el=document.getElementById('sd');if(el){el.value='Kaybedildi';fL();}},300)");
+  h+='</div>';
+
+  // ── 2. RECRUITING ──
+  const recYeni=rec.filter(r=>r.durum==='Beklemede').length;
   const recGorusme=rec.filter(r=>['1. Görüşme','2. Görüşme','Randevu'].includes(r.durum)).length;
-  const recGorusuldu=rec.filter(r=>r.durum==='Görüşüldü').length;
-  const recOlumlu=rec.filter(r=>r.durum==='Başladı'||r.durum==='Sıcak').length;
+  const recTakip=rec.filter(r=>r.durum==='Sıcak').length;
+  const recOlumlu=rec.filter(r=>r.durum==='Başladı').length;
   const recOlumsuz=rec.filter(r=>r.durum==='Olumsuz'||r.durum==='Kara Liste').length;
 
-  // ── Danışman aktivitesi
-  const danAktivite=dans.map(d=>{
-    const pfBugunku=leads.filter(l=>l.danisman===d.ad&&l.tarih===toStr).length;
-    const recBugunku=rec.filter(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr).length;
-    const toplamAktif=leads.filter(l=>l.danisman===d.ad&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
-    const sonIslem=log.filter(l=>l.yapan===d.ad).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))[0];
-    return {ad:d.ad,pfBugunku,recBugunku,toplamAktif,sonIslem:sonIslem?sonIslem.created_at?.slice(11,16)||'—':'—'};
-  }).filter(d=>d.pfBugunku+d.recBugunku+d.toplamAktif>0).sort((a,b)=>(b.pfBugunku+b.recBugunku)-(a.pfBugunku+a.recBugunku));
-
-  // ── Son işlemler
-  const sonIslemler=log.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).slice(0,20);
-
-  // ── Kart stili
-  const kS='background:#fff;border:1px solid var(--bd);border-radius:10px;padding:12px 14px;';
-  const kV='font-size:22px;font-weight:800;color:var(--dk);line-height:1';
-  const kL='font-size:11px;color:#64748b;margin-top:3px';
-  const secH='font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px';
-  const grid='display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;';
-
-  let h=pageHeader('📊 Yönetim Paneli','Ofis durumu — '+new Date().toLocaleDateString('tr-TR',{weekday:"long",day:"numeric",month:"long"}));
-
-  // 1. Portföy özeti
-  h+='<div style="'+secH+'">PORTFÖY</div>';
-  h+='<div style="'+grid+'">';
-  [{l:'Bugün Girilen',v:pfBugun,r:pfBugun>0?'var(--gn)':'var(--dk)'},{l:'Bu Hafta',v:pfHafta},{l:'Yetki Bekleyen',v:pfYetkiBekleyen},{l:'Aktif',v:pfAktif,r:'var(--blue)'},{l:'Satılan/Kiralanan',v:pfSatilan,r:'var(--gn)'},{l:'Pasif',v:pfPasif}]
-  .forEach(k=>{h+='<div style="'+kS+'"><div style="'+kV+';color:'+(k.r||'var(--dk)')+'">'+k.v+'</div><div style="'+kL+'">'+k.l+'</div></div>';});
-  h+='</div>';
-
-  // 2. Recruiting özeti
   h+='<div style="'+secH+'">RECRUİTİNG</div>';
-  h+='<div style="'+grid+'">';
-  [{l:'Bugün Girilen',v:recBugun,r:recBugun>0?'var(--gn)':'var(--dk)'},{l:'Bu Hafta',v:recHafta},{l:'Bekleyen',v:recBekleyen},{l:'Görüşme Planlanan',v:recGorusme,r:'var(--or)'},{l:'Görüşülen',v:recGorusuldu},{l:'Olumlu',v:recOlumlu,r:'var(--gn)'},{l:'Olumsuz',v:recOlumsuz,r:'var(--red)'}]
-  .forEach(k=>{h+='<div style="'+kS+'"><div style="'+kV+';color:'+(k.r||'var(--dk)')+'">'+k.v+'</div><div style="'+kL+'">'+k.l+'</div></div>';});
+  h+='<div style="'+barWrap+'">';
+  h+=bar('#003DA5','Yeni Aday',recYeni,"rC('hub_rec');setTimeout(()=>{const el=document.getElementById('rd');if(el){el.value='Beklemede';fR();}},300)");
+  h+=bar('#C9821A','Görüşme Planlanan',recGorusme,"rC('hub_rec');setTimeout(()=>{const el=document.getElementById('rd');if(el){el.value='Randevu';fR();}},300)");
+  h+=bar('#0891b2','Takipte',recTakip,"rC('hub_rec');setTimeout(()=>{const el=document.getElementById('rd');if(el){el.value='Sıcak';fR();}},300)");
+  h+=bar('#1C8C4B','Olumlu',recOlumlu,"rC('hub_rec');setTimeout(()=>{const el=document.getElementById('rd');if(el){el.value='Başladı';fR();}},300)");
+  h+=bar('#DC1C2E','Olumsuz',recOlumsuz,"rC('hub_rec');setTimeout(()=>{const el=document.getElementById('rd');if(el){el.value='Olumsuz';fR();}},300)");
   h+='</div>';
 
-  // 3. Danışman aktivitesi
-  h+='<div style="'+secH+'">DANIŞMAN AKTİVİTESİ BUGÜN</div>';
-  if(!danAktivite.length){
-    h+='<div style="'+kS+';color:#94a3b8;font-size:12px">Bugün henüz kayıt girilmemiş.</div>';
-  } else {
-    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden"><table style="width:100%;border-collapse:collapse">';
-    h+='<thead><tr style="background:var(--lg)"><th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:#666">DANIŞMAN</th><th style="padding:8px 12px;text-align:center;font-size:10px;font-weight:700;color:#666">PF BUGÜN</th><th style="padding:8px 12px;text-align:center;font-size:10px;font-weight:700;color:#666">REC BUGÜN</th><th style="padding:8px 12px;text-align:center;font-size:10px;font-weight:700;color:#666">AKTİF KAYIT</th><th style="padding:8px 12px;text-align:center;font-size:10px;font-weight:700;color:#666">SON İŞLEM</th></tr></thead><tbody>';
-    danAktivite.forEach(d=>{
-      h+='<tr style="border-top:1px solid #f5f5f5"><td style="padding:8px 12px;font-size:12px;font-weight:600">'+d.ad+'</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:700;color:'+(d.pfBugunku>0?'var(--gn)':'#ccc')+'">'+d.pfBugunku+'</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:700;color:'+(d.recBugunku>0?'var(--blue)':'#ccc')+'">'+d.recBugunku+'</td><td style="padding:8px 12px;text-align:center;font-size:12px">'+d.toplamAktif+'</td><td style="padding:8px 12px;text-align:center;font-size:11px;color:#94a3b8">'+d.sonIslem+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-  }
+  // ── 3. TAKVİM ──
+  const etkBugun=etk.filter(e=>e.tarih===toStr).length;
+  const pfGeciken=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  const d7son=new Date();d7son.setDate(d7son.getDate()+7);const d7sonS=d7son.toISOString().split('T')[0];
+  const etkYaklasan=etk.filter(e=>e.tarih>toStr&&e.tarih<=d7sonS).length;
 
-  // 4. Günlük takip
-  h+='<div style="'+secH+'">GÜNLÜK TAKİP</div>';
-  h+='<div style="'+grid+'">';
-  [{l:'Bugün Aranacak',v:pfBugunAranacak,r:pfBugunAranacak>0?'var(--or)':'var(--dk)'},{l:'Geciken Takip',v:pfGeciken,r:pfGeciken>0?'var(--red)':'var(--gn)'},{l:'Atanmamış Kayıt',v:pfAtanmamis,r:pfAtanmamis>0?'var(--or)':'var(--dk)'},{l:'Son 24s Eklenen',v:leads.filter(l=>l.tarih===toStr).length+rec.filter(r=>(r.tarih||r.created_at||'').slice(0,10)===toStr).length}]
-  .forEach(k=>{h+='<div style="'+kS+'"><div style="'+kV+';color:'+(k.r||'var(--dk)')+'">'+k.v+'</div><div style="'+kL+'">'+k.l+'</div></div>';});
+  h+='<div style="'+secH+'">TAKVİM & TAKİP</div>';
+  h+='<div style="'+barWrap+'">';
+  h+=bar('#5b21b6','Bugünkü Etkinlikler',etkBugun,"rC('hub_takvim')");
+  h+=bar('#DC1C2E','Geciken Takipler',pfGeciken,"rC('hub_pf');setTimeout(()=>{const el=document.getElementById('sd');if(el){el.value='';fL();}},300)");
+  h+=bar('#0891b2','Yaklaşan (7 gün)',etkYaklasan,"rC('hub_takvim')");
   h+='</div>';
 
-  // 5. Son işlemler
-  h+='<div style="'+secH+'">SON İŞLEMLER</div>';
-  if(!sonIslemler.length){
-    h+='<div style="'+kS+';color:#94a3b8;font-size:12px">Henüz log kaydı yok.</div>';
-  } else {
-    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden"><table style="width:100%;border-collapse:collapse">';
-    h+='<thead><tr style="background:var(--lg)"><th style="padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:#666">SAAT</th><th style="padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:#666">KİM</th><th style="padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:#666">İŞLEM</th><th style="padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:#666">KAYIT</th></tr></thead><tbody>';
+  // ── 4. DANIŞMAN AKTİVİTESİ ──
+  const bugunGiris=Object.keys(localStorage).filter(k=>k.startsWith('ll_')&&localStorage.getItem(k)&&localStorage.getItem(k).includes(new Date().toLocaleDateString('tr-TR').split('.').reverse().join('.'))).length;
+  const bugunKayit=dans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr)).length;
+  const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
+  const uzunSure=dans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
+
+  h+='<div style="'+secH+'">DANIŞMAN AKTİVİTESİ</div>';
+  h+='<div style="'+barWrap+'">';
+  h+=bar('#1C8C4B','Bugün Giriş Yapan',bugunGiris,"rC('hub_yonetim')");
+  h+=bar('#003DA5','Bugün Kayıt Giren',bugunKayit,"rC('hub_skor')");
+  h+=bar('#DC1C2E','30 Gündür İşlem Yok',uzunSure,"rC('hub_skor')");
+  h+='</div>';
+
+  // ── 5. SON İŞLEMLER ──
+  const sonIslemler=log.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).slice(0,10);
+  if(sonIslemler.length){
+    h+='<div style="'+secH+'">SON İŞLEMLER</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
     sonIslemler.forEach(l=>{
-      h+='<tr style="border-top:1px solid #f5f5f5"><td style="padding:6px 12px;font-size:11px;color:#94a3b8;white-space:nowrap">'+(l.created_at||'').slice(0,16).replace('T',' ')+'</td><td style="padding:6px 12px;font-size:12px;font-weight:600">'+(l.yapan||'—')+'</td><td style="padding:6px 12px;font-size:11px">'+(l.aksiyon||'—')+'</td><td style="padding:6px 12px;font-size:11px;color:#64748b">'+(l.tablo||'—')+'</td></tr>';
+      h+='<div style="display:flex;gap:12px;padding:7px 14px;border-bottom:1px solid #f5f5f5;font-size:11px">';
+      h+='<span style="color:#94a3b8;min-width:130px">'+(l.created_at||'').slice(0,16).replace('T',' ')+'</span>';
+      h+='<span style="font-weight:600;min-width:80px">'+(l.yapan||'—')+'</span>';
+      h+='<span style="color:#475569">'+(l.aksiyon||'—')+'</span>';
+      h+='</div>';
     });
-    h+='</tbody></table></div>';
+    h+='</div>';
   }
 
   c.innerHTML=h;
