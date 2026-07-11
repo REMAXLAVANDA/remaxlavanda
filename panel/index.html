@@ -2826,6 +2826,47 @@ function rDanDash(c){
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px;text-align:center;color:#94a3b8;font-size:12px">Önümüzdeki 7 günde etkinlik yok.</div>';
   }
 
+  // Bekleyen mazeret bildirimleri
+  const bekleyenMaz=D.danToplanti.filter(t=>t.danisman_ad===myAd&&t.mazeret_durum==='beklemede');
+  if(bekleyenMaz.length){
+    h+='<div style="'+secH+'">MAZERET BEKLİYOR</div>';
+    h+='<div style="background:#fff8e1;border:1px solid #ffc107;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400e">';
+    h+='<strong>'+bekleyenMaz.length+' mazeret</strong> yönetim onayı bekliyor.';
+    h+='</div>';
+  }
+
+  // GD kendi toplantı katılım durumu - mazeret bildirme
+  const benimTop=D.danToplanti.filter(t=>t.danisman_ad===myAd).slice(0,5);
+  if(benimTop.length){
+    h+='<div style="'+secH+'">TOPLANTI KATILIM DURUMUM</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
+    benimTop.forEach(t=>{
+      const mazDurum=t.mazeret_durum||'yok';
+      const renkC=t.durum==='Katıldı'?'#1C8C4B':t.durum==='Geç Geldi'?'#C9821A':mazDurum==='onaylandi'?'#0891b2':'#DC1C2E';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f5f5">';
+      h+='<div style="flex:1"><div style="font-size:12px;font-weight:600">'+t.toplanti_adi+'</div>';
+      h+='<div style="font-size:10px;color:#94a3b8">'+t.toplanti_tarihi+'</div></div>';
+      h+='<span style="font-size:11px;font-weight:600;color:'+renkC+'">'+durumLbl(t.durum)+'</span>';
+      if((t.durum==='Katılmadı'||t.durum==='Mazeretli')&&mazDurum==='yok'){
+        h+='<button onclick="mazForm(\''+t.id+'\')" style="font-size:10px;background:#EDE9FE;color:#5b21b6;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;margin-left:4px">Mazeret Bildir</button>';
+      } else if(mazDurum==='beklemede'){
+        h+='<span style="font-size:10px;background:#fff8e1;color:#92400e;padding:1px 6px;border-radius:4px;margin-left:4px">Onay Bekleniyor</span>';
+      } else if(mazDurum==='onaylandi'){
+        h+='<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:4px;margin-left:4px">Mazeret Onaylandı</span>';
+      } else if(mazDurum==='reddedildi'){
+        h+='<span style="font-size:10px;background:#fee2e2;color:#DC1C2E;padding:1px 6px;border-radius:4px;margin-left:4px">Mazeret Reddedildi</span>';
+      }
+      h+='</div>';
+      h+='<div id="mazform_'+t.id+'" style="display:none;padding:8px 14px;background:#f8fafc;border-top:1px solid #f1f5f9">';
+      h+='<textarea id="maz_aciklama_'+t.id+'" placeholder="Mazeret açıklamanızı yazın..." style="width:100%;padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;resize:none;height:60px"></textarea>';
+      h+='<div style="display:flex;gap:6px;margin-top:6px">';
+      h+='<button onclick="mazBildir(\''+t.id+'\')" class="btn btn-p btn-sm">Gönder</button>';
+      h+='<button onclick="document.getElementById(\'mazform_'+t.id+'\').style.display=\'none\'" class="btn btn-g btn-sm">İptal</button>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  }
+
   // ── 4. OFİS HAVUZU ──
   if(havuzKayitlar.length){
     h+='<div style="'+secH+'">OFİS HAVUZU <span style="font-weight:400;text-transform:none;font-size:10px">(paylaşılan, size atanmamış)</span></div>';
@@ -3548,8 +3589,8 @@ function initRecDD(){
 function danSkor(d){
   const ad=d.ad;
   // Toplantı disiplini %15
-  const topTum=D.danToplanti.filter(t=>t.danisman_ad===ad);
-  const topKatildi=topTum.filter(t=>t.durum==='Katıldı').length;
+  const topTum=D.danToplanti.filter(t=>t.danisman_ad===ad&&t.mazeret_durum!=='onaylandi');
+  const topKatildi=topTum.filter(t=>t.durum==='Katıldı'||t.durum==='Geç Geldi').length;
   const topPuan=topTum.length>0?Math.round(topKatildi/topTum.length*15):0;
 
   // Eğitim disiplini %15
@@ -4092,6 +4133,8 @@ async function rTakip(c){
   h+=tabBtn('egitim','📚 Eğitim Katılımı');
   h+=tabBtn('memnuniyet','⭐ Müşteri Memnuniyeti');
   h+=tabBtn('rekruting','👤 Recruiting Katkısı');
+  const bekleyenMazSay=D.danToplanti.filter(t=>t.mazeret_durum==='beklemede').length;
+  h+=tabBtn('mazeret','🔔 Mazeret'+(bekleyenMazSay>0?' ('+bekleyenMazSay+')':''));
   h+='</div>';
 
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">';
@@ -4108,7 +4151,7 @@ async function rTakip(c){
     h+='<div style="margin-top:14px;font-size:12px;font-weight:600;color:#64748b;margin-bottom:4px">Katılımcılar <span style="font-size:10px;font-weight:400">(sadece dahil edilenler kaydedilir)</span></div>';
     h+='<div style="display:flex;gap:8px;margin-bottom:8px"><button type="button" class="btn btn-sm btn-g" onclick="document.querySelectorAll(\'.tk-dahil\').forEach(c=>c.checked=true)">Tümünü Seç</button><button type="button" class="btn btn-sm btn-g" onclick="document.querySelectorAll(\'.tk-dahil\').forEach(c=>c.checked=false)">Tümünü Kaldır</button></div>';
     h+='<div id="tk_katilim_list">';
-    D.dans.forEach(d=>{
+    D.dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul').forEach(d=>{
       h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8fafc">';
       h+='<input type="checkbox" id="tk_dahil_'+d.id+'" class="tk-dahil" checked style="width:14px;height:14px;cursor:pointer"/>';
       h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:130px;flex-shrink:0">'+d.ad+'</div>';
@@ -4169,6 +4212,38 @@ async function rTakip(c){
   }
 
   h+='</div>'; // sol form
+
+
+
+  if(tab==='mazeret'){
+    const tümMazeretler=D.danToplanti.filter(t=>t.mazeret_durum&&t.mazeret_durum!=='yok').sort((a,b)=>(b.mazeret_tarihi||'').localeCompare(a.mazeret_tarihi||''));
+    h+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px">🔔 Mazeret Yönetimi</div>';
+    if(!tümMazeretler.length){
+      h+='<div style="text-align:center;color:#94a3b8;font-size:12px;padding:20px">Mazeret bildirimi bulunmuyor.</div>';
+    } else {
+      tümMazeretler.forEach(t=>{
+        const durumRenk=t.mazeret_durum==='onaylandi'?'#1C8C4B':t.mazeret_durum==='reddedildi'?'#DC1C2E':'#C9821A';
+        const durumLblM=t.mazeret_durum==='onaylandi'?'Onaylandı':t.mazeret_durum==='reddedildi'?'Reddedildi':'Beklemede';
+        h+='<div style="background:#f8fafc;border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">';
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+        h+='<div><div style="font-size:12px;font-weight:700;color:#0f172a">'+t.danisman_ad+'</div>';
+        h+='<div style="font-size:11px;color:#64748b">'+t.toplanti_adi+' · '+t.toplanti_tarihi+'</div></div>';
+        h+='<span style="font-size:11px;font-weight:700;background:'+durumRenk+'20;color:'+durumRenk+';padding:2px 8px;border-radius:5px">'+durumLblM+'</span>';
+        h+='</div>';
+        if(t.mazeret_aciklama)h+='<div style="font-size:11px;color:#475569;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;margin-bottom:8px">"'+t.mazeret_aciklama+'"</div>';
+        if(t.mazeret_tarihi)h+='<div style="font-size:10px;color:#94a3b8;margin-bottom:8px">Bildirim: '+t.mazeret_tarihi+'</div>';
+        if(t.mazeret_durum==='beklemede'){
+          h+='<div style="display:flex;gap:8px;margin-bottom:8px">';
+          h+='<button onclick="mazOnayla(\''+t.id+'\')" class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:11px">✓ Onayla</button>';
+          h+='<button onclick="mazReddet(\''+t.id+'\')" class="btn btn-sm" style="background:#fee2e2;color:#DC1C2E;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:11px">✗ Reddet</button>';
+          h+='</div>';
+          h+='<input id="maz_not_'+t.id+'" placeholder="Yönetim notu (isteğe bağlı)" style="width:100%;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;font-size:11px;box-sizing:border-box"/>';
+        }
+        if(t.yonetim_notu)h+='<div style="font-size:10px;color:#64748b;margin-top:4px">Not: '+t.yonetim_notu+'</div>';
+        h+='</div>';
+      });
+    }
+  }
 
   // Sağ: Son kayıtlar
   h+='<div style="background:#fff;border-radius:16px;'+sh+';padding:24px">';
@@ -4242,11 +4317,27 @@ function topDuzenle(adi, tarih){
     const mevcut=durumMap[d.ad]||{id:null,durum:'Katılmadı'};
     h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f8fafc">';
     h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:140px;flex-shrink:0">'+d.ad+'</div>';
-    h+='<select id="tduz_'+d.id+'" data-danid="'+d.id+'" data-danad="'+d.ad+'" data-recid="'+(mevcut.id||'')+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;flex:1">';
+    const mazDurum=mevcut.mazeret_durum||'yok';
+    const mazRenk=mazDurum==='onaylandi'?'#1C8C4B':mazDurum==='reddedildi'?'#DC1C2E':mazDurum==='beklemede'?'#C9821A':'transparent';
+    h+='<div style="flex:1;display:flex;flex-direction:column;gap:4px">';
+    const selectBorder=mazDurum==='onaylandi'?'border:2px solid #C9821A':'border:1px solid var(--bd)';
+    h+='<select id="tduz_'+d.id+'" data-danid="'+d.id+'" data-danad="'+d.ad+'" data-recid="'+(mevcut.id||'')+'" style="padding:3px 6px;'+selectBorder+';border-radius:6px;font-size:11px">';
     ['Katıldı','Geç Geldi','Mazeretli','Katılmadı'].forEach(s=>{
       h+='<option'+(mevcut.durum===s?' selected':'')+'>'+s+'</option>';
     });
-    h+='</select></div>';
+    h+='</select>';
+    if(mazDurum!=='yok'){
+      h+='<div style="display:flex;gap:4px;align-items:center">';
+      h+='<span style="font-size:10px;background:'+mazRenk+'20;color:'+mazRenk+';padding:1px 6px;border-radius:4px;font-weight:600">Mazeret: '+(mazDurum==='onaylandi'?'Onaylandı':mazDurum==='reddedildi'?'Reddedildi':'Beklemede')+'</span>';
+      if(mazDurum==='onaylandi')h+='<span style="font-size:10px;color:#C9821A">⚠ Onaylı mazeret — değiştirmek için bilinçli seçin</span>';
+      if(mevcut.id&&mazDurum==='beklemede'){
+        h+='<button onclick="mazOnayla(\''+mevcut.id+'\')" style="font-size:10px;background:#dcfce7;color:#15803d;border:none;border-radius:4px;padding:1px 6px;cursor:pointer">✓ Onayla</button>';
+        h+='<button onclick="mazReddet(\''+mevcut.id+'\')" style="font-size:10px;background:#fee2e2;color:#DC1C2E;border:none;border-radius:4px;padding:1px 6px;cursor:pointer">✗ Reddet</button>';
+      }
+      h+='</div>';
+      if(mevcut.mazeret_aciklama)h+='<div style="font-size:10px;color:#64748b;font-style:italic">"'+mevcut.mazeret_aciklama+'"</div>';
+    }
+    h+='</div></div>';
   });
   h+='</div>';
   h+='<div id="top-duz-msg" style="margin-top:8px"></div>';
@@ -4265,6 +4356,45 @@ function topDuzenle(adi, tarih){
   }
   document.getElementById('top-duz-icerik').innerHTML=h;
   modal.classList.add('show');
+}
+
+function mazForm(recId){
+  const el=document.getElementById('mazform_'+recId);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+async function mazOnayla(recId){
+  try{
+    const not=document.getElementById('maz_not_'+recId)?.value||'';
+    await api('dan_toplanti','PATCH',{mazeret_durum:'onaylandi',yonetim_notu:not||null},'id=eq.'+recId);
+    await load(true);
+    toast('✅ Mazeret onaylandı');
+    const modal=document.getElementById('top-duz-modal');
+    if(modal)modal.classList.remove('show');
+    rTakip(document.getElementById('ct'));
+  }catch(e){alert('Hata: '+e.message);}
+}
+
+async function mazReddet(recId){
+  try{
+    const not=document.getElementById('maz_not_'+recId)?.value||'';
+    await api('dan_toplanti','PATCH',{mazeret_durum:'reddedildi',yonetim_notu:not||null},'id=eq.'+recId);
+    await load(true);
+    toast('❌ Mazeret reddedildi');
+    const modal=document.getElementById('top-duz-modal');
+    if(modal)modal.classList.remove('show');
+    rTakip(document.getElementById('ct'));
+  }catch(e){alert('Hata: '+e.message);}
+}
+
+async function mazBildir(recId){
+  const aciklama=document.getElementById('maz_aciklama_'+recId)?.value.trim();
+  if(!aciklama){alert('Mazeret açıklaması zorunlu!');return;}
+  try{
+    await api('dan_toplanti','PATCH',{mazeret_aciklama:aciklama,mazeret_durum:'beklemede',mazeret_tarihi:td()},'id=eq.'+recId);
+    await load(true);
+    toast('📨 Mazeret bildirildi, yönetim onayı bekleniyor');
+  }catch(e){alert('Hata: '+e.message);}
 }
 
 async function topDuzenleKaydet(adi, tarih){
@@ -4300,7 +4430,7 @@ async function svTakipToplanti(){
   const tarih=document.getElementById('tk_tarih')?.value;
   if(!adi||!tarih){document.getElementById('tk_msg').innerHTML='<div class="err-m">Toplantı adı ve tarih zorunlu!</div>';return;}
   try{
-    const kayitlar=D.dans.filter(d=>document.getElementById('tk_dahil_'+d.id)?.checked).map(d=>({
+    const kayitlar=D.dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul'&&document.getElementById('tk_dahil_'+d.id)?.checked).map(d=>({
       danisman_ad:d.ad,
       toplanti_adi:adi,
       toplanti_tarihi:tarih,
