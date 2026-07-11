@@ -804,8 +804,8 @@ function rRec(c){
   const adEv=D.rec.filter(r=>r.randevu_tarihi===todS&&!r.randevu_saati);
   const dLbl=calDt.toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'short'});
   let h='<div class="rec-lay"><div>';
-  if(isA)h+='<div class="th"><div class="tt">👥 Recruiting ('+D.rec.length+')</div><div class="ta"><button class="btn btn-p" onclick="sRF()">+ Yeni</button><button class="btn btn-g" onclick="exp(\'r\')">📥 CSV</button></div></div>';
-  h+='<div id="rfw" class="'+(isA?'hidden ':'')+'fw"><h3>'+(isA?'Yeni Aday':'➕ Yeni Aday Ekle')+'</h3>';
+  if(isA)h+='<div class="th"><div class="tt">👥 Recruiting ('+D.rec.length+')</div><div class="ta"><button class="btn btn-g" onclick="exp(\'r\')">📥 CSV</button></div></div>';
+  h+='<div id="rfw" class="'fw"><h3>'+(isA?'Yeni Aday':'➕ Yeni Aday Ekle')+'</h3>';
   h+='<div id="rdw"></div>';
   h+='<div class="fg">';
   h+='<div class="fgr"><label>Ad Soyad *</label><input id="r_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value);dupC(this.value,\'r\')"/></div>';
