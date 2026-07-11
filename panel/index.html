@@ -1962,69 +1962,101 @@ function goToday2(){window._calDt2=new Date();rTakvim(document.getElementById('c
 function setCalFiltre(f){window._calFiltre=f;rTakvim(document.getElementById('ct'));}
 
 function etkDetay(id, tip){
-  // Doğum günü veya yetersiz id ise atla
-  if(!id||String(id).startsWith('dg_')){return;}
-
-  let etk=null;
-  if(tip==='rec'){
-    etk=D.rec.find(r=>r.id===id);
-  } else {
-    etk=(D.etkinlikler||[]).find(e=>e.id===id);
-  }
-
+  if(!id||String(id).startsWith('dg_'))return;
+  let etk=tip==='rec'?D.rec.find(r=>r.id===id):(D.etkinlikler||[]).find(e=>e.id===id);
   const isAdmin=CU.role==='admin'||CU.role==='ofis';
   const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','randevu':'#5b21b6','etkinlik':'#0891b2','görev':'#64748b','dogumgunu':'#e91e8c','recruiting':'#0f766e'};
-
   let modal=document.getElementById('etk-detay-modal');
   if(!modal){
-    modal=document.createElement('div');
-    modal.id='etk-detay-modal';
-    modal.className='mo';
-    modal.innerHTML='<div class="md" style="max-width:460px"><div id="etk-detay-icerik"></div></div>';
+    modal=document.createElement('div');modal.id='etk-detay-modal';modal.className='mo';
+    modal.innerHTML='<div class="md" style="max-width:480px;max-height:90vh;overflow-y:auto"><div id="etk-detay-icerik"></div></div>';
     document.body.appendChild(modal);
   }
-
-  let h='';
   if(!etk){
-    h='<div style="padding:20px;text-align:center;color:#94a3b8">Etkinlik verisi bulunamadı.</div>';
-    h+='<div style="padding:0 0 12px;text-align:right"><button class="btn btn-g btn-sm" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')">Kapat</button></div>';
-    document.getElementById('etk-detay-icerik').innerHTML=h;
-    modal.classList.add('show');
-    return;
+    document.getElementById('etk-detay-icerik').innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">Etkinlik verisi bulunamadı.</div><div style="text-align:right;padding-bottom:12px"><button class="btn btn-g btn-sm" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')">Kapat</button></div>';
+    modal.classList.add('show');return;
   }
+  etkDetayGoster(id,tip,etk,modal,turR,isAdmin);
+}
 
+function etkDetayGoster(id,tip,etk,modal,turR,isAdmin){
   const tur=etk.tur||etk.tip||'etkinlik';
   const rk=turR[tur]||'#666';
   const baslik=etk.baslik||etk.ad||'—';
   const tarih=etk.tarih||etk.randevu_tarihi||'—';
-  const saat=etk.saat||etk.randevu_saati||'';
+  const saat=(etk.saat||etk.randevu_saati||'').slice(0,5);
   const aciklama=etk.aciklama||etk.not||'';
-  const ilgili=etk.olusturan||etk.danisman||etk.danisman_ad||'';
+  const ilgili=etk.hedef||etk.olusturan||etk.danisman||'';
   const durum=etk.durum||'';
-
-  h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
-  h+='<div style="width:4px;height:40px;background:'+rk+';border-radius:2px"></div>';
-  h+='<div><div style="font-size:15px;font-weight:800;color:#0f172a">'+baslik+'</div>';
-  h+='<div style="font-size:11px;color:'+rk+';font-weight:600;margin-top:2px">'+tur.charAt(0).toUpperCase()+tur.slice(1)+'</div></div></div>';
-
+  const olusturan=etk.olusturan||'';
   const s=(lbl,val)=>val?'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:12px"><span style="color:#64748b">'+lbl+'</span><span style="font-weight:600;color:#0f172a">'+val+'</span></div>':'';
-  h+=s('Tarih', tarih);
-  h+=s('Saat', saat?saat.slice(0,5):'');
-  h+=s('İlgili Kişi', ilgili);
-  h+=s('Durum', durum);
-  if(aciklama)h+='<div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;font-size:11px;color:#475569">'+aciklama+'</div>';
+
+  let h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">';
+  h+='<div style="width:4px;height:40px;background:'+rk+';border-radius:2px;flex-shrink:0"></div>';
+  h+='<div style="flex:1"><div style="font-size:15px;font-weight:800;color:#0f172a">'+baslik+'</div>';
+  h+='<div style="font-size:11px;color:'+rk+';font-weight:600;margin-top:2px">'+tur.charAt(0).toUpperCase()+tur.slice(1)+'</div></div>';
+  h+='<button onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:18px;padding:4px">✕</button></div>';
+  h+=s('Tarih',tarih);h+=s('Saat',saat);h+=s('Hedef / İlgili',ilgili);h+=s('Durum',durum);h+=s('Oluşturan',olusturan);
+  if(aciklama)h+='<div style="margin-top:8px;padding:8px 10px;background:#f8fafc;border-radius:6px;font-size:11px;color:#475569;line-height:1.5">'+aciklama+'</div>';
+
+  // GD — toplantısıysa mazeret butonu
+  if(!isAdmin&&tip!=='rec'&&tur==='toplantı'){
+    const myAd=CU.danAd||CU.name||'';
+    const bk=(D.danToplanti||[]).find(t=>t.toplanti_adi===baslik&&t.toplanti_tarihi===tarih&&t.danisman_ad===myAd);
+    if(bk&&(bk.mazeret_durum==='yok'||!bk.mazeret_durum)){
+      h+='<div id="maz-etk-form" style="display:none;margin-top:10px">';
+      h+='<textarea id="maz_etk_ac" placeholder="Mazeret açıklaması..." style="width:100%;padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;resize:none;height:60px;box-sizing:border-box"></textarea>';
+      h+='<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-p btn-sm" onclick="mazBildir(\''+bk.id+'\')">Gönder</button><button class="btn btn-g btn-sm" onclick="document.getElementById(\'maz-etk-form\').style.display=\'none\'">İptal</button></div></div>';
+      h+='<button class="btn btn-sm" style="margin-top:10px;background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:10px" onclick="document.getElementById(\'maz-etk-form\').style.display=\'block\'">🙋 Mazeret Bildir</button>';
+    }
+  }
 
   h+='<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">';
-  h+='<button class="btn btn-g btn-sm" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')">Kapat</button>';
   if(isAdmin&&tip!=='rec'){
-    h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 12px;cursor:pointer" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\');doE(\'etkinlikler\',\''+id+'\')">✏️ Düzenle</button>';
-    h+='<button class="btn btn-sm btn-r" onclick="if(confirm(\'Silinsin mi?\'))delEtkinlik(\''+id+'\')">🗑 Sil</button>';
+    h+='<button class="btn btn-sm btn-r" onclick="if(confirm(\'Silinsin mi?\'))delEtkinlik(\''+id+'\')">🗑</button>';
+    h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:10px" onclick="etkDetayDuzenle(\''+id+'\')">✏️ Düzenle</button>';
   }
-  h+='</div>';
+  h+='<button class="btn btn-g btn-sm" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')">Kapat</button></div>';
 
   document.getElementById('etk-detay-icerik').innerHTML=h;
-  modal.classList.add('show');
+  if(modal)modal.classList.add('show');
 }
+
+function etkDetayDuzenle(id){
+  const etk=(D.etkinlikler||[]).find(e=>e.id===id);
+  if(!etk)return;
+  const turler=['toplantı','eğitim','randevu','etkinlik','görev'];
+  const hedefler=['tum_ofis','secili',...(D.dans||[]).map(d=>d.ad)];
+  let h='<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:12px">✏️ Etkinlik Düzenle</div>';
+  h+='<div class="fg">';
+  h+='<div class="fgr"><label>Başlık *</label><input id="etk_e_baslik" value="'+(etk.baslik||'')+'" style="width:100%"/></div>';
+  h+='<div class="fgr"><label>Tür</label><select id="etk_e_tur" style="width:100%">'+turler.map(t=>'<option'+(etk.tur===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  h+='<div class="fgr"><label>Tarih</label><input type="date" id="etk_e_tarih" value="'+(etk.tarih||'')+'" style="width:100%"/></div>';
+  h+='<div class="fgr"><label>Saat</label><input type="time" id="etk_e_saat" value="'+(etk.saat||'')+'" style="width:100%"/></div>';
+  h+='<div class="fgr"><label>Hedef</label><select id="etk_e_hedef" style="width:100%">'+hedefler.map(hv=>'<option'+(etk.hedef===hv?' selected':'')+'>'+hv+'</option>').join('')+'</select></div>';
+  h+='<div class="fgr"><label>Durum</label><select id="etk_e_durum" style="width:100%"><option value="">—</option>'+['Planlandı','Tamamlandı','İptal'].map(sv=>'<option'+(etk.durum===sv?' selected':'')+'>'+sv+'</option>').join('')+'</select></div>';
+  h+='</div>';
+  h+='<div class="fgr" style="margin-top:6px"><label>Açıklama</label><textarea id="etk_e_aciklama" style="width:100%;height:70px;padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;resize:none;box-sizing:border-box">'+(etk.aciklama||'')+'</textarea></div>';
+  h+='<div id="etk_e_msg" style="margin-top:6px"></div>';
+  h+='<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">';
+  h+='<button class="btn btn-g btn-sm" onclick="etkDetay(\''+id+'\',\'etkinlik\')">← Geri</button>';
+  h+='<button class="btn btn-p btn-sm" onclick="etkDetayKaydet(\''+id+'\')">💾 Kaydet</button></div>';
+  document.getElementById('etk-detay-icerik').innerHTML=h;
+}
+
+async function etkDetayKaydet(id){
+  const baslik=document.getElementById('etk_e_baslik')?.value.trim();
+  if(!baslik){document.getElementById('etk_e_msg').innerHTML='<div class="err-m">Başlık zorunlu!</div>';return;}
+  const guncelle={baslik,tur:document.getElementById('etk_e_tur')?.value||'etkinlik',tarih:document.getElementById('etk_e_tarih')?.value||null,saat:document.getElementById('etk_e_saat')?.value||null,hedef:document.getElementById('etk_e_hedef')?.value||null,durum:document.getElementById('etk_e_durum')?.value||null,aciklama:document.getElementById('etk_e_aciklama')?.value.trim()||null};
+  try{
+    await api('etkinlikler','PATCH',guncelle,'id=eq.'+id);
+    await load(true);
+    toast('✅ Etkinlik güncellendi');
+    document.getElementById('etk-detay-modal').classList.remove('show');
+    rTakvim(document.getElementById('ct'));
+  }catch(e){document.getElementById('etk_e_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
 
 async function svEtkinlik(){
   const b=document.getElementById('ef_b').value.trim();
