@@ -2456,7 +2456,7 @@ function rYonetim(c){
   h+='<div class="ss2" style="margin-bottom:0">';
   h+='<div class="th" style="margin-bottom:12px"><div class="tt">Danışmanlar ('+D.dans.length+')</div><div class="ta"><button class="btn btn-p btn-sm" onclick="sDanF()">+ Yeni Danışman</button></div></div>';
   h+='<div id="danfw" class="hidden fw" style="margin-bottom:12px"><h3>Yeni Danışman</h3>';
-  h+='<div class="fg"><div class="fgr"><label>Ad Soyad *</label><input id="f_dan_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>PIN (4 hane) *</label><input id="f_dan_pin" maxlength="4" placeholder="Örn: 1234"/></div></div>';
+  h+='<div class="fg"><div class="fgr"><label>Ad Soyad *</label><input id="f_dan_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>PIN (4 hane) *</label><input id="f_dan_pin" maxlength="4" placeholder="Örn: 1234"/></div><div class="fgr"><label>Kullanıcı Tipi</label><select id="f_dan_tip"><option value="gayrimenkul">Gayrimenkul Danışmanı</option><option value="ofis_personeli">Ofis Personeli</option><option value="broker">Broker</option></select></div></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svDan()">Token Oluştur & Kaydet</button><button class="btn btn-g" onclick="hDanF()">İptal</button></div>';
   h+='<div id="qdm"></div></div>';
   h+='<div class="tw"><table><thead><tr><th>Ad</th><th>PIN</th><th>Başlangıç</th><th>Atanan</th><th>Kazan.</th><th>Oran</th><th>Link</th><th></th></tr></thead><tbody>';
@@ -2467,6 +2467,7 @@ function rYonetim(c){
     const sonGiris=localStorage.getItem('ll_'+d.token)||'—';
     return '<tr>'
       +'<td><strong>'+d.ad+'</strong>'+(!(d.aktif??true)?'<span style="margin-left:4px;background:#fee2e2;color:#DC1C2E;padding:1px 5px;border-radius:6px;font-size:9px">Pasif</span>':'')+'</td>'
+      +'<td style="font-size:11px"><select onchange="danTipGuncelle(\''+d.id+'\',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px"><option value="gayrimenkul"'+(( d.kullanici_tipi||'gayrimenkul')==='gayrimenkul'?' selected':'')+'>GD</option><option value="ofis_personeli"'+((d.kullanici_tipi==='ofis_personeli')?' selected':'')+'>Ofis</option><option value="broker"'+((d.kullanici_tipi==='broker')?' selected':'')+'>Broker</option></select></td>'
       +'<td>'+(CU.role==='admin'?'<code>'+(d.pin||'—')+'</code>':'<span style="color:#ccc">***</span>')+'</td>'
       +'<td style="font-size:11px;color:#94a3b8">'+(d.giris_tarihi||'—')+'</td>'
       +'<td>'+ml.length+'</td>'
@@ -2565,11 +2566,19 @@ async function svDan(){
   const pin=document.getElementById('f_dan_pin').value.trim();
   if(!ad||!pin||pin.length!==4){document.getElementById('qdm').innerHTML='<div class="err-m">Ad ve 4 haneli PIN zorunlu!</div>';return;}
   try{
-    await api('danismanlar','POST',{ad:ad,token:gTok(),pin:pin});
+    const tip=document.getElementById('f_dan_tip')?.value||'gayrimenkul';
+    await api('danismanlar','POST',{ad:ad,token:gTok(),pin:pin,kullanici_tipi:tip});
     document.getElementById('qdm').innerHTML='<div class="ok-m">✅ '+ad+' eklendi!</div>';
     await load();
     setTimeout(()=>{hDanF();rDans(document.getElementById('ct'));},1000);
   }catch(e){document.getElementById('qdm').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+
+async function danTipGuncelle(id,tip){
+  try{
+    await api('danismanlar','PATCH',{kullanici_tipi:tip},'id=eq.'+id);
+    await load(true);
+  }catch(e){alert('Hata: '+e.message);}
 }
 
 async function delDan(id,ad){
@@ -3607,7 +3616,8 @@ async function rSkorboard(c){
   }
 
   // Danışman skor tablosu
-  const skorSirali=D.dans.map(d=>{
+  const gdDans=(D.dans||[]).filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
+  const skorSirali=gdDans.map(d=>{
     const s=danSkor(d);
     const ilkIslemGun=d.giris_tarihi&&!d.ilk_islem_tarihi?Math.floor((Date.now()-new Date(d.giris_tarihi).getTime())/86400000):null;
     return {d,s,ilkIslemGun};
@@ -5422,10 +5432,11 @@ function rDash2Kokpit(c){
   h+='</div>';
 
   // ── 4. DANIŞMAN AKTİVİTESİ ──
+  const gdDans=dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
   const bugunGiris=Object.keys(localStorage).filter(k=>k.startsWith('ll_')&&localStorage.getItem(k)&&localStorage.getItem(k).includes(new Date().toLocaleDateString('tr-TR').split('.').reverse().join('.'))).length;
-  const bugunKayit=dans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr)).length;
+  const bugunKayit=gdDans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr)).length;
   const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
-  const uzunSure=dans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
+  const uzunSure=gdDans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
 
   h+='<div style="'+secH+'">DANIŞMAN AKTİVİTESİ</div>';
   h+='<div style="'+barWrap+'">';
