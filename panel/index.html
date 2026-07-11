@@ -4465,7 +4465,7 @@ async function rTakip(c){
     h+='<div id="tk_katilim_list">';
     D.dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul').forEach(d=>{
       h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8fafc">';
-      h+='<input type="checkbox" id="tk_dahil_'+d.id+'" class="tk-dahil" checked style="width:14px;height:14px;cursor:pointer"/>';
+      h+='<input type="checkbox" id="tk_dahil_'+d.id+'" class="tk-dahil" style="width:14px;height:14px;cursor:pointer"/>';
       h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:130px;flex-shrink:0">'+d.ad+'</div>';
       h+='<select id="tk_k_'+d.id+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:6px;font-size:11px;flex:1">';
       h+='<option>Katıldı</option><option>Geç Geldi</option><option>Mazeretli</option><option>Katılmadı</option>';
@@ -4625,15 +4625,17 @@ function topDuzenle(adi, tarih){
   let h='<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:4px">'+adi+'</div>';
   h+='<div style="font-size:11px;color:#94a3b8;margin-bottom:16px">'+tarih+'</div>';
   h+='<div id="top-duz-list">';
-  D.dans.forEach(d=>{
-    const mevcut=durumMap[d.ad]||{id:null,durum:'Katılmadı'};
+  D.dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul').forEach(d=>{
+    const mevcut=durumMap[d.ad]||{id:null,durum:'Katıldı'};
+    const dahil=!!durumMap[d.ad]; // sadece kaydı olanlar seçili
     h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f8fafc">';
-    h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:140px;flex-shrink:0">'+d.ad+'</div>';
+    h+='<input type="checkbox" id="tduz_dahil_'+d.id+'" class="tduz-dahil"'+(dahil?' checked':'')+' style="width:14px;height:14px;cursor:pointer" onchange="const sel=document.getElementById(\'tduz_'+d.id+'\');if(sel)sel.disabled=!this.checked"/>';
+    h+='<div style="font-size:12px;font-weight:600;color:#0f172a;width:130px;flex-shrink:0">'+d.ad+'</div>';
     const mazDurum=mevcut.mazeret_durum||'yok';
     const mazRenk=mazDurum==='onaylandi'?'#1C8C4B':mazDurum==='reddedildi'?'#DC1C2E':mazDurum==='beklemede'?'#C9821A':'transparent';
     h+='<div style="flex:1;display:flex;flex-direction:column;gap:4px">';
     const selectBorder=mazDurum==='onaylandi'?'border:2px solid #C9821A':'border:1px solid var(--bd)';
-    h+='<select id="tduz_'+d.id+'" data-danid="'+d.id+'" data-danad="'+d.ad+'" data-recid="'+(mevcut.id||'')+'" style="padding:3px 6px;'+selectBorder+';border-radius:6px;font-size:11px">';
+    h+='<select id="tduz_'+d.id+'" data-danid="'+d.id+'" data-danad="'+d.ad+'" data-recid="'+(mevcut.id||'')+'" style="padding:3px 6px;'+selectBorder+';border-radius:6px;font-size:11px"'+(dahil?'':' disabled')+'>'; 
     ['Katıldı','Geç Geldi','Mazeretli','Katılmadı'].forEach(s=>{
       h+='<option'+(mevcut.durum===s?' selected':'')+'>'+s+'</option>';
     });
@@ -4719,14 +4721,20 @@ async function topDuzenleKaydet(adi, tarih){
 
     for(const d of D.dans){
       const sel=document.getElementById('tduz_'+d.id);
+      const dahilCb=document.getElementById('tduz_dahil_'+d.id);
       if(!sel)continue;
+      const dahil=dahilCb?dahilCb.checked:!!idMap[d.ad];
       const durum=sel.value;
       const recId=idMap[d.ad];
-      if(recId){
-        await api('dan_toplanti','PATCH',{durum},'id=eq.'+recId);
-      } else {
-        await api('dan_toplanti','POST',{danisman_ad:d.ad,toplanti_adi:adi,toplanti_tarihi:tarih,durum});
+      if(dahil){
+        // Dahil edildi: mevcut kaydı güncelle veya yeni ekle
+        if(recId){
+          await api('dan_toplanti','PATCH',{durum},'id=eq.'+recId);
+        } else {
+          await api('dan_toplanti','POST',{danisman_ad:d.ad,toplanti_adi:adi,toplanti_tarihi:tarih,durum});
+        }
       }
+      // Dahil edilmedi: eski kayıt varsa silme, sadece yeni ekleme
     }
     await load(true);
     toast('✅ Katılım kayıtları güncellendi');
@@ -5945,48 +5953,70 @@ function rDash2Kokpit(c){
   const log=(D.log||[]).filter(l=>(l.created_at||'').slice(0,10)>=_df&&(l.created_at||'').slice(0,10)<=_dt);
   const etk=(D.etkinlikler||[]).filter(e=>(e.tarih||'').slice(0,10)>=_df&&(e.tarih||'').slice(0,10)<=_dt);
 
-  const secH='font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bd)';
-  const barWrap='display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px';
+  // Hesaplamalar
+  const pfGeciken=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  const pfBugunAranacak=leads.filter(l=>l.sonraki_takip===toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  const pfYetkiBekleyen=leads.filter(l=>l.durum==='Yetki Bekleyen').length;
+  const pfTakip=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip>=toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  const pfYeni=leads.filter(l=>l.durum==='Arandı'||l.durum==='Sıcak').length;
+  const pfKazanilan=leads.filter(l=>l.durum==='Kazanıldı').length;
+  const pfKaybedilen=leads.filter(l=>l.durum==='Kaybedildi').length;
+  const recYeni=rec.filter(r=>r.durum==='Beklemede').length;
+  const recGorusme=rec.filter(r=>['1. Görüşme','2. Görüşme','Randevu'].includes(r.durum)).length;
+  const recTakip=rec.filter(r=>r.durum==='Sıcak').length;
+  const recOlumlu=rec.filter(r=>r.durum==='Başladı').length;
+  const recOlumsuz=rec.filter(r=>r.durum==='Olumsuz'||r.durum==='Kara Liste').length;
+  const etkBugun=etk.filter(e=>e.tarih===toStr).length;
+  const d7son=new Date();d7son.setDate(d7son.getDate()+7);const d7sonS=d7son.toISOString().split('T')[0];
+  const etkYaklasan=etk.filter(e=>e.tarih>toStr&&e.tarih<=d7sonS).length;
+  const gdDans=dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
+  const bugunKayit=gdDans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr)).length;
+  const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
+  const uzunSure=gdDans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
 
-  // Bar - onclick artık dashDetay çağırıyor
+  const secH='font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.7px;margin:14px 0 6px;padding-bottom:3px;border-bottom:2px solid var(--bd)';
+  const barWrap='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px';
+
   const bar=(renk,baslik,sayi,tip,filtre)=>{
-    const bg=renk+'18';
-    return '<div onclick="dashDetay(\''+tip+'\',\''+filtre+'\')" style="flex:1;min-width:120px;cursor:pointer;background:'+bg+';border-left:3px solid '+renk+';border-radius:6px;padding:10px 14px" onmouseover="this.style.opacity=.8" onmouseout="this.style.opacity=1">'
-      +'<div style="font-size:20px;font-weight:800;color:'+renk+'">'+sayi+'</div>'
-      +'<div style="font-size:11px;color:#475569;margin-top:2px">'+baslik+'</div>'
+    const bg=renk+'15';
+    return '<div onclick="dashDetay(\''+tip+'\',\''+filtre+'\')" style="flex:1;min-width:100px;cursor:pointer;background:'+bg+';border-left:3px solid '+renk+';border-radius:6px;padding:7px 12px" onmouseover="this.style.opacity=.8" onmouseout="this.style.opacity=1">'
+      +'<div style="font-size:18px;font-weight:800;color:'+renk+'">'+sayi+'</div>'
+      +'<div style="font-size:10px;color:#475569;margin-top:1px;white-space:nowrap">'+baslik+'</div>'
       +'</div>';
   };
 
   let h=pageHeader('📊 Yönetim Paneli',new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
   h+=dateFilterBar("rDash2Kokpit(document.getElementById('ct'))");
 
-  // ── 1. PORTFÖY ──
-  const pfYeni=leads.filter(l=>l.durum==='Arandı'||l.durum==='Sıcak').length;
-  const pfTakip=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip>=toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
-  const pfYetkiBekleyen=leads.filter(l=>l.durum==='Yetki Bekleyen').length;
-  const pfKazanilan=leads.filter(l=>l.durum==='Kazanıldı').length;
-  const pfKaybedilen=leads.filter(l=>l.durum==='Kaybedildi').length;
-  const pfGeciken=leads.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
-  const pfBugunAranacak=leads.filter(l=>l.sonraki_takip===toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum)).length;
+  // ── 0. BUGÜN DİKKAT GEREKTİRENLER ──
+  const uyarilar=[];
+  if(pfGeciken>0)uyarilar.push({renk:'#DC1C2E',ikon:'🔴',lbl:'Geciken Takip',sayi:pfGeciken,tip:'lead',filtre:'geciken'});
+  if(pfBugunAranacak>0)uyarilar.push({renk:'#C9821A',ikon:'🟠',lbl:'Bugün Aranacak',sayi:pfBugunAranacak,tip:'lead',filtre:'bugun'});
+  if(pfYetkiBekleyen>0)uyarilar.push({renk:'#C9821A',ikon:'🟡',lbl:'Yetki Bekleyen',sayi:pfYetkiBekleyen,tip:'lead',filtre:'Yetki Bekleyen'});
+  if(etkBugun>0)uyarilar.push({renk:'#003DA5',ikon:'🔵',lbl:'Bugün Etkinlik',sayi:etkBugun,tip:'etk',filtre:'bugun'});
+  if(recYeni>0)uyarilar.push({renk:'#1C8C4B',ikon:'🟢',lbl:'Yeni Aday',sayi:recYeni,tip:'rec',filtre:'Beklemede'});
 
+  if(uyarilar.length){
+    h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;padding:8px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px">';
+    uyarilar.forEach(u=>{
+      h+='<span onclick="dashDetay(\''+u.tip+'\',\''+u.filtre+'\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:'+u.renk+';white-space:nowrap;padding:2px 6px;border-radius:4px;background:'+u.renk+'12">'+u.ikon+' '+u.lbl+': <strong>'+u.sayi+'</strong></span>';
+    });
+    h+='</div>';
+  }
+
+  // ── 1. PORTFÖY (önce aksiyon, sonra sonuç) ──
   h+='<div style="'+secH+'">PORTFÖY</div>';
   h+='<div style="'+barWrap+'">';
-  h+=bar('#003DA5','Yeni / Sıcak',pfYeni,'lead','yeni');
-  h+=bar('#0891b2','Takipte',pfTakip,'lead','takip');
-  h+=bar('#C9821A','Yetki Bekleyen',pfYetkiBekleyen,'lead','Yetki Bekleyen');
-  h+=bar('#1C8C4B','Kazanılan',pfKazanilan,'lead','Kazanıldı');
-  h+=bar('#DC1C2E','Kaybedilen',pfKaybedilen,'lead','Kaybedildi');
   h+=bar('#DC1C2E','Geciken Takip',pfGeciken,'lead','geciken');
   h+=bar('#5b21b6','Bugün Aranacak',pfBugunAranacak,'lead','bugun');
+  h+=bar('#C9821A','Yetki Bekleyen',pfYetkiBekleyen,'lead','Yetki Bekleyen');
+  h+=bar('#0891b2','Takipte',pfTakip,'lead','takip');
+  h+=bar('#003DA5','Yeni / Sıcak',pfYeni,'lead','yeni');
+  h+=bar('#1C8C4B','Kazanılan',pfKazanilan,'lead','Kazanıldı');
+  h+=bar('#94a3b8','Kaybedilen',pfKaybedilen,'lead','Kaybedildi');
   h+='</div>';
 
   // ── 2. RECRUITING ──
-  const recYeni=rec.filter(r=>r.durum==='Beklemede').length;
-  const recGorusme=rec.filter(r=>['1. Görüşme','2. Görüşme','Randevu'].includes(r.durum)).length;
-  const recTakip=rec.filter(r=>r.durum==='Sıcak').length;
-  const recOlumlu=rec.filter(r=>r.durum==='Başladı').length;
-  const recOlumsuz=rec.filter(r=>r.durum==='Olumsuz'||r.durum==='Kara Liste').length;
-
   h+='<div style="'+secH+'">RECRUİTİNG</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#003DA5','Yeni Aday',recYeni,'rec','Beklemede');
@@ -5996,11 +6026,7 @@ function rDash2Kokpit(c){
   h+=bar('#DC1C2E','Olumsuz',recOlumsuz,'rec','olumsuz');
   h+='</div>';
 
-  // ── 3. TAKVİM ──
-  const etkBugun=etk.filter(e=>e.tarih===toStr).length;
-  const d7son=new Date();d7son.setDate(d7son.getDate()+7);const d7sonS=d7son.toISOString().split('T')[0];
-  const etkYaklasan=etk.filter(e=>e.tarih>toStr&&e.tarih<=d7sonS).length;
-
+  // ── 3. TAKVİM & TAKİP ──
   h+='<div style="'+secH+'">TAKVİM & TAKİP</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#5b21b6','Bugünkü Etkinlikler',etkBugun,'etk','bugun');
@@ -6008,18 +6034,13 @@ function rDash2Kokpit(c){
   h+='</div>';
 
   // ── 4. DANIŞMAN AKTİVİTESİ ──
-  const gdDans=dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
-  const bugunKayit=gdDans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr)).length;
-  const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
-  const uzunSure=gdDans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
-
   h+='<div style="'+secH+'">DANIŞMAN AKTİVİTESİ</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#003DA5','Bugün Kayıt Giren',bugunKayit,'dan','bugun');
   h+=bar('#DC1C2E','30 Gündür İşlem Yok',uzunSure,'dan','uzun');
   h+='</div>';
 
-  // ── 5. DANIŞMAN PERFORMANSI ──
+  // ── 5. DANIŞMAN PERFORMANSI (ilk 5) ──
   const gdDanPerf=(D.dans||[]).filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
   if(gdDanPerf.length){
     const perfSirali=gdDanPerf.map(d=>{
@@ -6038,49 +6059,50 @@ function rDash2Kokpit(c){
     h+='<div style="'+secH+'">DANIŞMAN PERFORMANSI</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">';
     h+='<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
-    ['DANIŞMAN','ATANAN','KAZANILAN','DÖNÜŞÜM %','TOPLAM İŞLEM','SON İŞLEM','CRM %','TOPLANTI %','EĞİTİM %','G.YORUM','SKOR'].forEach(t=>{
-      h+='<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;border-bottom:1px solid var(--bd)">'+t+'</th>';
+    ['DANIŞMAN','ATANAN','KAZANILAN','DÖNÜŞÜM %','CRM %','TOPLANTI %','EĞİTİM %','G.YORUM','SKOR'].forEach(t=>{
+      h+='<th style="padding:6px 10px;text-align:left;font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;border-bottom:1px solid var(--bd)">'+t+'</th>';
     });
     h+='</tr></thead><tbody>';
-    perfSirali.forEach(({d,s,ml,kaz,oran,sonIslem,crmYuzde,topYuzde,egYuzde})=>{
+    perfSirali.slice(0,5).forEach(({d,s,ml,kaz,oran,crmYuzde,topYuzde,egYuzde})=>{
       const renkC=s.toplam>=80?'#1C8C4B':s.toplam>=50?'#C9821A':'#DC1C2E';
       h+='<tr style="border-top:1px solid #f5f5f5;cursor:pointer" onclick="rDanismanDetay(document.getElementById(\'ct\'),\''+d.id+'\')">';
-      h+='<td style="padding:8px 12px;font-size:12px;font-weight:700">'+d.ad+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px">'+ml.length+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px;color:#1C8C4B;font-weight:600">'+kaz+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(oran>=50?'#1C8C4B':oran>=25?'#C9821A':'#DC1C2E')+'">'+oran+'%</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px">'+s.crmIslem+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:11px;color:#94a3b8">'+sonIslem+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px">'+crmYuzde+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px;color:'+(s.topPuan>=10?'#1C8C4B':s.topPuan>=5?'#C9821A':'#DC1C2E')+'">'+topYuzde+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px;color:'+(s.egPuan>=10?'#1C8C4B':s.egPuan>=5?'#C9821A':'#DC1C2E')+'">'+egYuzde+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center;font-size:12px;color:#5b21b6;font-weight:600">'+s.googleYorum+'</td>';
-      h+='<td style="padding:8px 12px;text-align:center"><span style="font-size:14px;font-weight:800;color:'+renkC+'">'+s.toplam+'</span></td>';
+      h+='<td style="padding:6px 10px;font-size:11px;font-weight:700">'+d.ad+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px">'+ml.length+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px;color:#1C8C4B;font-weight:600">'+kaz+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px;font-weight:600;color:'+(oran>=50?'#1C8C4B':oran>=25?'#C9821A':'#DC1C2E')+'">'+oran+'%</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px">'+crmYuzde+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px;color:'+(s.topPuan>=10?'#1C8C4B':s.topPuan>=5?'#C9821A':'#DC1C2E')+'">'+topYuzde+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px;color:'+(s.egPuan>=10?'#1C8C4B':s.egPuan>=5?'#C9821A':'#DC1C2E')+'">'+egYuzde+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center;font-size:11px;color:#5b21b6;font-weight:600">'+s.googleYorum+'</td>';
+      h+='<td style="padding:6px 10px;text-align:center"><span style="font-size:13px;font-weight:800;color:'+renkC+'">'+s.toplam+'</span></td>';
       h+='</tr>';
     });
-    h+='</tbody></table></div></div>';
+    h+='</tbody></table></div>';
+    if(perfSirali.length>5){
+      h+='<div style="padding:8px 14px;text-align:right;border-top:1px solid #f5f5f5"><button class="btn btn-g btn-sm" onclick="rC(\'hub_skor\')">Tümünü Gör →</button></div>';
+    }
+    h+='</div>';
   }
 
-  // ── 5. SON İŞLEMLER ──
+  // ── 6. SON İŞLEMLER ──
   const sonIslemler=log.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).slice(0,10);
   if(sonIslemler.length){
     h+='<div style="'+secH+'">SON İŞLEMLER</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
     sonIslemler.forEach(l=>{
-      h+='<div style="display:flex;gap:12px;padding:7px 14px;border-bottom:1px solid #f5f5f5;font-size:11px">';
-      h+='<span style="color:#94a3b8;min-width:130px">'+(l.created_at||'').slice(0,16).replace('T',' ')+'</span>';
-      h+='<span style="font-weight:600;min-width:80px">'+(l.yapan||'—')+'</span>';
-      h+='<span style="color:#475569">'+(l.aksiyon||'—')+'</span>';
+      h+='<div style="display:flex;gap:12px;padding:6px 12px;border-bottom:1px solid #f5f5f5;font-size:10px">';
+      h+='<span style="color:#94a3b8;min-width:110px;flex-shrink:0">'+(l.created_at||'').slice(0,16).replace('T',' ')+'</span>';
+      h+='<span style="font-weight:600;min-width:70px;flex-shrink:0">'+(l.yapan||'—')+'</span>';
+      h+='<span style="color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(l.aksiyon||'—')+'</span>';
       h+='</div>';
     });
     h+='</div>';
   }
 
-  // Detay paneli — tıklamada dolar
-  h+='<div id="dash-detay" style="margin-top:16px"></div>';
-
+  h+='<div id="dash-detay" style="margin-top:12px"></div>';
   c.innerHTML=h;
 }
+
 
 function dashDetay(tip,filtre){
   const toStr=td();
