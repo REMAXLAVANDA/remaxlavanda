@@ -839,32 +839,6 @@ function rRec(c){
   }
   h+='</div>';
 
-  // TAKVİM - Kart bazlı
-  h+='<div><div class="cal-box">';
-  h+='<div class="cal-hd"><div class="cal-t">📅 '+dLbl+'</div><div style="display:flex;gap:4px"><button class="cal-b" onclick="cC(-1)">◀</button><button class="cal-b" onclick="cT()">Bugün</button><button class="cal-b" onclick="cC(1)">▶</button></div></div>';
-  h+='<div class="cal-slots">';
-  // Saatsiz randevular
-  if(adEv.length){
-    h+='<div class="cal-slot" style="background:#fff8e1;border:1px solid #ffc107">';
-    h+='<div class="cal-time" style="color:var(--or)">Saat?</div><div class="cal-events">';
-    h+=adEv.map(r=>'<div class="cal-ev pend" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">'+(r.ad||'')+(r.aciklama?' — '+r.aciklama.slice(0,20):'')+'</div>').join('');
-    h+='</div></div>';
-  }
-  // Saatli randevular kart bazlı
-  const hours=[8,9,10,11,12,13,14,15,16,17,18,19,20];
-  hours.forEach(hr=>{
-    const hS=hr.toString().padStart(2,'0');
-    const ev=dEv.filter(r=>r.randevu_saati&&r.randevu_saati.startsWith(hS));
-    if(ev.length){
-      h+='<div class="cal-slot">';
-      h+='<div class="cal-time">'+hS+':00</div>';
-      h+='<div class="cal-events">';
-      h+=ev.map(r=>{const cls=r.durum==='Görüşüldü'?'ok':r.durum==='Olumsuz'?'pend':'def';return'<div class="cal-ev '+cls+'" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">'+(r.randevu_saati||'').slice(0,5)+' — <strong>'+(r.ad||'')+'</strong>'+(r.aciklama?' · '+r.aciklama.slice(0,25):'')+'</div>';}).join('');
-      h+='</div></div>';
-    }
-  });
-  if(!dEv.length&&!adEv.length)h+='<div class="cal-noev">Bu gün randevu yok</div>';
-  h+='</div></div></div></div>';
   c.innerHTML=h;
 }
 function rRows(list){return list.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+(r.randevu_tarihi||'—')+'</td><td>'+(r.aciklama?r.aciklama.slice(0,50):'—')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'recruiting_candidates\',\''+r.id+'\')">✏️</button></td></tr>').join('');}
@@ -2769,104 +2743,104 @@ function renderOfisDashboard(container){
 // ── GD DASHBOARD Güncellemesi ──
 function rDanDash(c){
   const toStr=td();
-  const my=D.leads.filter(l=>l.danisman===CU.danAd);
-  const geciken=my.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
-  const bugunAra=my.filter(l=>l.sonraki_takip===toStr);
-  const bugunEtk=D.etkinlikler.filter(e=>
-    e.tarih===toStr&&(e.hedef==='tum_ofis'||isAssignedToCurrentUser(e))
-  );
-  const bugunRandevu=D.rec.filter(r=>r.randevu_tarihi===toStr);
-  const yeniAtanan=my.filter(l=>(l.created_at||'').slice(0,10)===toStr);
-  const sonIslem=my.sort((a,b)=>new Date(b.updated_at||b.created_at||0)-new Date(a.updated_at||a.created_at||0))[0];
-  const yeniDP=D.disPortfolyo.filter(d=>d.paylas&&d.danisman_ad!==CU.danAd&&(d.created_at||'').slice(0,10)===toStr);
+  const myAd=CU.danAd||CU.name||'';
+  const my=D.leads.filter(l=>l.danisman===myAd);
   const aktif=my.filter(l=>!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
+  const geciken=my.filter(l=>l.sonraki_takip&&l.sonraki_takip<toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
+  const bugunAra=my.filter(l=>l.sonraki_takip===toStr&&!['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum));
+  const bugunEtk=D.etkinlikler.filter(e=>e.tarih===toStr&&(e.hedef==='tum_ofis'||isAssignedToCurrentUser(e)));
+  const d7=new Date();d7.setDate(d7.getDate()+7);const d7s=d7.toISOString().split('T')[0];
+  const yaklasanEtk=D.etkinlikler.filter(e=>e.tarih>toStr&&e.tarih<=d7s&&(e.hedef==='tum_ofis'||isAssignedToCurrentUser(e)));
+  const havuzKayitlar=(D.leads||[]).filter(l=>l.paylas&&l.danisman!==myAd).slice(0,10);
   const tarih=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
+  const secH='font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bd)';
 
-  let h='<div style="margin-bottom:16px"><div style="font-size:18px;font-weight:800;color:var(--dk)">Merhaba, '+CU.danAd.split(' ')[0]+' 👋</div>';
+  let h='<div style="margin-bottom:14px"><div style="font-size:18px;font-weight:800;color:var(--dk)">Merhaba, '+myAd.split(' ')[0]+' 👋</div>';
   h+='<div style="font-size:12px;color:#94a3b8;margin-top:2px">'+tarih+'</div></div>';
 
-  // 4 Özet Kart - 2×2 grid
-  h+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px">';
-  const cards=[
-    {icon:'📅',val:(bugunEtk.length+bugunRandevu.length),lbl:'Bugünkü Randevu/Eğitim',col:'var(--blue)',action:"rC('takvim')"},
-    {icon:'📥',val:yeniAtanan.length,lbl:'Bugün Atanan Lead',col:'var(--gn)',action:"rC('surec')"},
-    {icon:'⏰',val:geciken.length,lbl:'Geciken Takip',col:'var(--red)',action:"rC('surec')"},
-    {icon:'🔄',val:sonIslem?sonIslem.ad.slice(0,12)+'…':'—',lbl:'Son İşlemim',col:'var(--or)',action:"rC('surec')"},
-  ];
-  cards.forEach(k=>{
-    h+='<div onclick="'+k.action+'" style="background:#fff;border:1px solid var(--bd);border-left:4px solid '+k.col+';border-radius:12px;padding:14px;cursor:pointer;transition:box-shadow .15s" onmouseenter="this.style.boxShadow=\'0 4px 12px rgba(0,0,0,.08)\'" onmouseleave="this.style.boxShadow=\'none\'">';
-    h+='<div style="font-size:18px;margin-bottom:8px">'+k.icon+'</div>';
-    h+='<div style="font-size:'+(typeof k.val==='number'?'28':'16')+'px;font-weight:800;color:'+k.col+'">'+k.val+'</div>';
-    h+='<div style="font-size:11px;color:#64748b;margin-top:4px">'+k.lbl+'</div>';
-    h+='</div>';
-  });
+  // ── 1. ÖZET BARLAR ──
+  const barS='flex:1;min-width:110px;background:#fff;border:1px solid var(--bd);border-left:3px solid ';
+  const barE=';border-radius:8px;padding:10px 12px';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px">';
+  h+='<div style="'+barS+'#003DA5'+barE+'"><div style="font-size:20px;font-weight:800;color:#003DA5">'+aktif.length+'</div><div style="font-size:11px;color:#475569;margin-top:2px">Aktif Leadlerim</div></div>';
+  h+='<div style="'+barS+'#C9821A'+barE+'"><div style="font-size:20px;font-weight:800;color:#C9821A">'+bugunAra.length+'</div><div style="font-size:11px;color:#475569;margin-top:2px">Bugün Aranacak</div></div>';
+  h+='<div style="'+barS+(geciken.length>0?'#DC1C2E':'#1C8C4B')+barE+'"><div style="font-size:20px;font-weight:800;color:'+(geciken.length>0?'#DC1C2E':'#1C8C4B')+'">'+geciken.length+'</div><div style="font-size:11px;color:#475569;margin-top:2px">Geciken Takip</div></div>';
+  h+='<div style="'+barS+'#5b21b6'+barE+'"><div style="font-size:20px;font-weight:800;color:#5b21b6">'+(bugunEtk.length)+'</div><div style="font-size:11px;color:#475569;margin-top:2px">Bugünkü Etkinlik</div></div>';
   h+='</div>';
 
-  // Yapılacaklar
-  const gorevler=[
-    {count:bugunAra.length,label:'Aranacak müşteri',icon:'📞',col:'#C9821A',bg:'#fff8e1',action:"rC('surec')"},
-    {count:geciken.length,label:'Geciken takip',icon:'⚠️',col:'#DC1C2E',bg:'#fff0f0',action:"rC('surec')"},
-    {count:bugunEtk.length+bugunRandevu.length,label:'Bugün randevu/eğitim',icon:'📅',col:'#003DA5',bg:'#EDE9FE',action:"rC('takvim')"},
-    {count:yeniDP.length,label:'Yeni ofis portföyü',icon:'🏘️',col:'#5b21b6',bg:'#f8f4ff',action:"rC('genel')"},
-  ].filter(g=>g.count>0);
+  // ── 2. GECİKEN TAKİPLER ──
+  if(geciken.length){
+    h+='<div style="'+secH+'">GECİKEN TAKİPLER</div>';
+    h+='<div style="background:#fff;border:1px solid #fca5a5;border-radius:10px;overflow:hidden">';
+    geciken.slice(0,5).forEach(l=>{
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f5f5">';
+      h+='<div style="flex:1"><div style="font-size:12px;font-weight:600">'+l.ad+'</div>';
+      h+='<div style="font-size:10px;color:#DC1C2E">'+l.sonraki_takip+'</div></div>';
+      h+=wa(l.telefon);
+      h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋</button>';
+      h+='</div>';
+    });
+    if(geciken.length>5)h+='<div style="padding:7px 14px;font-size:11px;color:#94a3b8;text-align:center">+'+(geciken.length-5)+' daha...</div>';
+    h+='</div>';
+  }
 
-  if(gorevler.length){
-    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:14px">';
-    h+='<div style="padding:10px 14px;background:var(--lg);border-bottom:1px solid var(--bd);font-size:12px;font-weight:700;color:var(--dk)">🎯 Bugün Yapılacaklar</div>';
-    gorevler.forEach(g=>{
-      h+='<div onclick="'+g.action+'" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer">';
-      h+='<div style="width:32px;height:32px;border-radius:8px;background:'+g.bg+';display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">'+g.icon+'</div>';
-      h+='<div style="flex:1;font-size:13px;font-weight:600;color:var(--dk)">'+g.label+'</div>';
-      h+='<div style="font-size:18px;font-weight:800;color:'+g.col+'">'+g.count+'</div>';
-      h+='<div style="font-size:14px;color:#ccc">›</div></div>';
+  // ── 3. TAKVİM ──
+  const tumEtk=[...bugunEtk,...yaklasanEtk].sort((a,b)=>a.tarih.localeCompare(b.tarih)||(a.saat||'').localeCompare(b.saat||''));
+  if(tumEtk.length){
+    h+='<div style="'+secH+'">TAKVİM — BUGÜN & YAKLAŞAN 7 GÜN</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
+    const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','randevu':'#5b21b6','etkinlik':'#0891b2','görev':'#64748b','dogumgunu':'#e91e8c'};
+    tumEtk.forEach(e=>{
+      const rk=turR[e.tur]||'#666';
+      const tarihLbl=e.tarih===toStr?'Bugün':new Date(e.tarih+'T12:00').toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'short'});
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f5f5">';
+      h+='<div style="width:3px;height:32px;background:'+rk+';border-radius:2px;flex-shrink:0"></div>';
+      h+='<div style="min-width:70px;font-size:11px;color:#64748b">'+tarihLbl+'</div>';
+      h+='<div style="font-size:11px;color:'+rk+';font-weight:600;min-width:70px">'+e.tur+'</div>';
+      h+='<div style="font-size:12px;font-weight:600;flex:1">'+e.baslik+'</div>';
+      if(e.saat)h+='<div style="font-size:11px;color:#94a3b8">'+e.saat.slice(0,5)+'</div>';
+      h+='</div>';
     });
     h+='</div>';
   } else {
-    h+='<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">';
-    h+='<div style="font-size:20px;margin-bottom:5px">✅</div>';
-    h+='<div style="font-size:13px;font-weight:700;color:#15803d">Bugün tüm görevlerin tamamlandı!</div>';
-    h+='</div>';
+    h+='<div style="'+secH+'">TAKVİM</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px;text-align:center;color:#94a3b8;font-size:12px">Önümüzdeki 7 günde etkinlik yok.</div>';
   }
 
-  // Geciken takip detayı
-  if(geciken.length){
-    h+='<div style="background:#fff;border:1px solid #fca5a5;border-radius:12px;overflow:hidden;margin-bottom:14px">';
-    h+='<div style="padding:9px 14px;background:#fff0f0;border-bottom:1px solid #fca5a5;font-size:12px;font-weight:700;color:var(--red)">⚠️ Takip Bekleyenler ('+geciken.length+')</div>';
-    geciken.slice(0,4).forEach(l=>{
-      const tlC=D.timeline.filter(t=>t.kayit_id===l.id).length;
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f5f5">';
-      h+='<div style="flex:1"><div style="font-size:12px;font-weight:600">'+l.ad+'</div>';
-      h+='<div style="font-size:10px;color:var(--red)">'+l.sonraki_takip+'</div></div>';
-      h+=wa(l.telefon);
-      h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' '+tlC:'')+'</button>';
-      h+='</div>';
+  // ── 4. OFİS HAVUZU ──
+  if(havuzKayitlar.length){
+    h+='<div style="'+secH+'">OFİS HAVUZU <span style="font-weight:400;text-transform:none;font-size:10px">(paylaşılan, size atanmamış)</span></div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
+    h+='<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
+    ['Ad','Telefon','Durum','Danışman'].forEach(t=>h+='<th style="padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:#64748b;border-bottom:1px solid var(--bd)">'+t+'</th>');
+    h+='</tr></thead><tbody>';
+    havuzKayitlar.forEach(l=>{
+      h+='<tr style="border-bottom:1px solid #f5f5f5">';
+      h+='<td style="padding:7px 12px;font-size:12px;font-weight:600">'+(l.ad||'—')+'</td>';
+      h+='<td style="padding:7px 12px;font-size:12px">'+(l.telefon||'—')+'</td>';
+      h+='<td style="padding:7px 12px;font-size:11px">'+(l.durum||'—')+'</td>';
+      h+='<td style="padding:7px 12px;font-size:11px;color:#64748b">'+(l.danisman||'Atanmamış')+'</td>';
+      h+='</tr>';
     });
-    if(geciken.length>4)h+='<div style="padding:7px 14px;font-size:11px;color:#94a3b8;text-align:center">+'+( geciken.length-4)+' daha...</div>';
+    h+='</tbody></table>';
+    h+='<div style="padding:8px 14px;text-align:right"><button class="btn btn-g btn-sm" onclick="rC('genel')">Tümünü Gör →</button></div>';
     h+='</div>';
   }
 
-  // Hızlı erişim
-  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
-  [{id:'havuz',icon:'➕',l:'Alıcı Talebi',tip:'Yeni alıcı ekle'},{id:'dispf',icon:'🏘️',l:'Harici Portföy',tip:'Harici portföy ekle'},{id:'surec',icon:'📋',l:'Bana Atananlar',tip:'Atanan leadleri gör'},{id:'takvim',icon:'📅',l:'Takvim',tip:'Takvimini gör'},{id:'genel',icon:'🔍',l:'Ofis Havuzu',tip:'Ofis portföy havuzu'},{id:'bilgi',icon:'ℹ️',l:'Ofis Bilgi',tip:'Ofis bilgi merkezi'}].forEach(b=>{
-    h+='<button onclick="rC(\''+b.id+'\')" title="'+b.tip+'" style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:11px 6px;font-size:11px;font-weight:600;color:var(--dk);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:16px">'+b.icon+'</span>'+b.l+'</button>';
-  });
-  h+='</div>';
-
-  // v20: Danışman için onboarding özeti
+  // ── 5. ONBOARDİNG ──
   if(typeof OB_TASKS_DEFAULT!=='undefined'&&D.obProgress){
-    const myAd=CU.danAd||CU.name;
     const prog=D.obProgress.filter(p=>p.danisman_ad===myAd&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).length;
-    const pct=Math.round(prog/OB_TASKS_DEFAULT.length*100);
-    const pc=pct>=80?'var(--gn)':pct>=50?'var(--or)':'var(--red)';
-    const rozlar=typeof danRozetler==='function'?danRozetler(myAd):[];
-    if(prog<OB_TASKS_DEFAULT.length){
-      h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-top:10px;cursor:pointer" onclick="rObOnboarding(document.getElementById(\'ct\'))">';
-      h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-      h+='<div style="font-size:12px;font-weight:700;color:var(--dk)">🚀 Onboarding Adımlarım</div>';
-      h+='<span style="font-size:12px;font-weight:800;color:'+pc+'">%'+pct+'</span></div>';
+    const toplam=OB_TASKS_DEFAULT.length;
+    const pct=Math.round(prog/toplam*100);
+    const pc=pct>=80?'#1C8C4B':pct>=50?'#C9821A':'#DC1C2E';
+    if(prog<toplam){
+      h+='<div style="'+secH+'">ONBOARDİNG</div>';
+      h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:14px;cursor:pointer" onclick="rC('hub_ob')">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+      h+='<div style="font-size:12px;font-weight:700;color:var(--dk)">Onboarding Adımlarım</div>';
+      h+='<span style="font-size:14px;font-weight:800;color:'+pc+'">%'+pct+'</span></div>';
       h+='<div style="background:#f1f5f9;border-radius:5px;height:8px"><div style="background:'+pc+';height:100%;width:'+pct+'%;border-radius:5px"></div></div>';
-      h+='<div style="font-size:11px;color:#94a3b8;margin-top:5px">'+prog+'/'+OB_TASKS_DEFAULT.length+' adım tamamlandı</div>';
-      if(rozlar.length)h+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:8px">'+rozlar.map(k=>rozetChip(k,true)).join('')+'</div>';
+      h+='<div style="font-size:11px;color:#94a3b8;margin-top:6px">'+prog+'/'+toplam+' adım tamamlandı — '+(toplam-prog)+' eksik</div>';
       h+='</div>';
     }
   }
