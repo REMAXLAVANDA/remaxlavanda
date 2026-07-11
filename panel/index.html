@@ -2493,7 +2493,10 @@ function dashFiltreDegis(onchange){
     const f=document.getElementById('df_from');const t=document.getElementById('df_to');
     if(f)window._dateFrom2=f.value;if(t)window._dateTo2=t.value;
   }
-  eval(onchange);
+  const c=document.getElementById('ct');
+  if(onchange.indexOf('rDash2Kokpit')===0)rDash2Kokpit(c);
+  else if(onchange.indexOf('rOzet')===0)rOzet(c);
+  else try{eval(onchange);}catch(e){console.warn('dashFiltreDegis:',e);}
 }
 
 function bildirimUret(){
@@ -3946,36 +3949,28 @@ async function rSkorboard(c){
   h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden"><div style="overflow-x:auto">';
   h+='<table style="width:100%;border-collapse:collapse">';
   h+='<thead><tr style="background:var(--lg)">';
-  ['DANIŞMAN','PORTFÖY','REC KATKI','TOPLANTI','EĞİTİM','ETKİNLİK','G.YORUM','İLK İŞLEM','TOPLAM SKOR'].forEach(t=>{
+  ['DANIŞMAN','TOPLANTI','KATILIM %','GOOGLE YORUM','SON İŞLEM','TOPLAM İŞLEM','CRM %','TOPLAM SKOR'].forEach(t=>{
     h+='<th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;border-bottom:1px solid var(--bd)">'+t+'</th>';
   });
   h+='</tr></thead><tbody>';
 
   skorSirali.forEach(({d,s,ilkIslemGun})=>{
     const renkC=s.toplam>=80?'#1C8C4B':s.toplam>=50?'#C9821A':'#DC1C2E';
-    const topKatilimYuzde=s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—';
+    const topYuzde=s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—';
     const egYuzde=s.egTum.length?Math.round(s.egBitti/s.egTum.length*100)+'%':'—';
-  const topYuzde=s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—';
-  h+=satir('Toplantı Katılımı', s.topKatildi+' / '+s.topTum.length);
-  h+=satir('Katılım %', topYuzde);
-  h+=satir('Google Yorum', s.googleYorum+'');
-  const danLog=D.log.filter(l=>l.yapan===d.ad).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
-  const sonIslemTarihi=danLog.length?(danLog[0].created_at||'').slice(0,16).replace('T',' '):'—';
-  const crmYuzde=s.crmIslem>0?Math.min(Math.round(s.crmIslem/5*100),100)+'%':'%0';
-  h+=satir('Son İşlem Tarihi', sonIslemTarihi);
-  h+=satir('Toplam İşlem', s.crmIslem+'');
-  h+=satir('CRM Kullanım', crmYuzde);
+    const danLog=(D.log||[]).filter(l=>l.yapan===d.ad).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+    const sonIslemTarihi=danLog.length?(danLog[0].created_at||'').slice(0,10):'—';
+    const crmYuzde=s.crmIslem>0?Math.min(Math.round(s.crmIslem/5*100),100)+'%':'0%';
     const ilkIslemStr=ilkIslemGun===null?(d.ilk_islem_tarihi?'✅':'—'):(ilkIslemGun>90?'⚠ '+ilkIslemGun+'g':ilkIslemGun+'g');
     const ilkIslemRenk=ilkIslemGun>90?'#DC1C2E':ilkIslemGun>60?'#C9821A':'inherit';
     h+='<tr style="border-top:1px solid #f5f5f5;cursor:pointer" onclick="rDanismanDetay(document.getElementById(\'ct\'),\''+d.id+'\')">';
-    h+='<td style="padding:9px 12px;font-size:12px;font-weight:700;color:#0f172a">'+d.ad+(!(d.aktif??true)?'<span style="margin-left:4px;background:#fee2e2;color:#DC1C2E;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600">Pasif</span>':'')+'</td>';
-    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:#003DA5">'+s.portfoy+'</td>';
-    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:#C9821A">'+s.rek+'</td>';
-    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(s.topPuan>=10?'#1C8C4B':s.topPuan>=5?'#C9821A':'#DC1C2E')+'">'+topKatilimYuzde+'</td>';
-    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(s.egPuan>=10?'#1C8C4B':s.egPuan>=5?'#C9821A':'#DC1C2E')+'">'+egYuzde+'</td>';
-    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600">'+s.etkinlik+'</td>';
+    h+='<td style="padding:9px 12px;font-size:12px;font-weight:700;color:#0f172a">'+d.ad+(!(d.aktif??true)?'<span style="margin-left:4px;background:#fee2e2;color:#DC1C2E;padding:1px 5px;border-radius:6px;font-size:9px">Pasif</span>':'')+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600">'+s.topKatildi+' / '+s.topTum.length+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(s.topPuan>=10?'#1C8C4B':s.topPuan>=5?'#C9821A':'#DC1C2E')+'">'+topYuzde+'</td>';
     h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:#5b21b6">'+s.googleYorum+'</td>';
-    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+ilkIslemRenk+'">'+ilkIslemStr+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:11px;color:#64748b">'+sonIslemTarihi+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600">'+s.crmIslem+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(s.crmIslem>0?'#1C8C4B':'#94a3b8')+'">'+crmYuzde+'</td>';
     h+='<td style="padding:9px 12px;text-align:center"><span style="font-size:16px;font-weight:800;color:'+renkC+'">'+s.toplam+'</span><span style="font-size:9px;color:'+renkC+';display:block">'+s.etiket+'</span></td>';
     h+='</tr>';
   });
