@@ -2475,28 +2475,26 @@ window._dateTo2 = window._dateTo2 || '';
 function dateFilterBar(onchange){
   const opts=[{v:'7d',l:'Son 7 Gün'},{v:'30d',l:'Son 1 Ay'},{v:'90d',l:'Son 3 Ay'},{v:'all',l:'Tümü'},{v:'ozel',l:'Özel Aralık'}];
   let h='<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">';
-  h+=opts.map(o=>'<button class="btn btn-sm '+(window._dateFilter===o.v?'btn-p':'btn-g')+'" onclick="window._dateFilter=\''+o.v+'\';dashFiltreDegis(\''+onchange+'\')" >'+o.l+'</button>').join('');
+  h+=opts.map(o=>'<button class="btn btn-sm '+(window._dateFilter===o.v?'btn-p':'btn-g')+'" onclick="window._dateFilter=\''+o.v+'\';dashFiltreDegis()" >'+o.l+'</button>').join('');
   h+='</div>';
   if(window._dateFilter==='ozel'){
     h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">';
     h+='<input type="date" id="df_from" value="'+(window._dateFrom2||'')+'" onchange="window._dateFrom2=this.value" style="padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/>';
     h+='<span style="font-size:12px;color:#64748b">—</span>';
     h+='<input type="date" id="df_to" value="'+(window._dateTo2||'')+'" onchange="window._dateTo2=this.value" style="padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/>';
-    h+='<button class="btn btn-p btn-sm" onclick="dashFiltreDegis(\''+onchange+'\')" >Uygula</button>';
+    h+='<button class="btn btn-p btn-sm" onclick="dashFiltreDegis()" >Uygula</button>';
     h+='</div>';
   }
   return h;
 }
 
-function dashFiltreDegis(onchange){
+function dashFiltreDegis(){
   if(window._dateFilter==='ozel'){
     const f=document.getElementById('df_from');const t=document.getElementById('df_to');
     if(f)window._dateFrom2=f.value;if(t)window._dateTo2=t.value;
   }
   const c=document.getElementById('ct');
-  if(onchange.indexOf('rDash2Kokpit')===0)rDash2Kokpit(c);
-  else if(onchange.indexOf('rOzet')===0)rOzet(c);
-  else try{eval(onchange);}catch(e){console.warn('dashFiltreDegis:',e);}
+  if(c)rDash2Kokpit(c);
 }
 
 function bildirimUret(){
