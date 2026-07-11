@@ -4719,23 +4719,33 @@ async function topDuzenleKaydet(adi, tarih){
     const idMap={};
     kayitlar.forEach(k=>{idMap[k.danisman_ad]=k.id;});
 
+    // 1. Modalda checkbox'ı olan kişileri işle (GD tipi)
     for(const d of D.dans){
       const sel=document.getElementById('tduz_'+d.id);
       const dahilCb=document.getElementById('tduz_dahil_'+d.id);
-      if(!sel)continue;
-      const dahil=dahilCb?dahilCb.checked:!!idMap[d.ad];
-      const durum=sel.value;
+      if(!sel&&!dahilCb)continue; // Bu kişi modalda yok, aşağıda ele alınacak
+      const dahil=dahilCb?dahilCb.checked:false;
+      const durum=sel?sel.value:'Katıldı';
       const recId=idMap[d.ad];
       if(dahil){
-        // Dahil edildi: mevcut kaydı güncelle veya yeni ekle
         if(recId){
           await api('dan_toplanti','PATCH',{durum},'id=eq.'+recId);
         } else {
           await api('dan_toplanti','POST',{danisman_ad:d.ad,toplanti_adi:adi,toplanti_tarihi:tarih,durum});
         }
       } else if(recId){
-        // Seçimi kaldırıldı: eski kayıt varsa sil
         await api('dan_toplanti','DELETE',null,'id=eq.'+recId);
+      }
+    }
+    // 2. Modalda görünmeyen kişilerin eski kayıtlarını da sil
+    // (Ofis personeli, broker gibi filtrelenmiş tipler)
+    for(const k of kayitlar){
+      const danObj=D.dans.find(d=>d.ad===k.danisman_ad);
+      if(!danObj)continue;
+      const dahilCb=document.getElementById('tduz_dahil_'+danObj.id);
+      if(!dahilCb){
+        // Modalda görünmüyor = listede yok = kaydı sil
+        await api('dan_toplanti','DELETE',null,'id=eq.'+k.id);
       }
     }
     await load(true);
