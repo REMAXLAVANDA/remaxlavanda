@@ -3488,67 +3488,44 @@ async function rSkorboard(c){
     h+='</div></div></div>';
   }
 
-  // Danışman kartları
-  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">';
-  D.dans.forEach(d=>{
+  // Danışman skor tablosu
+  const skorSirali=D.dans.map(d=>{
     const s=danSkor(d);
     const ilkIslemGun=d.giris_tarihi&&!d.ilk_islem_tarihi?Math.floor((Date.now()-new Date(d.giris_tarihi).getTime())/86400000):null;
-    const riskRenk=ilkIslemGun>90?'#DC1C2E':ilkIslemGun>60?'#C9821A':ilkIslemGun>30?'#f59e0b':null;
+    return {d,s,ilkIslemGun};
+  }).sort((a,b)=>b.s.toplam-a.s.toplam);
 
-    const dg=d.dogum_gunu?new Date(d.dogum_gunu):null;
-    const dgStr=dg?dg.toLocaleDateString('tr-TR',{day:'numeric',month:'long'}):'';
-
-    h+='<div style="background:#fff;border-radius:16px;'+sh+';padding:20px;cursor:pointer;transition:box-shadow .2s" onclick="rSkorDetay(\''+d.id+'\')">';
-
-    // Üst: İsim + Skor
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">';
-    h+='<div><div style="font-size:14px;font-weight:800;color:#0f172a">'+d.ad+'</div>';
-    if(dgStr)h+='<div style="font-size:10px;color:#94a3b8;margin-top:2px">🎂 '+dgStr+'</div>';
-    if(d.uzmanlik)h+='<div style="font-size:10px;color:#64748b;margin-top:2px">'+d.uzmanlik+'</div>';
-    h+='</div>';
-    h+='<div style="text-align:center">';
-    h+='<div style="font-size:28px;font-weight:800;color:'+s.etiketC+'">'+s.toplam+'</div>';
-    h+='<div style="font-size:9px;font-weight:700;color:'+s.etiketC+';white-space:nowrap">'+s.etiket+'</div>';
-    h+='</div></div>';
-
-    // Skor çubuğu
-    h+='<div style="background:#f1f5f9;border-radius:8px;height:8px;margin-bottom:14px">';
-    h+='<div style="background:'+s.etiketC+';height:100%;width:'+s.toplam+'%;border-radius:8px;transition:width .5s"></div></div>';
-
-    // Mini metrikler grid
-    h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
-    const metrik=(lbl,val,alt,c)=>'<div style="background:#f8fafc;border-radius:8px;padding:7px 8px;text-align:center"><div style="font-size:14px;font-weight:800;color:'+(c||'#0f172a')+'">'+val+'</div><div style="font-size:9px;color:#94a3b8;margin-top:1px">'+lbl+'</div>'+(alt?'<div style="font-size:9px;color:#64748b">'+alt+'</div>':'')+'</div>';
-    h+=metrik('Toplantı',s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—','katılım',s.topPuan>=10?'#1C8C4B':s.topPuan>=5?'#C9821A':'#DC1C2E');
-    h+=metrik('Eğitim',s.egTum.length?Math.round(s.egBitti/s.egTum.length*100)+'%':'—','tamamlama',s.egPuan>=10?'#1C8C4B':s.egPuan>=5?'#C9821A':'#DC1C2E');
-    h+=metrik('Kapanan',s.kazanilan,'işlem','#1C8C4B');
-    h+=metrik('Portföy',s.portfoy,'adet','#003DA5');
-    h+=metrik('G.Yorum',s.googleYorum,'adet','#5b21b6');
-    h+=metrik('Recruiting',s.rek,'katkı','#C9821A');
-    h+='</div>';
-
-    // Uyarılar
-    if(riskRenk){
-      h+='<div style="background:'+riskRenk+'15;border:1px solid '+riskRenk+'40;border-radius:8px;padding:6px 10px;font-size:11px;color:'+riskRenk+';font-weight:600">';
-      h+='⚠ '+ilkIslemGun+' gündür ilk işlem yok</div>';
-    }
-    if(!(d.aktif??true)){
-      h+='<div style="margin-top:6px;background:#fee2e2;border-radius:8px;padding:4px 10px;font-size:10px;color:#DC1C2E;font-weight:600;text-align:center">Pasif Danışman</div>';
-    }
-
-    // v20: Rozetler
-    if(typeof danRozetler==='function'){
-      const rozList=danRozetler(d.ad);
-      if(rozList.length){
-        h+='<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:3px;border-top:1px solid #f1f5f9;padding-top:8px">';
-        h+=rozList.map(k=>rozetChip(k,true)).join('');
-        h+='</div>';
-      }
-    }
-
-    h+='</div>'; // kart
+  h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden"><div style="overflow-x:auto">';
+  h+='<table style="width:100%;border-collapse:collapse">';
+  h+='<thead><tr style="background:var(--lg)">';
+  ['DANIŞMAN','PORTFÖY','REC KATKI','TOPLANTI','EĞİTİM','ETKİNLİK','G.YORUM','İLK İŞLEM','TOPLAM SKOR'].forEach(t=>{
+    h+='<th style="padding:9px 12px;text-align:left;font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;border-bottom:1px solid var(--bd)">'+t+'</th>';
   });
-  h+='</div>'; // grid
+  h+='</tr></thead><tbody>';
 
+  skorSirali.forEach(({d,s,ilkIslemGun})=>{
+    const renkC=s.toplam>=80?'#1C8C4B':s.toplam>=50?'#C9821A':'#DC1C2E';
+    const topKatilimYuzde=s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—';
+    const egYuzde=s.egTum.length?Math.round(s.egBitti/s.egTum.length*100)+'%':'—';
+    const ilkIslemStr=ilkIslemGun===null?(d.ilk_islem_tarihi?'✅':'—'):(ilkIslemGun>90?'⚠ '+ilkIslemGun+'g':ilkIslemGun+'g');
+    const ilkIslemRenk=ilkIslemGun>90?'#DC1C2E':ilkIslemGun>60?'#C9821A':'inherit';
+    h+='<tr style="border-top:1px solid #f5f5f5" onclick="rSkorDetay(''+d.id+'')" style="cursor:pointer">';
+    h+='<td style="padding:9px 12px;font-size:12px;font-weight:700;color:#0f172a">'+d.ad+(!(d.aktif??true)?'<span style="margin-left:4px;background:#fee2e2;color:#DC1C2E;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600">Pasif</span>':'')+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:#003DA5">'+s.portfoy+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:#C9821A">'+s.rek+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(s.topPuan>=10?'#1C8C4B':s.topPuan>=5?'#C9821A':'#DC1C2E')+'">'+topKatilimYuzde+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+(s.egPuan>=10?'#1C8C4B':s.egPuan>=5?'#C9821A':'#DC1C2E')+'">'+egYuzde+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600">'+s.etkinlik+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:#5b21b6">'+s.googleYorum+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center;font-size:12px;font-weight:600;color:'+ilkIslemRenk+'">'+ilkIslemStr+'</td>';
+    h+='<td style="padding:9px 12px;text-align:center"><span style="font-size:16px;font-weight:800;color:'+renkC+'">'+s.toplam+'</span><span style="font-size:9px;color:'+renkC+';display:block">'+s.etiket+'</span></td>';
+    h+='</tr>';
+  });
+
+  h+='</tbody></table></div></div>';
+
+  // Veri giriş modal
+  h+=skorModalHTML();
   // Veri giriş modal
   h+=skorModalHTML();
   // Detay modal
