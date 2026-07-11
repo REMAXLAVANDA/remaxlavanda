@@ -1855,8 +1855,8 @@ function rTakvim(c){
   const cells=[];
   for(let i=0;i<42;i++){const d=new Date(gridBaslangic);d.setDate(gridBaslangic.getDate()+i);cells.push(d);}
 
-  const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','tapu':'#C9821A','randevu':'#5b21b6','etkinlik':'#0891b2','nöbet':'#DC1C2E','recruiting':'#0f766e'};
-  const turI={'toplantı':'🤝','eğitim':'📚','tapu':'📋','randevu':'📞','etkinlik':'🎯','nöbet':'🔰','recruiting':'👤'};
+  const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','tapu':'#C9821A','randevu':'#5b21b6','etkinlik':'#0891b2','nöbet':'#DC1C2E','recruiting':'#0f766e','dogumgunu':'#e91e8c','görev':'#64748b'};
+  const turI={'toplantı':'🤝','eğitim':'📚','tapu':'📋','randevu':'📞','etkinlik':'🎯','nöbet':'🔰','recruiting':'👤','dogumgunu':'🎂','görev':'📌'};
 
   // ── Üst başlık ──
   let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">';
@@ -1865,11 +1865,10 @@ function rTakvim(c){
   h+='<span style="font-size:15px;font-weight:800;color:var(--dk);min-width:160px;text-align:center">'+ayLbl+'</span>';
   h+='<button class="btn btn-g btn-sm" onclick="chCal2(1)">▶</button>';
   h+='<button class="btn btn-g btn-sm" onclick="goToday2()">Bugün</button></div>';
-  if(isY)h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'ef\').classList.toggle(\'hidden\')">+ Etkinlik</button>';
   h+='</div>';
 
   // ── Filtre butonları ──
-  const filtreler=[{id:'tumu',l:'Tümü'},{id:'benim',l:'Benim'},{id:'eğitim',l:'Eğitim'},{id:'tapu',l:'Tapu'},{id:'toplantı',l:'Toplantı'},{id:'recruiting',l:'Recruiting'}];
+  const filtreler=[{id:'tumu',l:'Tümü'},{id:'randevu',l:'Randevu'},{id:'eğitim',l:'Eğitim'},{id:'toplantı',l:'Toplantı'},{id:'dogumgunu',l:'Doğum Günü'},{id:'görev',l:'Görev'}];
   h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">';
   filtreler.forEach(f=>{h+='<button class="btn btn-sm '+(aktifFiltre===f.id?'btn-p':'btn-g')+'" onclick="setCalFiltre(\''+f.id+'\')">'+f.l+'</button>';});
   h+='</div>';
@@ -1877,9 +1876,9 @@ function rTakvim(c){
   // ── Etkinlik ekleme formu (sadece admin/ofis) ──
   if(isY){
     const dO=D.dans.map(d=>'<option value="'+d.ad+'">'+d.ad+'</option>').join('');
-    h+='<div id="ef" class="hidden fw" style="margin-bottom:12px"><h3>Yeni Etkinlik</h3><div class="fg">';
+    h+='<div id="ef" class="fw" style="margin-bottom:12px"><h3>Yeni Etkinlik</h3><div class="fg">';
     h+='<div class="fgr"><label>Başlık *</label><input id="ef_b" placeholder="Etkinlik başlığı"/></div>';
-    h+='<div class="fgr"><label>Tür</label><select id="ef_t"><option>toplantı</option><option>eğitim</option><option>tapu</option><option>randevu</option><option>etkinlik</option><option>nöbet</option></select></div>';
+    h+='<div class="fgr"><label>Tür</label><select id="ef_t"><option value="randevu">Randevu</option><option value="toplantı">Toplantı</option><option value="eğitim">Eğitim</option><option value="görev">Görev / Hatırlatma</option><option value="etkinlik">Etkinlik</option></select></div>';
     h+='<div class="fgr"><label>Tarih</label><input type="date" id="ef_d" value="'+toStr+'"/></div>';
     h+='<div class="fgr"><label>Başlangıç</label><input type="time" id="ef_s"/></div>';
     h+='<div class="fgr"><label>Bitiş</label><input type="time" id="ef_e"/></div>';
@@ -1922,6 +1921,13 @@ function rTakvim(c){
       });
     }
 
+    // Doğum günlerini ekle
+    if(aktifFiltre==='tumu'||aktifFiltre==='dogumgunu'){
+      D.dans.filter(d=>d.dogum_gunu&&d.dogum_gunu.slice(5)===ds.slice(5)).forEach(d=>{
+        evs.push({id:'dg_'+d.ad,baslik:d.ad,tur:'dogumgunu',saat:null,_tip:'dg'});
+      });
+    }
+
     h+='<div class="'+cls+'">';
     h+='<div class="cal-day-num">'+d.getDate()+'</div>';
 
@@ -1941,6 +1947,35 @@ function rTakvim(c){
   });
 
   h+='</div></div>';
+
+  // ── Yaklaşan 7 günlük etkinlikler ──
+  const d7=new Date();
+  const d7s=[];
+  for(let i=0;i<7;i++){const x=new Date(d7);x.setDate(d7.getDate()+i);d7s.push(x.toISOString().split('T')[0]);}
+  const turR2={'toplantı':'#003DA5','eğitim':'#1C8C4B','randevu':'#5b21b6','etkinlik':'#0891b2','görev':'#64748b','dogumgunu':'#e91e8c','recruiting':'#0f766e'};
+  let yaklasan=[];
+  D.etkinlikler.filter(e=>d7s.includes(e.tarih)).forEach(e=>yaklasan.push({...e,_src:'etkinlik'}));
+  D.rec.filter(r=>r.randevu_tarihi&&d7s.includes(r.randevu_tarihi)).forEach(r=>yaklasan.push({tarih:r.randevu_tarihi,baslik:r.ad,tur:'recruiting',saat:r.randevu_saati,_src:'rec'}));
+  D.dans.filter(d=>d.dogum_gunu&&d7s.includes(new Date().getFullYear()+'-'+d.dogum_gunu.slice(5))).forEach(d=>yaklasan.push({tarih:new Date().getFullYear()+'-'+d.dogum_gunu.slice(5),baslik:d.ad,tur:'dogumgunu',saat:null,_src:'dg'}));
+  yaklasan.sort((a,b)=>a.tarih.localeCompare(b.tarih)||(a.saat||'').localeCompare(b.saat||''));
+
+  if(yaklasan.length){
+    h+='<div style="margin-top:16px"><div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">YAKLAŞAN 7 GÜN</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
+    yaklasan.slice(0,15).forEach(e=>{
+      const rk=turR2[e.tur]||'#666';
+      const tarihLbl=new Date(e.tarih+'T12:00').toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'short'});
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #f5f5f5">';
+      h+='<div style="width:3px;height:32px;background:'+rk+';border-radius:2px;flex-shrink:0"></div>';
+      h+='<div style="min-width:90px;font-size:11px;color:#64748b">'+tarihLbl+'</div>';
+      h+='<div style="font-size:11px;color:'+rk+';font-weight:600;min-width:80px">'+e.tur+'</div>';
+      h+='<div style="font-size:12px;font-weight:600;color:#0f172a;flex:1">'+e.baslik+'</div>';
+      if(e.saat)h+='<div style="font-size:11px;color:#94a3b8">'+e.saat.slice(0,5)+'</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  }
+
   c.innerHTML=h;
 }
 
