@@ -5368,7 +5368,7 @@ function rDash2Kokpit(c){
   const barWrap='display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px';
   const bar=(renk,baslik,sayi,tikFn)=>{
     const bg=renk+'18';
-    return '<div onclick="'+tikFn+'" style="flex:1;min-width:120px;cursor:pointer;background:'+bg+';border-left:3px solid '+renk+';border-radius:6px;padding:10px 14px;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">'
+    return '<div onclick="'+tikFn+'" style="flex:1;min-width:120px;cursor:pointer;background:'+bg+';border-left:3px solid '+renk+';border-radius:6px;padding:10px 14px" onmouseover="this.style.opacity=.8" onmouseout="this.style.opacity=1">'
       +'<div style="font-size:20px;font-weight:800;color:'+renk+'">'+sayi+'</div>'
       +'<div style="font-size:11px;color:#475569;margin-top:2px">'+baslik+'</div>'
       +'</div>';
