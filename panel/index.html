@@ -4733,8 +4733,10 @@ async function topDuzenleKaydet(adi, tarih){
         } else {
           await api('dan_toplanti','POST',{danisman_ad:d.ad,toplanti_adi:adi,toplanti_tarihi:tarih,durum});
         }
+      } else if(recId){
+        // Seçimi kaldırıldı: eski kayıt varsa sil
+        await api('dan_toplanti','DELETE',null,'id=eq.'+recId);
       }
-      // Dahil edilmedi: eski kayıt varsa silme, sadece yeni ekleme
     }
     await load(true);
     toast('✅ Katılım kayıtları güncellendi');
