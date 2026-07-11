@@ -2319,6 +2319,12 @@ function dashFiltreDegis(onchange){
   eval(onchange);
 }
 
+function satir(lbl,val){
+  return '<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:12px">'
+    +'<span style="color:#64748b;font-weight:600">'+lbl+'</span>'
+    +'<span style="color:#0f172a;font-weight:600">'+val+'</span></div>';
+}
+
 function durumLbl(d){
   const lMap={
     'Kazanıldı':'Yetki Alındı',
@@ -3928,9 +3934,6 @@ function rDanismanDetay(c, danId){
   h+='<div style="background:#f1f5f9;border-radius:6px;height:8px;margin-bottom:20px">';
   h+='<div style="background:'+renkC+';height:100%;width:'+s.toplam+'%;border-radius:6px"></div></div>';
 
-  const satir=(lbl,val)=>'<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:12px">'
-    +'<span style="color:#64748b;font-weight:600">'+lbl+'</span>'
-    +'<span style="color:#0f172a;font-weight:600">'+val+'</span></div>';
 
   h+=satir('Telefon', d.telefon||'—');
   h+=satir('Başlangıç Tarihi', d.giris_tarihi||'—');
