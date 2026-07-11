@@ -255,7 +255,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .wa-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#25D366;border-radius:50%;color:#fff;font-size:11px;text-decoration:none;margin-right:3px;flex-shrink:0;}
 
 /* Recruiting layout */
-.rec-lay{display:grid;grid-template-columns:1fr 320px;gap:16px;}
+.rec-lay{display:block;}
 @media(max-width:900px){.rec-lay{grid-template-columns:1fr;}}
 
 /* Two col */
@@ -758,7 +758,7 @@ function ofisPFFiltre(){
   if(!b)return;
   var f=(s&&e2?D.leads.filter(function(l){return l.tarih>=s&&l.tarih<=e2;}):D.leads.filter(function(l){return l.tarih>=wAgo()&&l.tarih<=td();})).sort(function(a,bx){return new Date(bx.tarih)-new Date(a.tarih);});
   if(cnt)cnt.textContent='('+f.length+' kayıt)';
-  b.innerHTML=f.map(function(l){return'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc">—</span>')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button></td></tr>';}).join('');
+  b.innerHTML=f.map(function(l){return'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(durumLbl(l.durum))+'</td><td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc">—</span>')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button></td></tr>';}).join('');
 }
 function ofisPFSifirla(){
   var d1=document.getElementById('opf_d1');var d2=document.getElementById('opf_d2');
@@ -771,7 +771,7 @@ function qL(){
   if((new Date(e)-new Date(s))/(864e5)>7){alert('En fazla 7 günlük aralık!');return;}
   useRight('l');
   const b=document.getElementById('ofisLB');
-  if(b)b.innerHTML=D.leads.filter(l=>l.tarih>=s&&l.tarih<=e).map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
+  if(b)b.innerHTML=D.leads.filter(l=>l.tarih>=s&&l.tarih<=e).map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td>'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+badge(durumLbl(l.durum))+'</td><td>'+(l.danisman||'—')+'</td></tr>').join('');
   rPF(document.getElementById('ct'));
 }
 function dupC(v,t){
@@ -803,7 +803,7 @@ function rRec(c){
   const dEv=D.rec.filter(r=>r.randevu_tarihi===todS&&r.randevu_saati);
   const adEv=D.rec.filter(r=>r.randevu_tarihi===todS&&!r.randevu_saati);
   const dLbl=calDt.toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'short'});
-  let h='<div class="rec-lay"><div>';
+  let h='<div class="fw">';
   if(isA)h+='<div class="th"><div class="tt">👥 Recruiting ('+D.rec.length+')</div><div class="ta"><button class="btn btn-g" onclick="exp(\'r\')">📥 CSV</button></div></div>';
   h+='<div id="rfw" class="fw"><h3>'+(isA?'Yeni Aday':'➕ Yeni Aday Ekle')+'</h3>';
   h+='<div id="rdw"></div>';
@@ -830,7 +830,7 @@ function rRec(c){
     h+='</div>';
     const f=D.rec.filter(r=>((r.created_at||'').slice(0,10))>=wAgo()&&((r.created_at||'').slice(0,10))<=td());
     h+='<div class="tw"><table><thead><tr><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Randevu</th></tr></thead><tbody id="ofisRB">';
-    h+=f.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(r.durum)+'</td><td>'+(r.randevu_tarihi||'—')+'</td></tr>').join('');
+    h+=f.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(durumLbl(r.durum))+'</td><td>'+(r.randevu_tarihi||'—')+'</td></tr>').join('');
     h+='</tbody></table></div>';
   }else{
     h+='<div class="sb"><input id="ra" placeholder="🔍 Ad..." oninput="fR()"/><select id="rd" onchange="fR()"><option value="">Tüm Durumlar</option>'+opts(CFG.rDur,'')+'</select><select id="rk" onchange="fR()"><option value="">Tüm Kaynaklar</option>'+opts(CFG.rSrc,'')+'</select></div>';
@@ -853,7 +853,7 @@ function qR(){
   if((new Date(e)-new Date(s))/(864e5)>7){alert('En fazla 7 günlük aralık!');return;}
   useRight('r');
   const b=document.getElementById('ofisRB');
-  if(b)b.innerHTML=D.rec.filter(r=>((r.created_at||'').slice(0,10))>=s&&((r.created_at||'').slice(0,10))<=e).map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(r.durum)+'</td><td>'+(r.randevu_tarihi||'—')+'</td></tr>').join('');
+  if(b)b.innerHTML=D.rec.filter(r=>((r.created_at||'').slice(0,10))>=s&&((r.created_at||'').slice(0,10))<=e).map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(durumLbl(r.durum))+'</td><td>'+(r.randevu_tarihi||'—')+'</td></tr>').join('');
   rRec(document.getElementById('ct'));
 }
 async function svRec(){
@@ -1308,7 +1308,7 @@ function rOzet(c){
   // GD Kullanım Oranı
   const gd30=D.log.filter(l=>(l.created_at||'')>=d30s);
   const gdDanMap={};
-  D.dans.forEach(d=>gdDanMap[d.ad]={ad:d.ad,islem:0,sonGiris:''});
+  D.dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul').forEach(d=>gdDanMap[d.ad]={ad:d.ad,islem:0,sonGiris:''});
   gd30.forEach(l=>{
     if(l.yapan&&gdDanMap[l.yapan]){
       gdDanMap[l.yapan].islem++;
@@ -1451,7 +1451,7 @@ function rPF(c){
     h+='<button class="btn btn-g btn-sm" onclick="ofisPFSifirla()">Sıfırla</button>';
     h+='</div></div>';
     h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th></th></tr></thead><tbody id="ofisLB">';
-    h+=ofisLeads.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(l.durum)+'</td><td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc">—</span>')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button></td></tr>').join('');
+    h+=ofisLeads.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(durumLbl(l.durum))+'</td><td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc">—</span>')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button></td></tr>').join('');
     h+='</tbody></table></div>';
     h+=santralBlock();
     c.innerHTML=h;
@@ -1593,7 +1593,7 @@ function lRows(list){
       +'<td><strong>'+(l.ad||'')+'</strong></td>'
       +'<td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td>'
       +'<td>'+(l.kaynak||'—')+'</td>'
-      +'<td>'+badge(l.durum)+'</td>'
+      +'<td>'+badge(durumLbl(l.durum))+'</td>'
       +'<td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc;font-size:11px">—</span>')+'</td>'
       +'<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' <b>'+tlC+'</b>':'')+'</button></td>'
       +('<td style="display:flex;gap:3px"><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button>'+(CU.role==='admin'?'<button class="btn btn-sm btn-r" onclick="delLead(\''+l.id+'\')">🗑</button>':'')+'</td>')
@@ -2319,6 +2319,25 @@ function dashFiltreDegis(onchange){
   eval(onchange);
 }
 
+function durumLbl(d){
+  const lMap={
+    'Kazanıldı':'Yetki Alındı',
+    'Kaybedildi':'Sonuçlanmadı',
+    'Arandı':'İlk Temas',
+    'Çağrıldı':'Randevu Planlandı',
+    'Görüşüldü':'Görüşme Yapıldı',
+    'Sıcak':'Aktif Takip',
+    'Soğuk':'Beklemede',
+    'Kara Liste':'İletişim Sonlandırıldı',
+    'Beklemede':'Yeni Aday',
+    '1. Görüşme':'İlk Görüşme',
+    '2. Görüşme':'İkinci Görüşme',
+    'Randevu':'Görüşme Planlandı',
+    'Olumsuz':'Süreç Sonlandı',
+  };
+  return lMap[d]||d||'—';
+}
+
 function dateFrom(){
   if(window._dateFilter==='all')return'2000-01-01';
   if(window._dateFilter==='ozel')return window._dateFrom2||'2000-01-01';
@@ -2818,7 +2837,7 @@ function rDanDash(c){
       h+='<tr style="border-bottom:1px solid #f5f5f5">';
       h+='<td style="padding:7px 12px;font-size:12px;font-weight:600">'+(l.ad||'—')+'</td>';
       h+='<td style="padding:7px 12px;font-size:12px">'+(l.telefon||'—')+'</td>';
-      h+='<td style="padding:7px 12px;font-size:11px">'+(l.durum||'—')+'</td>';
+      h+='<td style="padding:7px 12px;font-size:11px">'+durumLbl(l.durum||'')+'</td>';
       h+='<td style="padding:7px 12px;font-size:11px;color:#64748b">'+(l.danisman||'Atanmamış')+'</td>';
       h+='</tr>';
     });
@@ -3102,7 +3121,7 @@ async function santralLogYukle(){
       h+='<td style="padding:6px 10px;font-size:11px;color:#94a3b8">'+(l.created_at||'').slice(0,16)+'</td>';
       h+='<td style="padding:6px 10px;font-size:12px;font-weight:600">'+(l.arayan||'—')+'</td>';
       h+='<td style="padding:6px 10px;font-size:12px">'+(l.aranan||'—')+'</td>';
-      h+='<td style="padding:6px 10px"><span style="color:'+dc+';font-size:11px;font-weight:700">'+(l.durum||'—')+'</span></td>';
+      h+='<td style="padding:6px 10px"><span style="color:'+dc+';font-size:11px;font-weight:700">'+durumLbl(l.durum||'')+'</span></td>';
       h+='<td style="padding:6px 10px;font-size:12px">'+(l.sure?l.sure+'s':'—')+'</td>';
       h+='<td style="padding:6px 10px;font-size:12px">'+(l.danisman||'—')+'</td>';
       h+='</tr>';
@@ -3565,7 +3584,7 @@ function danSkor(d){
   const etiket=toplam>=90?'⭐ Yıldız Danışman':toplam>=75?'💪 Güçlü Danışman':toplam>=60?'📈 Geliştirilmeli':toplam>=40?'⚠️ Riskli':'🚨 Yanlış Danışman';
   const etiketC=toplam>=90?'#1C8C4B':toplam>=75?'#003DA5':toplam>=60?'#C9821A':toplam>=40?'#DC1C2E':'#7f1d1d';
 
-  return{toplam,etiket,etiketC,topPuan,topTum,topKatildi,egPuan,egTum,egBitti,uretimPuan,leadler,kazanilan,portfoyPuan,portfoy,memPuan,mem,googleYorum,rekPuan,rek,crmPuan};
+  return{toplam,etiket,etiketC,topPuan,topTum,topKatildi,egPuan,egTum,egBitti,uretimPuan,leadler,kazanilan,portfoyPuan,portfoy,memPuan,mem,googleYorum,rekPuan,rek,crmPuan,crmIslem};
 }
 
 async function rSkorboard(c){
@@ -3634,6 +3653,16 @@ async function rSkorboard(c){
     const renkC=s.toplam>=80?'#1C8C4B':s.toplam>=50?'#C9821A':'#DC1C2E';
     const topKatilimYuzde=s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—';
     const egYuzde=s.egTum.length?Math.round(s.egBitti/s.egTum.length*100)+'%':'—';
+  const topYuzde=s.topTum.length?Math.round(s.topKatildi/s.topTum.length*100)+'%':'—';
+  h+=satir('Toplantı Katılımı', s.topKatildi+' / '+s.topTum.length);
+  h+=satir('Katılım %', topYuzde);
+  h+=satir('Google Yorum', s.googleYorum+'');
+  const danLog=D.log.filter(l=>l.yapan===d.ad).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+  const sonIslemTarihi=danLog.length?(danLog[0].created_at||'').slice(0,16).replace('T',' '):'—';
+  const crmYuzde=s.crmIslem>0?Math.min(Math.round(s.crmIslem/5*100),100)+'%':'%0';
+  h+=satir('Son İşlem Tarihi', sonIslemTarihi);
+  h+=satir('Toplam İşlem', s.crmIslem+'');
+  h+=satir('CRM Kullanım', crmYuzde);
     const ilkIslemStr=ilkIslemGun===null?(d.ilk_islem_tarihi?'✅':'—'):(ilkIslemGun>90?'⚠ '+ilkIslemGun+'g':ilkIslemGun+'g');
     const ilkIslemRenk=ilkIslemGun>90?'#DC1C2E':ilkIslemGun>60?'#C9821A':'inherit';
     h+='<tr style="border-top:1px solid #f5f5f5;cursor:pointer" onclick="rDanismanDetay(document.getElementById(\'ct\'),\''+d.id+'\')">';
@@ -3865,6 +3894,10 @@ function rDanismanDetay(c, danId){
   h+=satir('Telefon', d.telefon||'—');
   h+=satir('Başlangıç Tarihi', d.giris_tarihi||'—');
   h+=satir('Kullanıcı Tipi', d.kullanici_tipi==='ofis_personeli'?'Ofis Personeli':d.kullanici_tipi==='broker'?'Broker':'Gayrimenkul Danışmanı');
+  const egYuzde=s.egTum.length?Math.round(s.egBitti/s.egTum.length*100)+'%':'—';
+  h+=satir('Tamamlanan Eğitim', s.egBitti+' / '+s.egTum.length);
+  h+=satir('Eksik Eğitim', (s.egTum.length-s.egBitti)+'');
+  h+=satir('Eğitim Tamamlanma', egYuzde);
   h+=satir('Toplam Skor', s.toplam+' / 100');
   h+='</div>';
 
@@ -4919,7 +4952,7 @@ async function rObEgitim(c){
         h+='<div style="padding:0 16px 12px"><div style="display:flex;flex-wrap:wrap;gap:4px">';
         sonAtt.forEach(a=>{
           const dc=a.durum==='Katıldı'?'var(--gn)':a.durum==='Mazeretli'?'var(--or)':a.durum==='Geç Katıldı'?'#f59e0b':'var(--red)';
-          h+='<span style="font-size:10px;padding:2px 7px;background:'+dc+'15;color:'+dc+';border:1px solid '+dc+'30;border-radius:10px;font-weight:600">'+a.danisman_ad+' · '+a.durum+'</span>';
+          h+='<span style="font-size:10px;padding:2px 7px;background:'+dc+'15;color:'+dc+';border:1px solid '+dc+'30;border-radius:10px;font-weight:600">'+a.danisman_ad+' · '+durumLbl(a.durum)+'</span>';
         });
         if(att.length>6)h+='<span style="font-size:10px;color:#94a3b8">+'+( att.length-6)+' daha</span>';
         h+='</div></div>';
@@ -5214,7 +5247,7 @@ function eksRows(danFlt,progFlt,durumFlt){
       +'<td style="'+thS2+'">'+e.prog+'</td>'
       +'<td style="'+thS2+'"><span style="font-weight:700;color:var(--dk)">'+e.modul+'</span></td>'
       +'<td style="'+thS2+';font-size:11px;color:#94a3b8">'+e.tarih+'</td>'
-      +'<td style="'+thS2+'"><span style="background:'+dc+'15;color:'+dc+';padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">'+e.durum+'</span></td>'
+      +'<td style="'+thS2+'"><span style="background:'+dc+'15;color:'+dc+';padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">'+durumLbl(e.durum)+'</span></td>'
       +'<td style="'+thS2+'">'+(e.telafi!=='—'?'<span style="font-size:10px;color:var(--gn)">→ '+e.telafi+'</span>':'<span style="font-size:10px;color:#94a3b8">Yok</span>')+'</td>'
       +'</tr>';
   }).join('');
@@ -5589,7 +5622,7 @@ function dashDetay(tip,filtre){
       +'<td style="font-size:12px;font-weight:600">'+(l.ad||'—')+'</td>'
       +'<td style="font-size:12px">'+(l.telefon||'—')+'</td>'
       +'<td style="font-size:12px">'+(l.danisman||'—')+'</td>'
-      +'<td><span style="font-size:11px;background:#f1f5f9;padding:2px 7px;border-radius:5px">'+(l.durum||'—')+'</span></td>'
+      +'<td><span style="font-size:11px;background:#f1f5f9;padding:2px 7px;border-radius:5px">'+durumLbl(l.durum||'')+'</span></td>'
       +'<td style="font-size:11px;color:#94a3b8">'+(l.tarih||'—')+'</td>'
       +'<td style="font-size:11px;color:'+(l.sonraki_takip&&l.sonraki_takip<toStr?'#DC1C2E':'#64748b')+'">'+(l.sonraki_takip||'—')+'</td>'
       +'</tr>';
@@ -5603,7 +5636,7 @@ function dashDetay(tip,filtre){
       +'<td style="font-size:12px;font-weight:600">'+(r.ad||'—')+'</td>'
       +'<td style="font-size:12px">'+(r.telefon||'—')+'</td>'
       +'<td style="font-size:12px">'+(r.kaynak||'—')+'</td>'
-      +'<td><span style="font-size:11px;background:#f1f5f9;padding:2px 7px;border-radius:5px">'+(r.durum||'—')+'</span></td>'
+      +'<td><span style="font-size:11px;background:#f1f5f9;padding:2px 7px;border-radius:5px">'+durumLbl(r.durum||'')+'</span></td>'
       +'<td style="font-size:11px;color:#64748b">'+(r.randevu_tarihi||'—')+'</td>'
       +'<td style="font-size:11px;color:#64748b">'+(r.danisman||'—')+'</td>'
       +'</tr>';
@@ -5731,7 +5764,7 @@ function rPFRapor(c,tip){
         h+='<tr><td style="'+tdS+';font-weight:600">'+l.ad+'</td><td style="'+tdS+'">'+( l.danisman||'—')+'</td>'
           +'<td style="'+tdS+';color:var(--red)">'+l.sonraki_takip+'</td>'
           +'<td style="'+tdS+'"><span style="color:'+gc+';font-weight:700">'+gun+' gün</span></td>'
-          +'<td style="'+tdS+'">'+badge(l.durum)+'</td>'
+          +'<td style="'+tdS+'">'+badge(durumLbl(l.durum))+'</td>'
           +'<td style="'+tdS+'"><button class="btn btn-xs btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')">✏️</button></td></tr>';
       });
       h+='</tbody></table>';
