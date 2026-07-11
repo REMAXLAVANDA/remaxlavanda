@@ -2304,6 +2304,11 @@ async function talepEslesme(tip,kid,enc){
 }
 
 // --- OFİS BİLGİ (GD görüntüleme) ---
+function bilgiKopyala(id){
+  const b=D.bilgiMerkezi.find(x=>x.id===id);
+  if(b&&b.icerik)navigator.clipboard.writeText(b.icerik).then(()=>toast('📋 Kopyalandı')).catch(()=>alert(b.icerik));
+}
+
 function rBilgiMerkezi(c){
   const isAdmin=CU.role==='admin'||CU.role==='ofis';
   const ara=(window._bilgiAra||'').toLowerCase();
@@ -2370,7 +2375,7 @@ function rBilgiMerkezi(c){
       if(kisaIcerik)h+='<div style="font-size:11px;color:#64748b;line-height:1.5">'+kisaIcerik+'</div>';
       h+='</div>';
       h+='<div style="display:flex;gap:4px;flex-shrink:0">';
-      if(b.icerik)h+='<button class="btn btn-sm btn-g" onclick="navigator.clipboard.writeText(\''+b.icerik.replace(/\/g,'\\').replace(/'/g,"\'")+'\');toast(\'📋 Kopyalandı\')" style="font-size:11px;padding:3px 8px">📋</button>';
+      if(b.icerik)h+='<button class="btn btn-sm btn-g" onclick="bilgiKopyala(\''+b.id+'\')" style="font-size:11px;padding:3px 8px">📋</button>';
       if(b.dosya_url)h+='<a href="'+b.dosya_url+'" target="_blank" class="btn btn-sm btn-g" style="font-size:11px;padding:3px 8px;text-decoration:none">🔗 Aç</a>';
       if(isAdmin)h+='<button class="btn btn-sm btn-r" onclick="delBilgi(\''+b.id+'\')" style="font-size:11px;padding:3px 8px">🗑</button>';
       h+='</div></div>';
