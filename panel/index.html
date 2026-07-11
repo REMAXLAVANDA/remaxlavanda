@@ -704,7 +704,7 @@ function rC(id){
   else if(id==='hub_pf')_run(()=>rPF(c));
   else if(id==='hub_rec')_run(()=>rRec(c));
   else if(id==='hub_skor')_run(()=>rSkorboard(c));
-  else if(id==='hub_ob')_run(()=>rObOnboarding(c));
+  else if(id==='hub_ob')_run(()=>rObEgitim(c));
   else if(id==='hub_takvim')_run(()=>rTakvim(c));
   else if(id==='hub_yonetim')_run(()=>rDans(c));
   else if(id==='ob_onboarding')_run(()=>rObOnboarding(c));
@@ -4620,7 +4620,7 @@ async function rObEgitim(c){
   // Eğitim oluşturma formu
   if(isA){
     const danList=D.dans.map(d=>'<option value="'+d.ad+'">'+d.ad+'</option>').join('');
-    h+='<div id="ob-egitim-form" style="display:none;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px">';
+    h+='<div id="ob-egitim-form" style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px">';
     h+='<div style="font-size:14px;font-weight:700;color:var(--dk);margin-bottom:14px">➕ Yeni Eğitim Programı</div>';
     h+='<div class="fg">';
     h+='<div class="fgr"><label>Eğitim Adı *</label><input id="tr_ad" placeholder="RE/MAX Power Camp..."/></div>';
@@ -4705,6 +4705,33 @@ async function rObEgitim(c){
 
   // Katılım giriş modali
   h+=trKatilimModal();
+
+
+  // ── Onboarding özet tablosu
+  if(D.dans&&D.dans.length){
+    h+='<div style="margin-top:24px"><div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">DANIŞMAN ONBOARDİNG DURUMU</div>';
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden"><table style="width:100%;border-collapse:collapse">';
+    h+='<thead><tr style="background:var(--lg)">';
+    ['DANIŞMAN','TAMAMLANAN','BEKLEYEN','ONAY BEKLEYEN','İLERLEME'].forEach(t=>h+='<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:#64748b;border-bottom:1px solid var(--bd)">'+t+'</th>');
+    h+='</tr></thead><tbody>';
+    D.dans.forEach(d=>{
+      const prog=D.obProgress.filter(p=>p.danisman_ad===d.ad);
+      const tamam=prog.filter(p=>p.durum==='admin_onaylandi'||p.durum==='tamamlandi').length;
+      const bekleyen=prog.filter(p=>!p.durum||p.durum==='bekliyor').length;
+      const onayBekleyen=prog.filter(p=>p.durum==='danisman_isaretledi').length;
+      const toplam=typeof OB_TASKS_DEFAULT!=='undefined'?OB_TASKS_DEFAULT.length:10;
+      const pct=toplam>0?Math.round(tamam/toplam*100):0;
+      const renkC=pct>=80?'#1C8C4B':pct>=50?'#C9821A':'#DC1C2E';
+      h+='<tr style="border-top:1px solid #f5f5f5">';
+      h+='<td style="padding:8px 12px;font-size:12px;font-weight:600">'+d.ad+'</td>';
+      h+='<td style="padding:8px 12px;font-size:12px;color:#1C8C4B;font-weight:600">'+tamam+'</td>';
+      h+='<td style="padding:8px 12px;font-size:12px;color:#64748b">'+bekleyen+'</td>';
+      h+='<td style="padding:8px 12px;font-size:12px;color:#C9821A">'+onayBekleyen+'</td>';
+      h+='<td style="padding:8px 12px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;background:#f1f5f9;border-radius:6px;height:6px"><div style="background:'+renkC+';height:100%;width:'+pct+'%;border-radius:6px"></div></div><span style="font-size:11px;font-weight:700;color:'+renkC+'">%'+pct+'</span></div></td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div></div>';
+  }
 
   c.innerHTML=h;
 }
