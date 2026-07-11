@@ -1435,10 +1435,9 @@ function rPF(c){
   if(isA)h+='<button class="btn btn-g btn-sm" onclick="toggleArsiv()" style="margin-right:4px">'+(showArsiv?'📋 Aktif':'📦 Arşiv')+'</button>';
   if(isA)h+='<button class="btn btn-g btn-sm" onclick="exp(\'l\')">📥 CSV</button>';
   h+='<button class="btn btn-g btn-sm btn-kanban" onclick="toggleKanban()" id="btn-kanban">'+(window._kanban?'☰ Liste':'⬛ Kanban')+'</button>';
-  h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'pf-form\').classList.toggle(\'hidden\')">+ Lead Ekle</button>';
   h+='</div></div>';
 
-  h+='<div id="pf-form" class="'+(isA?'hidden ':'')+'fw" style="margin-bottom:12px"><h3>➕ Yeni GD Lead</h3>';
+  h+='<div id="pf-form" class="fw" style="margin-bottom:12px"><h3>➕ Yeni GD Lead</h3>';
   h+='<div id="ldw"></div>';
   h+='<div class="fg">';
   h+='<div class="fgr"><label>Ad Soyad *</label><input id="f_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value);dupC(this.value,\'l\')"/></div>';
