@@ -1915,7 +1915,7 @@ function rTakvim(c){
       const rk=turR[e.tur]||'#666';
       const ic=turI[e.tur]||'📌';
       const saat=e.saat?(e.saat.slice(0,5)+' '):'';
-      h+='<span class="cal-ev-chip" style="background:'+rk+'18;color:'+rk+';border-left:2px solid '+rk+'" title="'+e.baslik+(e.saat?' — '+e.saat.slice(0,5):'')+'">'+ic+' '+saat+e.baslik+'</span>';
+      h+='<span class="cal-ev-chip" style="background:'+rk+'18;color:'+rk+';border-left:2px solid '+rk+';cursor:pointer" title="'+e.baslik+(e.saat?' — '+e.saat.slice(0,5):'')+' (tıkla)" onclick="etkDetay(\''+e.id+'\',\''+e._tip+'\')" >'+ic+' '+saat+e.baslik+'</span>';
     });
     if(evs.length>limit){
       h+='<span class="cal-ev-more">+'+(evs.length-limit)+' daha</span>';
@@ -1943,7 +1943,7 @@ function rTakvim(c){
     yaklasan.slice(0,15).forEach(e=>{
       const rk=turR2[e.tur]||'#666';
       const tarihLbl=new Date(e.tarih+'T12:00').toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'short'});
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #f5f5f5">';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer" onclick="etkDetay(\''+e.id+'\',\''+( e._src||'etkinlik')+'\')" >';
       h+='<div style="width:3px;height:32px;background:'+rk+';border-radius:2px;flex-shrink:0"></div>';
       h+='<div style="min-width:90px;font-size:11px;color:#64748b">'+tarihLbl+'</div>';
       h+='<div style="font-size:11px;color:'+rk+';font-weight:600;min-width:80px">'+e.tur+'</div>';
@@ -1960,6 +1960,71 @@ function rTakvim(c){
 function chCal2(d){if(!window._calDt2)window._calDt2=new Date();window._calDt2.setDate(1);window._calDt2.setMonth(window._calDt2.getMonth()+d);rTakvim(document.getElementById('ct'));}
 function goToday2(){window._calDt2=new Date();rTakvim(document.getElementById('ct'));}
 function setCalFiltre(f){window._calFiltre=f;rTakvim(document.getElementById('ct'));}
+
+function etkDetay(id, tip){
+  // Doğum günü veya yetersiz id ise atla
+  if(!id||String(id).startsWith('dg_')){return;}
+
+  let etk=null;
+  if(tip==='rec'){
+    etk=D.rec.find(r=>r.id===id);
+  } else {
+    etk=(D.etkinlikler||[]).find(e=>e.id===id);
+  }
+
+  const isAdmin=CU.role==='admin'||CU.role==='ofis';
+  const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','randevu':'#5b21b6','etkinlik':'#0891b2','görev':'#64748b','dogumgunu':'#e91e8c','recruiting':'#0f766e'};
+
+  let modal=document.getElementById('etk-detay-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='etk-detay-modal';
+    modal.className='mo';
+    modal.innerHTML='<div class="md" style="max-width:460px"><div id="etk-detay-icerik"></div></div>';
+    document.body.appendChild(modal);
+  }
+
+  let h='';
+  if(!etk){
+    h='<div style="padding:20px;text-align:center;color:#94a3b8">Etkinlik verisi bulunamadı.</div>';
+    h+='<div style="padding:0 0 12px;text-align:right"><button class="btn btn-g btn-sm" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')">Kapat</button></div>';
+    document.getElementById('etk-detay-icerik').innerHTML=h;
+    modal.classList.add('show');
+    return;
+  }
+
+  const tur=etk.tur||etk.tip||'etkinlik';
+  const rk=turR[tur]||'#666';
+  const baslik=etk.baslik||etk.ad||'—';
+  const tarih=etk.tarih||etk.randevu_tarihi||'—';
+  const saat=etk.saat||etk.randevu_saati||'';
+  const aciklama=etk.aciklama||etk.not||'';
+  const ilgili=etk.olusturan||etk.danisman||etk.danisman_ad||'';
+  const durum=etk.durum||'';
+
+  h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+  h+='<div style="width:4px;height:40px;background:'+rk+';border-radius:2px"></div>';
+  h+='<div><div style="font-size:15px;font-weight:800;color:#0f172a">'+baslik+'</div>';
+  h+='<div style="font-size:11px;color:'+rk+';font-weight:600;margin-top:2px">'+tur.charAt(0).toUpperCase()+tur.slice(1)+'</div></div></div>';
+
+  const s=(lbl,val)=>val?'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:12px"><span style="color:#64748b">'+lbl+'</span><span style="font-weight:600;color:#0f172a">'+val+'</span></div>':'';
+  h+=s('Tarih', tarih);
+  h+=s('Saat', saat?saat.slice(0,5):'');
+  h+=s('İlgili Kişi', ilgili);
+  h+=s('Durum', durum);
+  if(aciklama)h+='<div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;font-size:11px;color:#475569">'+aciklama+'</div>';
+
+  h+='<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">';
+  h+='<button class="btn btn-g btn-sm" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\')">Kapat</button>';
+  if(isAdmin&&tip!=='rec'){
+    h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:4px 12px;cursor:pointer" onclick="document.getElementById(\'etk-detay-modal\').classList.remove(\'show\');doE(\'etkinlikler\',\''+id+'\')">✏️ Düzenle</button>';
+    h+='<button class="btn btn-sm btn-r" onclick="if(confirm(\'Silinsin mi?\'))delEtkinlik(\''+id+'\')">🗑 Sil</button>';
+  }
+  h+='</div>';
+
+  document.getElementById('etk-detay-icerik').innerHTML=h;
+  modal.classList.add('show');
+}
 
 async function svEtkinlik(){
   const b=document.getElementById('ef_b').value.trim();
