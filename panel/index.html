@@ -6173,8 +6173,9 @@ function rDash2Kokpit(c){
 
 function dashDetay(tip,filtre){
   const toStr=td();
-  const leads=D.leads||[];
-  const rec=D.rec||[];
+  const _df=dateFrom();const _dt=dateTo();
+  const leads=(D.leads||[]).filter(l=>(l.tarih||'').slice(0,10)>=_df&&(l.tarih||'').slice(0,10)<=_dt);
+  const rec=(D.rec||[]).filter(r=>(r.tarih||'').slice(0,10)>=_df&&(r.tarih||'').slice(0,10)<=_dt);
   const dans=D.dans||[];
   const etk=D.etkinlikler||[];
   const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
