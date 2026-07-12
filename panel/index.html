@@ -457,6 +457,13 @@ const tok=new URLSearchParams(window.location.search).get('token');
 function cap(s){if(!s)return'';return s.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');}
 function td(){return new Date().toISOString().split('T')[0];}
 function wAgo(){const d=new Date();d.setDate(d.getDate()-7);return d.toISOString().split('T')[0];}
+function gLVD(){
+  const chars='ABCDEFGHJKLMNPQRTUVWXYZ23456789';
+  let kod='';
+  for(let i=0;i<5;i++)kod+=chars[Math.floor(Math.random()*chars.length)];
+  return 'LVD-'+kod;
+}
+
 function gTok(){const c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';let t='';for(let i=0;i<14;i++)t+=c[Math.floor(Math.random()*c.length)];return t;}
 function gPin(){return String(Math.floor(1000+Math.random()*9000));}
 
@@ -795,7 +802,12 @@ async function svLead(){
   if(!ad){document.getElementById('lfm').innerHTML='<div class="err-m">Ad zorunlu!</div>';return;}
   const danEl=document.getElementById('f_dan');const danAd=danEl?cap(danEl.value.trim()):'';
   if(danAd&&!D.dans.find(d=>d.ad===danAd)){try{await api('danismanlar','POST',{ad:danAd,token:gTok(),pin:gPin()});}catch(e){}}
-  const data={ad,telefon:document.getElementById('f_tel').value.trim(),kaynak:document.getElementById('f_k').value,danisman:danAd||null,durum:document.getElementById('f_d').value,aciklama:document.getElementById('f_a').value.trim(),tarih:td(),sonraki_takip:document.getElementById('f_t').value||null};
+  // Benzersiz portföy kodu üret (çakışma kontrolü ile)
+  let portfoy_kodu=gLVD();
+  const mevcutKodlar=(D.leads||[]).map(l=>l.portfoy_kodu).filter(Boolean);
+  let deneme=0;
+  while(mevcutKodlar.includes(portfoy_kodu)&&deneme<20){portfoy_kodu=gLVD();deneme++;}
+  const data={ad,telefon:document.getElementById('f_tel').value.trim(),kaynak:document.getElementById('f_k').value,danisman:danAd||null,durum:document.getElementById('f_d').value,aciklama:document.getElementById('f_a').value.trim(),tarih:td(),sonraki_takip:document.getElementById('f_t').value||null,portfoy_kodu};
   try{await api('gd_leads','POST',data);await logIslem('gd_leads','ekle',CU.name||CU.danAd||'?');document.getElementById('lfm').innerHTML='<div class="ok-m">✅ Lead eklendi!</div>';document.getElementById('f_ad').value='';document.getElementById('f_tel').value='';document.getElementById('f_a').value='';await load();setTimeout(()=>{hLF();rPF(document.getElementById('ct'));},900);}
   catch(e){document.getElementById('lfm').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
@@ -1454,7 +1466,7 @@ function rPF(c){
     h+='<input type="date" id="opf_d2" style="padding:6px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px" onchange="ofisPFFiltre()"/>';
     h+='<button class="btn btn-g btn-sm" onclick="ofisPFSifirla()">Sıfırla</button>';
     h+='</div></div>';
-    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th></th></tr></thead><tbody id="ofisLB">';
+    h+='<div class="tw"><table><thead><tr><th>Kod</th><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th></th></tr></thead><tbody id="ofisLB">';
     h+=ofisLeads.map(l=>'<tr><td>'+(l.tarih||'—')+'</td><td><strong>'+(l.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td><td>'+(l.kaynak||'—')+'</td><td>'+badge(durumLbl(l.durum))+'</td><td>'+(l.danisman?'<span style="background:#E2F2E8;color:var(--gn);padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">'+l.danisman+'</span>':'<span style="color:#ccc">—</span>')+'</td><td><button class="btn btn-sm btn-g" onclick="doE(\'gd_leads\',\''+l.id+'\')" title="Düzenle">✏️</button></td></tr>').join('');
     h+='</tbody></table></div>';
     h+=santralBlock();
@@ -1467,7 +1479,7 @@ function rPF(c){
   if(window._kanban){
     h+=rKanbanHTML(D.leads,true);
   }else{
-    h+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Notlar</th><th></th></tr></thead><tbody id="lB">';
+    h+='<div class="tw"><table><thead><tr><th>Kod</th><th>Tarih</th><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Danışman</th><th>Notlar</th><th></th></tr></thead><tbody id="lB">';
     h+=lRows(D.leads);
     h+='</tbody></table></div>';
   }
@@ -1574,7 +1586,7 @@ function fL(){
   const fMin=+(document.getElementById('flt-fmin')||{value:''}).value||null;
   const fMax=+(document.getElementById('flt-fmax')||{value:''}).value||null;
   const f=D.leads.filter(l=>{
-    if(!(!a||(l.ad||'').toLowerCase().includes(a)||(l.telefon||'').includes(a)))return false;
+    if(!(!a||(l.ad||'').toLowerCase().includes(a)||(l.telefon||'').includes(a)||(l.portfoy_kodu||'').toLowerCase().includes(a)))return false;
     if(!(!d||l.durum===d))return false;
     if(!(!dn||l.danisman===dn))return false;
     if(!(!d1||l.tarih>=d1))return false;
@@ -1593,6 +1605,7 @@ function lRows(list){
   return list.map(l=>{
     const tlC=D.timeline.filter(t=>t.kayit_id===l.id).length;
     return '<tr>'
+      +'<td style="white-space:nowrap"><span style="font-family:monospace;font-size:10px;font-weight:700;color:#475569;background:#f1f5f9;padding:2px 6px;border-radius:4px">'+(l.portfoy_kodu||'—')+'</span></td>'
       +'<td>'+(l.tarih||'—')+'</td>'
       +'<td><strong>'+(l.ad||'')+'</strong></td>'
       +'<td style="white-space:nowrap">'+wa(l.telefon)+(l.telefon||'')+'</td>'
