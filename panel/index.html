@@ -2082,12 +2082,29 @@ async function svEtkinlik(){
   const b=document.getElementById('ef_b').value.trim();
   if(!b){document.getElementById('ef_m').innerHTML='<div class="err-m">Başlık zorunlu!</div>';return;}
   const hedef=document.getElementById('ef_h').value;
+  const tur=document.getElementById('ef_t').value;
+  const tarih=document.getElementById('ef_d').value;
   const atanan=[];
   if(hedef==='secili'){document.querySelectorAll('.dcb:checked').forEach(cb=>atanan.push(cb.value));if(!atanan.length){document.getElementById('ef_m').innerHTML='<div class="err-m">Danışman seçin!</div>';return;}}
   try{
-    await api('etkinlikler','POST',{baslik:b,tur:document.getElementById('ef_t').value,tarih:document.getElementById('ef_d').value,saat:document.getElementById('ef_s').value||null,bitis_saati:document.getElementById('ef_e').value||null,hedef:hedef,atanan_danismanlar:hedef==='secili'?JSON.stringify(atanan):null,aciklama:document.getElementById('ef_a').value.trim(),olusturan:CU.name||'Ofis'});
+    await api('etkinlikler','POST',{baslik:b,tur,tarih,saat:document.getElementById('ef_s').value||null,bitis_saati:document.getElementById('ef_e').value||null,hedef,atanan_danismanlar:hedef==='secili'?JSON.stringify(atanan):null,aciklama:document.getElementById('ef_a').value.trim(),olusturan:CU.name||'Ofis'});
+
+    // Toplantı veya Eğitim ise → dan_toplanti / dan_egitim tablosuna otomatik kayıt
+    if(tur==='toplantı'||tur==='eğitim'){
+      const gdDans=D.dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
+      const katilimcilar=hedef==='secili'?gdDans.filter(d=>atanan.includes(d.ad)):gdDans;
+      const tbl=tur==='toplantı'?'dan_toplanti':'dan_egitim';
+      const kayitlar=katilimcilar.map(d=>tur==='toplantı'
+        ?{danisman_ad:d.ad,toplanti_adi:b,toplanti_tarihi:tarih,durum:'Katılmadı'}
+        :{danisman_ad:d.ad,program_adi:b,tarih,durum:'Beklemede'}
+      );
+      for(const k of kayitlar){
+        await api(tbl,'POST',k).catch(()=>{});
+      }
+    }
+
     document.getElementById('ef_m').innerHTML='<div class="ok-m">✅ Eklendi!</div>';
-    await load();setTimeout(()=>{document.getElementById('ef').classList.add('hidden');rTakvim(document.getElementById('ct'));},800);
+    await load(true);setTimeout(()=>{document.getElementById('ef').classList.add('hidden');rTakvim(document.getElementById('ct'));},800);
   }catch(e){document.getElementById('ef_m').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
 async function delEtkinlik(id){if(!confirm('Silinsin mi?'))return;try{await api('etkinlikler','DELETE',null,'id=eq.'+id);await load();rTakvim(document.getElementById('ct'));}catch(e){alert(e.message);}}
@@ -4485,19 +4502,16 @@ async function rTakip(c){
   c.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8">⏳ Yükleniyor...</div>';
   await load();
 
-  const tab=window._takipTab||'toplanti';
+  const tab=window._takipTab||'memnuniyet';
   const sh='box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04)';
   const danList=D.dans.map(d=>'<option>'+d.ad+'</option>').join('');
 
   const tabBtn=(id,lbl)=>'<button class="btn btn-sm '+(tab===id?'btn-p':'btn-g')+'" onclick="window._takipTab=\''+id+'\';rTakip(document.getElementById(\'ct\'))">'+lbl+'</button>';
 
-  let h='<div style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:6px">📋 Takip Girişi</div>';
-  h+='<div style="font-size:12px;color:#94a3b8;margin-bottom:16px">Toplantı, eğitim, memnuniyet ve recruiting katkısı kayıtları</div>';
+  let h=pageHeader('Veri Girişi','Memnuniyet ve recruiting katkısı kayıtları');
 
   // Tab seçici
   h+='<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">';
-  h+=tabBtn('toplanti','📅 Toplantı Katılımı');
-  h+=tabBtn('egitim','📚 Eğitim Katılımı');
   h+=tabBtn('memnuniyet','⭐ Müşteri Memnuniyeti');
   h+=tabBtn('rekruting','👤 Recruiting Katkısı');
   const bekleyenMazSay=D.danToplanti.filter(t=>t.mazeret_durum==='beklemede').length;
@@ -5393,35 +5407,9 @@ async function rObEgitim(c){
   const isA=CU.role==='admin'||CU.role==='ofis';
   const thS='padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);background:var(--lg)';
 
-  let h=pageHeader('GD Onboarding & Eğitim','Onboarding adımları ve eğitim program takibi',
-    isA?'<button class="btn btn-p btn-sm" onclick="obEgitimFormAc()">+ Eğitim Oluştur</button>':'');
+  let h=pageHeader('GD Onboarding & Eğitim','Eğitim ve onboarding takibi — Takvim üzerinden eğitim ekleyin');
+  h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11px;color:#5b21b6">💡 Yeni eğitim eklemek için <strong>Takvim → Etkinlik Oluştur → Tür: Eğitim</strong> seçin. Katılım takvimden işaretlenir.</div>';
 
-  // Eğitim oluşturma formu
-  if(isA){
-    const danList=D.dans.map(d=>'<option value="'+d.ad+'">'+d.ad+'</option>').join('');
-    h+='<div id="ob-egitim-form" style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:16px">';
-    h+='<div style="font-size:14px;font-weight:700;color:var(--dk);margin-bottom:14px">➕ Yeni Eğitim Programı</div>';
-    h+='<div class="fg">';
-    h+='<div class="fgr"><label>Eğitim Adı *</label><input id="tr_ad" placeholder="RE/MAX Power Camp..."/></div>';
-    h+='<div class="fgr"><label>Tür</label><select id="tr_tip" onchange="trTipChange()"><option value="tek">Tek Seferlik</option><option value="modullu">Modüllü</option></select></div>';
-    h+='<div class="fgr" id="tr_modul_say_wrap" style="display:none"><label>Modül Adedi</label><input id="tr_modul_say" type="number" min="2" max="20" value="3" placeholder="3"/></div>';
-    h+='<div class="fgr"><label>Başlangıç Tarihi</label><input type="date" id="tr_tarih" value="'+td()+'"/></div>';
-    h+='<div class="fgr"><label>Eğitimci</label><input id="tr_egitimci" placeholder="Eğitimci adı..."/></div>';
-    h+='<div class="fgr" style="grid-column:1/-1"><label>Açıklama</label><textarea id="tr_aciklama" style="min-height:44px" placeholder="Eğitim hakkında..."></textarea></div>';
-    h+='</div>';
-
-    // Katılımcılar
-    h+='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-    h+='<div style="font-size:12px;font-weight:700;color:var(--dk)">Katılımcılar <span id="tr_sec_say" style="background:var(--blue);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:5px">0 seçili</span></div>';
-    h+='<div style="display:flex;gap:5px"><button class="btn btn-g btn-sm" onclick="trTumSec()">Tümünü Seç</button><button class="btn btn-g btn-sm" onclick="trTemizle()">Temizle</button></div></div>';
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px">';
-    h+=D.dans.map(d=>'<label style="display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:6px;border:1px solid var(--bd);background:#f8fafc;font-size:12px;cursor:pointer"><input type="checkbox" class="tr-dan-cb" value="'+d.ad+'" onchange="trCbSay()"/> '+d.ad+'</label>').join('');
-    h+='</div></div>';
-
-    h+='<div id="tr_msg"></div>';
-    h+='<div class="fa"><button class="btn btn-p" onclick="svTrProgram()">💾 Kaydet</button><button class="btn btn-g" onclick="document.getElementById(\'ob-egitim-form\').style.display=\'none\'">İptal</button></div>';
-    h+='</div>';
-  }
 
   // Mevcut programlar
   if(!D.trPrograms.length){
