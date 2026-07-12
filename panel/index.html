@@ -518,7 +518,7 @@ async function load(_force){
     safe('gd_badges','select=*&order=created_at.desc'),
   ]);
   D.leads=(l||[]).sort((a,b)=>{const da=new Date(a.tarih||a.created_at||'2000-01-01');const db=new Date(b.tarih||b.created_at||'2000-01-01');return db-da;});
-  D.rec=(r||[]).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+  D.rec=(r||[]).sort((a,b)=>new Date(b.tarih||b.created_at||0)-new Date(a.tarih||a.created_at||0));
   D.dans=dn;D.havuz=h;D.notlar=n;
   D.arayislar=ar;D.disPortfolyo=dp;D.eslesmeler=es;D.log=lg;
   D.etkinlikler=et;D.bilgiMerkezi=bm;D.timeline=tl;
@@ -826,7 +826,7 @@ function rRec(c){
   const dEv=D.rec.filter(r=>r.randevu_tarihi===todS&&r.randevu_saati);
   const adEv=D.rec.filter(r=>r.randevu_tarihi===todS&&!r.randevu_saati);
   const dLbl=calDt.toLocaleDateString('tr-TR',{weekday:'short',day:'numeric',month:'short'});
-  let h='<div class="fw">';
+  let h=pageHeader('Recruiting','Aday takibi ve recruiting kayıtları')+'<div class="fw">';
   if(isA)h+='<div class="th"><div class="tt">👥 Recruiting ('+D.rec.length+')</div><div class="ta"><button class="btn btn-g" onclick="exp(\'r\')">📥 CSV</button></div></div>';
   h+='<div id="rfw" class="fw"><h3>'+(isA?'Yeni Aday':'➕ Yeni Aday Ekle')+'</h3>';
   h+='<div id="rdw"></div>';
@@ -851,7 +851,7 @@ function rRec(c){
     h+='</div>';
     if(r.left>0)h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px"><input type="date" id="rqs" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><span>—</span><input type="date" id="rqe" style="padding:6px;border:1px solid var(--bd);border-radius:6px;font-size:12px"/><button class="btn btn-p btn-sm" onclick="qR()">Sorgula (1 hak)</button></div>';
     h+='</div>';
-    const f=D.rec.filter(r=>((r.created_at||'').slice(0,10))>=wAgo()&&((r.created_at||'').slice(0,10))<=td());
+    const f=D.rec.filter(r=>(r.tarih||r.created_at||'').slice(0,10)>=wAgo()&&(r.tarih||r.created_at||'').slice(0,10)<=td());
     h+='<div class="tw"><table><thead><tr><th>Ad</th><th>Tel</th><th>Kaynak</th><th>Durum</th><th>Randevu</th></tr></thead><tbody id="ofisRB">';
     h+=f.map(r=>'<tr><td><strong>'+(r.ad||'')+'</strong></td><td style="white-space:nowrap">'+wa(r.telefon)+(r.telefon||'')+'</td><td>'+(r.kaynak||'—')+'</td><td>'+badge(durumLbl(r.durum))+'</td><td>'+(r.randevu_tarihi||'—')+'</td></tr>').join('');
     h+='</tbody></table></div>';
@@ -882,7 +882,7 @@ function qR(){
 async function svRec(){
   const ad=cap(document.getElementById('r_ad').value.trim());
   if(!ad){document.getElementById('rfm').innerHTML='<div class="err-m">Ad zorunlu!</div>';return;}
-  const data={ad,telefon:document.getElementById('r_tel').value.trim(),kaynak:document.getElementById('r_k').value,durum:document.getElementById('r_d').value,aciklama:document.getElementById('r_a').value.trim(),randevu_tarihi:document.getElementById('r_rv').value||null,randevu_saati:document.getElementById('r_rs').value||null};
+  const data={ad,telefon:document.getElementById('r_tel').value.trim(),kaynak:document.getElementById('r_k').value,durum:document.getElementById('r_d').value,aciklama:document.getElementById('r_a').value.trim(),randevu_tarihi:document.getElementById('r_rv').value||null,randevu_saati:document.getElementById('r_rs').value||null,tarih:td()};
   try{await api('recruiting_candidates','POST',data);document.getElementById('rfm').innerHTML='<div class="ok-m">✅ Aday eklendi!</div>';document.getElementById('r_ad').value='';document.getElementById('r_tel').value='';document.getElementById('r_a').value='';await load();if(CU.role==='admin')setTimeout(()=>{hRF();rRec(document.getElementById('ct'));},900);}
   catch(e){document.getElementById('rfm').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
@@ -1427,7 +1427,7 @@ function rPF(c){
   const isA=CU.role==='admin';
   const dO=D.dans.map(d=>'<option value="'+d.ad+'">'+d.ad+'</option>').join('');
   const showArsiv=window._showArsiv||false;
-  let h='<div class="th"><div class="tt">🏠 Portföy / GD Leadler ('+D.leads.length+')'+(showArsiv?' <span style="background:#fcd34d;color:#92400e;padding:1px 7px;border-radius:10px;font-size:10px">ARŞİV</span>':'')+'</div>';
+  let h=pageHeader('Portföy','Lead kayıtları, takip ve portföy yönetimi')+'<div class="th"><div class="tt">🏠 Portföy / GD Leadler ('+D.leads.length+')'+(showArsiv?' <span style="background:#fcd34d;color:#92400e;padding:1px 7px;border-radius:10px;font-size:10px">ARŞİV</span>':'')+'</div>';
   h+='<div class="ta">';
   if(isA)h+='<button class="btn btn-g btn-sm" onclick="toggleArsiv()" style="margin-right:4px">'+(showArsiv?'📋 Aktif':'📦 Arşiv')+'</button>';
   if(isA)h+='<button class="btn btn-g btn-sm" onclick="exp(\'l\')">📥 CSV</button>';
@@ -1857,7 +1857,7 @@ function rTakvim(c){
   const turI={'toplantı':'🤝','eğitim':'📚','tapu':'📋','randevu':'📞','etkinlik':'🎯','nöbet':'🔰','recruiting':'👤','dogumgunu':'🎂','görev':'📌'};
 
   // ── Üst başlık ──
-  let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">';
+  let h=pageHeader('Takvim','Etkinlik, randevu ve toplantı takvimi')+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">';
   h+='<div style="display:flex;gap:6px;align-items:center">';
   h+='<button class="btn btn-g btn-sm" onclick="chCal2(-1)">◀</button>';
   h+='<span style="font-size:15px;font-weight:800;color:var(--dk);min-width:160px;text-align:center">'+ayLbl+'</span>';
@@ -2095,7 +2095,7 @@ async function delEtkinlik(id){if(!confirm('Silinsin mi?'))return;try{await api(
 // --- YENİ ALICI (GD) ---
 function rYeniAlici(c){
   const my=D.arayislar.filter(a=>a.danisman_ad===CU.danAd);
-  let h='<div class="fw"><h3>➕ Yeni Alıcı Talebi</h3>';
+  let h=pageHeader('Alıcı Talebi','Yeni alıcı kaydı ve portföy eşleştirme')+'<div class="fw">';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#5b21b6">🔒 Müşteri bilgilerinizi sadece siz görebilirsiniz.</div>';
   h+='<div class="fg"><div class="fgr"><label>Müşteri Adı *</label><input id="ya_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>Telefon</label><input id="ya_tel" placeholder="5XX XXX XX XX"/></div><div class="fgr"><label>Emlak Tipi</label><select id="ya-emlakTip" onchange="yapiCascade()"><option value="">Seçin...</option><option>Konut</option><option>Ticari</option><option>Arsa/Arazi</option></select></div><div class="fgr"><label>Yapı Tipi</label><select id="ya-yapiTip" disabled><option value="">Önce emlak tipi seçin</option></select></div><div class="fgr"><label>İşlem</label><select id="ya_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>İl</label><select id="ya_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="ya_ilce" placeholder="İlçe..."/></div>'
   +'<div class="fgr"><label>m² (Min)</label><input id="ya_m2_min" type="number" placeholder="örn. 80" oninput="fmtInput(this)"/></div>'
@@ -2196,7 +2196,7 @@ function yapiCascade(){
 // --- HARİCİ PORTFÖY (GD) ---
 function rDisPF2(c){
   const my=D.disPortfolyo.filter(d=>d.danisman_ad===CU.danAd);
-  let h='<div class="fw"><h3>🏘️ Yeni Harici Portföy</h3>';
+  let h=pageHeader('Harici Portföy','Yetki alınmamış portföy kayıtları')+'<div class="fw">';
   h+='<div class="fg"><div class="fgr"><label>İşlem</label><select id="dp_is">'+opts(CFG.islemler,'Satılık')+'</select></div><div class="fgr"><label>Tip</label><select id="dp_tip">'+opts(CFG.tipler,'Daire')+'</select></div><div class="fgr"><label>İl</label><select id="dp_il">'+opts(CFG.iller,'Tekirdağ')+'</select></div><div class="fgr"><label>İlçe</label><input id="dp_ilce"/></div><div class="fgr"><label>Adres</label><input id="dp_adr"/></div><div class="fgr"><label>m²</label><input id="dp_m2" type="number"/></div><div class="fgr"><label>Fiyat ₺</label><input id="dp_f" type="number" placeholder="örn. 1500000" oninput="fmtInput(this)"/></div><div class="fgr"><label>Tapu</label><select id="dp_tp"><option>Temiz</option><option>Hisseli</option><option>İpotekli</option><option>Belirsiz</option></select></div></div>';
   h+='<div class="fgr" style="margin-top:8px"><label>Açıklama</label><textarea id="dp_not"></textarea></div>';
   h+='<div style="background:#EDE9FE;border:1px solid #c4b5fd;border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;gap:10px"><input type="checkbox" id="dp_p" style="width:15px;height:15px"/><label for="dp_p" style="font-size:12px;font-weight:600;color:#5b21b6;cursor:pointer">Ofis Havuzuyla Paylaş — Adın gizli kalır</label></div>';
@@ -2369,7 +2369,7 @@ function msChip(s){return'<span class="'+msClass(s)+'">%'+s+'</span>';}
 function rGenelTablo(c){
   const pA=D.arayislar.filter(a=>a.paylas);
   const pD=D.disPortfolyo.filter(d=>d.paylas);
-  let h='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
+  let h=pageHeader('Ofis Havuzu','Paylaşılan portföy ve alıcı talepleri')+'<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
   h+='<input id="gt_s" placeholder="🔍 Konum, tip..." oninput="filterGT()" style="padding:7px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;flex:1;min-width:140px"/>';
   h+='<select id="gt_i" onchange="filterGT()" style="padding:7px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px"><option value="">Tüm İşlemler</option><option>Satılık</option><option>Kiralık</option><option>Devren</option></select></div>';
 
@@ -3152,7 +3152,7 @@ function rDanDash(c){
   const tarih=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
   const secH='sec-h';
 
-  let h='<div style="margin-bottom:14px"><div style="font-size:18px;font-weight:800;color:var(--dk)">Merhaba, '+myAd.split(' ')[0]+' 👋</div>';
+  let h=pageHeader('Ana Sayfa','Günlük operasyon özeti')+'<div style="margin-bottom:14px"><div style="font-size:18px;font-weight:800;color:var(--dk)">Merhaba, '+myAd.split(' ')[0]+' 👋</div>';
   h+='<div style="font-size:12px;color:#94a3b8;margin-top:2px">'+tarih+'</div></div>';
 
   // ── 1. ÖZET BARLAR ──
@@ -5393,7 +5393,7 @@ async function rObEgitim(c){
   const isA=CU.role==='admin'||CU.role==='ofis';
   const thS='padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);background:var(--lg)';
 
-  let h=pageHeader('📚 Eğitim Takibi','Modüllü ve tek seferlik eğitim programları — katılım ve eksik takibi',
+  let h=pageHeader('GD Onboarding & Eğitim','Onboarding adımları ve eğitim program takibi',
     isA?'<button class="btn btn-p btn-sm" onclick="obEgitimFormAc()">+ Eğitim Oluştur</button>':'');
 
   // Eğitim oluşturma formu
@@ -6015,7 +6015,7 @@ function rDash2Kokpit(c){
   const d7=new Date();d7.setDate(d7.getDate()-6);const d7s=d7.toISOString().split('T')[0];
   const _df=dateFrom();const _dt=dateTo();
   const leads=(D.leads||[]).filter(l=>(l.tarih||l.created_at||'').slice(0,10)>=_df&&(l.tarih||l.created_at||'').slice(0,10)<=_dt);
-  const rec=(D.rec||[]).filter(r=>(r.tarih||r.created_at||'').slice(0,10)>=_df&&(r.tarih||r.created_at||'').slice(0,10)<=_dt);
+  const rec=(D.rec||[]).filter(r=>(r.tarih||'').slice(0,10)>=_df&&(r.tarih||'').slice(0,10)<=_dt);
   const dans=D.dans||[];
   const log=(D.log||[]).filter(l=>(l.created_at||'').slice(0,10)>=_df&&(l.created_at||'').slice(0,10)<=_dt);
   const etk=(D.etkinlikler||[]).filter(e=>(e.tarih||'').slice(0,10)>=_df&&(e.tarih||'').slice(0,10)<=_dt);
@@ -6037,9 +6037,9 @@ function rDash2Kokpit(c){
   const d7son=new Date();d7son.setDate(d7son.getDate()+7);const d7sonS=d7son.toISOString().split('T')[0];
   const etkYaklasan=etk.filter(e=>e.tarih>toStr&&e.tarih<=d7sonS).length;
   const gdDans=dans.filter(d=>(d.kullanici_tipi||'gayrimenkul')==='gayrimenkul');
-  const bugunKayit=gdDans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr)).length;
+  const bugunKayit=gdDans.filter(d=>leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||rec.some(r=>r.danisman===d.ad&&(r.tarih||'').slice(0,10)===toStr)).length;
   const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
-  const uzunSure=gdDans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
+  const uzunSure=gdDans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||'').slice(0,10)>=d30s)).length;
 
   const secH='sec-h';
   const barWrap='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px';
@@ -6229,15 +6229,15 @@ function dashDetay(tip,filtre){
       +'<td style="font-size:11px;color:#64748b">'+(e.olusturan||'—')+'</td>'
       +'</tr>';
   } else if(tip==='dan'){
-    if(filtre==='bugun') liste=gdDans.filter(d=>D.leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||D.rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr));
-    else if(filtre==='uzun') liste=gdDans.filter(d=>!D.leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!D.rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s));
+    if(filtre==='bugun') liste=gdDans.filter(d=>D.leads.some(l=>l.danisman===d.ad&&l.tarih===toStr)||D.rec.some(r=>r.danisman===d.ad&&(r.tarih||'').slice(0,10)===toStr));
+    else if(filtre==='uzun') liste=gdDans.filter(d=>!D.leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!D.rec.some(r=>r.danisman===d.ad&&(r.tarih||'').slice(0,10)>=d30s));
     baslik='Danışman Aktivitesi — '+filtre;
     kolonlar=['Danışman','Bugün PF','Bugün Rec','Son 30g PF','Son 30g Rec'];
     satirFn=d=>{
       const pfBugun=D.leads.filter(l=>l.danisman===d.ad&&l.tarih===toStr).length;
-      const recBugun=D.rec.filter(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)===toStr).length;
+      const recBugun=D.rec.filter(r=>r.danisman===d.ad&&(r.tarih||'').slice(0,10)===toStr).length;
       const pf30=D.leads.filter(l=>l.danisman===d.ad&&l.tarih>=d30s).length;
-      const rec30=D.rec.filter(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s).length;
+      const rec30=D.rec.filter(r=>r.danisman===d.ad&&(r.tarih||'').slice(0,10)>=d30s).length;
       return '<tr>'
         +'<td style="font-size:12px;font-weight:600">'+d.ad+'</td>'
         +'<td style="text-align:center;font-size:13px;font-weight:700;color:'+(pfBugun>0?'#1C8C4B':'#ccc')+'">'+pfBugun+'</td>'
