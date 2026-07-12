@@ -2282,8 +2282,9 @@ function rSurec(c){
   h+='</tr></thead><tbody>';
 
   liste.forEach(l=>{
-    const gec=l.sonraki_takip&&l.sonraki_takip<toStr;
-    const bug=l.sonraki_takip===toStr;
+    const sonuclanmis2=['Kazanıldı','Kaybedildi','Kara Liste'].includes(l.durum);
+    const gec=!sonuclanmis2&&l.sonraki_takip&&l.sonraki_takip<toStr;
+    const bug=!sonuclanmis2&&l.sonraki_takip===toStr;
     const bgC=gec?'#fff8f8':bug?'#fffbeb':'#fff';
     const takipC=gec?'#DC1C2E':bug?'#C9821A':'#1C8C4B';
     const tlC=D.timeline.filter(t=>t.kayit_id===l.id).length;
