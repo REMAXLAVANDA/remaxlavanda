@@ -2296,7 +2296,7 @@ function rSurec(c){
     h+='<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' '+tlC:'')+'</button></td>';
     h+='<td style="white-space:nowrap;display:flex;gap:4px;padding:6px 8px">';
     h+=(l.telefon?'<a href="tel:'+l.telefon+'" class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:6px;padding:3px 8px;font-size:11px;text-decoration:none">☎</a>':'');
-    h+=(l.telefon?'<a href="'+wa(l.telefon).replace(/<[^>]*>/g,'').match(/href="([^"]*)"/)?.[1]||'#'+'" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:6px;padding:3px 8px;font-size:11px;text-decoration:none">🟢</a>':'');
+    h+=(l.telefon?'<a href="https://wa.me/90'+l.telefon.replace(/[^0-9]/g,'').slice(-10)+'" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:6px;padding:3px 8px;font-size:11px;text-decoration:none">🟢</a>':'');
     h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📝</button>';
     h+='<button class="btn btn-sm btn-ora" onclick="sonuclandirModal(\''+l.id+'\',\''+encodeURIComponent(l.ad||'')+'\')">✓</button>';
     h+='</td></tr>';
