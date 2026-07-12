@@ -321,6 +321,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .sant-info{flex:1;min-width:0;}
 .sant-tel{font-size:12px;font-weight:600;color:var(--dk);}
 .sant-sub{font-size:10px;color:#94a3b8;margin-top:1px;}
+.page-header{margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--bd);}
+.page-header-inner{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;}
+.page-header-title{font-size:18px;font-weight:800;color:var(--dk);margin-bottom:3px;}
+.page-header-desc{font-size:11px;color:#94a3b8;}
+.sec-h{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;padding-bottom:3px;border-bottom:2px solid var(--bd);}
 input[type="date"]:invalid{box-shadow:none;border-color:var(--bd);}
 input[type="date"]::-webkit-datetime-edit{color:inherit;}
 </style>
@@ -3145,7 +3150,7 @@ function rDanDash(c){
   const yaklasanEtk=D.etkinlikler.filter(e=>e.tarih>toStr&&e.tarih<=d7s&&(e.hedef==='tum_ofis'||isAssignedToCurrentUser(e)));
   const havuzKayitlar=(D.leads||[]).filter(l=>l.paylas&&l.danisman!==myAd).slice(0,10);
   const tarih=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
-  const secH='font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bd)';
+  const secH='sec-h';
 
   let h='<div style="margin-bottom:14px"><div style="font-size:18px;font-weight:800;color:var(--dk)">Merhaba, '+myAd.split(' ')[0]+' 👋</div>';
   h+='<div style="font-size:12px;color:#94a3b8;margin-top:2px">'+tarih+'</div></div>';
@@ -3162,7 +3167,7 @@ function rDanDash(c){
 
   // ── 2. GECİKEN TAKİPLER ──
   if(geciken.length){
-    h+='<div style="'+secH+'">GECİKEN TAKİPLER</div>';
+    h+='<div class="'+secH+'">GECİKEN TAKİPLER</div>';
     h+='<div style="background:#fff;border:1px solid #fca5a5;border-radius:10px;overflow:hidden">';
     geciken.slice(0,5).forEach(l=>{
       h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f5f5">';
@@ -3179,7 +3184,7 @@ function rDanDash(c){
   // ── 3. TAKVİM ──
   const tumEtk=[...bugunEtk,...yaklasanEtk].sort((a,b)=>a.tarih.localeCompare(b.tarih)||(a.saat||'').localeCompare(b.saat||''));
   if(tumEtk.length){
-    h+='<div style="'+secH+'">TAKVİM — BUGÜN & YAKLAŞAN 7 GÜN</div>';
+    h+='<div class="'+secH+'">TAKVİM — BUGÜN & YAKLAŞAN 7 GÜN</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
     const turR={'toplantı':'#003DA5','eğitim':'#1C8C4B','randevu':'#5b21b6','etkinlik':'#0891b2','görev':'#64748b','dogumgunu':'#e91e8c'};
     tumEtk.forEach(e=>{
@@ -3195,14 +3200,14 @@ function rDanDash(c){
     });
     h+='</div>';
   } else {
-    h+='<div style="'+secH+'">TAKVİM</div>';
+    h+='<div class="'+secH+'">TAKVİM</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px;text-align:center;color:#94a3b8;font-size:12px">Önümüzdeki 7 günde etkinlik yok.</div>';
   }
 
   // Bekleyen mazeret bildirimleri
   const bekleyenMaz=D.danToplanti.filter(t=>t.danisman_ad===myAd&&t.mazeret_durum==='beklemede');
   if(bekleyenMaz.length){
-    h+='<div style="'+secH+'">MAZERET BEKLİYOR</div>';
+    h+='<div class="'+secH+'">MAZERET BEKLİYOR</div>';
     h+='<div style="background:#fff8e1;border:1px solid #ffc107;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400e">';
     h+='<strong>'+bekleyenMaz.length+' mazeret</strong> yönetim onayı bekliyor.';
     h+='</div>';
@@ -3211,7 +3216,7 @@ function rDanDash(c){
   // GD kendi toplantı katılım durumu - mazeret bildirme
   const benimTop=D.danToplanti.filter(t=>t.danisman_ad===myAd).slice(0,5);
   if(benimTop.length){
-    h+='<div style="'+secH+'">TOPLANTI KATILIM DURUMUM</div>';
+    h+='<div class="'+secH+'">TOPLANTI KATILIM DURUMUM</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
     benimTop.forEach(t=>{
       const mazDurum=t.mazeret_durum||'yok';
@@ -3242,7 +3247,7 @@ function rDanDash(c){
 
   // ── 4. OFİS HAVUZU ──
   if(havuzKayitlar.length){
-    h+='<div style="'+secH+'">OFİS HAVUZU <span style="font-weight:400;text-transform:none;font-size:10px">(paylaşılan, size atanmamış)</span></div>';
+    h+='<div class="'+secH+'">OFİS HAVUZU <span style="font-weight:400;text-transform:none;font-size:10px">(paylaşılan, size atanmamış)</span></div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
     h+='<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
     ['Ad','Telefon','Durum','Danışman'].forEach(t=>h+='<th style="padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:#64748b;border-bottom:1px solid var(--bd)">'+t+'</th>');
@@ -3267,7 +3272,7 @@ function rDanDash(c){
     const pct=Math.round(prog/toplam*100);
     const pc=pct>=80?'#1C8C4B':pct>=50?'#C9821A':'#DC1C2E';
     if(prog<toplam){
-      h+='<div style="'+secH+'">ONBOARDİNG</div>';
+      h+='<div class="'+secH+'">ONBOARDİNG</div>';
       h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:14px;cursor:pointer" onclick="rC(\'hub_ob\')">';
       h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
       h+='<div style="font-size:12px;font-weight:700;color:var(--dk)">Onboarding Adımlarım</div>';
@@ -5994,11 +5999,11 @@ function rHub(c, tip){
 }
 
 function pageHeader(baslik,aciklama,butonHTML){
-  return'<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--bd)">'
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">'
+  return'<div class="page-header">'
+    +'<div class="page-header-inner">'
     +'<div>'
-    +'<div style="font-size:20px;font-weight:800;color:var(--dk);margin-bottom:4px">'+baslik+'</div>'
-    +(aciklama?'<div style="font-size:12px;color:#94a3b8">'+aciklama+'</div>':'')
+    +'<div class="page-header-title">'+baslik+'</div>'
+    +(aciklama?'<div class="page-header-desc">'+aciklama+'</div>':'')
     +'</div>'
     +(butonHTML?'<div style="display:flex;gap:8px;align-items:center">'+butonHTML+'</div>':'')
     +'</div></div>';
@@ -6036,7 +6041,7 @@ function rDash2Kokpit(c){
   const d30=new Date();d30.setDate(d30.getDate()-30);const d30s=d30.toISOString().split('T')[0];
   const uzunSure=gdDans.filter(d=>!leads.some(l=>l.danisman===d.ad&&l.tarih>=d30s)&&!rec.some(r=>r.danisman===d.ad&&(r.tarih||r.created_at||'').slice(0,10)>=d30s)).length;
 
-  const secH='font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.7px;margin:14px 0 6px;padding-bottom:3px;border-bottom:2px solid var(--bd)';
+  const secH='sec-h';
   const barWrap='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px';
 
   const bar=(renk,baslik,sayi,tip,filtre)=>{
@@ -6067,7 +6072,7 @@ function rDash2Kokpit(c){
   }
 
   // ── 1. PORTFÖY (önce aksiyon, sonra sonuç) ──
-  h+='<div style="'+secH+'">PORTFÖY</div>';
+  h+='<div class="'+secH+'">PORTFÖY</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#DC1C2E','Geciken Takip',pfGeciken,'lead','geciken');
   h+=bar('#5b21b6','Bugün Aranacak',pfBugunAranacak,'lead','bugun');
@@ -6079,7 +6084,7 @@ function rDash2Kokpit(c){
   h+='</div>';
 
   // ── 2. RECRUITING ──
-  h+='<div style="'+secH+'">RECRUİTİNG</div>';
+  h+='<div class="'+secH+'">RECRUİTİNG</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#003DA5','Yeni Aday',recYeni,'rec','Beklemede');
   h+=bar('#C9821A','Görüşme Planlanan',recGorusme,'rec','gorusme');
@@ -6089,14 +6094,14 @@ function rDash2Kokpit(c){
   h+='</div>';
 
   // ── 3. TAKVİM & TAKİP ──
-  h+='<div style="'+secH+'">TAKVİM & TAKİP</div>';
+  h+='<div class="'+secH+'">TAKVİM & TAKİP</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#5b21b6','Bugünkü Etkinlikler',etkBugun,'etk','bugun');
   h+=bar('#0891b2','Yaklaşan (7 gün)',etkYaklasan,'etk','yaklasan');
   h+='</div>';
 
   // ── 4. DANIŞMAN AKTİVİTESİ ──
-  h+='<div style="'+secH+'">DANIŞMAN AKTİVİTESİ</div>';
+  h+='<div class="'+secH+'">DANIŞMAN AKTİVİTESİ</div>';
   h+='<div style="'+barWrap+'">';
   h+=bar('#003DA5','Bugün Kayıt Giren',bugunKayit,'dan','bugun');
   h+=bar('#DC1C2E','30 Gündür İşlem Yok',uzunSure,'dan','uzun');
@@ -6118,7 +6123,7 @@ function rDash2Kokpit(c){
       return {d,s,ml,kaz,oran,sonIslem,crmYuzde,topYuzde,egYuzde};
     }).sort((a,b)=>b.s.toplam-a.s.toplam);
 
-    h+='<div style="'+secH+'">DANIŞMAN PERFORMANSI</div>';
+    h+='<div class="'+secH+'">DANIŞMAN PERFORMANSI</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden"><div style="overflow-x:auto">';
     h+='<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--lg)">';
     ['DANIŞMAN','ATANAN','KAZANILAN','DÖNÜŞÜM %','CRM %','TOPLANTI %','EĞİTİM %','G.YORUM','SKOR'].forEach(t=>{
@@ -6149,7 +6154,7 @@ function rDash2Kokpit(c){
   // ── 6. SON İŞLEMLER ──
   const sonIslemler=log.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).slice(0,10);
   if(sonIslemler.length){
-    h+='<div style="'+secH+'">SON İŞLEMLER</div>';
+    h+='<div class="'+secH+'">SON İŞLEMLER</div>';
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden">';
     sonIslemler.forEach(l=>{
       h+='<div style="display:flex;gap:12px;padding:6px 12px;border-bottom:1px solid #f5f5f5;font-size:10px">';
