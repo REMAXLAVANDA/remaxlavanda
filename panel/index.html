@@ -321,6 +321,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .sant-info{flex:1;min-width:0;}
 .sant-tel{font-size:12px;font-weight:600;color:var(--dk);}
 .sant-sub{font-size:10px;color:#94a3b8;margin-top:1px;}
+input[type="date"]:invalid{box-shadow:none;border-color:var(--bd);}
+input[type="date"]::-webkit-datetime-edit{color:inherit;}
 </style>
 
 </head>
@@ -2292,13 +2294,15 @@ function rSurec(c){
     h+='<td style="white-space:nowrap">'+(l.telefon?'<a href="tel:'+l.telefon+'" style="color:#003DA5;text-decoration:none">'+l.telefon+'</a>':'—')+'</td>';
     h+='<td><select class="ss" onchange="updAtanan(\''+l.id+'\',\'durum\',this.value)">'+opts(['—','Atandı','Arandı','Randevu','Kazanıldı','Kaybedildi'],l.durum||'—')+'</select></td>';
     h+='<td style="font-size:11px;color:#94a3b8">'+sonGorusme+'</td>';
-    h+='<td><input type="date" value="'+(l.sonraki_takip||'')+'" style="padding:3px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px;color:'+takipC+';width:108px" onchange="updAtanan(\''+l.id+'\',\'sonraki_takip\',this.value)"/></td>';
+    const sonuclanmis=['Kaybedildi','Kara Liste'].includes(l.durum);
+    h+='<td><input type="date" value="'+(l.sonraki_takip||'')+'"'+(sonuclanmis?' disabled style="padding:3px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:11px;color:#ccc;width:108px;-webkit-appearance:none;box-shadow:none;background:#f8fafc"':' style="padding:3px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px;color:'+takipC+';width:108px;-webkit-appearance:none;box-shadow:none;outline:none"')+' onchange="updAtanan(\''+l.id+'\',\'sonraki_takip\',this.value)"/></td>';
     h+='<td><button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📋'+(tlC?' '+tlC:'')+'</button></td>';
-    h+='<td style="white-space:nowrap;display:flex;gap:4px;padding:6px 8px">';
-    h+=(l.telefon?'<a href="tel:'+l.telefon+'" class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:6px;padding:3px 8px;font-size:11px;text-decoration:none">☎</a>':'');
-    h+=(l.telefon?'<a href="https://wa.me/90'+l.telefon.replace(/[^0-9]/g,'').slice(-10)+'" target="_blank" class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:6px;padding:3px 8px;font-size:11px;text-decoration:none">🟢</a>':'');
-    h+='<button class="btn btn-sm" style="background:#EDE9FE;color:#5b21b6;border:none;border-radius:6px;padding:3px 8px;font-size:11px" onclick="showTL(\''+l.id+'\',\'lead\',this)">📝</button>';
-    h+='<button class="btn btn-sm btn-ora" onclick="sonuclandirModal(\''+l.id+'\',\''+encodeURIComponent(l.ad||'')+'\')">✓</button>';
+    const btnS='display:inline-flex;flex-direction:column;align-items:center;gap:1px;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:10px;line-height:1.2;text-decoration:none';
+    h+='<td style="white-space:nowrap;padding:4px 8px">';
+    h+=(l.telefon?'<a href="tel:'+l.telefon+'" style="'+btnS+';background:#dcfce7;color:#15803d"><span style="font-size:12px">☎</span><span>Ara</span></a> ':'');
+    h+=(l.telefon?'<a href="https://wa.me/90'+l.telefon.replace(/[^0-9]/g,'').slice(-10)+'" target="_blank" style="'+btnS+';background:#dcfce7;color:#15803d"><span style="font-size:12px">🟢</span><span>WA</span></a> ':'');
+    h+='<button onclick="showTL(\''+l.id+'\',\'lead\',this)" style="'+btnS+';background:#EDE9FE;color:#5b21b6"><span style="font-size:12px">📝</span><span>Not</span></button> ';
+    h+='<button onclick="sonuclandirModal(\''+l.id+'\',\''+encodeURIComponent(l.ad||'')+'\')" style="'+btnS+';background:#fff3e0;color:#C9821A"><span style="font-size:12px">✓</span><span>Sonuç</span></button>';
     h+='</td></tr>';
   });
   h+='</tbody></table></div>';
