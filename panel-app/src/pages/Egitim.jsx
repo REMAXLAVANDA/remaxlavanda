@@ -19,8 +19,8 @@ import ChecklistPanel from '../components/education/ChecklistPanel'
 import TeamProgressTable from '../components/education/TeamProgressTable'
 import { mutate } from '../lib/api'
 
-// badges_manage / onboarding_status_manage RLS'te sadece broker/müdür.
-const CAN_MANAGE_ROLES = ['broker', 'mudur']
+// badges_manage / onboarding_status_manage RLS'te sadece broker/owner.
+const CAN_MANAGE_ROLES = ['broker', 'owner']
 
 export default function Egitim() {
   const { user, role } = useAuth()
@@ -94,7 +94,7 @@ export default function Egitim() {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
           <GraduationCap size={20} />
         </div>
         <div>
@@ -123,7 +123,7 @@ export default function Egitim() {
           {isManager && (
             <button
               onClick={() => setShowAwardModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-lavanda-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-lavanda-700"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
             >
               <Award size={14} /> Rozet Ver
             </button>
@@ -160,7 +160,7 @@ export default function Egitim() {
                   key={t.key}
                   onClick={() => setChecklistTip(t.key)}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    checklistTip === t.key ? 'bg-lavanda-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                    checklistTip === t.key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                   }`}
                 >
                   {t.label}

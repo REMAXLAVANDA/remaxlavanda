@@ -17,7 +17,7 @@ export default function TeamProgressTable({ rows }) {
               <td className="px-4 py-2.5">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-24 overflow-hidden rounded-full bg-ink-100">
-                    <div className="h-full rounded-full bg-lavanda-600" style={{ width: `${r.modulePercent}%` }} />
+                    <div className="h-full rounded-full bg-brand-600" style={{ width: `${r.modulePercent}%` }} />
                   </div>
                   <span className="text-xs text-ink-500">{r.modulePercent}%</span>
                 </div>

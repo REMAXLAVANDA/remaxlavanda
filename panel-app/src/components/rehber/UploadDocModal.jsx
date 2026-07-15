@@ -91,7 +91,7 @@ export default function UploadDocModal({ onClose, onSubmit, submitting, docsInCa
             <button
               type="submit"
               disabled={!canSubmit || submitting}
-              className="rounded-lg bg-lavanda-600 px-4 py-2 text-sm font-medium text-white hover:bg-lavanda-700 disabled:opacity-50"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {submitting ? 'Yükleniyor...' : 'Yükle'}
             </button>

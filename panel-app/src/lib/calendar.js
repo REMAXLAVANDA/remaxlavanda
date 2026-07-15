@@ -17,10 +17,10 @@ export const EVENT_TYPE_STYLES = {
 }
 
 export const EVENT_TYPE_COLORS = {
-  toplanti: '#2563eb',
+  toplanti: '#003da5',
   egitim: '#16a34a',
   etkinlik: '#f59e0b',
-  broker_gorusmesi: '#dc2626',
+  broker_gorusmesi: '#dc1c2e',
 }
 
 export const ATTENDANCE_STATUS_LABELS = {
@@ -34,7 +34,7 @@ export const ATTENDANCE_STATUS_LABELS = {
 
 export const ATTENDANCE_STATUS_STYLES = {
   davetli: 'bg-ink-100 text-ink-500',
-  onayladi: 'bg-lavanda-50 text-lavanda-700',
+  onayladi: 'bg-brand-50 text-brand-700',
   katildi: 'bg-emerald-50 text-emerald-700',
   katilmadi: 'bg-red-50 text-red-600',
   gec: 'bg-amber-50 text-amber-700',
@@ -44,7 +44,7 @@ export const ATTENDANCE_STATUS_STYLES = {
 // FullCalendar event tıklamasında sunulan 4 hızlı katılım seçeneği.
 export const QUICK_ATTENDANCE_OPTIONS = ['katildi', 'katilmadi', 'gec', 'mazeretli']
 
-// calendar_events_select RLS kuralının mock karşılığı: broker/müdür/ofis
+// calendar_events_select RLS kuralının mock karşılığı: broker/owner/ofis
 // tüm etkinlikleri görür, danışman sadece davetli olduğu etkinlikleri görür.
 export function canViewEvent(event, user, attendance) {
   if (user.role !== ROLES.DANISMAN) return true

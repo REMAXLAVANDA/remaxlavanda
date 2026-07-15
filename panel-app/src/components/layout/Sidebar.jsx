@@ -13,7 +13,7 @@ export default function Sidebar({ open, onNavigate }) {
         ${open ? 'translate-x-0' : '-translate-x-full'}`}
     >
       <div className="flex h-16 items-center gap-2 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-lavanda-600 text-sm font-semibold text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-semibold text-white">
           RL
         </div>
         <div className="leading-tight">
@@ -31,7 +31,7 @@ export default function Sidebar({ open, onNavigate }) {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-lavanda-50 text-lavanda-700'
+                  ? 'bg-brand-50 text-brand-700'
                   : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
               }`
             }

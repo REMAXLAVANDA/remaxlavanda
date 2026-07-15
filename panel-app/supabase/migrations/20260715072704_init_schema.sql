@@ -12,7 +12,7 @@
 --      permission tablosu YOK.
 --   4) docs: versiyon geçmişi tutulur (doc_versions ayrı tablo).
 --
--- RLS ilkesi: Aksi belirtilmedikçe "broker" ve "mudur" tüm satırları görür
+-- RLS ilkesi: Aksi belirtilmedikçe "broker" ve "owner" tüm satırları görür
 -- (denetim rolü); "ofis" veri girer ama kendi girdiği/atandığı dışında geniş
 -- görünürlüğe sahip değildir; "danisman" kendi verisi + havuzdaki açık
 -- (sahipsiz) kayıtları görür.
@@ -24,7 +24,7 @@ create extension if not exists pgcrypto;
 -- ENUM TİPLERİ
 -- ----------------------------------------------------------------------------
 
-create type user_role as enum ('broker', 'mudur', 'ofis', 'danisman');
+create type user_role as enum ('broker', 'owner', 'ofis', 'danisman');
 create type opportunity_type as enum ('satici', 'alici');
 create type opportunity_status as enum ('acik', 'claimed', 'kapandi', 'iptal');
 create type calendar_event_type as enum ('toplanti', 'egitim', 'etkinlik', 'broker_gorusmesi');
@@ -77,7 +77,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select public.current_user_role() in ('broker', 'mudur');
+  select public.current_user_role() in ('broker', 'owner');
 $$;
 
 create or replace function public.set_updated_at()
@@ -226,7 +226,7 @@ create table public.onboarding_checklist_status (
 );
 
 -- ----------------------------------------------------------------------------
--- SANTRAL — çağrı kayıtları
+-- OPERASYON — çağrı kayıtları
 -- ----------------------------------------------------------------------------
 
 create table public.call_logs (
@@ -359,7 +359,7 @@ create policy categories_manage_broker on public.categories
   using (public.current_user_role() = 'broker')
   with check (public.current_user_role() = 'broker');
 
--- OPPORTUNITIES: broker/müdür her şeyi görür; owner/claimer kendi kaydını
+-- OPPORTUNITIES: broker/owner her şeyi görür; owner/claimer kendi kaydını
 -- görür; sahipsiz (claimer_id null, status='acik') kayıtlar herkese açık —
 -- "İlgileniyorum" butonu bunun üzerine çalışır.
 create policy opportunities_select on public.opportunities
@@ -373,9 +373,9 @@ create policy opportunities_select on public.opportunities
 
 create policy opportunities_insert on public.opportunities
   for insert to authenticated
-  with check (public.current_user_role() in ('broker', 'mudur', 'ofis'));
+  with check (public.current_user_role() in ('broker', 'owner', 'ofis'));
 
--- Genel güncelleme: broker/müdür veya owner her alanı değiştirebilir.
+-- Genel güncelleme: broker/owner veya owner her alanı değiştirebilir.
 create policy opportunities_update_manage on public.opportunities
   for update to authenticated
   using (public.is_manager() or owner_id = auth.uid())
@@ -417,7 +417,7 @@ $$;
 
 grant execute on function public.claim_opportunity(uuid) to authenticated;
 
--- CALENDAR_EVENTS: broker/müdür/ofis her etkinliği görür; danışman sadece
+-- CALENDAR_EVENTS: broker/owner/ofis her etkinliği görür; danışman sadece
 -- davetli olduğu etkinlikleri görür.
 create policy calendar_events_select on public.calendar_events
   for select to authenticated
@@ -431,10 +431,10 @@ create policy calendar_events_select on public.calendar_events
 
 create policy calendar_events_manage on public.calendar_events
   for all to authenticated
-  using (public.current_user_role() in ('broker', 'mudur', 'ofis'))
-  with check (public.current_user_role() in ('broker', 'mudur', 'ofis'));
+  using (public.current_user_role() in ('broker', 'owner', 'ofis'))
+  with check (public.current_user_role() in ('broker', 'owner', 'ofis'));
 
--- EVENT_ATTENDANCE: kendi satırını + broker/müdür + etkinliği oluşturan
+-- EVENT_ATTENDANCE: kendi satırını + broker/owner + etkinliği oluşturan
 -- görebilir. Kullanıcı kendi katılım durumunu güncelleyebilir.
 create policy event_attendance_select on public.event_attendance
   for select to authenticated
@@ -449,14 +449,14 @@ create policy event_attendance_select on public.event_attendance
 
 create policy event_attendance_insert on public.event_attendance
   for insert to authenticated
-  with check (public.current_user_role() in ('broker', 'mudur', 'ofis'));
+  with check (public.current_user_role() in ('broker', 'owner', 'ofis'));
 
 create policy event_attendance_update_self on public.event_attendance
   for update to authenticated
   using (user_id = auth.uid() or public.is_manager())
   with check (user_id = auth.uid() or public.is_manager());
 
--- EĞİTİM: modüller herkese açık okunur, sadece broker/müdür yönetir.
+-- EĞİTİM: modüller herkese açık okunur, sadece broker/owner yönetir.
 create policy education_modules_select on public.education_modules
   for select to authenticated using (true);
 
@@ -510,20 +510,20 @@ create policy onboarding_status_manage on public.onboarding_checklist_status
   using (public.is_manager())
   with check (public.is_manager());
 
--- CALL_LOGS: broker/müdür/ofis geneli görür (raporlama + atama); danışman
+-- CALL_LOGS: broker/owner/ofis geneli görür (raporlama + atama); danışman
 -- yalnızca kendine atanan çağrıları görür. Telefon alanı bu satır seviyesi
 -- kısıtla korunuyor (ayrı bir kolon maskeleme katmanı yok, UI'da maskelenir).
 create policy call_logs_select on public.call_logs
   for select to authenticated
   using (
-    public.current_user_role() in ('broker', 'mudur', 'ofis')
+    public.current_user_role() in ('broker', 'owner', 'ofis')
     or assigned_to = auth.uid()
   );
 
 create policy call_logs_manage on public.call_logs
   for all to authenticated
-  using (public.current_user_role() in ('broker', 'mudur', 'ofis'))
-  with check (public.current_user_role() in ('broker', 'mudur', 'ofis'));
+  using (public.current_user_role() in ('broker', 'owner', 'ofis'))
+  with check (public.current_user_role() in ('broker', 'owner', 'ofis'));
 
 -- PERIODS: herkes okur, broker yönetir.
 create policy periods_select on public.periods
@@ -542,8 +542,8 @@ create policy score_entries_select on public.score_entries
 
 create policy score_entries_manage on public.score_entries
   for all to authenticated
-  using (public.current_user_role() in ('broker', 'mudur', 'ofis'))
-  with check (public.current_user_role() in ('broker', 'mudur', 'ofis'));
+  using (public.current_user_role() in ('broker', 'owner', 'ofis'))
+  with check (public.current_user_role() in ('broker', 'owner', 'ofis'));
 
 -- DOCS / DOC_VERSIONS: tüm giriş yapmış kullanıcılar okur (public/anon
 -- DEĞİL — sözleşme/IBAN gibi hassas içerik var). Broker/ofis yönetir.
@@ -563,7 +563,7 @@ create policy doc_versions_manage on public.doc_versions
   using (public.current_user_role() in ('broker', 'ofis'))
   with check (public.current_user_role() in ('broker', 'ofis'));
 
--- AUDIT_LOG: sadece broker/müdür okur. Insert uygulama tarafından
+-- AUDIT_LOG: sadece broker/owner okur. Insert uygulama tarafından
 -- (service role ya da güvenli bir fonksiyon üzerinden) yapılmalı.
 create policy audit_log_select on public.audit_log
   for select to authenticated

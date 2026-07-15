@@ -31,7 +31,7 @@ export default function ProfileMenu() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-ink-50"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lavanda-100 text-xs font-semibold text-lavanda-700">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
           {initials}
         </div>
         <ChevronDown size={16} className="text-ink-400" />
@@ -59,7 +59,7 @@ export default function ProfileMenu() {
                 className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-sm text-ink-700 hover:bg-ink-50"
               >
                 {ROLE_LABELS[r]}
-                {r === role && <Check size={14} className="text-lavanda-600" />}
+                {r === role && <Check size={14} className="text-brand-600" />}
               </button>
             ))}
           </div>

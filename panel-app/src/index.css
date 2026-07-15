@@ -1,22 +1,37 @@
 @import "tailwindcss";
 
+/* RE/MAX resmi marka renkleri — ham değişkenler (istenen isimlerle) */
+:root {
+  --red: #dc1c2e;
+  --blue: #003da5;
+  --navy: #0c2749;
+  --lg: #f4f6f9;
+  --bd: #e2e8f0;
+}
+
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 
-  /* RE/MAX Lavanda marka rengi */
-  --color-lavanda-50: #f7f5fc;
-  --color-lavanda-100: #eee9f8;
-  --color-lavanda-200: #ddd2f0;
-  --color-lavanda-300: #c3aee3;
-  --color-lavanda-400: #a682d1;
-  --color-lavanda-500: #8b5fbf;
-  --color-lavanda-600: #7548a8;
-  --color-lavanda-700: #613a8b;
-  --color-lavanda-800: #4f3070;
-  --color-lavanda-900: #422a5a;
+  /* RE/MAX kırmızısı (#DC1C2E) taban alınarak üretilmiş 50-900 skala —
+     mevcut bileşenlerdeki bg-brand-600/hover:bg-brand-700 vb. kullanım
+     kalıbı korunuyor, sadece renk RE/MAX kimliğine göre değişti. */
+  --color-brand-50: #fdecee;
+  --color-brand-100: #fbd6da;
+  --color-brand-200: #f5aeb6;
+  --color-brand-300: #ed7e8c;
+  --color-brand-400: #e44f63;
+  --color-brand-500: #e2394c;
+  --color-brand-600: #dc1c2e;
+  --color-brand-700: #b01522;
+  --color-brand-800: #8a1019;
+  --color-brand-900: #5c0a11;
 
-  --color-ink-50: #f8f8f9;
-  --color-ink-100: #eef0f2;
+  /* RE/MAX mavisi — ikincil aksan (Takvim'de "Toplantı" rengi vb.) */
+  --color-remax-blue: #003da5;
+  --color-remax-navy: #0c2749;
+
+  --color-ink-50: #f4f6f9;
+  --color-ink-100: #e2e8f0;
   --color-ink-200: #dde0e5;
   --color-ink-300: #c2c7cf;
   --color-ink-400: #9aa1ad;
@@ -24,7 +39,7 @@
   --color-ink-600: #4c5361;
   --color-ink-700: #363c48;
   --color-ink-800: #232730;
-  --color-ink-900: #15171d;
+  --color-ink-900: #0c2749;
 }
 
 * {

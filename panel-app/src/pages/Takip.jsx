@@ -7,7 +7,7 @@ import { MOCK_BROKER_NOTES } from '../data/mockTakip'
 import HealthScoreRow from '../components/takip/HealthScoreRow'
 import HealthDetailModal from '../components/takip/HealthDetailModal'
 
-const CAN_SEE_TEAM_ROLES = ['broker', 'mudur', 'ofis']
+const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 
 export default function Takip() {
   const { user, role } = useAuth()
@@ -27,7 +27,7 @@ export default function Takip() {
   return (
     <div>
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
           <HeartPulse size={20} />
         </div>
         <div>

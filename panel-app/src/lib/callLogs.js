@@ -14,17 +14,17 @@ export const CALL_RESULT_STYLES = {
   ilgilenmiyor: 'bg-ink-100 text-ink-500',
 }
 
-// call_logs_select RLS kuralının mock karşılığı: broker/müdür/ofis tüm
+// call_logs_select RLS kuralının mock karşılığı: broker/owner/ofis tüm
 // çağrıları görür, danışman sadece kendine atanan çağrıları görür.
 export function canViewCall(call, user) {
-  if (user.role === ROLES.BROKER || user.role === ROLES.MUDUR || user.role === ROLES.OFIS) return true
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER || user.role === ROLES.OFIS) return true
   return call.assignedTo === user.id
 }
 
-// call_logs_manage RLS kuralıyla aynı: sadece broker/müdür/ofis
+// call_logs_manage RLS kuralıyla aynı: sadece broker/owner/ofis
 // düzenleyebilir (Ofis verileri girer, danışman sadece görür).
 export function canManageCalls(role) {
-  return role === ROLES.BROKER || role === ROLES.MUDUR || role === ROLES.OFIS
+  return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 
 // Telefonu maskeler: son 2 haneyi gösterir. PART 2'deki tasarım kararı —

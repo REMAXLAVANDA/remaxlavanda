@@ -17,7 +17,7 @@ export const MOCK_DOC_VERSIONS = [
   { id: 'v-2', docId: 'doc-1', versionNo: 2, filename: 'alici-sozlesmesi-v2.pdf', url: '#', isCurrent: true, uploadedBy: 'u-broker', uploadedAt: daysAgo(15) },
   { id: 'v-3', docId: 'doc-2', versionNo: 1, filename: 'satici-sozlesmesi-v1.pdf', url: '#', isCurrent: true, uploadedBy: 'u-broker', uploadedAt: daysAgo(90) },
   { id: 'v-4', docId: 'doc-3', versionNo: 1, filename: 'ofis-iban.pdf', url: '#', isCurrent: true, uploadedBy: 'u-broker', uploadedAt: daysAgo(200) },
-  { id: 'v-5', docId: 'doc-4', versionNo: 1, filename: 'lavanda-logo-v1.zip', url: '#', isCurrent: false, uploadedBy: 'u-ofis', uploadedAt: daysAgo(180) },
-  { id: 'v-6', docId: 'doc-4', versionNo: 2, filename: 'lavanda-logo-v2.zip', url: '#', isCurrent: true, uploadedBy: 'u-ofis', uploadedAt: daysAgo(30) },
+  { id: 'v-5', docId: 'doc-4', versionNo: 1, filename: 'brand-logo-v1.zip', url: '#', isCurrent: false, uploadedBy: 'u-ofis', uploadedAt: daysAgo(180) },
+  { id: 'v-6', docId: 'doc-4', versionNo: 2, filename: 'brand-logo-v2.zip', url: '#', isCurrent: true, uploadedBy: 'u-ofis', uploadedAt: daysAgo(30) },
   { id: 'v-7', docId: 'doc-5', versionNo: 1, filename: 'ilan-sablonlari-v1.docx', url: '#', isCurrent: true, uploadedBy: 'u-ofis', uploadedAt: daysAgo(5) },
 ]

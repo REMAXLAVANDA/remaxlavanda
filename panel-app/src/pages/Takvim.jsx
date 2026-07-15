@@ -10,9 +10,9 @@ import EventDetailModal from '../components/calendar/EventDetailModal'
 import NewEventModal from '../components/calendar/NewEventModal'
 import { mutate } from '../lib/api'
 
-// calendar_events_manage RLS kuralıyla aynı: broker/müdür/ofis oluşturur ve
+// calendar_events_manage RLS kuralıyla aynı: broker/owner/ofis oluşturur ve
 // başkalarının katılımını işaretler; danışman sadece kendi durumunu günceller.
-const CAN_MANAGE_ROLES = ['broker', 'mudur', 'ofis']
+const CAN_MANAGE_ROLES = ['broker', 'owner', 'ofis']
 
 export default function Takvim() {
   const { user, role } = useAuth()
@@ -89,7 +89,7 @@ export default function Takvim() {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
             <CalendarDays size={20} />
           </div>
           <div>
@@ -100,7 +100,7 @@ export default function Takvim() {
         {isManager && (
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-lavanda-600 px-3 py-2 text-sm font-medium text-white hover:bg-lavanda-700"
+            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
             <Plus size={16} /> Yeni Etkinlik
           </button>
@@ -111,7 +111,7 @@ export default function Takvim() {
         <button
           onClick={() => setTypeFilter('tumu')}
           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            typeFilter === 'tumu' ? 'bg-lavanda-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+            typeFilter === 'tumu' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
           }`}
         >
           Tümü

@@ -7,7 +7,7 @@ import { ROLES } from '../lib/roles'
 
 export const MOCK_USERS = {
   [ROLES.BROKER]: { id: 'u-broker', name: 'Ahmet Erdemir', role: ROLES.BROKER },
-  [ROLES.MUDUR]: { id: 'u-mudur', name: 'Ofis Müdürü', role: ROLES.MUDUR },
+  [ROLES.OWNER]: { id: 'u-owner', name: 'Ofis Sahibi (Owner)', role: ROLES.OWNER },
   [ROLES.OFIS]: { id: 'u-ofis', name: 'Ofis Personeli', role: ROLES.OFIS },
   [ROLES.DANISMAN]: { id: 'u-danisman', name: 'Danışman', role: ROLES.DANISMAN },
 }

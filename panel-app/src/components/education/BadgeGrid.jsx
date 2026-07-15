@@ -23,7 +23,7 @@ export default function BadgeGrid({ badges }) {
         const Icon = ICONS[b.icon] ?? Award
         return (
           <div key={b.id} className="rounded-xl border border-ink-100 bg-white p-4 text-center">
-            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-lavanda-50 text-lavanda-600">
+            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-600">
               <Icon size={18} />
             </div>
             <p className="text-xs font-semibold text-ink-900">{b.ad}</p>

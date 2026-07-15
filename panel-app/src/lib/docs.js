@@ -1,7 +1,7 @@
 import { ROLES } from './roles'
 
 // docs_manage RLS kuralıyla birebir aynı: sadece broker ve ofis yönetir
-// (müdür burada yalnızca görüntüler/denetler, dosya yüklemez).
+// (owner burada yalnızca görüntüler/denetler, dosya yüklemez).
 export function canManageDocs(role) {
   return role === ROLES.BROKER || role === ROLES.OFIS
 }

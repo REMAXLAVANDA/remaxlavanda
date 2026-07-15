@@ -7,7 +7,7 @@ function Chip({ active, children, ...props }) {
     <button
       {...props}
       className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-        active ? 'bg-lavanda-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+        active ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
       }`}
     >
       {children}

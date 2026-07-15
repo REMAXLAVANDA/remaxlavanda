@@ -9,7 +9,7 @@ export default function FolderList({ selected, onSelect, countFor }) {
           key={c.key}
           onClick={() => onSelect(c.key)}
           className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
-            selected === c.key ? 'bg-lavanda-50 text-lavanda-700' : 'text-ink-600 hover:bg-ink-50'
+            selected === c.key ? 'bg-brand-50 text-brand-700' : 'text-ink-600 hover:bg-ink-50'
           }`}
         >
           <Folder size={16} />

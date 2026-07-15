@@ -11,9 +11,9 @@ export default function HealthScoreRow({ user, score, status, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-xl border border-ink-100 bg-white p-4 text-left transition-colors hover:border-lavanda-200"
+      className="flex w-full items-center gap-3 rounded-xl border border-ink-100 bg-white p-4 text-left transition-colors hover:border-brand-200"
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lavanda-100 text-xs font-semibold text-lavanda-700">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
         {initials}
       </div>
       <div className="min-w-0 flex-1">

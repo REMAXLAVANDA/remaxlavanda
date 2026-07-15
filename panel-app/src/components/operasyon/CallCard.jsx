@@ -13,7 +13,7 @@ export default function CallCard({ call, assignedName, isManager, inviteeOptions
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">{call.kaynak}</span>
             {call.opportunityId && (
-              <span className="flex items-center gap-1 rounded-full bg-lavanda-50 px-2 py-0.5 text-xs font-medium text-lavanda-700">
+              <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
                 <Target size={11} /> Fırsata dönüştü
               </span>
             )}
@@ -28,7 +28,7 @@ export default function CallCard({ call, assignedName, isManager, inviteeOptions
         <span>{revealed ? call.arayanTelefon : maskPhone(call.arayanTelefon)}</span>
         <button
           onClick={() => setRevealed((v) => !v)}
-          className="text-ink-400 hover:text-lavanda-700"
+          className="text-ink-400 hover:text-brand-700"
           title={revealed ? 'Gizle' : 'Göster'}
         >
           {revealed ? <EyeOff size={13} /> : <Eye size={13} />}

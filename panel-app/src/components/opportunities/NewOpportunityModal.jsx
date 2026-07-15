@@ -43,7 +43,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting }) {
                 type="button"
                 onClick={() => set({ type: key })}
                 className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                  form.type === key ? 'bg-lavanda-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                  form.type === key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                 }`}
               >
                 {label}
@@ -101,7 +101,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting }) {
             <button
               type="submit"
               disabled={!canSubmit || submitting}
-              className="rounded-lg bg-lavanda-600 px-4 py-2 text-sm font-medium text-white hover:bg-lavanda-700 disabled:opacity-50"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {submitting ? 'Kaydediliyor...' : 'Kaydet'}
             </button>

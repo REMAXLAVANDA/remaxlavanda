@@ -9,7 +9,7 @@
 do $$
 declare
   v_broker uuid := '00000000-0000-0000-0000-000000000001';
-  v_mudur uuid := '00000000-0000-0000-0000-000000000002';
+  v_owner uuid := '00000000-0000-0000-0000-000000000002';
   v_ofis uuid := '00000000-0000-0000-0000-000000000003';
   v_danisman uuid := '00000000-0000-0000-0000-000000000004';
   v_danisman2 uuid := '00000000-0000-0000-0000-000000000005';
@@ -29,7 +29,7 @@ begin
     confirmation_token, recovery_token, email_change_token_new, email_change
   ) values
     ('00000000-0000-0000-0000-000000000000', v_broker, 'authenticated', 'authenticated', 'broker@lavanda.dev', crypt('lavanda123', gen_salt('bf')), now(), now(), now(), '', '', '', ''),
-    ('00000000-0000-0000-0000-000000000000', v_mudur, 'authenticated', 'authenticated', 'mudur@lavanda.dev', crypt('lavanda123', gen_salt('bf')), now(), now(), now(), '', '', '', ''),
+    ('00000000-0000-0000-0000-000000000000', v_owner, 'authenticated', 'authenticated', 'owner@lavanda.dev', crypt('lavanda123', gen_salt('bf')), now(), now(), now(), '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', v_ofis, 'authenticated', 'authenticated', 'ofis@lavanda.dev', crypt('lavanda123', gen_salt('bf')), now(), now(), now(), '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', v_danisman, 'authenticated', 'authenticated', 'danisman1@lavanda.dev', crypt('lavanda123', gen_salt('bf')), now(), now(), now(), '', '', '', ''),
     ('00000000-0000-0000-0000-000000000000', v_danisman2, 'authenticated', 'authenticated', 'danisman2@lavanda.dev', crypt('lavanda123', gen_salt('bf')), now(), now(), now(), '', '', '', '')
@@ -38,7 +38,7 @@ begin
   -- ---- public.users -------------------------------------------------------
   insert into public.users (id, ad, email, rol, baslangic_tarihi) values
     (v_broker, 'Ahmet Erdemir', 'broker@lavanda.dev', 'broker', '2020-01-01'),
-    (v_mudur, 'Ofis Müdürü', 'mudur@lavanda.dev', 'mudur', '2021-03-15'),
+    (v_owner, 'Ofis Sahibi (Owner)', 'owner@lavanda.dev', 'owner', '2021-03-15'),
     (v_ofis, 'Ofis Personeli', 'ofis@lavanda.dev', 'ofis', '2022-06-01'),
     (v_danisman, 'Ali Yılmaz', 'danisman1@lavanda.dev', 'danisman', '2023-02-10'),
     (v_danisman2, 'Zeynep Kaya', 'danisman2@lavanda.dev', 'danisman', '2024-05-20')
@@ -68,11 +68,11 @@ begin
   values
     ('satici', v_cat_konut, 'Mehmet Demir', '05551112233', 'Süleymanpaşa''da 3+1 daire satılık', 'Tekirdağ / Süleymanpaşa', 'acik', v_ofis, null, null),
     ('alici', v_cat_ticari, 'Ayşe Şahin', '05552223344', 'Merkez''de dükkan arıyor', 'Tekirdağ / Merkez', 'claimed', v_ofis, v_danisman, now() - interval '2 days'),
-    ('satici', v_cat_arsa, 'Hasan Öz', '05553334455', 'Çorlu''da 500 m² arsa', 'Tekirdağ / Çorlu', 'acik', v_mudur, null, null);
+    ('satici', v_cat_arsa, 'Hasan Öz', '05553334455', 'Çorlu''da 500 m² arsa', 'Tekirdağ / Çorlu', 'acik', v_owner, null, null);
 
   -- ---- calendar_events + attendance --------------------------------------
   insert into public.calendar_events (type, title, start_at, end_at, creator_id) values
-    ('toplanti', 'Haftalık Ofis Toplantısı', now() + interval '1 day', now() + interval '1 day' + interval '1 hour', v_mudur),
+    ('toplanti', 'Haftalık Ofis Toplantısı', now() + interval '1 day', now() + interval '1 day' + interval '1 hour', v_owner),
     ('egitim', 'Power Camp - Modül 1', now() + interval '3 days', now() + interval '3 days' + interval '2 hours', v_broker);
 
   insert into public.event_attendance (event_id, user_id, status)
@@ -98,7 +98,7 @@ begin
     ('ayrilis', 'Devam eden fırsatlar devredildi', 1),
     ('ayrilis', 'Ofis malzemeleri teslim edildi', 2);
 
-  -- ---- santral --------------------------------------------------------------
+  -- ---- operasyon --------------------------------------------------------------
   insert into public.call_logs (kaynak, arayan_ad, arayan_telefon, assigned_to, sonuc, portfoy_alindi_mi, donus_yapildi_mi, opportunity_id) values
     ('Facebook Reklam', 'Fatma Yıldız', '05554445566', v_danisman2, 'ulasildi', false, true, null),
     ('Google Ads', 'Kemal Aydın', '05555556677', null, 'atanmadi', false, false, null);

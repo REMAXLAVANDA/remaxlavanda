@@ -22,7 +22,7 @@ export default function Ayarlar() {
             onClick={() => setTab(t.key)}
             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
               tab === t.key
-                ? 'border-lavanda-600 text-lavanda-700'
+                ? 'border-brand-600 text-brand-700'
                 : 'border-transparent text-ink-500 hover:text-ink-800'
             }`}
           >

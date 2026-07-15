@@ -50,12 +50,12 @@ export const MOCK_CHECKLIST_ITEMS = [
 
 // item_id, user_id, done_at, done_by
 export const MOCK_CHECKLIST_STATUS = [
-  { itemId: 'chk-1', userId: 'u-danisman', doneAt: daysAgo(70), doneBy: 'u-mudur' },
-  { itemId: 'chk-2', userId: 'u-danisman', doneAt: daysAgo(70), doneBy: 'u-mudur' },
-  { itemId: 'chk-3', userId: 'u-danisman', doneAt: daysAgo(69), doneBy: 'u-mudur' },
-  { itemId: 'chk-1', userId: 'ext-danisman-2', doneAt: daysAgo(95), doneBy: 'u-mudur' },
-  { itemId: 'chk-2', userId: 'ext-danisman-2', doneAt: daysAgo(95), doneBy: 'u-mudur' },
-  { itemId: 'chk-3', userId: 'ext-danisman-2', doneAt: daysAgo(94), doneBy: 'u-mudur' },
+  { itemId: 'chk-1', userId: 'u-danisman', doneAt: daysAgo(70), doneBy: 'u-owner' },
+  { itemId: 'chk-2', userId: 'u-danisman', doneAt: daysAgo(70), doneBy: 'u-owner' },
+  { itemId: 'chk-3', userId: 'u-danisman', doneAt: daysAgo(69), doneBy: 'u-owner' },
+  { itemId: 'chk-1', userId: 'ext-danisman-2', doneAt: daysAgo(95), doneBy: 'u-owner' },
+  { itemId: 'chk-2', userId: 'ext-danisman-2', doneAt: daysAgo(95), doneBy: 'u-owner' },
+  { itemId: 'chk-3', userId: 'ext-danisman-2', doneAt: daysAgo(94), doneBy: 'u-owner' },
   { itemId: 'chk-4', userId: 'ext-danisman-2', doneAt: daysAgo(94), doneBy: 'u-broker' },
   { itemId: 'chk-5', userId: 'ext-danisman-2', doneAt: daysAgo(90), doneBy: 'u-broker' },
 ]

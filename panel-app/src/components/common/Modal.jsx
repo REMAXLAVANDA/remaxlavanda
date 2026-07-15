@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 
 // Paylaşılan modal kabuğu — yeni modallar (Rehber, Takip vb.) bunu kullanır.
-// Var olan Fırsatlar/Takvim/Santral/Eğitim modalları kendi içinde aynı
+// Var olan Fırsatlar/Takvim/Operasyon/Eğitim modalları kendi içinde aynı
 // yapıyı tekrar ediyor; davranışları test edilmiş olduğundan bu PART'ta
 // riske atılmadı, ama yeni eklenecek her modal buradan başlamalı.
 export default function Modal({ title, onClose, children, maxWidth = 'max-w-md' }) {

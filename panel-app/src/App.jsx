@@ -7,7 +7,7 @@ import AppLayout from './components/layout/AppLayout'
 import Panel from './pages/Panel'
 import Firsatlar from './pages/Firsatlar'
 import Egitim from './pages/Egitim'
-import Santral from './pages/Santral'
+import Operasyon from './pages/Operasyon'
 import Takip from './pages/Takip'
 import Lig from './pages/Lig'
 import Rehber from './pages/Rehber'
@@ -40,7 +40,7 @@ export default function App() {
                 }
               />
               <Route path="/egitim" element={<Egitim />} />
-              <Route path="/santral" element={<Santral />} />
+              <Route path="/operasyon" element={<Operasyon />} />
               <Route path="/takip" element={<Takip />} />
               <Route path="/lig" element={<Lig />} />
               <Route path="/rehber" element={<Rehber />} />

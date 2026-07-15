@@ -14,7 +14,7 @@ export default function Lig() {
   return (
     <div>
       <div className="mb-1 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
           <Trophy size={20} />
         </div>
         <div>
@@ -29,7 +29,7 @@ export default function Lig() {
             key={c.key}
             onClick={() => setTab(c.key)}
             className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-              tab === c.key ? 'border-lavanda-600 text-lavanda-700' : 'border-transparent text-ink-500 hover:text-ink-800'
+              tab === c.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-800'
             }`}
           >
             {c.label}

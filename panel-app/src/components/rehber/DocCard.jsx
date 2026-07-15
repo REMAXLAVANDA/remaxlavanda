@@ -8,7 +8,7 @@ export default function DocCard({ doc, current, history, onPreview, resolveName 
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
           <FileText size={18} />
         </div>
         <div className="min-w-0 flex-1">

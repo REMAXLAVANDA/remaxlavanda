@@ -18,7 +18,7 @@ export const MOCK_EVENTS = [
     location: 'Ofis - Toplantı Salonu',
     startAt: at(1, 10, 0),
     endAt: at(1, 11, 0),
-    creatorId: 'u-mudur',
+    creatorId: 'u-owner',
   },
   {
     id: 'ev-2',
@@ -58,7 +58,7 @@ export const MOCK_EVENTS = [
     location: 'Ofis - Toplantı Salonu',
     startAt: at(-7, 10, 0),
     endAt: at(-7, 11, 0),
-    creatorId: 'u-mudur',
+    creatorId: 'u-owner',
   },
   {
     id: 'ev-6',
@@ -86,7 +86,7 @@ export const MOCK_EVENTS = [
 export const MOCK_ATTENDANCE = [
   // ev-1: herkes davetli, danışman henüz cevap vermedi
   { eventId: 'ev-1', userId: 'u-broker', status: 'onayladi' },
-  { eventId: 'ev-1', userId: 'u-mudur', status: 'onayladi' },
+  { eventId: 'ev-1', userId: 'u-owner', status: 'onayladi' },
   { eventId: 'ev-1', userId: 'u-ofis', status: 'davetli' },
   { eventId: 'ev-1', userId: 'u-danisman', status: 'davetli' },
   { eventId: 'ev-1', userId: 'ext-danisman-2', status: 'onayladi' },
@@ -104,7 +104,7 @@ export const MOCK_ATTENDANCE = [
 
   // ev-5 (geçmiş): kısmen işaretlenmiş katılım
   { eventId: 'ev-5', userId: 'u-broker', status: 'katildi' },
-  { eventId: 'ev-5', userId: 'u-mudur', status: 'katildi' },
+  { eventId: 'ev-5', userId: 'u-owner', status: 'katildi' },
   { eventId: 'ev-5', userId: 'u-ofis', status: 'katildi' },
   { eventId: 'ev-5', userId: 'u-danisman', status: 'katilmadi' },
   { eventId: 'ev-5', userId: 'ext-danisman-2', status: 'katildi' },

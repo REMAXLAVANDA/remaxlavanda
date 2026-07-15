@@ -42,7 +42,7 @@ export default function OpportunityCard({ opportunity: opp, ownerName, claimerNa
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink-50 pt-3">
         <div className="flex flex-wrap items-center gap-3 text-xs text-ink-400">
           {opp.leadTelefon && (
-            <a href={`tel:${opp.leadTelefon}`} className="flex items-center gap-1 hover:text-lavanda-700">
+            <a href={`tel:${opp.leadTelefon}`} className="flex items-center gap-1 hover:text-brand-700">
               <Phone size={12} /> {opp.leadTelefon}
             </a>
           )}
@@ -60,7 +60,7 @@ export default function OpportunityCard({ opportunity: opp, ownerName, claimerNa
           <button
             onClick={onClaim}
             disabled={claiming}
-            className="rounded-lg bg-lavanda-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-lavanda-700 disabled:opacity-50"
+            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
           >
             {claiming ? 'Gönderiliyor...' : 'İlgileniyorum'}
           </button>

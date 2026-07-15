@@ -7,14 +7,14 @@ import {
   Target,
   CalendarDays,
   GraduationCap,
-  PhoneCall,
+  Wrench,
   HeartPulse,
   Trophy,
   BookOpen,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
-const ALL_ROLES = [ROLES.BROKER, ROLES.MUDUR, ROLES.OFIS, ROLES.DANISMAN]
+const ALL_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.DANISMAN]
 
 export const MODULES = [
   {
@@ -50,11 +50,11 @@ export const MODULES = [
     roles: ALL_ROLES,
   },
   {
-    key: 'santral',
-    path: '/santral',
-    label: 'Santral',
+    key: 'operasyon',
+    path: '/operasyon',
+    label: 'Operasyon',
     description: 'Sponsorlu reklam ve çağrı kayıtları',
-    icon: PhoneCall,
+    icon: Wrench,
     roles: ALL_ROLES,
   },
   {

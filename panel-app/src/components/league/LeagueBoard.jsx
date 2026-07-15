@@ -14,13 +14,13 @@ export default function LeagueBoard({ rankings, unit }) {
         <div
           key={r.userId}
           className={`flex items-center gap-3 rounded-xl border p-4 ${
-            r.isLeader ? 'border-lavanda-200 bg-lavanda-50' : 'border-ink-100 bg-white'
+            r.isLeader ? 'border-brand-200 bg-brand-50' : 'border-ink-100 bg-white'
           }`}
         >
           <span className="w-7 shrink-0 text-center text-lg">{MEDALS[r.rank - 1] ?? r.rank}</span>
           <span className="min-w-0 flex-1 text-sm font-medium text-ink-900">{r.name}</span>
           {r.isLeader ? (
-            <span className="flex items-center gap-1 rounded-full bg-lavanda-600 px-2.5 py-1 text-xs font-medium text-white">
+            <span className="flex items-center gap-1 rounded-full bg-brand-600 px-2.5 py-1 text-xs font-medium text-white">
               <Crown size={12} /> Lider
             </span>
           ) : (

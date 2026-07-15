@@ -70,7 +70,7 @@ export default function Rehber() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
             <BookOpen size={20} />
           </div>
           <div>
@@ -81,7 +81,7 @@ export default function Rehber() {
         {canManage && (
           <button
             onClick={() => setShowUpload(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-lavanda-600 px-3 py-2 text-sm font-medium text-white hover:bg-lavanda-700"
+            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
             <Plus size={16} /> Dosya Yükle
           </button>

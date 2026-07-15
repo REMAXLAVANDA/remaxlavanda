@@ -20,14 +20,14 @@ export const MOCK_CUSTOMER_REVIEW = {
 
 export const MOCK_BROKER_NOTES = {
   'u-danisman': [
-    { date: daysAgo(3), author: 'u-mudur', text: 'Müzakere eğitimini tamamladı, ilerleme iyi.' },
+    { date: daysAgo(3), author: 'u-owner', text: 'Müzakere eğitimini tamamladı, ilerleme iyi.' },
     { date: daysAgo(15), author: 'u-broker', text: 'Lead dönüş süresi biraz yavaş, takip edelim.' },
   ],
   'ext-danisman-2': [
     { date: daysAgo(5), author: 'u-broker', text: 'Bu dönem en yüksek ciro — tebrik edildi.' },
   ],
   'ext-danisman-3': [
-    { date: daysAgo(1), author: 'u-mudur', text: 'Yeni katıldı, başlangıç checklist takip ediliyor.' },
-    { date: daysAgo(10), author: 'u-mudur', text: 'Portal kullanımı düşük, hatırlatma yapıldı.' },
+    { date: daysAgo(1), author: 'u-owner', text: 'Yeni katıldı, başlangıç checklist takip ediliyor.' },
+    { date: daysAgo(10), author: 'u-owner', text: 'Portal kullanımı düşük, hatırlatma yapıldı.' },
   ],
 }

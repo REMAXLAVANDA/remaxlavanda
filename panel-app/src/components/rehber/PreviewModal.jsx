@@ -7,7 +7,7 @@ export default function PreviewModal({ version, onClose }) {
         <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-ink-400 hover:bg-ink-50">
           <X size={18} />
         </button>
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-lavanda-50 text-lavanda-600">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
           <FileText size={26} />
         </div>
         <p className="text-sm font-semibold text-ink-900">{version.filename}</p>

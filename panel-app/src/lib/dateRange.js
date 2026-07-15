@@ -1,5 +1,5 @@
 // Standart tarih filtresi — spesifikasyona göre her raporda aynı seçenekler
-// kullanılıyor: 7 gün · 30 gün · 4 ay · Bu yıl · Özel. Fırsatlar, Santral ve
+// kullanılıyor: 7 gün · 30 gün · 4 ay · Bu yıl · Özel. Fırsatlar, Operasyon ve
 // ilerideki rapor ekranları bunu paylaşır.
 
 export const DATE_RANGES = [

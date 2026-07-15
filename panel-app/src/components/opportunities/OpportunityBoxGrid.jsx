@@ -10,7 +10,7 @@ export default function OpportunityBoxGrid({ boxes, active, onSelect }) {
             key={`${b.type}-${b.category}`}
             onClick={() => onSelect(isActive ? { type: 'tumu', category: 'tumu' } : { type: b.type, category: b.category })}
             className={`rounded-2xl border p-4 text-left transition-colors ${
-              isActive ? 'border-lavanda-400 bg-lavanda-50' : 'border-ink-100 bg-white hover:border-lavanda-200'
+              isActive ? 'border-brand-400 bg-brand-50' : 'border-ink-100 bg-white hover:border-brand-200'
             }`}
           >
             <p className="text-xs font-medium text-ink-400">

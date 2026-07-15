@@ -112,7 +112,7 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
                   onClick={() => toggleInvitee(u.id)}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     form.inviteeIds.includes(u.id)
-                      ? 'bg-lavanda-600 text-white'
+                      ? 'bg-brand-600 text-white'
                       : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                   }`}
                 >
@@ -133,7 +133,7 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
             <button
               type="submit"
               disabled={!canSubmit || submitting}
-              className="rounded-lg bg-lavanda-600 px-4 py-2 text-sm font-medium text-white hover:bg-lavanda-700 disabled:opacity-50"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {submitting ? 'Kaydediliyor...' : 'Oluştur'}
             </button>

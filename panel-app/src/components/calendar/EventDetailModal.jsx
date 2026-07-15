@@ -54,7 +54,7 @@ export default function EventDetailModal({
                 onClick={() => onSetMyStatus(status)}
                 className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   myAttendance.status === status
-                    ? 'bg-lavanda-600 text-white'
+                    ? 'bg-brand-600 text-white'
                     : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                 }`}
               >

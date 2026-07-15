@@ -1,4 +1,4 @@
-// Santral modülü mock verisi — supabase şemasındaki call_logs tablosunun
+// Operasyon modülü mock verisi — supabase şemasındaki call_logs tablosunun
 // karşılığı (camelCase alan adlarıyla).
 
 const day = 24 * 60 * 60 * 1000

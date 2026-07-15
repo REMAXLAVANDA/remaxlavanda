@@ -4,24 +4,24 @@
 
 export const ROLES = {
   BROKER: 'broker',
-  MUDUR: 'mudur',
+  OWNER: 'owner',
   OFIS: 'ofis',
   DANISMAN: 'danisman',
 }
 
 export const ROLE_LABELS = {
   [ROLES.BROKER]: 'Broker (Admin)',
-  [ROLES.MUDUR]: 'Müdür',
+  [ROLES.OWNER]: 'Owner',
   [ROLES.OFIS]: 'Ofis (Personel)',
   [ROLES.DANISMAN]: 'Danışman',
 }
 
-export const ROLE_ORDER = [ROLES.BROKER, ROLES.MUDUR, ROLES.OFIS, ROLES.DANISMAN]
+export const ROLE_ORDER = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.DANISMAN]
 
-// Temel kural: Ofis rolü yalnızca veri girer; broker girmez, müdür denetler.
+// Temel kural: Ofis rolü yalnızca veri girer; broker girmez, owner denetler.
 export const ROLE_RULES = {
   [ROLES.OFIS]: { canEnterData: true, canManage: false },
-  [ROLES.MUDUR]: { canEnterData: false, canManage: true, canAudit: true },
+  [ROLES.OWNER]: { canEnterData: false, canManage: true, canAudit: true },
   [ROLES.BROKER]: { canEnterData: false, canManage: true, canAudit: true, isAdmin: true },
   [ROLES.DANISMAN]: { canEnterData: false, canManage: false },
 }

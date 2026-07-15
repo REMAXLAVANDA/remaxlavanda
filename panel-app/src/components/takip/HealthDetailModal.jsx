@@ -28,7 +28,7 @@ export default function HealthDetailModal({ user, score, status, metrics, notes,
                   <span className="font-medium text-ink-700">{value == null ? 'Veri yok' : `${value}%`}</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-ink-100">
-                  <div className="h-full rounded-full bg-lavanda-600" style={{ width: `${value ?? 0}%` }} />
+                  <div className="h-full rounded-full bg-brand-600" style={{ width: `${value ?? 0}%` }} />
                 </div>
               </div>
             )

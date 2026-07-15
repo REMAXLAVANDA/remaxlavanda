@@ -7,7 +7,7 @@ const ICONS = { success: CheckCircle2, error: XCircle, info: Info }
 const STYLES = {
   success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
   error: 'border-red-200 bg-red-50 text-red-700',
-  info: 'border-lavanda-200 bg-lavanda-50 text-lavanda-800',
+  info: 'border-brand-200 bg-brand-50 text-brand-800',
 }
 
 export function ToastProvider({ children }) {
