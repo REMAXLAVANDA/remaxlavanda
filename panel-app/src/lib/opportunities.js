@@ -1,4 +1,6 @@
 import { ROLES } from './roles'
+import { isToday } from './format'
+import { OPPORTUNITY_CATEGORIES } from './categories'
 export { relativeTime } from './format'
 export { DATE_RANGES, isWithinRange } from './dateRange'
 
@@ -38,5 +40,24 @@ export const OPPORTUNITY_STATUS_STYLES = {
   claimed: 'bg-amber-50 text-amber-700',
   kapandi: 'bg-emerald-50 text-emerald-700',
   iptal: 'bg-ink-100 text-ink-500',
+}
+
+// Fırsatlar sayfasındaki 8 kutu (Satıcı/Alıcı × 4 kategori) için özet.
+// `visibleOpportunities` zaten canViewOpportunity ile filtrelenmiş olmalı.
+export function computeBoxCounts(visibleOpportunities) {
+  const boxes = []
+  for (const type of Object.keys(OPPORTUNITY_TYPE_LABELS)) {
+    for (const category of OPPORTUNITY_CATEGORIES) {
+      const items = visibleOpportunities.filter((o) => o.type === type && o.category === category.key)
+      boxes.push({
+        type,
+        category: category.key,
+        categoryLabel: category.label,
+        total: items.length,
+        today: items.filter((o) => isToday(o.createdAt)).length,
+      })
+    }
+  }
+  return boxes
 }
 

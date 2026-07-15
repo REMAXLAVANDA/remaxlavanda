@@ -1,5 +1,14 @@
 // Ortak tarih/metin biçimlendirme yardımcıları — birden fazla modül kullanıyor.
 
+export function isToday(dateIso) {
+  if (!dateIso) return false
+  const d = new Date(dateIso)
+  const now = new Date()
+  return (
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+  )
+}
+
 export function relativeTime(dateIso) {
   if (!dateIso) return null
   const diffMs = Date.now() - new Date(dateIso).getTime()

@@ -1,21 +1,8 @@
 import { Search } from 'lucide-react'
-import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
-import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import DateRangeFilter from '../common/DateRangeFilter'
 
-function Chip({ active, children, ...props }) {
-  return (
-    <button
-      {...props}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-        active ? 'bg-lavanda-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-      }`}
-    >
-      {children}
-    </button>
-  )
-}
-
+// Tip/kategori seçimi artık üstteki 8 kutudan yapılıyor (OpportunityBoxGrid);
+// burada sadece arama ve tarih aralığı kalıyor.
 export default function OpportunityFilters({ filters, onChange }) {
   const set = (patch) => onChange({ ...filters, ...patch })
 
@@ -29,28 +16,6 @@ export default function OpportunityFilters({ filters, onChange }) {
           placeholder="İsim veya konuma göre ara..."
           className="w-full bg-transparent text-sm text-ink-800 outline-none placeholder:text-ink-400"
         />
-      </div>
-
-      <div className="flex flex-wrap gap-1.5">
-        <Chip active={filters.type === 'tumu'} onClick={() => set({ type: 'tumu' })}>
-          Tümü
-        </Chip>
-        {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
-          <Chip key={key} active={filters.type === key} onClick={() => set({ type: key })}>
-            {label}
-          </Chip>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-1.5">
-        <Chip active={filters.category === 'tumu'} onClick={() => set({ category: 'tumu' })}>
-          Tüm Kategoriler
-        </Chip>
-        {OPPORTUNITY_CATEGORIES.map((c) => (
-          <Chip key={c.key} active={filters.category === c.key} onClick={() => set({ category: c.key })}>
-            {c.label}
-          </Chip>
-        ))}
       </div>
 
       <DateRangeFilter value={filters} onChange={onChange} />

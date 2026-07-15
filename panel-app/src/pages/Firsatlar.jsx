@@ -3,9 +3,10 @@ import { Plus, Target } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { MOCK_OPPORTUNITIES } from '../data/mockOpportunities'
-import { canViewOpportunity, isWithinRange } from '../lib/opportunities'
+import { canViewOpportunity, computeBoxCounts, isWithinRange } from '../lib/opportunities'
 import { KNOWN_USERS } from '../lib/knownUsers'
 import OpportunityCard from '../components/opportunities/OpportunityCard'
+import OpportunityBoxGrid from '../components/opportunities/OpportunityBoxGrid'
 import OpportunityFilters from '../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../components/opportunities/NewOpportunityModal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -36,9 +37,15 @@ export default function Firsatlar() {
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  const roleVisible = useMemo(
+    () => opportunities.filter((o) => canViewOpportunity(o, user)),
+    [opportunities, user],
+  )
+
+  const boxes = useMemo(() => computeBoxCounts(roleVisible), [roleVisible])
+
   const visible = useMemo(() => {
-    return opportunities
-      .filter((o) => canViewOpportunity(o, user))
+    return roleVisible
       .filter((o) => filters.type === 'tumu' || o.type === filters.type)
       .filter((o) => filters.category === 'tumu' || o.category === filters.category)
       .filter((o) => isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
@@ -48,7 +55,7 @@ export default function Firsatlar() {
         return o.leadAd.toLowerCase().includes(q) || o.konum.toLowerCase().includes(q)
       })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [opportunities, user, filters])
+  }, [roleVisible, filters])
 
   async function confirmClaim() {
     const id = confirmClaimId
@@ -111,6 +118,14 @@ export default function Firsatlar() {
             <Plus size={16} /> Yeni Fırsat
           </button>
         )}
+      </div>
+
+      <div className="mb-5">
+        <OpportunityBoxGrid
+          boxes={boxes}
+          active={{ type: filters.type, category: filters.category }}
+          onSelect={({ type, category }) => setFilters((f) => ({ ...f, type, category }))}
+        />
       </div>
 
       <div className="mb-5">

@@ -3,17 +3,15 @@ import { CalendarDays, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { MOCK_EVENTS, MOCK_ATTENDANCE } from '../data/mockCalendarEvents'
-import { canViewEvent, isPastEvent } from '../lib/calendar'
+import { canViewEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '../lib/calendar'
 import { KNOWN_USERS, userName } from '../lib/knownUsers'
-import EventCard from '../components/calendar/EventCard'
-import EventFilters from '../components/calendar/EventFilters'
+import EventCalendar from '../components/calendar/EventCalendar'
+import EventDetailModal from '../components/calendar/EventDetailModal'
 import NewEventModal from '../components/calendar/NewEventModal'
 import { mutate } from '../lib/api'
 
-const INITIAL_FILTERS = { time: 'yaklasan', type: 'tumu' }
-
 // calendar_events_manage RLS kuralıyla aynı: broker/müdür/ofis oluşturur ve
-// katılım işaretler; danışman sadece kendi RSVP'sini günceller.
+// başkalarının katılımını işaretler; danışman sadece kendi durumunu günceller.
 const CAN_MANAGE_ROLES = ['broker', 'mudur', 'ofis']
 
 export default function Takvim() {
@@ -21,7 +19,8 @@ export default function Takvim() {
   const { showToast } = useToast()
   const [events, setEvents] = useState(MOCK_EVENTS)
   const [attendance, setAttendance] = useState(MOCK_ATTENDANCE)
-  const [filters, setFilters] = useState(INITIAL_FILTERS)
+  const [typeFilter, setTypeFilter] = useState('tumu')
+  const [selectedEventId, setSelectedEventId] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -30,30 +29,23 @@ export default function Takvim() {
   const visible = useMemo(() => {
     return events
       .filter((e) => canViewEvent(e, user, attendance))
-      .filter((e) => filters.type === 'tumu' || e.type === filters.type)
-      .filter((e) => {
-        if (filters.time === 'tumu') return true
-        const past = isPastEvent(e)
-        return filters.time === 'gecmis' ? past : !past
-      })
-      .sort((a, b) =>
-        filters.time === 'gecmis'
-          ? new Date(b.startAt) - new Date(a.startAt)
-          : new Date(a.startAt) - new Date(b.startAt),
-      )
-  }, [events, attendance, user, filters])
+      .filter((e) => typeFilter === 'tumu' || e.type === typeFilter)
+  }, [events, attendance, user, typeFilter])
 
-  async function handleRsvp(eventId) {
-    await mutate('event_attendance.update', { eventId, userId: user.id, status: 'onayladi' })
-    setAttendance((prev) =>
-      prev.map((a) => (a.eventId === eventId && a.userId === user.id ? { ...a, status: 'onayladi' } : a)),
-    )
-    showToast('Katılımın onaylandı.', 'success')
+  const selectedEvent = events.find((e) => e.id === selectedEventId)
+
+  function updateAttendance(eventId, userId, status) {
+    mutate('event_attendance.update', { eventId, userId, status })
+    setAttendance((prev) => prev.map((a) => (a.eventId === eventId && a.userId === userId ? { ...a, status } : a)))
   }
 
-  async function handleMarkAttendance(eventId, userId, status) {
-    await mutate('event_attendance.update', { eventId, userId, status })
-    setAttendance((prev) => prev.map((a) => (a.eventId === eventId && a.userId === userId ? { ...a, status } : a)))
+  function handleSetMyStatus(status) {
+    updateAttendance(selectedEventId, user.id, status)
+    showToast('Katılım durumun güncellendi.', 'success')
+  }
+
+  function handleSetAttendeeStatus(userId, status) {
+    updateAttendance(selectedEventId, userId, status)
   }
 
   async function handleCreate(form) {
@@ -83,21 +75,26 @@ export default function Takvim() {
         ...form.inviteeIds.map((userId) => ({ eventId: id, userId, status: 'davetli' })),
       ])
       setShowModal(false)
+      showToast('Etkinlik oluşturuldu.', 'success')
     } finally {
       setSubmitting(false)
     }
   }
 
+  const selectedAttendance = selectedEventId ? attendance.filter((a) => a.eventId === selectedEventId) : []
+  const selectedAttendees = selectedAttendance.map((a) => ({ ...a, name: userName(a.userId) }))
+  const myAttendance = selectedAttendance.find((a) => a.userId === user.id)
+
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lavanda-50 text-lavanda-600">
             <CalendarDays size={20} />
           </div>
           <div>
             <h1 className="text-base font-semibold text-ink-900">Takvim</h1>
-            <p className="text-xs text-ink-400">{visible.length} etkinlik görünüyor</p>
+            <p className="text-xs text-ink-400">Toplantı · Eğitim · Etkinlik · Broker Görüşmesi</p>
           </div>
         </div>
         {isManager && (
@@ -110,35 +107,43 @@ export default function Takvim() {
         )}
       </div>
 
-      <div className="mb-5">
-        <EventFilters filters={filters} onChange={setFilters} />
+      <div className="mb-4 flex flex-wrap items-center gap-1.5">
+        <button
+          onClick={() => setTypeFilter('tumu')}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            typeFilter === 'tumu' ? 'bg-lavanda-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+          }`}
+        >
+          Tümü
+        </button>
+        {Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTypeFilter(key)}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              typeFilter === key ? 'text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+            }`}
+            style={typeFilter === key ? { backgroundColor: EVENT_TYPE_COLORS[key] } : undefined}
+          >
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: EVENT_TYPE_COLORS[key] }} />
+            {label}
+          </button>
+        ))}
       </div>
 
-      {visible.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
-          Bu filtrelere uyan etkinlik yok.
-        </div>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {visible.map((event) => {
-            const eventAttendance = attendance.filter((a) => a.eventId === event.id)
-            const attendees = eventAttendance.map((a) => ({ ...a, name: userName(a.userId) }))
-            const myAttendance = eventAttendance.find((a) => a.userId === user.id)
+      <EventCalendar events={visible} onEventClick={setSelectedEventId} />
 
-            return (
-              <EventCard
-                key={event.id}
-                event={event}
-                attendees={attendees}
-                myAttendance={myAttendance}
-                isManager={isManager}
-                creatorName={userName(event.creatorId)}
-                onRsvp={() => handleRsvp(event.id)}
-                onMarkAttendance={(userId, status) => handleMarkAttendance(event.id, userId, status)}
-              />
-            )
-          })}
-        </div>
+      {selectedEvent && (
+        <EventDetailModal
+          event={selectedEvent}
+          attendees={selectedAttendees}
+          myAttendance={myAttendance}
+          isManager={isManager}
+          creatorName={userName(selectedEvent.creatorId)}
+          onSetMyStatus={handleSetMyStatus}
+          onSetAttendeeStatus={handleSetAttendeeStatus}
+          onClose={() => setSelectedEventId(null)}
+        />
       )}
 
       {showModal && (
