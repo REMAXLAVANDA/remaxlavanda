@@ -1,9 +1,9 @@
 export default function TeamProgressTable({ rows }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-ink-100 bg-white">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white">
+      <table className="w-full min-w-[520px] text-sm">
         <thead>
-          <tr className="border-b border-ink-100 bg-ink-50 text-left text-xs font-medium text-ink-400">
+          <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-left text-xs font-medium text-ink-400">
             <th className="px-4 py-2.5">Danışman</th>
             <th className="px-4 py-2.5">Modül Tamamlama</th>
             <th className="px-4 py-2.5">Checklist</th>

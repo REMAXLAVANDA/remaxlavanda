@@ -34,18 +34,24 @@ export default function Takvim() {
 
   const selectedEvent = events.find((e) => e.id === selectedEventId)
 
-  function updateAttendance(eventId, userId, status) {
-    mutate('event_attendance.update', { eventId, userId, status })
-    setAttendance((prev) => prev.map((a) => (a.eventId === eventId && a.userId === userId ? { ...a, status } : a)))
+  async function updateAttendance(eventId, userId, status) {
+    try {
+      await mutate('event_attendance.update', { eventId, userId, status })
+      setAttendance((prev) => prev.map((a) => (a.eventId === eventId && a.userId === userId ? { ...a, status } : a)))
+      return true
+    } catch (err) {
+      showToast(err.message ?? 'Katılım durumu güncellenemedi, tekrar dene.', 'error')
+      return false
+    }
   }
 
-  function handleSetMyStatus(status) {
-    updateAttendance(selectedEventId, user.id, status)
-    showToast('Katılım durumun güncellendi.', 'success')
+  async function handleSetMyStatus(status) {
+    const ok = await updateAttendance(selectedEventId, user.id, status)
+    if (ok) showToast('Katılım durumun güncellendi.', 'success')
   }
 
-  function handleSetAttendeeStatus(userId, status) {
-    updateAttendance(selectedEventId, userId, status)
+  async function handleSetAttendeeStatus(userId, status) {
+    await updateAttendance(selectedEventId, userId, status)
   }
 
   async function handleCreate(form) {
@@ -76,6 +82,8 @@ export default function Takvim() {
       ])
       setShowModal(false)
       showToast('Etkinlik oluşturuldu.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Etkinlik oluşturulamadı, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }

@@ -61,6 +61,8 @@ export default function Rehber() {
       setSelectedCategory(categoryKey)
       setShowUpload(false)
       showToast('Dosya yüklendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Dosya yüklenemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }

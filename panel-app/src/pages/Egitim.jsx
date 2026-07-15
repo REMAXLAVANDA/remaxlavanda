@@ -61,22 +61,30 @@ export default function Egitim() {
 
   async function toggleModule(moduleId) {
     const done = isModuleDone(moduleId, user.id, progress)
-    await mutate('education_progress.upsert', { moduleId, userId: user.id, done: !done })
-    setProgress((prev) =>
-      done
-        ? prev.filter((p) => !(p.moduleId === moduleId && p.userId === user.id))
-        : [...prev, { moduleId, userId: user.id, doneAt: new Date().toISOString() }],
-    )
+    try {
+      await mutate('education_progress.upsert', { moduleId, userId: user.id, done: !done })
+      setProgress((prev) =>
+        done
+          ? prev.filter((p) => !(p.moduleId === moduleId && p.userId === user.id))
+          : [...prev, { moduleId, userId: user.id, doneAt: new Date().toISOString() }],
+      )
+    } catch (err) {
+      showToast(err.message ?? 'Modül durumu güncellenemedi, tekrar dene.', 'error')
+    }
   }
 
   async function toggleChecklistItem(itemId) {
     const existing = checklistStatus.find((s) => s.itemId === itemId && s.userId === checklistUserId)
-    await mutate('onboarding_checklist_status.upsert', { itemId, userId: checklistUserId, done: !existing })
-    setChecklistStatus((prev) =>
-      existing
-        ? prev.filter((s) => !(s.itemId === itemId && s.userId === checklistUserId))
-        : [...prev, { itemId, userId: checklistUserId, doneAt: new Date().toISOString(), doneBy: user.id }],
-    )
+    try {
+      await mutate('onboarding_checklist_status.upsert', { itemId, userId: checklistUserId, done: !existing })
+      setChecklistStatus((prev) =>
+        existing
+          ? prev.filter((s) => !(s.itemId === itemId && s.userId === checklistUserId))
+          : [...prev, { itemId, userId: checklistUserId, doneAt: new Date().toISOString(), doneBy: user.id }],
+      )
+    } catch (err) {
+      showToast(err.message ?? 'Checklist güncellenemedi, tekrar dene.', 'error')
+    }
   }
 
   async function handleAwardBadge({ userId, badgeId }) {
@@ -86,6 +94,8 @@ export default function Egitim() {
       setUserBadges((prev) => [...prev, { userId, badgeId, earnedAt: new Date().toISOString() }])
       setShowAwardModal(false)
       showToast('Rozet verildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Rozet verilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }

@@ -1,8 +1,9 @@
 import { Search } from 'lucide-react'
 import DateRangeFilter from '../common/DateRangeFilter'
 
-// Tip/kategori seçimi artık üstteki 8 kutudan yapılıyor (OpportunityBoxGrid);
-// burada sadece arama ve tarih aralığı kalıyor.
+// Tip/kategori seçimi Satıcılar/Alıcılar akordeonlarındaki kategori
+// kutularından yapılıyor (OpportunitySection); burada sadece arama ve
+// tarih aralığı kalıyor — her iki akordeona da uygulanan global filtre.
 export default function OpportunityFilters({ filters, onChange }) {
   const set = (patch) => onChange({ ...filters, ...patch })
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Wrench, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { MOCK_CALLS } from '../data/mockCallLogs'
 import { canManageCalls, canViewCall, computeCallStats } from '../lib/callLogs'
 import { isWithinRange } from '../lib/dateRange'
@@ -15,6 +16,7 @@ const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '30g', customFr
 
 export default function Operasyon() {
   const { user, role } = useAuth()
+  const { showToast } = useToast()
   const [calls, setCalls] = useState(MOCK_CALLS)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
@@ -36,8 +38,12 @@ export default function Operasyon() {
   const inviteeOptions = Object.values(KNOWN_USERS).filter((u) => !u.role || u.role === 'danisman')
 
   async function updateCall(id, patch) {
-    await mutate('call_logs.update', { id, ...patch })
-    setCalls((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+    try {
+      await mutate('call_logs.update', { id, ...patch })
+      setCalls((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+    } catch (err) {
+      showToast(err.message ?? 'Çağrı güncellenemedi, tekrar dene.', 'error')
+    }
   }
 
   function handleAssign(id, assignedTo) {
@@ -76,6 +82,9 @@ export default function Operasyon() {
         ...prev,
       ])
       setShowModal(false)
+      showToast('Çağrı kaydedildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Çağrı kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }

@@ -23,7 +23,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onClaim, c
     <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead>
-          <tr className="border-b border-ink-100 text-xs font-medium text-ink-400">
+          <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
             <th className="px-4 py-2.5">Bölge</th>
             <th className="px-4 py-2.5">Tür</th>
             <th className="px-4 py-2.5">Fiyat</th>
@@ -38,7 +38,16 @@ export default function OpportunityTable({ opportunities, onRowClick, onClaim, c
             <tr
               key={opp.id}
               onClick={() => onRowClick(opp)}
-              className="cursor-pointer border-b border-ink-50 last:border-0 hover:bg-ink-50"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onRowClick(opp)
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`${opp.konum || 'Fırsat'} detayını aç`}
+              className="cursor-pointer border-b border-ink-50 outline-none last:border-0 hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400"
             >
               <td className="px-4 py-3 text-ink-700">{opp.konum || '—'}</td>
               <td className="px-4 py-3 text-ink-500">{categoryLabel(opp.category)}</td>

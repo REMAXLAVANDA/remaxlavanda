@@ -73,6 +73,8 @@ export default function Firsatlar() {
       )
       showToast('Fırsat danışmana bildirildi', 'success')
       setDetailOpp(null)
+    } catch (err) {
+      showToast(err.message ?? 'Fırsat üstlenilemedi, tekrar dene.', 'error')
     } finally {
       setClaimingId(null)
       setConfirmClaimId(null)
@@ -97,6 +99,9 @@ export default function Firsatlar() {
         ...prev,
       ])
       setShowModal(false)
+      showToast('Fırsat eklendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Fırsat kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }
