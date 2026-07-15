@@ -1,4 +1,5 @@
 import { ROLES } from './roles'
+export { relativeTime } from './format'
 
 // Supabase RLS'teki (opportunities_select) kuralın birebir aynısı — bkz.
 // supabase/migrations/..._init_schema.sql. Mock aşamada aynı mantığı
@@ -66,15 +67,4 @@ export function isWithinRange(dateIso, rangeKey, customFrom, customTo) {
   if (!range || range.days == null) return true
   const cutoff = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000)
   return date >= cutoff
-}
-
-export function relativeTime(dateIso) {
-  if (!dateIso) return null
-  const diffMs = Date.now() - new Date(dateIso).getTime()
-  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000))
-  if (diffDays <= 0) return 'bugün'
-  if (diffDays === 1) return 'dün'
-  if (diffDays < 30) return `${diffDays} gün önce`
-  const months = Math.floor(diffDays / 30)
-  return `${months} ay önce`
 }
