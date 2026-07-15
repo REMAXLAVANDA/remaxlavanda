@@ -63,7 +63,9 @@ export const MODULES = [
     label: 'Takip',
     description: 'Danışman 360° sağlık skoru',
     icon: HeartPulse,
-    roles: ALL_ROLES, // TODO: rol bazlı görünürlük netleşince daralt (bkz. yanıt notları)
+    // Herkes modüle girebilir; sayfa içeriği role göre uyarlanıyor —
+    // danışman sadece kendi skorunu görür, yönetim tüm ekibi görür.
+    roles: ALL_ROLES,
   },
   {
     key: 'lig',

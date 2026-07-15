@@ -10,6 +10,7 @@ const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
 // ettiği kayıtların, geçerli kullanıcı danışmansa görünmemesi beklenir.
 export const OTHER_USERS = {
   'ext-danisman-2': { id: 'ext-danisman-2', name: 'Zeynep Kaya' },
+  'ext-danisman-3': { id: 'ext-danisman-3', name: 'Emre Şahin' },
 }
 
 export function resolveUserName(id, knownUsers) {
