@@ -12,3 +12,15 @@ export const OPPORTUNITY_CATEGORIES = [
 export function categoryLabel(key) {
   return OPPORTUNITY_CATEGORIES.find((c) => c.key === key)?.label ?? key
 }
+
+// Rehber modülü klasörleri (categories, module='docs').
+export const DOC_CATEGORIES = [
+  { key: 'sozlesme', label: 'Sözleşmeler' },
+  { key: 'iban', label: 'IBAN Bilgileri' },
+  { key: 'logo', label: 'Logo & Marka' },
+  { key: 'hazir-metin', label: 'Hazır Metinler' },
+]
+
+export function docCategoryLabel(key) {
+  return DOC_CATEGORIES.find((c) => c.key === key)?.label ?? key
+}
