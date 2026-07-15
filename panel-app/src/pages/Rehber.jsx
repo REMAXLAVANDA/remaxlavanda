@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BookOpen, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../data/mockDocs'
 import { DOC_CATEGORIES } from '../lib/categories'
 import { canManageDocs, currentVersion, nextVersionNo, versionsForDoc } from '../lib/docs'
@@ -13,6 +14,7 @@ import UploadDocModal from '../components/rehber/UploadDocModal'
 
 export default function Rehber() {
   const { user, role } = useAuth()
+  const { showToast } = useToast()
   const [docs, setDocs] = useState(MOCK_DOCS)
   const [versions, setVersions] = useState(MOCK_DOC_VERSIONS)
   const [selectedCategory, setSelectedCategory] = useState(DOC_CATEGORIES[0].key)
@@ -58,6 +60,7 @@ export default function Rehber() {
       ])
       setSelectedCategory(categoryKey)
       setShowUpload(false)
+      showToast('Dosya yüklendi.', 'success')
     } finally {
       setSubmitting(false)
     }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { CalendarDays, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { MOCK_EVENTS, MOCK_ATTENDANCE } from '../data/mockCalendarEvents'
 import { canViewEvent, isPastEvent } from '../lib/calendar'
 import { KNOWN_USERS, userName } from '../lib/knownUsers'
@@ -17,6 +18,7 @@ const CAN_MANAGE_ROLES = ['broker', 'mudur', 'ofis']
 
 export default function Takvim() {
   const { user, role } = useAuth()
+  const { showToast } = useToast()
   const [events, setEvents] = useState(MOCK_EVENTS)
   const [attendance, setAttendance] = useState(MOCK_ATTENDANCE)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
@@ -46,6 +48,7 @@ export default function Takvim() {
     setAttendance((prev) =>
       prev.map((a) => (a.eventId === eventId && a.userId === user.id ? { ...a, status: 'onayladi' } : a)),
     )
+    showToast('Katılımın onaylandı.', 'success')
   }
 
   async function handleMarkAttendance(eventId, userId, status) {

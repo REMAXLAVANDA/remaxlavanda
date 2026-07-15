@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Plus, Target } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { MOCK_OPPORTUNITIES } from '../data/mockOpportunities'
 import { canViewOpportunity, isWithinRange } from '../lib/opportunities'
 import { KNOWN_USERS } from '../lib/knownUsers'
 import OpportunityCard from '../components/opportunities/OpportunityCard'
 import OpportunityFilters from '../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../components/opportunities/NewOpportunityModal'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 import { mutate } from '../lib/api'
 
 const INITIAL_FILTERS = {
@@ -26,9 +28,11 @@ const CAN_CREATE_ROLES = ['broker', 'mudur', 'ofis']
 
 export default function Firsatlar() {
   const { user, role } = useAuth()
+  const { showToast } = useToast()
   const [opportunities, setOpportunities] = useState(MOCK_OPPORTUNITIES)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [claimingId, setClaimingId] = useState(null)
+  const [confirmClaimId, setConfirmClaimId] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -46,7 +50,8 @@ export default function Firsatlar() {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [opportunities, user, filters])
 
-  async function handleClaim(id) {
+  async function confirmClaim() {
+    const id = confirmClaimId
     setClaimingId(id)
     try {
       await mutate('opportunities.claim', { id, userId: user.id })
@@ -55,8 +60,10 @@ export default function Firsatlar() {
           o.id === id ? { ...o, claimerId: user.id, claimedAt: new Date().toISOString(), status: 'claimed' } : o,
         ),
       )
+      showToast('Fırsatı üstlendin.', 'success')
     } finally {
       setClaimingId(null)
+      setConfirmClaimId(null)
     }
   }
 
@@ -124,7 +131,7 @@ export default function Firsatlar() {
               claimerName={KNOWN_USERS[opp.claimerId]?.name}
               isMine={opp.claimerId === user.id}
               claiming={claimingId === opp.id}
-              onClaim={() => handleClaim(opp.id)}
+              onClaim={() => setConfirmClaimId(opp.id)}
             />
           ))}
         </div>
@@ -135,6 +142,17 @@ export default function Firsatlar() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
+        />
+      )}
+
+      {confirmClaimId && (
+        <ConfirmDialog
+          title="Bu fırsatı üstleniyor musun?"
+          message="İlgileniyorum dediğinde bu fırsat sana atanır ve havuzdan kalkar."
+          confirmLabel="Evet, ilgileniyorum"
+          onConfirm={confirmClaim}
+          onCancel={() => setConfirmClaimId(null)}
+          confirming={claimingId === confirmClaimId}
         />
       )}
     </div>

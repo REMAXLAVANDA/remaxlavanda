@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Award, GraduationCap } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import {
   MOCK_MODULES,
   MOCK_PROGRESS,
@@ -23,6 +24,7 @@ const CAN_MANAGE_ROLES = ['broker', 'mudur']
 
 export default function Egitim() {
   const { user, role } = useAuth()
+  const { showToast } = useToast()
   const [progress, setProgress] = useState(MOCK_PROGRESS)
   const [userBadges, setUserBadges] = useState(MOCK_USER_BADGES)
   const [checklistStatus, setChecklistStatus] = useState(MOCK_CHECKLIST_STATUS)
@@ -83,6 +85,7 @@ export default function Egitim() {
       await mutate('user_badges.insert', { userId, badgeId })
       setUserBadges((prev) => [...prev, { userId, badgeId, earnedAt: new Date().toISOString() }])
       setShowAwardModal(false)
+      showToast('Rozet verildi.', 'success')
     } finally {
       setSubmitting(false)
     }
