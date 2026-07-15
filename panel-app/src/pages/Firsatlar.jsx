@@ -1,16 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Plus, Target } from 'lucide-react'
-import { useAuth, MOCK_USERS } from '../context/AuthContext'
-import { MOCK_OPPORTUNITIES, OTHER_USERS } from '../data/mockOpportunities'
+import { useAuth } from '../context/AuthContext'
+import { MOCK_OPPORTUNITIES } from '../data/mockOpportunities'
 import { canViewOpportunity, isWithinRange } from '../lib/opportunities'
+import { KNOWN_USERS } from '../lib/knownUsers'
 import OpportunityCard from '../components/opportunities/OpportunityCard'
 import OpportunityFilters from '../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../components/opportunities/NewOpportunityModal'
 import { mutate } from '../lib/api'
-
-const KNOWN_USERS = Object.fromEntries(
-  [...Object.values(MOCK_USERS), ...Object.values(OTHER_USERS)].map((u) => [u.id, u]),
-)
 
 const INITIAL_FILTERS = {
   search: '',
