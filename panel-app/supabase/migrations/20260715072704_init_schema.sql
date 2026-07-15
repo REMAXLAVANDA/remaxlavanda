@@ -123,6 +123,7 @@ create table public.opportunities (
   lead_telefon text,
   ozet text,
   konum text,
+  fiyat numeric,
   status opportunity_status not null default 'acik',
   owner_id uuid references public.users (id),
   claimer_id uuid references public.users (id),
@@ -416,6 +417,38 @@ end;
 $$;
 
 grant execute on function public.claim_opportunity(uuid) to authenticated;
+
+-- Kolon seviyesinde gizlilik: opportunities_select satır görünürlüğü sağlasa
+-- bile lead_ad/lead_telefon herkese açık DEĞİL — sadece broker/owner veya
+-- o kaydın owner_id/claimer_id'si eşleşen kullanıcı görebilir. RLS satır
+-- seviyesinde çalıştığı için bu kısıtı SECURITY DEFINER fonksiyonla
+-- uyguluyoruz; sayfa bu fonksiyonu çağırıp izinli değilse null alır.
+-- NOT: lead_telefon şu an düz metin olarak saklanıyor — gerçek şifreleme
+-- (pgcrypto/phone_enc) henüz eklenmedi, bu ayrı bir sertleştirme adımı.
+create or replace function public.get_opportunity_contact(p_opportunity_id uuid)
+returns table (lead_ad text, lead_telefon text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.opportunities;
+begin
+  select * into v_row from public.opportunities where id = p_opportunity_id;
+
+  if v_row.id is null then
+    return;
+  end if;
+
+  if public.is_manager() or v_row.owner_id = auth.uid() or v_row.claimer_id = auth.uid() then
+    return query select v_row.lead_ad, v_row.lead_telefon;
+  end if;
+
+  return;
+end;
+$$;
+
+grant execute on function public.get_opportunity_contact(uuid) to authenticated;
 
 -- CALENDAR_EVENTS: broker/owner/ofis her etkinliği görür; danışman sadece
 -- davetli olduğu etkinlikleri görür.

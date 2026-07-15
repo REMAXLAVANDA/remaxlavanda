@@ -64,11 +64,11 @@ begin
   select id into v_cat_docs_iban from public.categories where module = 'docs' and key = 'iban';
 
   -- ---- opportunities ----------------------------------------------------
-  insert into public.opportunities (type, category_id, lead_ad, lead_telefon, ozet, konum, status, owner_id, claimer_id, claimed_at)
+  insert into public.opportunities (type, category_id, lead_ad, lead_telefon, ozet, konum, fiyat, status, owner_id, claimer_id, claimed_at)
   values
-    ('satici', v_cat_konut, 'Mehmet Demir', '05551112233', 'Süleymanpaşa''da 3+1 daire satılık', 'Tekirdağ / Süleymanpaşa', 'acik', v_ofis, null, null),
-    ('alici', v_cat_ticari, 'Ayşe Şahin', '05552223344', 'Merkez''de dükkan arıyor', 'Tekirdağ / Merkez', 'claimed', v_ofis, v_danisman, now() - interval '2 days'),
-    ('satici', v_cat_arsa, 'Hasan Öz', '05553334455', 'Çorlu''da 500 m² arsa', 'Tekirdağ / Çorlu', 'acik', v_owner, null, null);
+    ('satici', v_cat_konut, 'Mehmet Demir', '05551112233', 'Süleymanpaşa''da 3+1 daire satılık', 'Tekirdağ / Süleymanpaşa', 4750000, 'acik', v_ofis, null, null),
+    ('alici', v_cat_ticari, 'Ayşe Şahin', '05552223344', 'Merkez''de dükkan arıyor', 'Tekirdağ / Merkez', 25000, 'claimed', v_ofis, v_danisman, now() - interval '2 days'),
+    ('satici', v_cat_arsa, 'Hasan Öz', '05553334455', 'Çorlu''da 500 m² arsa', 'Tekirdağ / Çorlu', 1250000, 'acik', v_owner, null, null);
 
   -- ---- calendar_events + attendance --------------------------------------
   insert into public.calendar_events (type, title, start_at, end_at, creator_id) values

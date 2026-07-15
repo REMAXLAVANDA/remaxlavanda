@@ -21,6 +21,26 @@ export function canClaim(opp) {
   return opp.status === 'acik' && !opp.claimerId
 }
 
+// Kolon seviyesinde gizlilik: satır görünür olsa bile isim/telefon herkese
+// açık DEĞİL. Supabase tarafında bu, get_opportunity_contact() SECURITY
+// DEFINER fonksiyonuyla uygulanacak (bkz. migration) — burada aynı kuralı
+// mock katmanında birebir uyguluyoruz. broker/owner her zaman görür;
+// diğerleri sadece kendi sahiplendiği (owner_id) veya üstlendiği
+// (claimer_id) kayıtta görür. Not: gerçek şifreleme (phone_enc/pgcrypto)
+// henüz bağlanmadı — bu şu an için sadece erişim kontrolü katmanı.
+export function canRevealContact(opp, user) {
+  if (!user) return false
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
+  return opp.ownerId === user.id || opp.claimerId === user.id
+}
+
+export function formatPrice(amount) {
+  if (amount == null) return '—'
+  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(
+    amount,
+  )
+}
+
 // "İlgileniyorum" — sadece danışman/ofis/owner/broker claim edebilir
 // (RLS'te ayrı bir rol kısıtı yok, tek kısıt sahipsiz+açık olması).
 export const OPPORTUNITY_TYPE_LABELS = {
@@ -60,4 +80,3 @@ export function computeBoxCounts(visibleOpportunities) {
   }
   return boxes
 }
-
