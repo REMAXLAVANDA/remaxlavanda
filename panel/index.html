@@ -451,7 +451,7 @@ let CFG=Object.assign({},_CFG_DEFAULT,JSON.parse(localStorage.getItem('rmx_cfg')
 function svU(){localStorage.setItem('rmx_u',JSON.stringify(U));}
 function svCFG(){localStorage.setItem('rmx_cfg',JSON.stringify(CFG));}
 
-let CU=null,D={leads:[],rec:[],dans:[],havuz:[],notlar:[],santral:[],arayislar:[],disPortfolyo:[],eslesmeler:[],log:[],etkinlikler:[],bilgiMerkezi:[],timeline:[],danToplanti:[],danEgitim:[],danMemnuniyet:[],danRekruting:[],obTasks:[],obProgress:[],trPrograms:[],trModules:[],trAttendance:[],gdBadges:[]};
+let CU=null,D={leads:[],rec:[],dans:[],havuz:[],notlar:[],santral:[],arayislar:[],disPortfolyo:[],eslesmeler:[],log:[],etkinlikler:[],bilgiMerkezi:[],timeline:[],danToplanti:[],danEgitim:[],danMemnuniyet:[],danRekruting:[],obTasks:[],obProgress:[],trPrograms:[],trModules:[],trAttendance:[],gdBadges:[],checklistMaddeler:[],danAyrilisProgress:[]};
 let eRec=null,eTbl=null,calDt=new Date();
 const tok=new URLSearchParams(window.location.search).get('token');
 
@@ -497,7 +497,7 @@ async function load(_force){
   if(!_force&&window._lastLoad&&(now-window._lastLoad)<60000&&D.dans&&D.dans.length){return;}
   window._lastLoad=now;
   const safe=async(tbl,q)=>{try{const r=await api(tbl,'GET',null,q);return Array.isArray(r)?r:[];}catch(e){console.warn(tbl,e.message);return[];}};
-  const[l,r,dn,h,n,ar,dp,es,lg,et,bm,tl,tp,eg,mm,rk,ob,op,tr,tm,ta,gb]=await Promise.all([
+  const[l,r,dn,h,n,ar,dp,es,lg,et,bm,tl,tp,eg,mm,rk,ob,op,tr,tm,ta,gb,ckl,dap]=await Promise.all([
     safe('gd_leads','select=*&order=tarih.desc,created_at.desc'+(window._showArsiv?'':'&arsiv=eq.false')+'&is_deleted=eq.false'),
     safe('recruiting_candidates','select=*&order=created_at.desc&arsiv=eq.false&is_deleted=eq.false'),
     safe('danismanlar','select=*&order=created_at.asc'),
@@ -521,6 +521,9 @@ async function load(_force){
     safe('training_modules','select=*&order=program_id.asc,modul_no.asc'),
     safe('training_attendance','select=*&order=created_at.desc'),
     safe('gd_badges','select=*&order=created_at.desc'),
+    // 17. Aşama — Checklist madde yönetimi (başlangıç + ayrılış) ve ayrılış ilerleme takibi
+    safe('checklist_maddeler','select=*&order=tip.asc,sira.asc'),
+    safe('dan_ayrilis_progress','select=*&order=created_at.desc'),
   ]);
   D.leads=(l||[]).sort((a,b)=>{const da=new Date(a.tarih||a.created_at||'2000-01-01');const db=new Date(b.tarih||b.created_at||'2000-01-01');return db-da;});
   D.rec=(r||[]).sort((a,b)=>new Date(b.tarih||b.created_at||0)-new Date(a.tarih||a.created_at||0));
@@ -532,7 +535,23 @@ async function load(_force){
   D.obTasks=ob||[];D.obProgress=op||[];
   D.trPrograms=tr||[];D.trModules=tm||[];D.trAttendance=ta||[];
   D.gdBadges=gb||[];
+  D.checklistMaddeler=ckl||[];D.danAyrilisProgress=dap||[];
   D.santral=JSON.parse(localStorage.getItem('rmx_sant')||'[]');
+}
+
+// 17. Aşama — Checklist madde tanımlarını Supabase'ten döndürür (admin panelden düzenlenebilir).
+// Henüz hiç madde eklenmemişse (tablo boşsa) başlangıç için eski sabit listeye düşer, böylece
+// SQL çalıştırılmadan önce de sistem çalışmaya devam eder.
+function obTasks(){
+  const dbTasks=(D.checklistMaddeler||[]).filter(t=>t.tip==='baslangic'&&t.aktif!==false)
+    .sort((a,b)=>(a.sira||0)-(b.sira||0))
+    .map(t=>({key:t.key,label:t.label,kategori:t.kategori||'Genel',admin_onay:!!t.admin_onay}));
+  return dbTasks.length?dbTasks:OB_TASKS_DEFAULT;
+}
+function ayrilisTasks(){
+  return (D.checklistMaddeler||[]).filter(t=>t.tip==='ayrilis'&&t.aktif!==false)
+    .sort((a,b)=>(a.sira||0)-(b.sira||0))
+    .map(t=>({key:t.key,label:t.label,kategori:t.kategori||'Genel',admin_onay:!!t.admin_onay}));
 }
 
 function badge(d){
@@ -2862,7 +2881,7 @@ function bildirimUret(){
     // Eksik onboarding
     if(typeof OB_TASKS_DEFAULT!=='undefined'&&D.obProgress){
       const prog=D.obProgress.filter(p=>p.danisman_ad===myAd&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).length;
-      if(prog<OB_TASKS_DEFAULT.length)bildrs.push({tip:'🚀',baslik:'Eksik Onboarding',aciklama:(OB_TASKS_DEFAULT.length-prog)+' adım tamamlanmamış',hedef:'hub_ob',renk:'#5b21b6'});
+      if(prog<obTasks().length)bildrs.push({tip:'🚀',baslik:'Eksik Onboarding',aciklama:(obTasks().length-prog)+' adım tamamlanmamış',hedef:'hub_ob',renk:'#5b21b6'});
     }
     // Kendi toplantısı
     const benim=(D.danToplanti||[]).filter(t=>t.danisman_ad===myAd&&t.toplanti_tarihi>=toStr&&t.toplanti_tarihi<=d7s);
@@ -3066,23 +3085,30 @@ function rYonetim(c){
 
   h+='<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px">DANIŞMAN YÖNETİMİ</div>';
   h+='<div class="ss2" style="margin-bottom:0">';
-  h+='<div class="th" style="margin-bottom:12px"><div class="tt">Danışmanlar ('+D.dans.length+')</div><div class="ta">'+(!isAdm?'<button class="btn btn-g btn-sm" onclick="rC(\'ob_onboarding\')" style="margin-right:6px">🚀 Başlangıç Süreci</button>':'')+'<button class="btn btn-p btn-sm" onclick="sDanF()">+ Yeni Danışman</button></div></div>';
+  h+='<div class="th" style="margin-bottom:12px"><div class="tt">Danışmanlar ('+D.dans.filter(d=>(d.yasam_durumu||'aktif')!=='arsiv').length+')</div><div class="ta">'+(!isAdm?'<button class="btn btn-g btn-sm" onclick="rC(\'ob_onboarding\')" style="margin-right:6px">🚀 Başlangıç Süreci</button>':'<button class="btn btn-g btn-sm" onclick="checklistModalAc()" style="margin-right:6px">🗂️ Checklist Maddeleri</button>')+'<button class="btn btn-p btn-sm" onclick="sDanF()">+ Yeni Danışman</button></div></div>';
   h+='<div id="danfw" class="hidden fw" style="margin-bottom:12px"><h3>Yeni Danışman</h3>';
   h+='<div class="fg"><div class="fgr"><label>Ad Soyad *</label><input id="f_dan_ad" placeholder="Ad Soyad" oninput="this.value=cap(this.value)"/></div><div class="fgr"><label>PIN (4 hane) *</label><input id="f_dan_pin" maxlength="4" placeholder="Örn: 1234"/></div><div class="fgr"><label>Kullanıcı Tipi</label><select id="f_dan_tip"><option value="gayrimenkul">Gayrimenkul Danışmanı</option><option value="ofis_personeli">Ofis Personeli</option><option value="broker">Broker</option></select></div></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="svDan()">Token Oluştur & Kaydet</button><button class="btn btn-g" onclick="hDanF()">İptal</button></div>';
   h+='<div id="qdm"></div></div>';
+  h+='<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="dan_arsiv_goster" onchange="rYonetim(document.getElementById(\'ct\'))" '+(window._showDanArsiv?'checked':'')+' style="cursor:pointer"/> Arşivlenmiş danışmanları da göster</label>';
   h+='<div class="tw"><table><thead><tr><th>Ad Soyad</th><th>Tip</th><th>PIN</th><th>Başlangıç</th><th>Durum</th><th>Panel Linki</th><th></th></tr></thead><tbody>';
-  h+=D.dans.map(d=>{
+  h+=D.dans.filter(d=>window._showDanArsiv||(d.yasam_durumu||'aktif')!=='arsiv').map(d=>{
     const link='https://www.remaxlavanda.com.tr/panel?token='+d.token;
-    const aktif=d.aktif??true;
+    const yd=d.yasam_durumu||'aktif';
+    const durumR={aktif:{l:'Aktif',bg:'#dcfce7',c:'#15803d'},ayrilis_surecinde:{l:'Ayrılış Sürecinde',bg:'#fff3cd',c:'#92400e'},arsiv:{l:'Arşiv',bg:'#f1f5f9',c:'#64748b'}};
+    const dr=durumR[yd]||durumR.aktif;
+    let silBtn;
+    if(yd==='aktif')silBtn='<button class="btn btn-sm btn-r" onclick="danAyrilisBaslat(\''+d.id+'\',\''+escJs(d.ad)+'\')" title="Ayrılış Sürecini Başlat">🚪 Ayrıl</button>';
+    else if(yd==='ayrilis_surecinde')silBtn='<button class="btn btn-sm btn-g" onclick="ayrilisDetayAc(\''+escJs(d.ad)+'\')" title="Ayrılış Checklist">📋 Süreç</button>';
+    else silBtn='<span style="color:#cbd5e1;font-size:11px">Arşivde</span>';
     return '<tr>'
       +'<td><strong>'+esc(d.ad)+'</strong></td>'
       +'<td style="font-size:11px"><select onchange="danTipGuncelle(\''+d.id+'\',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px"><option value="gayrimenkul"'+((d.kullanici_tipi||'gayrimenkul')==='gayrimenkul'?' selected':'')+'>GD</option><option value="ofis_personeli"'+(d.kullanici_tipi==='ofis_personeli'?' selected':'')+'>Ofis</option><option value="broker"'+(d.kullanici_tipi==='broker'?' selected':'')+'>Broker</option></select></td>'
       +'<td>'+(CU.role==='admin'?'<code>'+(d.pin||'—')+'</code>':'<span style="color:#ccc">***</span>')+'</td>'
       +'<td style="font-size:11px;color:#94a3b8">'+(d.giris_tarihi||'—')+'</td>'
-      +'<td><span style="font-size:10px;font-weight:700;background:'+(aktif?'#dcfce7':'#fee2e2')+';color:'+(aktif?'#15803d':'#DC1C2E')+';padding:2px 7px;border-radius:5px">'+(aktif?'Aktif':'Pasif')+'</span></td>'
+      +'<td><span style="font-size:10px;font-weight:700;background:'+dr.bg+';color:'+dr.c+';padding:2px 7px;border-radius:5px">'+dr.l+'</span></td>'
       +'<td><button class="btn btn-sm btn-g" onclick="cpL(\''+link+'\')" title="'+link+'">📋 Kopyala</button></td>'
-      +'<td><button class="btn btn-sm btn-r" onclick="delDan(\''+d.id+'\',\''+escJs(d.ad)+'\')" title="Sil">🗑</button></td>'
+      +'<td>'+silBtn+'</td>'
       +'</tr>';
   }).join('');
   h+='</tbody></table></div></div>';
@@ -3153,7 +3179,7 @@ function rDans(c){
   h+='<div id="qdm"></div></div>';
   const th=['Ad','PIN','Link','Atanan','Kazan.','Oran',''];
   h+='<div class="tw"><table><thead><tr>'+th.map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody>';
-  h+=D.dans.map(d=>{
+  h+=D.dans.filter(d=>(d.yasam_durumu||'aktif')!=='arsiv').map(d=>{
     const ml=D.leads.filter(l=>l.danisman===d.ad);
     const w=ml.filter(l=>l.durum==='Kazanıldı').length;
     const link='https://www.remaxlavanda.com.tr/panel?token='+d.token;
@@ -3164,7 +3190,7 @@ function rDans(c){
       +'<td>'+ml.length+'</td>'
       +'<td>'+w+'</td>'
       +'<td>'+(ml.length>0?Math.round(w/ml.length*100):0)+'%</td>'
-      +'<td><button class="btn btn-sm btn-r" onclick="delDan(\''+d.id+'\',\''+escJs(d.ad)+'\')">🗑</button></td>'
+      +'<td>'+((d.yasam_durumu||'aktif')==='aktif'?'<button class="btn btn-sm btn-r" onclick="danAyrilisBaslat(\''+d.id+'\',\''+escJs(d.ad)+'\')" title="Ayrılış Sürecini Başlat">🚪</button>':(d.yasam_durumu==='ayrilis_surecinde'?'<button class="btn btn-sm btn-g" onclick="ayrilisDetayAc(\''+escJs(d.ad)+'\')" title="Ayrılış Checklist">📋</button>':'<span style="color:#cbd5e1;font-size:11px">Arşiv</span>'))+'</td>'
       +'</tr>';
   }).join('');
   h+='</tbody></table></div>';
@@ -3181,8 +3207,16 @@ async function svDan(){
   try{
     const tip=document.getElementById('f_dan_tip')?.value||'gayrimenkul';
     await api('danismanlar','POST',{ad:ad,token:gTok(),pin:pin,kullanici_tipi:tip});
-    document.getElementById('qdm').innerHTML='<div class="ok-m">✅ '+ad+' eklendi!</div>';
     await load();
+    // 17. Aşama — yeni danışman için başlangıç (onboarding) checklist'i otomatik oluşturulur.
+    try{
+      for(const task of obTasks()){
+        const r=await api('gd_onboarding_progress','POST',{danisman_ad:ad,task_key:task.key,durum:'bos'});
+        const row=Array.isArray(r)?r[0]:r;
+        if(row)D.obProgress.push(row);
+      }
+    }catch(obErr){/* checklist oluşturulamasa da danışman kaydı geçerli, engelleme */}
+    document.getElementById('qdm').innerHTML='<div class="ok-m">✅ '+ad+' eklendi! Başlangıç checklist\'i hazırlandı.</div>';
     setTimeout(()=>{hDanF();rDans(document.getElementById('ct'));},1000);
   }catch(e){document.getElementById('qdm').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
 }
@@ -3194,10 +3228,212 @@ async function danTipGuncelle(id,tip){
   }catch(e){alert('Hata: '+e.message);}
 }
 
-async function delDan(id,ad){
-  if(!confirm(ad+' danışmanı silinsin mi?'))return;
-  try{await api('danismanlar','DELETE',null,'id=eq.'+id);await load();rDans(document.getElementById('ct'));}
-  catch(e){alert('Hata: '+e.message);}
+// 17. Aşama — Danışman artık hiçbir zaman veritabanından silinmiyor (geçmiş lead/portföy/eğitim
+// kayıtları korunur). "Sil" yerine ayrılış süreci başlatılır: erişimi kapatılır (aktif=false),
+// yasam_durumu='ayrilis_surecinde' olur ve ayrılış checklist'i otomatik oluşturulur. Checklist
+// tamamlanınca (veya admin manuel olarak) 'arsiv' durumuna taşınır.
+async function danAyrilisBaslat(id,ad){
+  if(!confirm(ad+' için ayrılış sürecini başlatmak istiyor musunuz?\n\nErişimi hemen kapatılır ve ayrılış checklist\'i oluşturulur. Kayıtları silinmez.'))return;
+  try{
+    await api('danismanlar','PATCH',{yasam_durumu:'ayrilis_surecinde',aktif:false},'id=eq.'+id);
+    const d=D.dans.find(x=>x.id===id);
+    if(d){d.yasam_durumu='ayrilis_surecinde';d.aktif=false;}
+    // Ayrılış checklist'ini oluştur (henüz kaydı olmayan maddeler için)
+    const mevcut=D.danAyrilisProgress.filter(p=>p.danisman_ad===ad);
+    const mevcutKeys=new Set(mevcut.map(p=>p.task_key));
+    const eksikler=ayrilisTasks().filter(t=>!mevcutKeys.has(t.key));
+    for(const task of eksikler){
+      const r=await api('dan_ayrilis_progress','POST',{danisman_ad:ad,task_key:task.key,durum:'bos'});
+      const row=Array.isArray(r)?r[0]:r;
+      if(row)D.danAyrilisProgress.push(row);
+    }
+    toast('🚪 '+ad+' ayrılış sürecine alındı');
+    rYonetim(document.getElementById('ct'));
+  }catch(e){alert('Hata: '+e.message);}
+}
+
+// Bir danışmanın ayrılış checklist'inde tüm maddeler tamamlandı mı?
+function ayrilisTamamMi(danAd){
+  const tasks=ayrilisTasks();
+  if(!tasks.length)return false;
+  const prog=D.danAyrilisProgress.filter(p=>p.danisman_ad===danAd);
+  const tamam=new Set(prog.filter(p=>p.durum==='tamamlandi').map(p=>p.task_key));
+  return tasks.every(t=>tamam.has(t.key));
+}
+
+async function danArsivle(danAd){
+  const d=D.dans.find(x=>x.ad===danAd);
+  if(!d)return;
+  if(!confirm(danAd+' arşive taşınsın mı? Bu işlemden sonra danışman listede pasif görünecek.'))return;
+  try{
+    await api('danismanlar','PATCH',{yasam_durumu:'arsiv'},'id=eq.'+d.id);
+    d.yasam_durumu='arsiv';
+    toast('📦 '+danAd+' arşive taşındı');
+    document.getElementById('ayrilis-detay-modal')?.classList.remove('show');
+    rYonetim(document.getElementById('ct'));
+  }catch(e){alert('Hata: '+e.message);}
+}
+
+// ── Ayrılış checklist görüntüleme/işaretleme ──
+function ayrilisChecklist(danAd){
+  const tasks=ayrilisTasks();
+  if(!tasks.length)return'<div style="color:#94a3b8;font-size:12px;padding:12px 0">Henüz ayrılış maddesi tanımlanmamış. Yönetim &gt; Checklist Maddeleri\'nden ekleyebilirsiniz.</div>';
+  const progMap={};D.danAyrilisProgress.filter(p=>p.danisman_ad===danAd).forEach(p=>progMap[p.task_key]=p);
+  const kategoriler=[...new Set(tasks.map(t=>t.kategori))];
+  let h='';
+  kategoriler.forEach(kat=>{
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px">';
+    h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)">'+kat+'</div>';
+    tasks.filter(t=>t.kategori===kat).forEach(task=>{
+      const p=progMap[task.key];
+      const tamam=p?.durum==='tamamlandi';
+      h+='<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f8fafc">';
+      h+='<input type="checkbox" style="width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer" '+(tamam?'checked':'')+' onchange="ayrilisTaskToggle(\''+escJs(danAd)+'\',\''+task.key+'\',this)"/>';
+      h+='<div style="flex:1">';
+      h+='<div style="font-size:12px;font-weight:'+(tamam?'600':'500')+';color:'+(tamam?'#94a3b8':'#0f172a')+';text-decoration:'+(tamam?'line-through':'none')+'">'+esc(task.label)+'</div>';
+      if(p?.tamamlanma_tarihi)h+='<div style="font-size:10px;color:#94a3b8;margin-top:2px">📅 '+p.tamamlanma_tarihi+(p.sorumlu?' · 👤 '+esc(p.sorumlu):'')+'</div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  return h;
+}
+
+async function ayrilisTaskToggle(danAd,taskKey,cb){
+  const mevcut=D.danAyrilisProgress.find(p=>p.danisman_ad===danAd&&p.task_key===taskKey);
+  const payload={danisman_ad:danAd,task_key:taskKey,durum:cb.checked?'tamamlandi':'bos',tamamlanma_tarihi:cb.checked?td():null,sorumlu:CU.name||'Kullanıcı'};
+  try{
+    if(mevcut){
+      await api('dan_ayrilis_progress','PATCH',payload,'id=eq.'+mevcut.id);
+      Object.assign(mevcut,payload);
+    }else{
+      const r=await api('dan_ayrilis_progress','POST',payload);
+      const row=Array.isArray(r)?r[0]:r;
+      if(row)D.danAyrilisProgress.push(row);
+    }
+    ayrilisDetayAc(danAd);
+  }catch(e){
+    cb.checked=!cb.checked;
+    toast('Hata: '+e.message,false);
+  }
+}
+
+// ── Yönetim > Checklist Maddeleri modalı (Başlangıç + Ayrılış madde yönetimi) ──
+window._cmTip='baslangic';
+function checklistModalAc(){
+  let modal=document.getElementById('cm-modal');
+  if(!modal){
+    modal=document.createElement('div');modal.id='cm-modal';modal.className='mo';
+    modal.innerHTML='<div class="md" style="max-width:640px;max-height:88vh;overflow-y:auto"><div id="cm-icerik"></div></div>';
+    document.body.appendChild(modal);
+  }
+  window._cmTip='baslangic';
+  checklistModalRender();
+  modal.classList.add('show');
+}
+function checklistModalTab(tip){window._cmTip=tip;checklistModalRender();}
+function checklistModalRender(){
+  const tip=window._cmTip||'baslangic';
+  const items=(D.checklistMaddeler||[]).filter(t=>t.tip===tip&&t.aktif!==false).sort((a,b)=>(a.sira||0)-(b.sira||0));
+  let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+  h+='<div style="font-size:16px;font-weight:800;color:#0f172a">🗂️ Checklist Maddeleri</div>';
+  h+='<button onclick="document.getElementById(\'cm-modal\').classList.remove(\'show\')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">×</button></div>';
+  h+='<div style="display:flex;gap:6px;margin-bottom:14px">';
+  h+='<button class="btn btn-sm '+(tip==='baslangic'?'btn-p':'btn-g')+'" onclick="checklistModalTab(\'baslangic\')">🚀 Başlangıç ('+(D.checklistMaddeler||[]).filter(t=>t.tip==='baslangic'&&t.aktif!==false).length+')</button>';
+  h+='<button class="btn btn-sm '+(tip==='ayrilis'?'btn-p':'btn-g')+'" onclick="checklistModalTab(\'ayrilis\')">🚪 Ayrılış ('+(D.checklistMaddeler||[]).filter(t=>t.tip==='ayrilis'&&t.aktif!==false).length+')</button>';
+  h+='</div>';
+  if(!items.length){
+    h+='<div style="text-align:center;padding:20px;color:#94a3b8;font-size:12px;background:#f8fafc;border-radius:10px;margin-bottom:14px">Henüz madde yok.'+(tip==='baslangic'?' (17_asama_checklist_ayrilis.sql çalıştırılmadıysa eski 26 maddelik sabit liste kullanılmaya devam eder.)':'')+'</div>';
+  }else{
+    h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:14px">';
+    items.forEach(it=>{
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f5f5f5">';
+      h+='<div style="flex:1;min-width:0">';
+      h+='<div style="font-size:12px;font-weight:600;color:#0f172a">'+esc(it.label)+'</div>';
+      h+='<div style="font-size:10px;color:#94a3b8;margin-top:1px">'+esc(it.kategori||'Genel')+(it.admin_onay?' · Yönetim onayı gerekir':'')+'</div>';
+      h+='</div>';
+      h+='<button class="btn btn-xs btn-g" onclick="checklistMaddeDuzenle(\''+it.id+'\')" title="Düzenle">✏️</button>';
+      h+='<button class="btn btn-xs btn-r" onclick="checklistMaddeSil(\''+it.id+'\',\''+escJs(it.label)+'\')" title="Sil">🗑</button>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  h+='<div style="background:#f8fafc;border-radius:10px;padding:12px">';
+  h+='<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px">+ Yeni Madde ('+(tip==='baslangic'?'Başlangıç':'Ayrılış')+')</div>';
+  h+='<div class="fg"><div class="fgr"><label>Madde Adı *</label><input id="cm_label" placeholder="Örn: Sözleşme imzalandı"/></div>';
+  h+='<div class="fgr"><label>Kategori</label><input id="cm_kategori" placeholder="Örn: Evrak"/></div></div>';
+  h+='<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#475569;margin:8px 0;cursor:pointer"><input type="checkbox" id="cm_admin_onay" style="cursor:pointer"/> Bu madde için yönetim onayı gerekir</label>';
+  h+='<div id="cm_msg"></div>';
+  h+='<button class="btn btn-p btn-sm" onclick="checklistMaddeEkle(\''+tip+'\')">+ Ekle</button>';
+  h+='</div>';
+  document.getElementById('cm-icerik').innerHTML=h;
+}
+function slugify(s){
+  return (s||'').toLowerCase()
+    .replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+    .replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'madde';
+}
+async function checklistMaddeEkle(tip){
+  const label=cap(document.getElementById('cm_label').value.trim());
+  const kategori=document.getElementById('cm_kategori').value.trim()||'Genel';
+  const adminOnay=document.getElementById('cm_admin_onay').checked;
+  if(!label){document.getElementById('cm_msg').innerHTML='<div class="err-m">Madde adı zorunlu!</div>';return;}
+  const mevcut=(D.checklistMaddeler||[]).filter(t=>t.tip===tip);
+  let key=slugify(label),i=1;
+  while(mevcut.some(t=>t.key===key)){key=slugify(label)+'_'+(++i);}
+  const sira=mevcut.length?Math.max(...mevcut.map(t=>t.sira||0))+1:1;
+  try{
+    const r=await api('checklist_maddeler','POST',{tip,key,label,kategori,sira,admin_onay:adminOnay,aktif:true});
+    const row=Array.isArray(r)?r[0]:r;
+    if(row)D.checklistMaddeler.push(row);
+    document.getElementById('cm_label').value='';document.getElementById('cm_kategori').value='';document.getElementById('cm_admin_onay').checked=false;
+    toast('✅ Madde eklendi');
+    checklistModalRender();
+  }catch(e){document.getElementById('cm_msg').innerHTML='<div class="err-m">❌ '+e.message+'</div>';}
+}
+async function checklistMaddeDuzenle(id){
+  const it=(D.checklistMaddeler||[]).find(t=>t.id===id);
+  if(!it)return;
+  const yeniLabel=prompt('Madde adı:',it.label);
+  if(yeniLabel===null)return;
+  const yeniKat=prompt('Kategori:',it.kategori||'Genel');
+  if(yeniKat===null)return;
+  const adminOnay=confirm('Bu madde için yönetim onayı gereksin mi?\n\nTamam = Evet, İptal = Hayır');
+  try{
+    await api('checklist_maddeler','PATCH',{label:yeniLabel.trim()||it.label,kategori:yeniKat.trim()||'Genel',admin_onay:adminOnay},'id=eq.'+id);
+    it.label=yeniLabel.trim()||it.label;it.kategori=yeniKat.trim()||'Genel';it.admin_onay=adminOnay;
+    toast('✅ Güncellendi');
+    checklistModalRender();
+  }catch(e){toast('Hata: '+e.message,false);}
+}
+async function checklistMaddeSil(id,label){
+  if(!confirm('"'+label+'" maddesi kaldırılsın mı?\n\nBu madde artık yeni checklist\'lerde görünmez, ama geçmiş kayıtlar etkilenmez.'))return;
+  try{
+    await api('checklist_maddeler','PATCH',{aktif:false},'id=eq.'+id);
+    const it=(D.checklistMaddeler||[]).find(t=>t.id===id);
+    if(it)it.aktif=false;
+    toast('🗑 Madde kaldırıldı');
+    checklistModalRender();
+  }catch(e){toast('Hata: '+e.message,false);}
+}
+
+function ayrilisDetayAc(danAd){
+  let modal=document.getElementById('ayrilis-detay-modal');
+  if(!modal){
+    modal=document.createElement('div');modal.id='ayrilis-detay-modal';modal.className='mo';
+    modal.innerHTML='<div class="md" style="max-width:680px;max-height:88vh;overflow-y:auto"><div id="ayrilis-detay-icerik"></div></div>';
+    document.body.appendChild(modal);
+  }
+  const icerik=document.getElementById('ayrilis-detay-icerik');
+  const tamamMi=ayrilisTamamMi(danAd);
+  let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
+  h+='<div><div style="font-size:16px;font-weight:800;color:#0f172a">🚪 '+esc(danAd)+' — Ayrılış Süreci</div>';
+  h+='<div style="font-size:11px;color:#94a3b8;margin-top:2px">'+(tamamMi?'✅ Tüm maddeler tamamlandı':'Devam ediyor')+'</div></div>';
+  h+='<button onclick="document.getElementById(\'ayrilis-detay-modal\').classList.remove(\'show\')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">×</button></div>';
+  h+=ayrilisChecklist(danAd);
+  h+='<div class="mda" style="margin-top:10px"><button class="btn '+(tamamMi?'btn-p':'btn-g')+'" '+(tamamMi?'':'disabled title="Tüm maddeler tamamlanmadan arşivlenemez"')+' onclick="danArsivle(\''+escJs(danAd)+'\')">📦 Arşive Taşı</button></div>';
+  icerik.innerHTML=h;
+  modal.classList.add('show');
 }
 
 function cpL(l){navigator.clipboard.writeText(l).then(()=>alert('Kopyalandı!')).catch(()=>{const t=document.createElement('textarea');t.value=l;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);alert('Kopyalandı!');});}
@@ -3485,7 +3721,7 @@ function rDanDash(c){
   // ── 5. ONBOARDİNG ──
   if(typeof OB_TASKS_DEFAULT!=='undefined'&&D.obProgress){
     const prog=D.obProgress.filter(p=>p.danisman_ad===myAd&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).length;
-    const toplam=OB_TASKS_DEFAULT.length;
+    const toplam=obTasks().length;
     const pct=Math.round(prog/toplam*100);
     const pc=pct>=80?'#1C8C4B':pct>=50?'#C9821A':'#DC1C2E';
     if(prog<toplam){
@@ -5232,7 +5468,7 @@ function danRozetler(danAd){
   const egitimler=D.danEgitim.filter(e=>e.danisman_ad===danAd);
   if(egitimler.length>0&&egitimler.filter(e=>e.durum==='Tamamlandı').length/egitimler.length>=0.8)rozetler.push('egitim_disp');
   // Ofis Uyumlu: tüm 21 task tamamlandı
-  if(OB_TASKS_DEFAULT.every(t=>tamamlanan.has(t.key)))rozetler.push('ofis_uyumlu');
+  if(obTasks().every(t=>tamamlanan.has(t.key)))rozetler.push('ofis_uyumlu');
 
   return rozetler;
 }
@@ -5285,7 +5521,7 @@ async function rObOnboarding(c){
       const prog=D.obProgress.filter(p=>p.danisman_ad===d.ad);
       const tamam=prog.filter(p=>p.durum==='admin_onaylandi'||p.durum==='tamamlandi').length;
       const danIsaret=prog.filter(p=>p.durum==='danisman_isaretledi').length;
-      const toplam=OB_TASKS_DEFAULT.length;
+      const toplam=obTasks().length;
       const pct=Math.round(tamam/toplam*100);
       const pc=pct>=80?'var(--gn)':pct>=50?'var(--or)':'var(--red)';
       const rozList=danRozetler(d.ad);
@@ -5361,11 +5597,11 @@ function obChecklist(danAd,adminMod){
   const progMap={};prog.forEach(p=>progMap[p.task_key]=p);
   const isA=CU.role==='admin'||CU.role==='ofis';
 
-  const kategoriler=[...new Set(OB_TASKS_DEFAULT.map(t=>t.kategori))];
+  const kategoriler=[...new Set(obTasks().map(t=>t.kategori))];
   let h='';
 
   kategoriler.forEach(kat=>{
-    const tasks=OB_TASKS_DEFAULT.filter(t=>t.kategori===kat);
+    const tasks=obTasks().filter(t=>t.kategori===kat);
     h+='<div style="background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px">';
     h+='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)">'+katIkon(kat)+' '+kat+'</div>';
 
@@ -5430,7 +5666,7 @@ function katIkon(k){
 
 // Task toggle
 async function obTaskToggle(danAd,taskKey,adminOnay,cb){
-  const task=OB_TASKS_DEFAULT.find(t=>t.key===taskKey);
+  const task=obTasks().find(t=>t.key===taskKey);
   const mevcut=D.obProgress.find(p=>p.danisman_ad===danAd&&p.task_key===taskKey);
   const isA=CU.role==='admin'||CU.role==='ofis';
   const yeniDurum=isA?(cb.checked?'admin_onaylandi':'bos'):(adminOnay?'danisman_isaretledi':'tamamlandi');
@@ -5455,6 +5691,7 @@ async function obTaskToggle(danAd,taskKey,adminOnay,cb){
     toast(cb.checked?'✅ '+task.label+' tamamlandı':'Geri alındı');
     // Rozet kontrolü
     obRozetKontrol(danAd);
+    obEkraniYenile(danAd);
   }catch(e){
     cb.checked=!cb.checked;
     toast('Hata: '+e.message,false);
@@ -5470,14 +5707,14 @@ async function obAdminOnayla(danAd,taskKey){
     mevcut.durum='admin_onaylandi';mevcut.tamamlanma_tarihi=td();
     toast('✅ Onaylandı');
     obRozetKontrol(danAd);
-    rObOnboarding(document.getElementById('ct'));
+    obEkraniYenile(danAd);
   }catch(e){toast('Hata: '+e.message,false);}
 }
 
 // Yönetim reddi — "Tamamladım" talebi geri çevrilir, görev tekrar Eksik olur (yeni bir "reddedildi"
 // durumu YOK; bu son durum değil, tekrar tamamlanması gereken eksik bir görev). Sebep 'not' alanına yazılır.
 async function obAdminReddet(danAd,taskKey){
-  const task=OB_TASKS_DEFAULT.find(t=>t.key===taskKey);
+  const task=obTasks().find(t=>t.key===taskKey);
   const sebep=prompt((task?task.label:'Görev')+' için reddetme sebebini yazın:');
   if(sebep===null)return; // iptal
   if(!sebep.trim()){toast('Reddetme sebebi gerekli!',false);return;}
@@ -5553,12 +5790,12 @@ function obDetayAc(danAd){
   const d=D.dans.find(x=>x.ad===danAd);
   const prog=D.obProgress.filter(p=>p.danisman_ad===danAd);
   const tamam=prog.filter(p=>p.durum==='admin_onaylandi'||p.durum==='tamamlandi').length;
-  const pct=Math.round(tamam/OB_TASKS_DEFAULT.length*100);
+  const pct=Math.round(tamam/obTasks().length*100);
   const rozList=danRozetler(danAd);
 
   let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
   h+='<div><div style="font-size:16px;font-weight:800;color:#0f172a">🚀 '+danAd+' — Onboarding</div>';
-  h+='<div style="font-size:11px;color:#94a3b8;margin-top:2px">%'+pct+' tamamlandı · '+tamam+'/'+OB_TASKS_DEFAULT.length+' adım</div></div>';
+  h+='<div style="font-size:11px;color:#94a3b8;margin-top:2px">%'+pct+' tamamlandı · '+tamam+'/'+obTasks().length+' adım</div></div>';
   h+='<button onclick="document.getElementById(\'ob-detay-modal\').classList.remove(\'show\')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94a3b8">×</button></div>';
 
   // Rozetler
@@ -5598,7 +5835,7 @@ async function svObChecklist(){
   try{
     // Henüz kaydı olmayan task'ları oluştur
     const mevcutKeys=new Set(mevcut.map(p=>p.task_key));
-    const eksikler=OB_TASKS_DEFAULT.filter(t=>!mevcutKeys.has(t.key));
+    const eksikler=obTasks().filter(t=>!mevcutKeys.has(t.key));
     for(const task of eksikler){
       const r=await api('gd_onboarding_progress','POST',{danisman_ad:dan,task_key:task.key,durum:'bos'});
       const row=Array.isArray(r)?r[0]:r;
@@ -5698,7 +5935,7 @@ async function rObEgitim(c){
       const tamam=prog.filter(p=>p.durum==='admin_onaylandi'||p.durum==='tamamlandi').length;
       const bekleyen=prog.filter(p=>!p.durum||p.durum==='bekliyor').length;
       const onayBekleyen=prog.filter(p=>p.durum==='danisman_isaretledi').length;
-      const toplam=typeof OB_TASKS_DEFAULT!=='undefined'?OB_TASKS_DEFAULT.length:10;
+      const toplam=typeof OB_TASKS_DEFAULT!=='undefined'?obTasks().length:10;
       const pct=toplam>0?Math.round(tamam/toplam*100):0;
       const renkC=pct>=80?'#1C8C4B':pct>=50?'#C9821A':'#DC1C2E';
       h+='<tr style="border-top:1px solid #f5f5f5">';
@@ -6012,7 +6249,7 @@ async function rObRozetler(c){
   D.dans.forEach(d=>{
     const rozList=danRozetler(d.ad);
     const prog=D.obProgress.filter(p=>p.danisman_ad===d.ad&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).length;
-    const pct=Math.round(prog/OB_TASKS_DEFAULT.length*100);
+    const pct=Math.round(prog/obTasks().length*100);
 
     h+='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">';
     h+='<div style="min-width:130px"><div style="font-size:12px;font-weight:700;color:#0f172a">'+esc(d.ad)+'</div>';
@@ -6268,7 +6505,7 @@ function rDash2Kokpit(c){
   if(typeof OB_TASKS_DEFAULT!=='undefined'){
     const obEksik=gdDans.filter(d=>{
       const prog=(D.obProgress||[]).filter(p=>p.danisman_ad===d.ad&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).length;
-      return prog<OB_TASKS_DEFAULT.length;
+      return prog<obTasks().length;
     });
     if(obEksik.length)uyarilar.push({renk:'#5b21b6',ikon:'🚀',baslik:'Başlangıç Süreci Eksik',sayi:obEksik.length,aciklama:'Tamamlanmamış onboarding adımı olan danışman',tip:'ob',filtre:'eksik'});
   }
@@ -6383,8 +6620,8 @@ function rDash2Kokpit(c){
   } else if(isA){
   // ── BROKER KOKPİTİ (10. Aşama — sadece admin) ──
   // Ortak hesaplamalar: danSkor, obProgress, D.log — mevcut fonksiyonlar aynen kullanılıyor, yeniden yazılmadı.
-  const evrakKategoriKeys=(typeof OB_TASKS_DEFAULT!=='undefined')?OB_TASKS_DEFAULT.filter(t=>t.kategori==='Evrak').map(t=>t.key):[];
-  const obToplamAdim=(typeof OB_TASKS_DEFAULT!=='undefined')?OB_TASKS_DEFAULT.length:0;
+  const evrakKategoriKeys=(typeof OB_TASKS_DEFAULT!=='undefined')?obTasks().filter(t=>t.kategori==='Evrak').map(t=>t.key):[];
+  const obToplamAdim=(typeof OB_TASKS_DEFAULT!=='undefined')?obTasks().length:0;
   const danOzetSirali=gdDans.map(d=>{
     const s=danSkor(d);
     const tamamKeys=(D.obProgress||[]).filter(p=>p.danisman_ad===d.ad&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).map(p=>p.task_key);
@@ -6414,7 +6651,7 @@ function rDash2Kokpit(c){
   // 3. MÜDAHALE GEREKTİREN DANIŞMANLAR (mevcut uyarı hesaplarının danışman bazında yeniden gruplanması)
   const obTamamSet=(typeof OB_TASKS_DEFAULT!=='undefined')?new Set(gdDans.filter(d=>{
     const p=(D.obProgress||[]).filter(x=>x.danisman_ad===d.ad&&(x.durum==='admin_onaylandi'||x.durum==='tamamlandi')).length;
-    return p<OB_TASKS_DEFAULT.length;
+    return p<obTasks().length;
   }).map(d=>d.ad)):new Set();
   const mudahaleListesi=gdDans.map(d=>{
     const nedenler=[];
@@ -6816,8 +7053,8 @@ function danOzetDetay(danId){
   if(!d){el.innerHTML='<div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:20px;text-align:center;color:#94a3b8;font-size:12px">Danışman bulunamadı.</div>';return;}
 
   const s=danSkor(d);
-  const evrakKategoriKeys=(typeof OB_TASKS_DEFAULT!=='undefined')?OB_TASKS_DEFAULT.filter(t=>t.kategori==='Evrak').map(t=>t.key):[];
-  const obToplamAdim=(typeof OB_TASKS_DEFAULT!=='undefined')?OB_TASKS_DEFAULT.length:0;
+  const evrakKategoriKeys=(typeof OB_TASKS_DEFAULT!=='undefined')?obTasks().filter(t=>t.kategori==='Evrak').map(t=>t.key):[];
+  const obToplamAdim=(typeof OB_TASKS_DEFAULT!=='undefined')?obTasks().length:0;
   const tamamKeys=(D.obProgress||[]).filter(p=>p.danisman_ad===d.ad&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).map(p=>p.task_key);
   const eksikEvrak=evrakKategoriKeys.filter(k=>!tamamKeys.includes(k)).length;
   const obYuzde=obToplamAdim>0?Math.round(tamamKeys.length/obToplamAdim*100):0;
@@ -6885,7 +7122,7 @@ function rKariyerDosyasi(danId){
   h+='</div>';
 
   // ── EKSİK EVRAKLAR ──
-  const evrakTasks=(typeof OB_TASKS_DEFAULT!=='undefined')?OB_TASKS_DEFAULT.filter(t=>t.kategori==='Evrak'):[];
+  const evrakTasks=(typeof OB_TASKS_DEFAULT!=='undefined')?obTasks().filter(t=>t.kategori==='Evrak'):[];
   const tamamKeys=(D.obProgress||[]).filter(p=>p.danisman_ad===ad&&(p.durum==='admin_onaylandi'||p.durum==='tamamlandi')).map(p=>p.task_key);
   const eksikEvrakListe=evrakTasks.filter(t=>!tamamKeys.includes(t.key));
   h+='<div style="'+box+'">'+baslik('Eksik Evraklar');
@@ -6893,7 +7130,7 @@ function rKariyerDosyasi(danId){
   h+='</div>';
 
   // ── BAŞLANGIÇ SÜRECİ ──
-  const obToplam=(typeof OB_TASKS_DEFAULT!=='undefined')?OB_TASKS_DEFAULT.length:0;
+  const obToplam=(typeof OB_TASKS_DEFAULT!=='undefined')?obTasks().length:0;
   const obYuzde=obToplam>0?Math.round(tamamKeys.length/obToplam*100):0;
   h+='<div style="'+box+'">'+baslik('Başlangıç Süreci');
   h+=satir('Tamamlanma Oranı', obToplam?'%'+obYuzde+' ('+tamamKeys.length+'/'+obToplam+' adım)':null);
