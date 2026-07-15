@@ -1,6 +1,5 @@
 import { Search } from 'lucide-react'
-import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
-import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
+import { CALL_SOURCES } from '../../lib/callLogs'
 import DateRangeFilter from '../common/DateRangeFilter'
 
 function Chip({ active, children, ...props }) {
@@ -16,7 +15,7 @@ function Chip({ active, children, ...props }) {
   )
 }
 
-export default function OpportunityFilters({ filters, onChange }) {
+export default function CallFilters({ filters, onChange }) {
   const set = (patch) => onChange({ ...filters, ...patch })
 
   return (
@@ -26,29 +25,18 @@ export default function OpportunityFilters({ filters, onChange }) {
         <input
           value={filters.search}
           onChange={(e) => set({ search: e.target.value })}
-          placeholder="İsim veya konuma göre ara..."
+          placeholder="İsim ara..."
           className="w-full bg-transparent text-sm text-ink-800 outline-none placeholder:text-ink-400"
         />
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        <Chip active={filters.type === 'tumu'} onClick={() => set({ type: 'tumu' })}>
-          Tümü
+        <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>
+          Tüm Kaynaklar
         </Chip>
-        {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
-          <Chip key={key} active={filters.type === key} onClick={() => set({ type: key })}>
-            {label}
-          </Chip>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-1.5">
-        <Chip active={filters.category === 'tumu'} onClick={() => set({ category: 'tumu' })}>
-          Tüm Kategoriler
-        </Chip>
-        {OPPORTUNITY_CATEGORIES.map((c) => (
-          <Chip key={c.key} active={filters.category === c.key} onClick={() => set({ category: c.key })}>
-            {c.label}
+        {CALL_SOURCES.map((s) => (
+          <Chip key={s} active={filters.kaynak === s} onClick={() => set({ kaynak: s })}>
+            {s}
           </Chip>
         ))}
       </div>
