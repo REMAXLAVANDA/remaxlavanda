@@ -5,7 +5,7 @@ import { ROLES } from '../lib/roles'
 // sonrasında bu context'in içini dolduracak; dışa açılan arayüz
 // (user, role, setRole) aynı kalacak şekilde tasarlandı.
 
-const MOCK_USERS = {
+export const MOCK_USERS = {
   [ROLES.BROKER]: { id: 'u-broker', name: 'Ahmet Erdemir', role: ROLES.BROKER },
   [ROLES.MUDUR]: { id: 'u-mudur', name: 'Ofis Müdürü', role: ROLES.MUDUR },
   [ROLES.OFIS]: { id: 'u-ofis', name: 'Ofis Personeli', role: ROLES.OFIS },
