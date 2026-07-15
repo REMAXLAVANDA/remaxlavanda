@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+
+  /* RE/MAX Lavanda marka rengi */
+  --color-lavanda-50: #f7f5fc;
+  --color-lavanda-100: #eee9f8;
+  --color-lavanda-200: #ddd2f0;
+  --color-lavanda-300: #c3aee3;
+  --color-lavanda-400: #a682d1;
+  --color-lavanda-500: #8b5fbf;
+  --color-lavanda-600: #7548a8;
+  --color-lavanda-700: #613a8b;
+  --color-lavanda-800: #4f3070;
+  --color-lavanda-900: #422a5a;
+
+  --color-ink-50: #f8f8f9;
+  --color-ink-100: #eef0f2;
+  --color-ink-200: #dde0e5;
+  --color-ink-300: #c2c7cf;
+  --color-ink-400: #9aa1ad;
+  --color-ink-500: #6b7280;
+  --color-ink-600: #4c5361;
+  --color-ink-700: #363c48;
+  --color-ink-800: #232730;
+  --color-ink-900: #15171d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--color-ink-800);
+  background: var(--color-ink-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-200);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-300);
+}
