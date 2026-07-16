@@ -1,8 +1,15 @@
+import { ROLES } from './roles'
+
 export const LEAGUE_CATEGORIES = [
   { key: 'ciro', label: 'Ciro', unit: 'tl' },
   { key: 'memnuniyet', label: 'Memnuniyet', unit: 'puan' },
   { key: 'sosyal_medya', label: 'Sosyal Medya', unit: 'puan' },
 ]
+
+// score_entries_manage RLS kuralıyla aynı: sadece broker/owner/ofis skor girebilir.
+export function canManageScores(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
+}
 
 // Spesifikasyon gereği: "sadece liderden fark gösterilir" — mutlak değer
 // (özellikle ciro) hiçbir zaman ekrana basılmaz, sadece lidere göre fark.

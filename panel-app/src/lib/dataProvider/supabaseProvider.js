@@ -347,11 +347,35 @@ export { takip } from './mockProvider'
 export const league = {
   async getPeriod() {
     const data = await run(client().from('periods').select('*').order('baslangic', { ascending: false }).limit(1).single())
-    return { ad: data.ad, baslangic: data.baslangic, bitis: data.bitis }
+    return { id: data.id, ad: data.ad, baslangic: data.baslangic, bitis: data.bitis }
   },
   async listScores() {
     const data = await run(client().from('score_entries').select('*'))
     return data.map((s) => ({ userId: s.user_id, type: s.type, value: Number(s.value) }))
+  },
+  // Aynı danışman/dönem/kategori için ikinci bir girişte var olan satırı
+  // günceller (yeni tekrar eklemek yerine) — score_entries_manage RLS'i
+  // zaten sadece broker/owner/ofis'e izin veriyor.
+  async addScore({ userId, periodId, type, value }, enteredBy) {
+    const existing = await run(
+      client()
+        .from('score_entries')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('period_id', periodId)
+        .eq('type', type)
+        .maybeSingle(),
+    )
+    if (existing) {
+      await run(client().from('score_entries').update({ value }).eq('id', existing.id))
+    } else {
+      await run(
+        client()
+          .from('score_entries')
+          .insert({ user_id: userId, period_id: periodId, type, value, entered_by: enteredBy }),
+      )
+    }
+    return { userId, type, value: Number(value) }
   },
 }
 

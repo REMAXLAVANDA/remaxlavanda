@@ -249,6 +249,13 @@ export const league = {
   async listScores() {
     return delay([...MOCK_SCORES])
   },
+  async addScore({ userId, type, value }) {
+    const numValue = Number(value)
+    const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type)
+    if (existing) existing.value = numValue
+    else MOCK_SCORES.push({ userId, type, value: numValue })
+    return delay({ userId, type, value: numValue })
+  },
 }
 
 // --- Users -------------------------------------------------------------------

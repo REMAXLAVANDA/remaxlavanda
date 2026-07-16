@@ -3,7 +3,12 @@
 // burada tutulan mutlak değerler yalnızca "liderden fark" hesaplamak için
 // kullanılır — UI hiçbir zaman bu sayıyı doğrudan basmaz.
 
-export const MOCK_PERIOD = { ad: '2026 - Dönem 2 (Mayıs - Ağustos)', baslangic: '2026-05-01', bitis: '2026-08-31' }
+export const MOCK_PERIOD = {
+  id: 'period-1',
+  ad: '2026 - Dönem 2 (Mayıs - Ağustos)',
+  baslangic: '2026-05-01',
+  bitis: '2026-08-31',
+}
 
 // user_id, type (ciro | memnuniyet | sosyal_medya), value
 export const MOCK_SCORES = [
