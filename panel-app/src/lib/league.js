@@ -8,12 +8,18 @@ export const LEAGUE_CATEGORIES = [
   { key: 'sosyal_medya', label: 'Sosyal Medya', unit: 'puan' },
 ]
 
+// Sosyal Medya artık serbest sayı ile değil, puanlı aktivite kayıtlarından
+// hesaplanıyor — bu yüzden "Skor Gir" formunda elle girilebilecek
+// kategoriler bununla sınırlı.
+export const MANUAL_SCORE_CATEGORIES = LEAGUE_CATEGORIES.filter((c) => c.key !== 'sosyal_medya')
+
 // score_entries_manage RLS kuralıyla aynı: sadece broker/owner/ofis skor girebilir.
 export function canManageScores(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 
-// periods_manage RLS kuralıyla aynı: sadece broker yeni dönem açabilir.
+// periods_manage / social_activity_types_manage RLS kuralıyla aynı: sadece
+// broker yeni dönem açabilir veya sosyal medya puanlarını değiştirebilir.
 export function canManagePeriods(role) {
   return role === ROLES.BROKER
 }

@@ -16,7 +16,13 @@ import {
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW, MOCK_BROKER_NOTES } from '../../data/mockTakip'
-import { MOCK_PERIODS, MOCK_SCORES } from '../../data/mockLeague'
+import {
+  MOCK_PERIODS,
+  MOCK_SCORES,
+  MOCK_REVIEW_CREDITS,
+  MOCK_ACTIVITY_TYPES,
+  MOCK_ACTIVITY_LOG,
+} from '../../data/mockLeague'
 import { MOCK_USERS } from '../../context/AuthContext'
 import { OTHER_USERS } from '../../data/mockOpportunities'
 import { canRevealContact } from '../opportunities'
@@ -274,7 +280,45 @@ export const league = {
     const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type && s.periodId === period.id)
     if (existing) existing.value = numValue
     else MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue })
+    if (type === 'ciro') {
+      const credit = MOCK_REVIEW_CREDITS.find((r) => r.userId === userId && r.periodId === period.id)
+      if (credit) credit.hakSayisi += 2
+      else MOCK_REVIEW_CREDITS.push({ userId, periodId: period.id, hakSayisi: 2, alinanSayisi: 0 })
+    }
     return delay({ userId, periodId: period.id, type, value: numValue })
+  },
+  async listReviewCredits() {
+    return delay([...MOCK_REVIEW_CREDITS])
+  },
+  async setReceivedReviews(userId, periodId, alinanSayisi) {
+    const credit = MOCK_REVIEW_CREDITS.find((r) => r.userId === userId && r.periodId === periodId)
+    if (credit) credit.alinanSayisi = alinanSayisi
+    else MOCK_REVIEW_CREDITS.push({ userId, periodId, hakSayisi: 0, alinanSayisi })
+    return delay({ userId, periodId, alinanSayisi })
+  },
+  async listActivityTypes() {
+    return delay([...MOCK_ACTIVITY_TYPES].sort((a, b) => a.sortOrder - b.sortOrder))
+  },
+  async updateActivityTypePoint(id, puan) {
+    const type = MOCK_ACTIVITY_TYPES.find((t) => t.id === id)
+    if (type) type.puan = Number(puan)
+    return delay({ id, puan: Number(puan) })
+  },
+  async logSocialActivity({ userId, activityTypeId, adet, tarih }) {
+    const period = MOCK_PERIODS.find((p) => p.baslangic <= tarih && p.bitis >= tarih)
+    if (!period) throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
+    MOCK_ACTIVITY_LOG.push({ userId, periodId: period.id, activityTypeId, adet: Number(adet) })
+
+    const total = MOCK_ACTIVITY_LOG.filter((l) => l.userId === userId && l.periodId === period.id).reduce(
+      (sum, l) => sum + l.adet * (MOCK_ACTIVITY_TYPES.find((t) => t.id === l.activityTypeId)?.puan ?? 0),
+      0,
+    )
+    const existingScore = MOCK_SCORES.find(
+      (s) => s.userId === userId && s.periodId === period.id && s.type === 'sosyal_medya',
+    )
+    if (existingScore) existingScore.value = total
+    else MOCK_SCORES.push({ userId, periodId: period.id, type: 'sosyal_medya', value: total })
+    return delay({ userId, periodId: period.id, total })
   },
 }
 

@@ -364,6 +364,46 @@ function mapPeriod(row) {
   return { id: row.id, ad: row.ad, baslangic: row.baslangic, bitis: row.bitis }
 }
 
+// "Tarih"e göre doğru döneme otomatik atama — ay sonunda 2-3 gün geriden ya
+// da ileriden giriş yapılabilmesi için (broker onaylı akış). Tarih hiçbir
+// mevcut dönemin aralığına düşmüyorsa açık bir hata döner.
+async function resolvePeriodByDate(tarih) {
+  const period = await run(
+    client().from('periods').select('id').lte('baslangic', tarih).gte('bitis', tarih).maybeSingle(),
+  )
+  if (!period) {
+    throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
+  }
+  return period
+}
+
+// Her ciro girişi 2 yorum hakkı getirir (broker onaylı kural) — var olan
+// dönem/danışman satırı varsa üstüne eklenir, yoksa oluşturulur.
+async function incrementReviewCredits(userId, periodId, amount) {
+  const existing = await run(
+    client()
+      .from('review_credits')
+      .select('id, hak_sayisi')
+      .eq('user_id', userId)
+      .eq('period_id', periodId)
+      .maybeSingle(),
+  )
+  if (existing) {
+    await run(
+      client()
+        .from('review_credits')
+        .update({ hak_sayisi: existing.hak_sayisi + amount, updated_at: new Date().toISOString() })
+        .eq('id', existing.id),
+    )
+  } else {
+    await run(
+      client()
+        .from('review_credits')
+        .insert({ user_id: userId, period_id: periodId, hak_sayisi: amount }),
+    )
+  }
+}
+
 export const league = {
   async getPeriod() {
     const data = await run(client().from('periods').select('*').order('baslangic', { ascending: false }).limit(1).single())
@@ -382,22 +422,8 @@ export const league = {
     const data = await run(client().from('score_entries').select('*'))
     return data.map((s) => ({ userId: s.user_id, periodId: s.period_id, type: s.type, value: Number(s.value) }))
   },
-  // Skor, seçilen dönem yerine "tarih"e göre doğru döneme otomatik atanır —
-  // ay sonunda 2-3 gün geriden ya da ileriden giriş yapılabilmesi için
-  // (broker onaylı akış). Tarih hiçbir mevcut dönemin aralığına düşmüyorsa
-  // açık bir hata döner — önce o dönem oluşturulmalı.
   async addScore({ userId, type, value, tarih }, enteredBy) {
-    const period = await run(
-      client()
-        .from('periods')
-        .select('id')
-        .lte('baslangic', tarih)
-        .gte('bitis', tarih)
-        .maybeSingle(),
-    )
-    if (!period) {
-      throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
-    }
+    const period = await resolvePeriodByDate(tarih)
     const existing = await run(
       client()
         .from('score_entries')
@@ -416,7 +442,103 @@ export const league = {
           .insert({ user_id: userId, period_id: period.id, type, value, entered_by: enteredBy }),
       )
     }
+    // Sadece ciro girişleri yorum hakkı getirir — her girişte (yeni ya da
+    // güncelleme) +2, spesifikasyon gereği.
+    if (type === 'ciro') {
+      await incrementReviewCredits(userId, period.id, 2)
+    }
     return { userId, periodId: period.id, type, value: Number(value) }
+  },
+  // --- Yorum hakkı (Ciro'ya bağlı) -----------------------------------------
+  async listReviewCredits() {
+    const data = await run(client().from('review_credits').select('*'))
+    return data.map((r) => ({
+      userId: r.user_id,
+      periodId: r.period_id,
+      hakSayisi: r.hak_sayisi,
+      alinanSayisi: r.alinan_sayisi,
+    }))
+  },
+  async setReceivedReviews(userId, periodId, alinanSayisi) {
+    const existing = await run(
+      client()
+        .from('review_credits')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('period_id', periodId)
+        .maybeSingle(),
+    )
+    if (existing) {
+      await run(
+        client()
+          .from('review_credits')
+          .update({ alinan_sayisi: alinanSayisi, updated_at: new Date().toISOString() })
+          .eq('id', existing.id),
+      )
+    } else {
+      await run(
+        client()
+          .from('review_credits')
+          .insert({ user_id: userId, period_id: periodId, hak_sayisi: 0, alinan_sayisi: alinanSayisi }),
+      )
+    }
+    return { userId, periodId, alinanSayisi }
+  },
+  // --- Sosyal medya aktivite puanlaması -------------------------------------
+  async listActivityTypes() {
+    const data = await run(
+      client().from('social_activity_types').select('*').eq('aktif', true).order('sort_order'),
+    )
+    return data.map((t) => ({ id: t.id, ad: t.ad, puan: Number(t.puan), sortOrder: t.sort_order }))
+  },
+  // broker onaylı: social_activity_types_manage RLS'i sadece broker'a izin veriyor.
+  async updateActivityTypePoint(id, puan) {
+    await run(client().from('social_activity_types').update({ puan }).eq('id', id))
+    return { id, puan: Number(puan) }
+  },
+  // Aktivite kaydı eklenir VE o danışman/dönem için toplam sosyal medya
+  // puanı yeniden hesaplanıp score_entries'e (type='sosyal_medya') yazılır —
+  // böylece Lig'in mevcut sıralama/podyum mantığı hiç değişmeden çalışır.
+  async logSocialActivity({ userId, activityTypeId, adet, tarih }, enteredBy) {
+    const period = await resolvePeriodByDate(tarih)
+    await run(
+      client()
+        .from('social_activity_log')
+        .insert({ user_id: userId, period_id: period.id, activity_type_id: activityTypeId, adet, entered_by: enteredBy }),
+    )
+
+    const [logs, types] = await Promise.all([
+      run(
+        client()
+          .from('social_activity_log')
+          .select('activity_type_id, adet')
+          .eq('user_id', userId)
+          .eq('period_id', period.id),
+      ),
+      run(client().from('social_activity_types').select('id, puan')),
+    ])
+    const puanMap = Object.fromEntries(types.map((t) => [t.id, Number(t.puan)]))
+    const total = logs.reduce((sum, l) => sum + Number(l.adet) * (puanMap[l.activity_type_id] ?? 0), 0)
+
+    const existingScore = await run(
+      client()
+        .from('score_entries')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('period_id', period.id)
+        .eq('type', 'sosyal_medya')
+        .maybeSingle(),
+    )
+    if (existingScore) {
+      await run(client().from('score_entries').update({ value: total }).eq('id', existingScore.id))
+    } else {
+      await run(
+        client()
+          .from('score_entries')
+          .insert({ user_id: userId, period_id: period.id, type: 'sosyal_medya', value: total, entered_by: enteredBy }),
+      )
+    }
+    return { userId, periodId: period.id, total }
   },
 }
 

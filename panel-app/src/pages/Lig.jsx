@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Trophy, Plus, Copy, CalendarPlus } from 'lucide-react'
+import { Trophy, Plus, Copy, CalendarPlus, Megaphone } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -8,13 +8,21 @@ import { league as leagueProvider } from '../lib/dataProvider'
 import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor } from '../lib/league'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
+import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
+import ActivityPointsSettings from '../components/league/ActivityPointsSettings'
 import AddScoreModal from '../components/league/AddScoreModal'
+import AddSocialActivityModal from '../components/league/AddSocialActivityModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 async function loadAll() {
-  const [periods, scores] = await Promise.all([leagueProvider.listPeriods(), leagueProvider.listScores()])
-  return { periods, scores }
+  const [periods, scores, reviewCredits, activityTypes] = await Promise.all([
+    leagueProvider.listPeriods(),
+    leagueProvider.listScores(),
+    leagueProvider.listReviewCredits(),
+    leagueProvider.listActivityTypes(),
+  ])
+  return { periods, scores, reviewCredits, activityTypes }
 }
 
 export default function Lig() {
@@ -26,6 +34,7 @@ export default function Lig() {
   const [periodId, setPeriodId] = useState(null)
   const [showScoreModal, setShowScoreModal] = useState(false)
   const [showPeriodModal, setShowPeriodModal] = useState(false)
+  const [showActivityModal, setShowActivityModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const category = LEAGUE_CATEGORIES.find((c) => c.key === tab)
   const userName = useCallback((id) => knownUsers[id]?.name ?? '—', [knownUsers])
@@ -53,6 +62,18 @@ export default function Lig() {
 
   const rankings = rankingsByCategory[tab] ?? []
   const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
+  const activityTypes = data?.activityTypes ?? []
+
+  const reviewCreditRows = useMemo(() => {
+    const credits = (data?.reviewCredits ?? []).filter((r) => r.periodId === periodId)
+    return danismanOptions
+      .map((u) => {
+        const credit = credits.find((r) => r.userId === u.id)
+        return { userId: u.id, name: u.name, hakSayisi: credit?.hakSayisi ?? 0, alinanSayisi: credit?.alinanSayisi ?? 0 }
+      })
+      .filter((r) => r.hakSayisi > 0 || r.alinanSayisi > 0)
+      .sort((a, b) => b.hakSayisi - a.hakSayisi)
+  }, [data, periodId, danismanOptions])
 
   async function handleAddScore(form) {
     setSubmitting(true)
@@ -80,6 +101,41 @@ export default function Lig() {
       showToast(err.message ?? 'Dönem oluşturulamadı, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleLogActivity(form) {
+    setSubmitting(true)
+    try {
+      await leagueProvider.logSocialActivity(form, user.id)
+      setShowActivityModal(false)
+      showToast('Aktivite eklendi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Aktivite eklenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleUpdatePoint(activityTypeId, puan) {
+    try {
+      await leagueProvider.updateActivityTypePoint(activityTypeId, puan)
+      showToast('Puan güncellendi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Puan güncellenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleUpdateReceived(userId, alinanSayisi) {
+    if (!periodId) return
+    try {
+      await leagueProvider.setReceivedReviews(userId, periodId, alinanSayisi)
+      showToast('Yorum sayısı güncellendi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
     }
   }
 
@@ -140,7 +196,15 @@ export default function Lig() {
               <CalendarPlus size={16} /> Yeni Dönem
             </button>
           )}
-          {isManager && !loading && !error && period && (
+          {isManager && !loading && !error && period && tab === 'sosyal_medya' && (
+            <button
+              onClick={() => setShowActivityModal(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              <Megaphone size={16} /> Aktivite Ekle
+            </button>
+          )}
+          {isManager && !loading && !error && period && tab !== 'sosyal_medya' && (
             <button
               onClick={() => setShowScoreModal(true)}
               className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
@@ -155,6 +219,14 @@ export default function Lig() {
         <div className="mt-5">
           <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
         </div>
+      )}
+
+      {!loading && !error && period && (
+        <ReviewCreditsPanel rows={reviewCreditRows} isManager={isManager} onUpdateReceived={handleUpdateReceived} />
+      )}
+
+      {!loading && !error && period && tab === 'sosyal_medya' && isBroker && (
+        <ActivityPointsSettings activityTypes={activityTypes} onUpdatePoint={handleUpdatePoint} />
       )}
 
       <div className="mb-5 flex gap-1 border-b border-ink-100">
@@ -192,6 +264,16 @@ export default function Lig() {
 
       {showPeriodModal && (
         <NewPeriodModal onClose={() => setShowPeriodModal(false)} onSubmit={handleAddPeriod} submitting={submitting} />
+      )}
+
+      {showActivityModal && (
+        <AddSocialActivityModal
+          onClose={() => setShowActivityModal(false)}
+          onSubmit={handleLogActivity}
+          submitting={submitting}
+          danismanOptions={danismanOptions}
+          activityTypes={activityTypes}
+        />
       )}
     </div>
   )

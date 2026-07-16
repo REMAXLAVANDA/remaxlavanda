@@ -28,3 +28,22 @@ export const MOCK_SCORES = [
   { userId: 'ext-danisman-2', periodId: 'period-1', type: 'sosyal_medya', value: 72 },
   { userId: 'ext-danisman-3', periodId: 'period-1', type: 'sosyal_medya', value: 30 },
 ]
+
+// Her ciro girişi 2 yorum hakkı getirir — user_id/period_id bazında hak ve
+// gerçekten alınan yorum sayısı ayrı tutulur.
+export const MOCK_REVIEW_CREDITS = [
+  { userId: 'u-danisman', periodId: 'period-1', hakSayisi: 4, alinanSayisi: 3 },
+  { userId: 'ext-danisman-2', periodId: 'period-1', hakSayisi: 6, alinanSayisi: 2 },
+]
+
+export const MOCK_ACTIVITY_TYPES = [
+  { id: 'act-1', ad: 'Instagram Post', puan: 5, sortOrder: 1 },
+  { id: 'act-2', ad: 'Instagram Story', puan: 2, sortOrder: 2 },
+  { id: 'act-3', ad: 'LinkedIn Paylaşımı', puan: 5, sortOrder: 3 },
+  { id: 'act-4', ad: 'YouTube Videosu', puan: 15, sortOrder: 4 },
+  { id: 'act-5', ad: 'Meta Reklam Bütçesi (100 TL)', puan: 3, sortOrder: 5 },
+  { id: 'act-6', ad: 'Google Yorumu', puan: 10, sortOrder: 6 },
+]
+
+// user_id, period_id, activity_type_id, adet
+export const MOCK_ACTIVITY_LOG = []
