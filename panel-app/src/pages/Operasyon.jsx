@@ -133,6 +133,7 @@ export default function Operasyon() {
                   call={call}
                   assignedName={call.assignedTo ? userName(call.assignedTo) : null}
                   isManager={isManager}
+                  canEditOwn={call.assignedTo === user.id}
                   inviteeOptions={inviteeOptions}
                   onAssign={(id) => handleAssign(call.id, id)}
                   onSetResult={(sonuc) => handleSetResult(call.id, sonuc)}

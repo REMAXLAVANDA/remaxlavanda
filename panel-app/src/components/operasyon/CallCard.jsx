@@ -3,8 +3,18 @@ import { Eye, EyeOff, Phone, Target } from 'lucide-react'
 import { CALL_RESULT_LABELS, CALL_RESULT_STYLES, maskPhone } from '../../lib/callLogs'
 import { relativeTime } from '../../lib/format'
 
-export default function CallCard({ call, assignedName, isManager, inviteeOptions, onAssign, onSetResult, onToggle }) {
+export default function CallCard({
+  call,
+  assignedName,
+  isManager,
+  canEditOwn,
+  inviteeOptions,
+  onAssign,
+  onSetResult,
+  onToggle,
+}) {
   const [revealed, setRevealed] = useState(false)
+  const canEditResult = isManager || canEditOwn
 
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-5">
@@ -62,20 +72,22 @@ export default function CallCard({ call, assignedName, isManager, inviteeOptions
       {call.notlar && <p className="mt-3 whitespace-pre-line text-xs text-ink-500">{call.notlar}</p>}
 
       <div className="mt-4 border-t border-ink-50 pt-3">
-        {isManager ? (
+        {canEditResult ? (
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={call.assignedTo ?? ''}
-              onChange={(e) => onAssign(e.target.value || null)}
-              className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
-            >
-              <option value="">Atanmadı</option>
-              {inviteeOptions.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+            {isManager && (
+              <select
+                value={call.assignedTo ?? ''}
+                onChange={(e) => onAssign(e.target.value || null)}
+                className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+              >
+                <option value="">Atanmadı</option>
+                {inviteeOptions.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <select
               value={call.sonuc ?? ''}
               onChange={(e) => onSetResult(e.target.value || null)}
