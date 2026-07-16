@@ -13,7 +13,7 @@ import NewOpportunityModal from '../components/opportunities/NewOpportunityModal
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-const INITIAL_FILTERS = { search: '', dateRange: '30g', customFrom: '', customTo: '' }
+const INITIAL_FILTERS = { search: '', dateRange: '7g', customFrom: '', customTo: '' }
 
 // RLS'teki opportunities_insert kuralıyla birebir aynı: broker/owner/ofis.
 const CAN_CREATE_ROLES = ['broker', 'owner', 'ofis']
