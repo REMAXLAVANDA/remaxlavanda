@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Award, GraduationCap } from 'lucide-react'
+import { Award, GraduationCap, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -11,12 +11,19 @@ import ModuleProgressList from '../components/education/ModuleProgressList'
 import BadgeGrid from '../components/education/BadgeGrid'
 import AwardBadgeModal from '../components/education/AwardBadgeModal'
 import ChecklistPanel from '../components/education/ChecklistPanel'
+import AddChecklistItemModal from '../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../components/education/TeamProgressTable'
 import DateRangeFilter from '../components/common/DateRangeFilter'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-// badges_manage / onboarding_status_manage RLS'te sadece broker/owner.
+// badges_manage / onboarding_status_manage / onboarding_items_manage RLS'te
+// sadece broker/owner.
 const CAN_MANAGE_ROLES = ['broker', 'owner']
+
+const CHECKLIST_TABS = [
+  { key: 'baslangic', label: 'Süreç' },
+  { key: 'ayrilis', label: 'Ayrılış' },
+]
 
 // Yükleme bitmeden önce data null olur — useMemo bağımlılıklarının her
 // render'da referans değiştirmemesi için sabit, boş bir dizi kullanılır.
@@ -42,6 +49,7 @@ export default function Egitim() {
   const [checklistTip, setChecklistTip] = useState('baslangic')
   const [checklistUserId, setChecklistUserId] = useState(user.id)
   const [showAwardModal, setShowAwardModal] = useState(false)
+  const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [moduleFilters, setModuleFilters] = useState({ dateRange: 'tumu', customFrom: '', customTo: '' })
 
@@ -126,6 +134,51 @@ export default function Egitim() {
     }
   }
 
+  async function handleAddChecklistItem({ tip, baslik }) {
+    setSubmitting(true)
+    try {
+      const maxOrder = checklistItems.filter((i) => i.tip === tip).reduce((max, i) => Math.max(max, i.sortOrder), 0)
+      const created = await educationProvider.createChecklistItem({ tip, baslik, sortOrder: maxOrder + 1 })
+      setData((prev) => ({ ...prev, checklistItems: [...prev.checklistItems, created] }))
+      setShowAddItemModal(false)
+      showToast('Madde eklendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Madde eklenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function moveChecklistItem(itemId, direction) {
+    const index = checklistEntries.findIndex((e) => e.item.id === itemId)
+    const swapIndex = direction === 'up' ? index - 1 : index + 1
+    if (index < 0 || swapIndex < 0 || swapIndex >= checklistEntries.length) return
+    const a = checklistEntries[index].item
+    const b = checklistEntries[swapIndex].item
+    // sortOrder'lar önce sabit değişkenlere alınıyor — aksi halde ikinci
+    // updateChecklistItemOrder çağrısı değerlendirilirken (mock sağlayıcı
+    // nesneyi eşzamanlı mutasyona uğrattığı için) a.sortOrder artık ilk
+    // çağrının yazdığı değeri okur, iki madde de aynı sıraya düşer.
+    const aOrder = a.sortOrder
+    const bOrder = b.sortOrder
+    try {
+      await Promise.all([
+        educationProvider.updateChecklistItemOrder(a.id, bOrder),
+        educationProvider.updateChecklistItemOrder(b.id, aOrder),
+      ])
+      setData((prev) => ({
+        ...prev,
+        checklistItems: prev.checklistItems.map((it) => {
+          if (it.id === a.id) return { ...it, sortOrder: bOrder }
+          if (it.id === b.id) return { ...it, sortOrder: aOrder }
+          return it
+        }),
+      }))
+    } catch (err) {
+      showToast(err.message ?? 'Sıralama değiştirilemedi, tekrar dene.', 'error')
+    }
+  }
+
   async function handleAwardBadge({ userId, badgeId }) {
     setSubmitting(true)
     try {
@@ -199,7 +252,7 @@ export default function Egitim() {
 
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-ink-900">Başlangıç / Ayrılış Checklist</h2>
+              <h2 className="text-sm font-semibold text-ink-900">Süreç / Ayrılış Checklist</h2>
               <div className="flex items-center gap-2">
                 {isManager && (
                   <select
@@ -215,10 +268,7 @@ export default function Egitim() {
                   </select>
                 )}
                 <div className="flex gap-1">
-                  {[
-                    { key: 'baslangic', label: 'Başlangıç' },
-                    { key: 'ayrilis', label: 'Ayrılış' },
-                  ].map((t) => (
+                  {CHECKLIST_TABS.map((t) => (
                     <button
                       key={t.key}
                       onClick={() => setChecklistTip(t.key)}
@@ -230,6 +280,14 @@ export default function Egitim() {
                     </button>
                   ))}
                 </div>
+                {isManager && (
+                  <button
+                    onClick={() => setShowAddItemModal(true)}
+                    className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+                  >
+                    <Plus size={14} /> Madde Ekle
+                  </button>
+                )}
               </div>
             </div>
             {!isManager && (
@@ -241,6 +299,7 @@ export default function Egitim() {
               entries={checklistEntries}
               isManager={isManager}
               onToggle={toggleChecklistItem}
+              onMove={isManager ? moveChecklistItem : undefined}
               resolveName={userName}
             />
           </section>
@@ -261,6 +320,15 @@ export default function Egitim() {
           submitting={submitting}
           users={teamMembers}
           badges={badges}
+        />
+      )}
+
+      {showAddItemModal && (
+        <AddChecklistItemModal
+          onClose={() => setShowAddItemModal(false)}
+          onSubmit={handleAddChecklistItem}
+          submitting={submitting}
+          defaultTip={checklistTip}
         />
       )}
     </div>

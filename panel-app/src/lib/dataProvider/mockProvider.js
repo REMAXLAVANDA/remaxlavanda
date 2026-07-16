@@ -161,6 +161,16 @@ export const education = {
     MOCK_USER_BADGES.push(row)
     return delay(row)
   },
+  async createChecklistItem({ tip, baslik, sortOrder }) {
+    const item = { id: `chk-${Date.now()}`, tip, baslik, sortOrder }
+    MOCK_CHECKLIST_ITEMS.push(item)
+    return delay({ ...item })
+  },
+  async updateChecklistItemOrder(itemId, sortOrder) {
+    const item = MOCK_CHECKLIST_ITEMS.find((i) => i.id === itemId)
+    if (item) item.sortOrder = sortOrder
+    return delay({ itemId, sortOrder })
+  },
 }
 
 // --- Call logs (Operasyon) ---------------------------------------------------

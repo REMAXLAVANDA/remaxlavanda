@@ -219,6 +219,21 @@ export const education = {
     )
     return { userId: data.user_id, badgeId: data.badge_id, earnedAt: data.earned_at }
   },
+  // onboarding_items_manage RLS'i sadece broker/owner'a izin veriyor.
+  async createChecklistItem({ tip, baslik, sortOrder }) {
+    const data = await run(
+      client()
+        .from('onboarding_checklist_items')
+        .insert({ tip, baslik, sort_order: sortOrder })
+        .select()
+        .single(),
+    )
+    return { id: data.id, tip: data.tip, baslik: data.baslik, sortOrder: data.sort_order }
+  },
+  async updateChecklistItemOrder(itemId, sortOrder) {
+    await run(client().from('onboarding_checklist_items').update({ sort_order: sortOrder }).eq('id', itemId))
+    return { itemId, sortOrder }
+  },
 }
 
 // --- Call logs (Operasyon) ---------------------------------------------------
