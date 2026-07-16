@@ -2,29 +2,45 @@ import { useMemo, useState } from 'react'
 import { CalendarDays, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { MOCK_EVENTS, MOCK_ATTENDANCE } from '../data/mockCalendarEvents'
+import { useKnownUsers } from '../context/UsersContext'
+import { useAsyncList } from '../hooks/useAsyncList'
+import { calendarEvents as calendarProvider } from '../lib/dataProvider'
 import { canViewEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '../lib/calendar'
-import { KNOWN_USERS, userName } from '../lib/knownUsers'
 import EventCalendar from '../components/calendar/EventCalendar'
 import EventDetailModal from '../components/calendar/EventDetailModal'
 import NewEventModal from '../components/calendar/NewEventModal'
-import { mutate } from '../lib/api'
+import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 // calendar_events_manage RLS kuralıyla aynı: broker/owner/ofis oluşturur ve
 // başkalarının katılımını işaretler; danışman sadece kendi durumunu günceller.
 const CAN_MANAGE_ROLES = ['broker', 'owner', 'ofis']
 
+// Yükleme bitmeden önce data null olur — useMemo bağımlılıklarının her
+// render'da referans değiştirmemesi için sabit, boş bir dizi kullanılır
+// (her seferinde yeni `[]` yerine).
+const EMPTY = []
+
 export default function Takvim() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
-  const [events, setEvents] = useState(MOCK_EVENTS)
-  const [attendance, setAttendance] = useState(MOCK_ATTENDANCE)
+  const { knownUsers } = useKnownUsers()
+  const { data, setData, loading, error, reload } = useAsyncList(
+    () => Promise.all([calendarProvider.list(), calendarProvider.listAttendance()]).then(([events, attendance]) => ({
+      events,
+      attendance,
+    })),
+    [],
+  )
   const [typeFilter, setTypeFilter] = useState('tumu')
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
+  const events = data?.events ?? EMPTY
+  const attendance = data?.attendance ?? EMPTY
+
+  const userName = (id) => knownUsers[id]?.name ?? '—'
 
   const visible = useMemo(() => {
     return events
@@ -36,8 +52,13 @@ export default function Takvim() {
 
   async function updateAttendance(eventId, userId, status) {
     try {
-      await mutate('event_attendance.update', { eventId, userId, status })
-      setAttendance((prev) => prev.map((a) => (a.eventId === eventId && a.userId === userId ? { ...a, status } : a)))
+      const updated = await calendarProvider.updateAttendance(eventId, userId, status)
+      setData((prev) => ({
+        ...prev,
+        attendance: prev.attendance.map((a) =>
+          a.eventId === updated.eventId && a.userId === updated.userId ? updated : a,
+        ),
+      }))
       return true
     } catch (err) {
       showToast(err.message ?? 'Katılım durumu güncellenemedi, tekrar dene.', 'error')
@@ -57,29 +78,16 @@ export default function Takvim() {
   async function handleCreate(form) {
     setSubmitting(true)
     try {
-      const startAt = new Date(`${form.date}T${form.startTime}`).toISOString()
-      const endAt = form.endTime ? new Date(`${form.date}T${form.endTime}`).toISOString() : null
-      const id = `ev-${Date.now()}`
-
-      await mutate('calendar_events.create', { ...form, startAt, endAt })
-
-      setEvents((prev) => [
-        {
-          id,
-          type: form.type,
-          title: form.title,
-          description: form.description,
-          location: form.location,
-          startAt,
-          endAt,
-          creatorId: user.id,
-        },
-        ...prev,
-      ])
-      setAttendance((prev) => [
-        ...prev,
-        ...form.inviteeIds.map((userId) => ({ eventId: id, userId, status: 'davetli' })),
-      ])
+      const created = await calendarProvider.create(form, user.id)
+      const newAttendance = (form.inviteeIds ?? []).map((userId) => ({
+        eventId: created.id,
+        userId,
+        status: 'davetli',
+      }))
+      setData((prev) => ({
+        events: [created, ...prev.events],
+        attendance: [...prev.attendance, ...newAttendance],
+      }))
       setShowModal(false)
       showToast('Etkinlik oluşturuldu.', 'success')
     } catch (err) {
@@ -115,31 +123,38 @@ export default function Takvim() {
         )}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-1.5">
-        <button
-          onClick={() => setTypeFilter('tumu')}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            typeFilter === 'tumu' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-          }`}
-        >
-          Tümü
-        </button>
-        {Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTypeFilter(key)}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-              typeFilter === key ? 'text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-            }`}
-            style={typeFilter === key ? { backgroundColor: EVENT_TYPE_COLORS[key] } : undefined}
-          >
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: EVENT_TYPE_COLORS[key] }} />
-            {label}
-          </button>
-        ))}
-      </div>
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      <EventCalendar events={visible} onEventClick={setSelectedEventId} />
+      {!loading && !error && (
+        <>
+          <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => setTypeFilter('tumu')}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                typeFilter === 'tumu' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+              }`}
+            >
+              Tümü
+            </button>
+            {Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setTypeFilter(key)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  typeFilter === key ? 'text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                }`}
+                style={typeFilter === key ? { backgroundColor: EVENT_TYPE_COLORS[key] } : undefined}
+              >
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: EVENT_TYPE_COLORS[key] }} />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <EventCalendar events={visible} onEventClick={setSelectedEventId} />
+        </>
+      )}
 
       {selectedEvent && (
         <EventDetailModal
@@ -159,7 +174,7 @@ export default function Takvim() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
-          inviteeOptions={Object.values(KNOWN_USERS).filter((u) => u.id !== user.id)}
+          inviteeOptions={Object.values(knownUsers).filter((u) => u.id !== user.id)}
         />
       )}
     </div>

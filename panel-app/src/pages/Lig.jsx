@@ -1,15 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Trophy } from 'lucide-react'
-import { MOCK_PERIOD, MOCK_SCORES } from '../data/mockLeague'
+import { useKnownUsers } from '../context/UsersContext'
+import { useAsyncList } from '../hooks/useAsyncList'
+import { league as leagueProvider } from '../lib/dataProvider'
 import { LEAGUE_CATEGORIES, rankingsFor } from '../lib/league'
-import { userName } from '../lib/knownUsers'
 import LeagueBoard from '../components/league/LeagueBoard'
+import { LoadingState, ErrorState } from '../components/common/AsyncState'
+
+async function loadAll() {
+  const [period, scores] = await Promise.all([leagueProvider.getPeriod(), leagueProvider.listScores()])
+  return { period, scores }
+}
 
 export default function Lig() {
+  const { knownUsers } = useKnownUsers()
+  const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const [tab, setTab] = useState(LEAGUE_CATEGORIES[0].key)
   const category = LEAGUE_CATEGORIES.find((c) => c.key === tab)
+  const userName = useCallback((id) => knownUsers[id]?.name ?? '—', [knownUsers])
 
-  const rankings = useMemo(() => rankingsFor(tab, MOCK_SCORES, userName), [tab])
+  const rankings = useMemo(() => rankingsFor(tab, data?.scores ?? [], userName), [tab, data, userName])
 
   return (
     <div>
@@ -19,7 +29,7 @@ export default function Lig() {
         </div>
         <div>
           <h1 className="text-base font-semibold text-ink-900">Lig</h1>
-          <p className="text-xs text-ink-400">{MOCK_PERIOD.ad}</p>
+          <p className="text-xs text-ink-400">{data?.period?.ad ?? (loading ? 'Yükleniyor...' : '')}</p>
         </div>
       </div>
 
@@ -37,7 +47,9 @@ export default function Lig() {
         ))}
       </div>
 
-      <LeagueBoard rankings={rankings} unit={category.unit} />
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
+      {!loading && !error && <LeagueBoard rankings={rankings} unit={category.unit} />}
     </div>
   )
 }

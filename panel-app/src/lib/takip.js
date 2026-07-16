@@ -1,7 +1,3 @@
-import { MOCK_MODULES, MOCK_PROGRESS } from '../data/mockEducation'
-import { MOCK_EVENTS, MOCK_ATTENDANCE } from '../data/mockCalendarEvents'
-import { MOCK_CALLS } from '../data/mockCallLogs'
-import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW } from '../data/mockTakip'
 import { moduleProgressFor } from './education'
 import { isPastEvent } from './calendar'
 
@@ -15,10 +11,14 @@ const WEIGHTS = {
   customerReview: 0.1,
 }
 
-export function meetingAttendPercent(userId) {
-  const resolved = MOCK_ATTENDANCE.filter((a) => {
+// NOT (PART-5A): Bu dosya artık mock veriyi doğrudan import ETMİYOR — tüm
+// girdiler parametre olarak alınıyor. Böylece dataProvider hangi kaynaktan
+// (mock/supabase) beslenirse beslensin bu fonksiyonlar aynı şekilde çalışır;
+// çağıran taraf (Takip.jsx) veriyi dataProvider'dan yükleyip buraya geçirir.
+export function meetingAttendPercent(userId, events, attendance) {
+  const resolved = attendance.filter((a) => {
     if (a.userId !== userId) return false
-    const event = MOCK_EVENTS.find((e) => e.id === a.eventId)
+    const event = events.find((e) => e.id === a.eventId)
     return event && isPastEvent(event) && (a.status === 'katildi' || a.status === 'katilmadi')
   })
   if (resolved.length === 0) return null
@@ -26,19 +26,19 @@ export function meetingAttendPercent(userId) {
   return Math.round((attended / resolved.length) * 100)
 }
 
-export function leadResponsePercent(userId) {
-  const assigned = MOCK_CALLS.filter((c) => c.assignedTo === userId)
+export function leadResponsePercent(userId, calls) {
+  const assigned = calls.filter((c) => c.assignedTo === userId)
   if (assigned.length === 0) return null
   const responded = assigned.filter((c) => c.donusYapildiMi).length
   return Math.round((responded / assigned.length) * 100)
 }
 
-export function computeHealthScore(userId) {
-  const educationPercent = moduleProgressFor(userId, MOCK_MODULES, MOCK_PROGRESS).percent
-  const meetingPercent = meetingAttendPercent(userId)
-  const leadPercent = leadResponsePercent(userId)
-  const portalUsagePercent = MOCK_PORTAL_USAGE[userId] ?? null
-  const customerReviewPercent = MOCK_CUSTOMER_REVIEW[userId] ?? null
+export function computeHealthScore(userId, { modules, progress, events, attendance, calls, portalUsage, customerReview }) {
+  const educationPercent = moduleProgressFor(userId, modules, progress).percent
+  const meetingPercent = meetingAttendPercent(userId, events, attendance)
+  const leadPercent = leadResponsePercent(userId, calls)
+  const portalUsagePercent = portalUsage[userId] ?? null
+  const customerReviewPercent = customerReview[userId] ?? null
 
   // Veri yoksa o bileşen için nötr (100) varsayılır — yeni katılan birini
   // haksız yere düşük skorla cezalandırmamak için.
