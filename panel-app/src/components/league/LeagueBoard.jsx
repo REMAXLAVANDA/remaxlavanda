@@ -1,7 +1,5 @@
 import { Crown } from 'lucide-react'
-import { formatDiff } from '../../lib/league'
-
-const MEDALS = ['🥇', '🥈', '🥉']
+import { MEDALS, formatDiff } from '../../lib/league'
 
 export default function LeagueBoard({ rankings, unit }) {
   if (rankings.length === 0) {

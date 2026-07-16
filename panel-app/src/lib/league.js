@@ -1,5 +1,7 @@
 import { ROLES } from './roles'
 
+export const MEDALS = ['🥇', '🥈', '🥉']
+
 export const LEAGUE_CATEGORIES = [
   { key: 'ciro', label: 'Ciro', unit: 'tl' },
   { key: 'memnuniyet', label: 'Memnuniyet', unit: 'puan' },

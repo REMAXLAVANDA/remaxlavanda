@@ -7,6 +7,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { league as leagueProvider } from '../lib/dataProvider'
 import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor } from '../lib/league'
 import LeagueBoard from '../components/league/LeagueBoard'
+import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import AddScoreModal from '../components/league/AddScoreModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -42,7 +43,15 @@ export default function Lig() {
     [data, periodId],
   )
 
-  const rankings = useMemo(() => rankingsFor(tab, periodScores, userName), [tab, periodScores, userName])
+  // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
+  // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
+  const rankingsByCategory = useMemo(() => {
+    const map = {}
+    for (const c of LEAGUE_CATEGORIES) map[c.key] = rankingsFor(c.key, periodScores, userName)
+    return map
+  }, [periodScores, userName])
+
+  const rankings = rankingsByCategory[tab] ?? []
   const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
 
   async function handleAddScore(form) {
@@ -79,7 +88,7 @@ export default function Lig() {
     const summaries = LEAGUE_CATEGORIES.map((c) => ({
       label: c.label,
       unit: c.unit,
-      rankings: rankingsFor(c.key, periodScores, userName),
+      rankings: rankingsByCategory[c.key] ?? [],
     }))
     const text = buildShareText(period.ad, summaries)
     navigator.clipboard
@@ -142,7 +151,13 @@ export default function Lig() {
         </div>
       </div>
 
-      <div className="my-5 flex gap-1 border-b border-ink-100">
+      {!loading && !error && period && (
+        <div className="mt-5">
+          <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
+        </div>
+      )}
+
+      <div className="mb-5 flex gap-1 border-b border-ink-100">
         {LEAGUE_CATEGORIES.map((c) => (
           <button
             key={c.key}
