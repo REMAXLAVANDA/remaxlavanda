@@ -45,7 +45,9 @@ export default function OpportunitySection({
                     isActive ? 'border-brand-400 bg-brand-50' : 'border-ink-100 bg-white hover:border-brand-200'
                   }`}
                 >
-                  <p className="text-xs font-medium text-ink-400">{b.categoryLabel}</p>
+                  <p className={`text-base font-bold ${isActive ? 'text-brand-700' : 'text-ink-700'}`}>
+                    {b.categoryLabel}
+                  </p>
                   <p className="mt-1 text-2xl font-semibold text-ink-900">{b.total}</p>
                   {b.today > 0 && <p className="mt-0.5 text-xs font-medium text-emerald-600">Bugün +{b.today}</p>}
                 </button>
