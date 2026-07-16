@@ -13,7 +13,7 @@ import StatsCards from '../components/operasyon/StatsCards'
 import NewCallModal from '../components/operasyon/NewCallModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '30g', customFrom: '', customTo: '' }
+const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
 
 export default function Operasyon() {
   const { user, role } = useAuth()
@@ -126,7 +126,7 @@ export default function Operasyon() {
               Bu filtrelere uyan çağrı yok.
             </div>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-3">
               {visible.map((call) => (
                 <CallCard
                   key={call.id}
