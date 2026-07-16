@@ -1,0 +1,265 @@
+// Mock veri sağlayıcı — SADECE development'ta kullanılır (bkz. lib/env.js,
+// production build'de bu dosya hiç çağrılmaz). Arayüz supabaseProvider.js
+// ile birebir aynı: her fonksiyon aynı isim/parametre/dönüş şeklini taşır,
+// böylece sayfalar hangi provider'ın aktif olduğunu bilmek zorunda kalmaz.
+
+import { MOCK_OPPORTUNITIES } from '../../data/mockOpportunities'
+import { MOCK_EVENTS, MOCK_ATTENDANCE } from '../../data/mockCalendarEvents'
+import {
+  MOCK_MODULES,
+  MOCK_PROGRESS,
+  MOCK_BADGES,
+  MOCK_USER_BADGES,
+  MOCK_CHECKLIST_ITEMS,
+  MOCK_CHECKLIST_STATUS,
+} from '../../data/mockEducation'
+import { MOCK_CALLS } from '../../data/mockCallLogs'
+import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
+import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW, MOCK_BROKER_NOTES } from '../../data/mockTakip'
+import { MOCK_PERIOD, MOCK_SCORES } from '../../data/mockLeague'
+import { MOCK_USERS } from '../../context/AuthContext'
+import { OTHER_USERS } from '../../data/mockOpportunities'
+import { canRevealContact } from '../opportunities'
+
+const LATENCY_MS = 250
+const delay = (value, ms = LATENCY_MS) => new Promise((resolve) => setTimeout(() => resolve(value), ms))
+
+// --- Opportunities (Fırsatlar) ----------------------------------------------
+export const opportunities = {
+  // supabaseProvider.opportunities.list() lead_ad/lead_telefon'u SEÇMİYOR
+  // (network seviyesinde gizlilik). Mock'ta da aynı şekli vermezsek, sadece
+  // mock modda çalışan ama üretimde undefined dönecek bir "o.leadAd" okuması
+  // fark edilmeden yazılabilir. Bu yüzden burada da bilinçli olarak siliniyor
+  // — gerçek isim/telefon SADECE getContact() üzerinden (izin kontrolüyle)
+  // döner.
+  async list() {
+    return delay(MOCK_OPPORTUNITIES.map(({ leadAd: _leadAd, leadTelefon: _leadTelefon, ...rest }) => ({ ...rest })))
+  },
+  async create(payload, ownerId) {
+    const row = {
+      id: `opp-${Date.now()}`,
+      ...payload,
+      status: 'acik',
+      ownerId,
+      claimerId: null,
+      claimedAt: null,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_OPPORTUNITIES.unshift(row)
+    // supabaseProvider.create() da insert sonucunu mapOpportunity() ile
+    // döndürür — leadAd/leadTelefon orada da dönmez (bkz. list() notu).
+    // Kayıt sahibi kendi girdiği bilgiyi zaten formda görmüştü; liste
+    // state'inde tutmuyoruz ki iki sağlayıcı arasında şekil farkı olmasın.
+    const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
+    return delay(publicRow)
+  },
+  async claim(id, userId) {
+    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
+    if (!row || row.claimerId || row.status !== 'acik') {
+      throw new Error('Bu fırsat artık uygun değil (zaten alınmış olabilir).')
+    }
+    row.claimerId = userId
+    row.claimedAt = new Date().toISOString()
+    row.status = 'claimed'
+    // claim_opportunity() RPC de aynı şekilde leadAd/leadTelefon'suz döner.
+    const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
+    return delay(publicRow)
+  },
+  // supabaseProvider.opportunities.getContact() ile birebir aynı davranış:
+  // izinli değilse leadAd/leadTelefon null döner — mock modunda da UI'ın
+  // "gerçek network sınırı varmış gibi" test edilebilmesi için.
+  async getContact(id, user) {
+    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
+    if (!row) return delay({ leadAd: null, leadTelefon: null })
+    if (canRevealContact(row, user)) {
+      return delay({ leadAd: row.leadAd, leadTelefon: row.leadTelefon })
+    }
+    return delay({ leadAd: null, leadTelefon: null })
+  },
+}
+
+// --- Calendar events + attendance (Takvim) ----------------------------------
+export const calendarEvents = {
+  async list() {
+    return delay([...MOCK_EVENTS])
+  },
+  async listAttendance() {
+    return delay([...MOCK_ATTENDANCE])
+  },
+  async create(form, creatorId) {
+    const startAt = new Date(`${form.date}T${form.startTime}`).toISOString()
+    const endAt = form.endTime ? new Date(`${form.date}T${form.endTime}`).toISOString() : null
+    const row = {
+      id: `ev-${Date.now()}`,
+      type: form.type,
+      title: form.title,
+      description: form.description || null,
+      location: form.location || null,
+      startAt,
+      endAt,
+      creatorId,
+    }
+    MOCK_EVENTS.push(row)
+    if (form.inviteeIds?.length) {
+      for (const userId of form.inviteeIds) {
+        MOCK_ATTENDANCE.push({ eventId: row.id, userId, status: 'davetli' })
+      }
+    }
+    return delay(row)
+  },
+  async updateAttendance(eventId, userId, status) {
+    const row = MOCK_ATTENDANCE.find((a) => a.eventId === eventId && a.userId === userId)
+    if (!row) throw new Error('Katılım kaydı bulunamadı.')
+    row.status = status
+    row.respondedAt = new Date().toISOString()
+    // supabaseProvider.mapAttendance() sadece {eventId,userId,status} döner —
+    // aynı şekli koruyoruz ki iki sağlayıcı arasında fark olmasın.
+    return delay({ eventId: row.eventId, userId: row.userId, status: row.status })
+  },
+}
+
+// --- Education (Eğitim) ------------------------------------------------------
+export const education = {
+  async listModules() {
+    return delay([...MOCK_MODULES])
+  },
+  async listProgress() {
+    return delay([...MOCK_PROGRESS])
+  },
+  async listBadges() {
+    return delay([...MOCK_BADGES])
+  },
+  async listUserBadges() {
+    return delay([...MOCK_USER_BADGES])
+  },
+  async listChecklistItems() {
+    return delay([...MOCK_CHECKLIST_ITEMS])
+  },
+  async listChecklistStatus() {
+    return delay([...MOCK_CHECKLIST_STATUS])
+  },
+  async toggleModuleProgress(moduleId, userId, done) {
+    const idx = MOCK_PROGRESS.findIndex((p) => p.moduleId === moduleId && p.userId === userId)
+    if (done && idx === -1) {
+      MOCK_PROGRESS.push({ moduleId, userId, doneAt: new Date().toISOString() })
+    } else if (!done && idx !== -1) {
+      MOCK_PROGRESS.splice(idx, 1)
+    }
+    return delay({ moduleId, userId, done })
+  },
+  async toggleChecklistItem(itemId, userId, done, doneBy) {
+    const idx = MOCK_CHECKLIST_STATUS.findIndex((s) => s.itemId === itemId && s.userId === userId)
+    if (done && idx === -1) {
+      MOCK_CHECKLIST_STATUS.push({ itemId, userId, doneAt: new Date().toISOString(), doneBy })
+    } else if (!done && idx !== -1) {
+      MOCK_CHECKLIST_STATUS.splice(idx, 1)
+    }
+    return delay({ itemId, userId, done })
+  },
+  async awardBadge(userId, badgeId) {
+    const row = { userId, badgeId, earnedAt: new Date().toISOString() }
+    MOCK_USER_BADGES.push(row)
+    return delay(row)
+  },
+}
+
+// --- Call logs (Operasyon) ---------------------------------------------------
+export const callLogs = {
+  async list() {
+    return delay([...MOCK_CALLS])
+  },
+  async create(form) {
+    const row = {
+      id: `call-${Date.now()}`,
+      kaynak: form.kaynak,
+      arayanAd: form.arayanAd,
+      arayanTelefon: form.arayanTelefon || null,
+      assignedTo: form.assignedTo || null,
+      sonuc: null,
+      portfoyAlindiMi: false,
+      donusYapildiMi: false,
+      donusAt: null,
+      opportunityId: null,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_CALLS.unshift(row)
+    return delay(row)
+  },
+  async update(id, patch) {
+    const row = MOCK_CALLS.find((c) => c.id === id)
+    if (!row) throw new Error('Çağrı kaydı bulunamadı.')
+    Object.assign(row, patch)
+    return delay({ ...row })
+  },
+}
+
+// --- Docs (Rehber) ------------------------------------------------------------
+export const docs = {
+  async listDocs() {
+    return delay([...MOCK_DOCS])
+  },
+  async listVersions() {
+    return delay([...MOCK_DOC_VERSIONS])
+  },
+  async upload({ categoryKey, docId, baslik, filename, storagePath }, userId) {
+    let targetDocId = docId
+    if (!targetDocId) {
+      targetDocId = `doc-${Date.now()}`
+      MOCK_DOCS.push({ id: targetDocId, categoryKey, baslik, createdBy: userId })
+    }
+    const existing = MOCK_DOC_VERSIONS.filter((v) => v.docId === targetDocId)
+    for (const v of existing) v.isCurrent = false
+    const versionNo = existing.length === 0 ? 1 : Math.max(...existing.map((v) => v.versionNo)) + 1
+    const versionRow = {
+      id: `v-${Date.now()}`,
+      docId: targetDocId,
+      versionNo,
+      filename,
+      url: storagePath ?? '#',
+      isCurrent: true,
+      uploadedBy: userId,
+      uploadedAt: new Date().toISOString(),
+    }
+    MOCK_DOC_VERSIONS.push(versionRow)
+    return delay({ docId: targetDocId, version: versionRow })
+  },
+}
+
+// --- Takip (360° sağlık skoru) -----------------------------------------------
+// portal_usage / customer_review şemada henüz bir tabloya karşılık gelmiyor
+// (bkz. supabaseProvider.js aynı bölümdeki not) — ikisi de burada sabit mock
+// değer olarak tutuluyor; broker_notes de aynı sebeple henüz mock.
+export const takip = {
+  async listUsage() {
+    return delay({ ...MOCK_PORTAL_USAGE })
+  },
+  async listReviews() {
+    return delay({ ...MOCK_CUSTOMER_REVIEW })
+  },
+  async listBrokerNotes() {
+    return delay({ ...MOCK_BROKER_NOTES })
+  },
+}
+
+// --- League (Lig) --------------------------------------------------------------
+export const league = {
+  async getPeriod() {
+    return delay({ ...MOCK_PERIOD })
+  },
+  async listScores() {
+    return delay([...MOCK_SCORES])
+  },
+}
+
+// --- Users -------------------------------------------------------------------
+export const users = {
+  // supabaseProvider.users.listKnown() sadece durum='aktif' kullanıcıları
+  // döner — mock tarafında da aynı davranışı simüle ediyoruz (MOCK_USERS +
+  // OTHER_USERS zaten hepsi "aktif" varsayılan mock kullanıcılar).
+  async listKnown() {
+    const map = {}
+    for (const u of Object.values(MOCK_USERS)) map[u.id] = { id: u.id, name: u.name, role: u.role }
+    for (const u of Object.values(OTHER_USERS)) map[u.id] = { id: u.id, name: u.name, role: u.role ?? 'danisman' }
+    return delay(map)
+  },
+}

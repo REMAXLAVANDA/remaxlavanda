@@ -2,3 +2,9 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Gerçek Supabase bağlantı bilgileri — asla commit edilmez.
+# .env.example repoda kalır, gerçek değerler sadece yerelde .env içinde olur.
+.env
+.env.local
+.env.*.local

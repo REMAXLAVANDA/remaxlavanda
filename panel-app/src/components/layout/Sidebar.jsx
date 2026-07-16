@@ -8,8 +8,8 @@ export default function Sidebar({ open, onNavigate }) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 w-64 shrink-0 border-r border-ink-100 bg-white
-        transition-transform duration-200 lg:static lg:translate-x-0
+      className={`fixed inset-y-0 left-0 z-30 w-64 shrink-0 overflow-y-auto border-r border-ink-100 bg-white
+        transition-transform duration-200 lg:static lg:h-screen lg:translate-x-0
         ${open ? 'translate-x-0' : '-translate-x-full'}`}
     >
       <div className="flex h-16 items-center gap-2 px-6">
