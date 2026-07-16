@@ -36,7 +36,10 @@ export default function Operasyon() {
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
       .filter((c) => !filters.search.trim() || c.arayanAd.toLowerCase().includes(filters.search.trim().toLowerCase()))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .sort((a, b) => {
+        if (a.donusYapildiMi !== b.donusYapildiMi) return a.donusYapildiMi ? 1 : -1
+        return new Date(b.createdAt) - new Date(a.createdAt)
+      })
   }, [calls, user, filters])
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
@@ -89,8 +92,10 @@ export default function Operasyon() {
             <Wrench size={20} />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-ink-900">Operasyon</h1>
-            <p className="text-xs text-ink-400">Sponsorlu reklam ve çağrı kayıtları</p>
+            <h1 className="text-base font-semibold text-ink-900">{isManager ? 'Operasyon' : 'Sana Atanan Çağrılar'}</h1>
+            <p className="text-xs text-ink-400">
+              {isManager ? 'Sponsorlu reklam ve çağrı kayıtları' : 'Santralden sana yönlendirilen çağrılar'}
+            </p>
           </div>
         </div>
         {isManager && (
