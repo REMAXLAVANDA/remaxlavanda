@@ -1,6 +1,6 @@
 import { ROLES } from './roles'
 
-export const CALL_SOURCES = ['Santral', 'Facebook Reklam', 'Google Ads', 'Instagram', 'Web Sitesi', 'Diğer']
+export const CALL_SOURCES = ['Santral', 'Sponsorlu', 'Facebook Reklam', 'Google Ads', 'Instagram', 'Web Sitesi', 'Diğer']
 
 export const CALL_RESULT_LABELS = {
   ulasildi: 'Ulaşıldı',

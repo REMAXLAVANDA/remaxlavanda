@@ -233,6 +233,7 @@ function mapCallLog(row) {
     donusYapildiMi: row.donus_yapildi_mi,
     donusAt: row.donus_at,
     opportunityId: row.opportunity_id,
+    notlar: row.notlar,
     createdAt: row.created_at,
   }
 }

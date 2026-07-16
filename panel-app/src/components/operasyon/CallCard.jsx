@@ -59,6 +59,8 @@ export default function CallCard({ call, assignedName, isManager, inviteeOptions
         </span>
       </div>
 
+      {call.notlar && <p className="mt-3 whitespace-pre-line text-xs text-ink-500">{call.notlar}</p>}
+
       <div className="mt-4 border-t border-ink-50 pt-3">
         {isManager ? (
           <div className="flex flex-wrap items-center gap-2">
