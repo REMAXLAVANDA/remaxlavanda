@@ -323,14 +323,47 @@ export const league = {
 }
 
 // --- Users -------------------------------------------------------------------
+// Ayarlar > Kullanıcılar'dan mock modda eklenen/düzenlenen kullanıcılar —
+// MOCK_USERS/OTHER_USERS sabit dev hesapları olduğu için ayrı tutuluyor.
+const MOCK_EXTRA_USERS = []
+
+function allMockUserRows() {
+  return [
+    ...Object.values(MOCK_USERS).map((u) => ({ id: u.id, name: u.name, email: `${u.id}@lavanda.dev`, role: u.role, durum: u.durum ?? 'aktif' })),
+    ...Object.values(OTHER_USERS).map((u) => ({ id: u.id, name: u.name, email: `${u.id}@lavanda.dev`, role: u.role ?? 'danisman', durum: u.durum ?? 'aktif' })),
+    ...MOCK_EXTRA_USERS,
+  ]
+}
+
 export const users = {
   // supabaseProvider.users.listKnown() sadece durum='aktif' kullanıcıları
   // döner — mock tarafında da aynı davranışı simüle ediyoruz (MOCK_USERS +
   // OTHER_USERS zaten hepsi "aktif" varsayılan mock kullanıcılar).
   async listKnown() {
     const map = {}
-    for (const u of Object.values(MOCK_USERS)) map[u.id] = { id: u.id, name: u.name, role: u.role }
-    for (const u of Object.values(OTHER_USERS)) map[u.id] = { id: u.id, name: u.name, role: u.role ?? 'danisman' }
+    for (const u of allMockUserRows()) {
+      if (u.durum === 'aktif') map[u.id] = { id: u.id, name: u.name, role: u.role }
+    }
     return delay(map)
+  },
+  async listAll() {
+    return delay(allMockUserRows())
+  },
+  async updateUser(id, patch) {
+    const target =
+      Object.values(MOCK_USERS).find((u) => u.id === id) ??
+      Object.values(OTHER_USERS).find((u) => u.id === id) ??
+      MOCK_EXTRA_USERS.find((u) => u.id === id)
+    if (target) {
+      if ('name' in patch) target.name = patch.name
+      if ('role' in patch) target.role = patch.role
+      if ('durum' in patch) target.durum = patch.durum
+    }
+    return delay({ id, ...patch })
+  },
+  async createUser({ ad, email, password: _password, rol }) {
+    const created = { id: `mock-user-${Date.now()}`, name: ad, email, role: rol, durum: 'aktif' }
+    MOCK_EXTRA_USERS.push(created)
+    return delay({ ...created })
   },
 }

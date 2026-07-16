@@ -550,4 +550,33 @@ export const users = {
     for (const u of data) map[u.id] = { id: u.id, name: u.ad, role: u.rol }
     return map
   },
+  // Ayarlar > Kullanıcılar: pasif olanlar dahil HERKESİ listeler (yönetim
+  // amaçlı) — users_select_all RLS'i is_active() ile sadece çağıranın
+  // kendisinin aktif olmasını şart koşuyor, hedef satırın durumunu değil.
+  async listAll() {
+    const data = await run(client().from('users').select('id, ad, email, rol, durum').order('ad'))
+    return data.map((u) => ({ id: u.id, name: u.ad, email: u.email, role: u.rol, durum: u.durum }))
+  },
+  // users_update_self_or_broker RLS'i sadece broker/owner'a (veya kendi
+  // satırına) izin veriyor.
+  async updateUser(id, patch) {
+    const dbPatch = {}
+    if ('name' in patch) dbPatch.ad = patch.name
+    if ('role' in patch) dbPatch.rol = patch.role
+    if ('durum' in patch) dbPatch.durum = patch.durum
+    await run(client().from('users').update(dbPatch).eq('id', id))
+    return { id, ...patch }
+  },
+  // Gerçek auth hesabı oluşturmak service_role gerektirir — bu yüzden
+  // tarayıcıdan doğrudan değil, create-user Edge Function'ı üzerinden
+  // gidiyor (bkz. supabase/functions/create-user). Fonksiyon çağıranın
+  // gerçekten broker/owner olduğunu kendi içinde ayrıca doğruluyor.
+  async createUser({ ad, email, password, rol }) {
+    const { data, error } = await client().functions.invoke('create-user', {
+      body: { ad, email, password, rol },
+    })
+    if (error) throw new Error('Hesap oluşturulamadı, bağlantıyı kontrol edip tekrar dene.')
+    if (!data?.ok) throw new Error(data?.error ?? 'Hesap oluşturulamadı.')
+    return { id: data.user.id, name: data.user.ad, email: data.user.email, role: data.user.rol }
+  },
 }

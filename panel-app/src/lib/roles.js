@@ -18,6 +18,12 @@ export const ROLE_LABELS = {
 
 export const ROLE_ORDER = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.DANISMAN]
 
+// users_update_self_or_broker / create-user Edge Function ile aynı kural:
+// kullanıcı ekleme/düzenleme sadece broker ve owner'a açık.
+export function canManageUsers(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER
+}
+
 // Temel kural: Ofis rolü yalnızca veri girer; broker girmez, owner denetler.
 export const ROLE_RULES = {
   [ROLES.OFIS]: { canEnterData: true, canManage: false },
