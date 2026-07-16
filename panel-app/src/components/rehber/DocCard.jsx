@@ -18,11 +18,15 @@ export default function DocCard({ doc, current, history, onPreview, resolveName 
               v{current.versionNo} · {current.filename} · {resolveName(current.uploadedBy)} tarafından{' '}
               {relativeTime(current.uploadedAt)}
             </p>
-          ) : (
+          ) : doc.contentText ? null : (
             <p className="text-xs text-ink-400">Henüz dosya yüklenmedi</p>
           )}
         </div>
       </div>
+
+      {doc.contentText && (
+        <p className="mt-3 whitespace-pre-line rounded-xl bg-ink-50 p-3 text-sm text-ink-700">{doc.contentText}</p>
+      )}
 
       {current && (
         <div className="mt-3 flex flex-wrap items-center gap-2">

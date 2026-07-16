@@ -285,8 +285,16 @@ function mapDocVersion(v) {
 
 export const docs = {
   async listDocs() {
-    const data = await run(client().from('docs').select('id, baslik, created_by, created_at, categories(key)'))
-    return data.map((d) => ({ id: d.id, categoryKey: d.categories?.key, baslik: d.baslik, createdBy: d.created_by }))
+    const data = await run(
+      client().from('docs').select('id, baslik, content_text, created_by, created_at, categories(key)'),
+    )
+    return data.map((d) => ({
+      id: d.id,
+      categoryKey: d.categories?.key,
+      baslik: d.baslik,
+      contentText: d.content_text,
+      createdBy: d.created_by,
+    }))
   },
   async listVersions() {
     const data = await run(client().from('doc_versions').select('*'))
