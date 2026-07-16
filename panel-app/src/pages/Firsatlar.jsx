@@ -2,15 +2,16 @@ import { useMemo, useState } from 'react'
 import { Plus, Target } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { MOCK_OPPORTUNITIES } from '../data/mockOpportunities'
+import { useKnownUsers } from '../context/UsersContext'
+import { useAsyncList } from '../hooks/useAsyncList'
+import { opportunities as opportunitiesProvider } from '../lib/dataProvider'
 import { canViewOpportunity, computeBoxCounts, isWithinRange } from '../lib/opportunities'
-import { KNOWN_USERS } from '../lib/knownUsers'
 import OpportunitySection from '../components/opportunities/OpportunitySection'
 import OpportunityDetailModal from '../components/opportunities/OpportunityDetailModal'
 import OpportunityFilters from '../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../components/opportunities/NewOpportunityModal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
-import { mutate } from '../lib/api'
+import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const INITIAL_FILTERS = { search: '', dateRange: '30g', customFrom: '', customTo: '' }
 
@@ -20,7 +21,11 @@ const CAN_CREATE_ROLES = ['broker', 'owner', 'ofis']
 export default function Firsatlar() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
-  const [opportunities, setOpportunities] = useState(MOCK_OPPORTUNITIES)
+  const { knownUsers } = useKnownUsers()
+  const { data: opportunities, setData: setOpportunities, loading, error, reload } = useAsyncList(
+    () => opportunitiesProvider.list(),
+    [],
+  )
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [expanded, setExpanded] = useState({ satici: true, alici: true })
   const [activeCategory, setActiveCategory] = useState({ satici: null, alici: null })
@@ -31,7 +36,7 @@ export default function Firsatlar() {
   const [submitting, setSubmitting] = useState(false)
 
   const roleVisible = useMemo(
-    () => opportunities.filter((o) => canViewOpportunity(o, user)),
+    () => (opportunities ?? []).filter((o) => canViewOpportunity(o, user)),
     [opportunities, user],
   )
 
@@ -41,7 +46,7 @@ export default function Firsatlar() {
       .filter((o) => {
         if (!filters.search.trim()) return true
         const q = filters.search.trim().toLowerCase()
-        return o.leadAd.toLowerCase().includes(q) || o.konum.toLowerCase().includes(q)
+        return (o.konum ?? '').toLowerCase().includes(q)
       })
   }, [roleVisible, filters])
 
@@ -65,12 +70,8 @@ export default function Firsatlar() {
   async function performClaim(id) {
     setClaimingId(id)
     try {
-      await mutate('opportunities.claim', { id, userId: user.id })
-      setOpportunities((prev) =>
-        prev.map((o) =>
-          o.id === id ? { ...o, claimerId: user.id, claimedAt: new Date().toISOString(), status: 'claimed' } : o,
-        ),
-      )
+      const updated = await opportunitiesProvider.claim(id, user.id)
+      setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, ...updated } : o)))
       showToast('Fırsat danışmana bildirildi', 'success')
       setDetailOpp(null)
     } catch (err) {
@@ -85,19 +86,8 @@ export default function Firsatlar() {
     setSubmitting(true)
     try {
       const payload = { ...form, fiyat: form.fiyat ? Number(form.fiyat) : null }
-      await mutate('opportunities.create', payload)
-      setOpportunities((prev) => [
-        {
-          id: `opp-${Date.now()}`,
-          ...payload,
-          status: 'acik',
-          ownerId: user.id,
-          claimerId: null,
-          claimedAt: null,
-          createdAt: new Date().toISOString(),
-        },
-        ...prev,
-      ])
+      const created = await opportunitiesProvider.create(payload, user.id)
+      setOpportunities((prev) => [created, ...prev])
       setShowModal(false)
       showToast('Fırsat eklendi.', 'success')
     } catch (err) {
@@ -108,7 +98,7 @@ export default function Firsatlar() {
   }
 
   const canCreate = CAN_CREATE_ROLES.includes(role)
-  const confirmOpp = confirmClaimId ? opportunities.find((o) => o.id === confirmClaimId) : null
+  const confirmOpp = confirmClaimId ? (opportunities ?? []).find((o) => o.id === confirmClaimId) : null
 
   return (
     <div>
@@ -119,7 +109,7 @@ export default function Firsatlar() {
           </div>
           <div>
             <h1 className="text-base font-semibold text-ink-900">Fırsatlar</h1>
-            <p className="text-xs text-ink-400">{filtered.length} kayıt görünüyor</p>
+            <p className="text-xs text-ink-400">{loading ? 'Yükleniyor...' : `${filtered.length} kayıt görünüyor`}</p>
           </div>
         </div>
         {canCreate && (
@@ -132,41 +122,48 @@ export default function Firsatlar() {
         )}
       </div>
 
-      <div className="mb-5">
-        <OpportunityFilters filters={filters} onChange={setFilters} />
-      </div>
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      <div className="space-y-4">
-        <OpportunitySection
-          dotColor="bg-emerald-500"
-          label="🟢 Satıcılar"
-          total={satici.total}
-          expanded={expanded.satici}
-          onToggleExpanded={() => setExpanded((f) => ({ ...f, satici: !f.satici }))}
-          boxes={satici.typeBoxes}
-          activeCategory={satici.category}
-          onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, satici: category }))}
-          tableRows={satici.rows}
-          onRowClick={setDetailOpp}
-          onClaim={(opp) => setConfirmClaimId(opp.id)}
-          claimingId={claimingId}
-        />
+      {!loading && !error && (
+        <>
+          <div className="mb-5">
+            <OpportunityFilters filters={filters} onChange={setFilters} />
+          </div>
 
-        <OpportunitySection
-          dotColor="bg-blue-500"
-          label="🔵 Alıcılar"
-          total={alici.total}
-          expanded={expanded.alici}
-          onToggleExpanded={() => setExpanded((f) => ({ ...f, alici: !f.alici }))}
-          boxes={alici.typeBoxes}
-          activeCategory={alici.category}
-          onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, alici: category }))}
-          tableRows={alici.rows}
-          onRowClick={setDetailOpp}
-          onClaim={(opp) => setConfirmClaimId(opp.id)}
-          claimingId={claimingId}
-        />
-      </div>
+          <div className="space-y-4">
+            <OpportunitySection
+              dotColor="bg-emerald-500"
+              label="🟢 Satıcılar"
+              total={satici.total}
+              expanded={expanded.satici}
+              onToggleExpanded={() => setExpanded((f) => ({ ...f, satici: !f.satici }))}
+              boxes={satici.typeBoxes}
+              activeCategory={satici.category}
+              onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, satici: category }))}
+              tableRows={satici.rows}
+              onRowClick={setDetailOpp}
+              onClaim={(opp) => setConfirmClaimId(opp.id)}
+              claimingId={claimingId}
+            />
+
+            <OpportunitySection
+              dotColor="bg-blue-500"
+              label="🔵 Alıcılar"
+              total={alici.total}
+              expanded={expanded.alici}
+              onToggleExpanded={() => setExpanded((f) => ({ ...f, alici: !f.alici }))}
+              boxes={alici.typeBoxes}
+              activeCategory={alici.category}
+              onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, alici: category }))}
+              tableRows={alici.rows}
+              onRowClick={setDetailOpp}
+              onClaim={(opp) => setConfirmClaimId(opp.id)}
+              claimingId={claimingId}
+            />
+          </div>
+        </>
+      )}
 
       {showModal && (
         <NewOpportunityModal onClose={() => setShowModal(false)} onSubmit={handleCreate} submitting={submitting} />
@@ -176,8 +173,9 @@ export default function Firsatlar() {
         <OpportunityDetailModal
           opportunity={detailOpp}
           user={user}
-          ownerName={KNOWN_USERS[detailOpp.ownerId]?.name}
-          claimerName={KNOWN_USERS[detailOpp.claimerId]?.name}
+          ownerName={knownUsers[detailOpp.ownerId]?.name}
+          claimerName={knownUsers[detailOpp.claimerId]?.name}
+          fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           onClose={() => setDetailOpp(null)}
           onClaim={() => setConfirmClaimId(detailOpp.id)}
           claiming={claimingId === detailOpp.id}

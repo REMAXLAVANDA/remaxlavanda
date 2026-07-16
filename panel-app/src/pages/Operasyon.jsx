@@ -2,30 +2,36 @@ import { useMemo, useState } from 'react'
 import { Wrench, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { MOCK_CALLS } from '../data/mockCallLogs'
+import { useKnownUsers } from '../context/UsersContext'
+import { useAsyncList } from '../hooks/useAsyncList'
+import { callLogs as callLogsProvider } from '../lib/dataProvider'
 import { canManageCalls, canViewCall, computeCallStats } from '../lib/callLogs'
 import { isWithinRange } from '../lib/dateRange'
-import { KNOWN_USERS, userName } from '../lib/knownUsers'
 import CallCard from '../components/operasyon/CallCard'
 import CallFilters from '../components/operasyon/CallFilters'
 import StatsCards from '../components/operasyon/StatsCards'
 import NewCallModal from '../components/operasyon/NewCallModal'
-import { mutate } from '../lib/api'
+import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '30g', customFrom: '', customTo: '' }
 
 export default function Operasyon() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
-  const [calls, setCalls] = useState(MOCK_CALLS)
+  const { knownUsers } = useKnownUsers()
+  const { data: calls, setData: setCalls, loading, error, reload } = useAsyncList(
+    () => callLogsProvider.list(),
+    [],
+  )
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const isManager = canManageCalls(role)
+  const userName = (id) => knownUsers[id]?.name ?? '—'
 
   const visible = useMemo(() => {
-    return calls
+    return (calls ?? [])
       .filter((c) => canViewCall(c, user))
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
@@ -35,12 +41,12 @@ export default function Operasyon() {
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
 
-  const inviteeOptions = Object.values(KNOWN_USERS).filter((u) => !u.role || u.role === 'danisman')
+  const inviteeOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
 
   async function updateCall(id, patch) {
     try {
-      await mutate('call_logs.update', { id, ...patch })
-      setCalls((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+      const updated = await callLogsProvider.update(id, patch)
+      setCalls((prev) => prev.map((c) => (c.id === id ? updated : c)))
     } catch (err) {
       showToast(err.message ?? 'Çağrı güncellenemedi, tekrar dene.', 'error')
     }
@@ -55,7 +61,7 @@ export default function Operasyon() {
   }
 
   function handleToggle(id, field) {
-    const call = calls.find((c) => c.id === id)
+    const call = (calls ?? []).find((c) => c.id === id)
     const patch = { [field]: !call[field] }
     if (field === 'donusYapildiMi') patch.donusAt = patch.donusYapildiMi ? new Date().toISOString() : null
     updateCall(id, patch)
@@ -64,23 +70,8 @@ export default function Operasyon() {
   async function handleCreate(form) {
     setSubmitting(true)
     try {
-      await mutate('call_logs.create', form)
-      setCalls((prev) => [
-        {
-          id: `call-${Date.now()}`,
-          kaynak: form.kaynak,
-          arayanAd: form.arayanAd,
-          arayanTelefon: form.arayanTelefon,
-          assignedTo: form.assignedTo,
-          sonuc: null,
-          portfoyAlindiMi: false,
-          donusYapildiMi: false,
-          donusAt: null,
-          opportunityId: null,
-          createdAt: new Date().toISOString(),
-        },
-        ...prev,
-      ])
+      const created = await callLogsProvider.create(form)
+      setCalls((prev) => [created, ...prev])
       setShowModal(false)
       showToast('Çağrı kaydedildi.', 'success')
     } catch (err) {
@@ -112,33 +103,40 @@ export default function Operasyon() {
         )}
       </div>
 
-      <div className="mb-5">
-        <StatsCards stats={stats} />
-      </div>
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      <div className="mb-5">
-        <CallFilters filters={filters} onChange={setFilters} />
-      </div>
+      {!loading && !error && (
+        <>
+          <div className="mb-5">
+            <StatsCards stats={stats} />
+          </div>
 
-      {visible.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
-          Bu filtrelere uyan çağrı yok.
-        </div>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {visible.map((call) => (
-            <CallCard
-              key={call.id}
-              call={call}
-              assignedName={call.assignedTo ? userName(call.assignedTo) : null}
-              isManager={isManager}
-              inviteeOptions={inviteeOptions}
-              onAssign={(id) => handleAssign(call.id, id)}
-              onSetResult={(sonuc) => handleSetResult(call.id, sonuc)}
-              onToggle={(field) => handleToggle(call.id, field)}
-            />
-          ))}
-        </div>
+          <div className="mb-5">
+            <CallFilters filters={filters} onChange={setFilters} />
+          </div>
+
+          {visible.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
+              Bu filtrelere uyan çağrı yok.
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {visible.map((call) => (
+                <CallCard
+                  key={call.id}
+                  call={call}
+                  assignedName={call.assignedTo ? userName(call.assignedTo) : null}
+                  isManager={isManager}
+                  inviteeOptions={inviteeOptions}
+                  onAssign={(id) => handleAssign(call.id, id)}
+                  onSetResult={(sonuc) => handleSetResult(call.id, sonuc)}
+                  onToggle={(field) => handleToggle(call.id, field)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {showModal && (

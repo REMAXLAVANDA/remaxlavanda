@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Lock, MapPin, Phone, User } from 'lucide-react'
 import Modal from '../common/Modal'
 import { categoryLabel } from '../../lib/categories'
@@ -11,19 +12,57 @@ import {
   relativeTime,
 } from '../../lib/opportunities'
 
-// Gizlilik kuralı: isim/telefon SADECE canRevealContact(opp, user) true ise
-// gösterilir (broker/owner her zaman, diğerleri sadece owner_id/claimer_id
-// kendisiyse). Aksi halde kilitli placeholder gösterilir.
+// GÜVENLİK NOTU: Bu bileşen artık opportunity.leadAd/leadTelefon'a
+// GÜVENMİYOR — çünkü dataProvider.opportunities.list() bu alanları hiç
+// döndürmüyor (network seviyesinde gizlilik, bkz. supabaseProvider.js).
+// Gerçek isim/telefon SADECE bu modal açıldığında, ayrı bir çağrıyla
+// (fetchContact — supabase modunda get_opportunity_contact() RPC'si)
+// istenir; sunucu tarafı (RLS/SECURITY DEFINER) yetkisi olmayana zaten
+// null döner. Buradaki canRevealContact() kontrolü SADECE gereksiz network
+// isteğini önlemek için bir optimizasyondur — gerçek güvenlik sınırı
+// değildir, o sunucu tarafındadır.
 export default function OpportunityDetailModal({
   opportunity: opp,
   user,
   ownerName,
   claimerName,
+  fetchContact,
   onClose,
   onClaim,
   claiming,
 }) {
-  const canReveal = canRevealContact(opp, user)
+  const [contact, setContact] = useState(null)
+  const [loadingContact, setLoadingContact] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoadingContact(true)
+    setContact(null)
+
+    const canSkipNetwork = !canRevealContact(opp, user)
+    if (canSkipNetwork) {
+      setLoadingContact(false)
+      return
+    }
+
+    fetchContact()
+      .then((result) => {
+        if (!cancelled) setContact(result)
+      })
+      .catch(() => {
+        if (!cancelled) setContact({ leadAd: null, leadTelefon: null })
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingContact(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opp.id])
+
+  const hasContact = Boolean(contact?.leadAd)
   const showClaim = canClaim(opp)
 
   return (
@@ -51,14 +90,16 @@ export default function OpportunityDetailModal({
       </div>
 
       <div className="mt-4 rounded-xl border border-ink-100 bg-ink-50/60 p-4">
-        {canReveal ? (
+        {loadingContact ? (
+          <p className="text-xs text-ink-400">Yükleniyor...</p>
+        ) : hasContact ? (
           <div className="space-y-1.5 text-sm">
             <p className="flex items-center gap-2 font-medium text-ink-900">
-              <User size={14} className="text-ink-400" /> {opp.leadAd}
+              <User size={14} className="text-ink-400" /> {contact.leadAd}
             </p>
-            {opp.leadTelefon && (
-              <a href={`tel:${opp.leadTelefon}`} className="flex items-center gap-2 text-brand-700 hover:underline">
-                <Phone size={14} /> {opp.leadTelefon}
+            {contact.leadTelefon && (
+              <a href={`tel:${contact.leadTelefon}`} className="flex items-center gap-2 text-brand-700 hover:underline">
+                <Phone size={14} /> {contact.leadTelefon}
               </a>
             )}
           </div>

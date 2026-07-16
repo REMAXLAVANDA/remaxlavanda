@@ -2,27 +2,38 @@ import { useMemo, useState } from 'react'
 import { BookOpen, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../data/mockDocs'
+import { useKnownUsers } from '../context/UsersContext'
+import { useAsyncList } from '../hooks/useAsyncList'
+import { docs as docsProvider } from '../lib/dataProvider'
 import { DOC_CATEGORIES } from '../lib/categories'
-import { canManageDocs, currentVersion, nextVersionNo, versionsForDoc } from '../lib/docs'
-import { userName } from '../lib/knownUsers'
-import { mutate } from '../lib/api'
+import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
 import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
 import PreviewModal from '../components/rehber/PreviewModal'
 import UploadDocModal from '../components/rehber/UploadDocModal'
+import { LoadingState, ErrorState } from '../components/common/AsyncState'
+
+const EMPTY = []
+
+async function loadAll() {
+  const [docs, versions] = await Promise.all([docsProvider.listDocs(), docsProvider.listVersions()])
+  return { docs, versions }
+}
 
 export default function Rehber() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
-  const [docs, setDocs] = useState(MOCK_DOCS)
-  const [versions, setVersions] = useState(MOCK_DOC_VERSIONS)
+  const { knownUsers } = useKnownUsers()
+  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const [selectedCategory, setSelectedCategory] = useState(DOC_CATEGORIES[0].key)
   const [previewVersion, setPreviewVersion] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const canManage = canManageDocs(role)
+  const docs = data?.docs ?? EMPTY
+  const versions = data?.versions ?? EMPTY
+  const userName = (id) => knownUsers[id]?.name ?? '—'
 
   const docsInCategory = useMemo(
     () => docs.filter((d) => d.categoryKey === selectedCategory),
@@ -36,28 +47,17 @@ export default function Rehber() {
   async function handleUpload({ categoryKey, docId, baslik, filename }) {
     setSubmitting(true)
     try {
-      await mutate('docs.upload', { categoryKey, docId, baslik, filename })
+      const result = await docsProvider.upload({ categoryKey, docId, baslik, filename }, user.id)
 
-      let targetDocId = docId
-      if (!targetDocId) {
-        targetDocId = `doc-${Date.now()}`
-        setDocs((prev) => [...prev, { id: targetDocId, categoryKey, baslik, createdBy: user.id }])
-      }
-
-      const versionNo = nextVersionNo(targetDocId, versions)
-      setVersions((prev) => [
-        ...prev.map((v) => (v.docId === targetDocId ? { ...v, isCurrent: false } : v)),
-        {
-          id: `v-${Date.now()}`,
-          docId: targetDocId,
-          versionNo,
-          filename,
-          url: '#',
-          isCurrent: true,
-          uploadedBy: user.id,
-          uploadedAt: new Date().toISOString(),
-        },
-      ])
+      setData((prev) => ({
+        docs: docId
+          ? prev.docs
+          : [...prev.docs, { id: result.docId, categoryKey, baslik, createdBy: user.id }],
+        versions: [
+          ...prev.versions.map((v) => (v.docId === result.docId ? { ...v, isCurrent: false } : v)),
+          result.version,
+        ],
+      }))
       setSelectedCategory(categoryKey)
       setShowUpload(false)
       showToast('Dosya yüklendi.', 'success')
@@ -90,28 +90,33 @@ export default function Rehber() {
         )}
       </div>
 
-      <div className="grid gap-5 md:grid-cols-[200px_1fr]">
-        <FolderList selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-        <div className="space-y-3">
-          {docsInCategory.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
-              Bu klasörde henüz doküman yok.
-            </div>
-          ) : (
-            docsInCategory.map((doc) => (
-              <DocCard
-                key={doc.id}
-                doc={doc}
-                current={currentVersion(doc.id, versions)}
-                history={versionsForDoc(doc.id, versions)}
-                onPreview={setPreviewVersion}
-                resolveName={userName}
-              />
-            ))
-          )}
+      {!loading && !error && (
+        <div className="grid gap-5 md:grid-cols-[200px_1fr]">
+          <FolderList selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
+
+          <div className="space-y-3">
+            {docsInCategory.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
+                Bu klasörde henüz doküman yok.
+              </div>
+            ) : (
+              docsInCategory.map((doc) => (
+                <DocCard
+                  key={doc.id}
+                  doc={doc}
+                  current={currentVersion(doc.id, versions)}
+                  history={versionsForDoc(doc.id, versions)}
+                  onPreview={setPreviewVersion}
+                  resolveName={userName}
+                />
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {previewVersion && <PreviewModal version={previewVersion} onClose={() => setPreviewVersion(null)} />}
 
