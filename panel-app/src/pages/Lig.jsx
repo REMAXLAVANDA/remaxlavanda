@@ -1,18 +1,19 @@
-import { useCallback, useMemo, useState } from 'react'
-import { Trophy, Plus } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Trophy, Plus, Copy, CalendarPlus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { league as leagueProvider } from '../lib/dataProvider'
-import { LEAGUE_CATEGORIES, canManageScores, rankingsFor } from '../lib/league'
+import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor } from '../lib/league'
 import LeagueBoard from '../components/league/LeagueBoard'
 import AddScoreModal from '../components/league/AddScoreModal'
+import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 async function loadAll() {
-  const [period, scores] = await Promise.all([leagueProvider.getPeriod(), leagueProvider.listScores()])
-  return { period, scores }
+  const [periods, scores] = await Promise.all([leagueProvider.listPeriods(), leagueProvider.listScores()])
+  return { periods, scores }
 }
 
 export default function Lig() {
@@ -21,20 +22,34 @@ export default function Lig() {
   const { knownUsers } = useKnownUsers()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const [tab, setTab] = useState(LEAGUE_CATEGORIES[0].key)
-  const [showModal, setShowModal] = useState(false)
+  const [periodId, setPeriodId] = useState(null)
+  const [showScoreModal, setShowScoreModal] = useState(false)
+  const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const category = LEAGUE_CATEGORIES.find((c) => c.key === tab)
   const userName = useCallback((id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const isManager = canManageScores(role)
+  const isBroker = canManagePeriods(role)
 
-  const rankings = useMemo(() => rankingsFor(tab, data?.scores ?? [], userName), [tab, data, userName])
+  // Veri geldiğinde en güncel (en yeni başlangıçlı) dönem varsayılan seçili gelir.
+  useEffect(() => {
+    if (data?.periods?.length && !periodId) setPeriodId(data.periods[0].id)
+  }, [data, periodId])
+
+  const period = data?.periods?.find((p) => p.id === periodId)
+  const periodScores = useMemo(
+    () => (data?.scores ?? []).filter((s) => s.periodId === periodId),
+    [data, periodId],
+  )
+
+  const rankings = useMemo(() => rankingsFor(tab, periodScores, userName), [tab, periodScores, userName])
   const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
 
   async function handleAddScore(form) {
     setSubmitting(true)
     try {
-      await leagueProvider.addScore({ ...form, periodId: data.period.id }, user.id)
-      setShowModal(false)
+      await leagueProvider.addScore(form, user.id)
+      setShowScoreModal(false)
       showToast('Skor kaydedildi.', 'success')
       reload()
     } catch (err) {
@@ -44,26 +59,87 @@ export default function Lig() {
     }
   }
 
+  async function handleAddPeriod(form) {
+    setSubmitting(true)
+    try {
+      const created = await leagueProvider.createPeriod(form)
+      setShowPeriodModal(false)
+      setPeriodId(created.id)
+      showToast('Dönem oluşturuldu.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Dönem oluşturulamadı, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function handleCopySummary() {
+    if (!period) return
+    const summaries = LEAGUE_CATEGORIES.map((c) => ({
+      label: c.label,
+      unit: c.unit,
+      rankings: rankingsFor(c.key, periodScores, userName),
+    }))
+    const text = buildShareText(period.ad, summaries)
+    navigator.clipboard
+      .writeText(text)
+      .then(() => showToast('Özet panoya kopyalandı.', 'success'))
+      .catch(() => showToast('Kopyalanamadı, tarayıcı izni gerekebilir.', 'error'))
+  }
+
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
             <Trophy size={20} />
           </div>
           <div>
             <h1 className="text-base font-semibold text-ink-900">Lig</h1>
-            <p className="text-xs text-ink-400">{data?.period?.ad ?? (loading ? 'Yükleniyor...' : '')}</p>
+            {data?.periods?.length ? (
+              <select
+                value={periodId ?? ''}
+                onChange={(e) => setPeriodId(e.target.value)}
+                className="mt-0.5 rounded-md border border-transparent bg-transparent text-xs text-ink-400 hover:border-ink-200"
+              >
+                {data.periods.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.ad}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-ink-400">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
+            )}
           </div>
         </div>
-        {isManager && !loading && !error && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
-            <Plus size={16} /> Skor Gir
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {!loading && !error && period && (
+            <button
+              onClick={handleCopySummary}
+              className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
+            >
+              <Copy size={16} /> Kopyala
+            </button>
+          )}
+          {isBroker && !loading && (
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
+            >
+              <CalendarPlus size={16} /> Yeni Dönem
+            </button>
+          )}
+          {isManager && !loading && !error && period && (
+            <button
+              onClick={() => setShowScoreModal(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              <Plus size={16} /> Skor Gir
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="my-5 flex gap-1 border-b border-ink-100">
@@ -82,16 +158,25 @@ export default function Lig() {
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
-      {!loading && !error && <LeagueBoard rankings={rankings} unit={category.unit} />}
+      {!loading && !error && !period && (
+        <p className="py-8 text-center text-sm text-ink-400">
+          Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
+        </p>
+      )}
+      {!loading && !error && period && <LeagueBoard rankings={rankings} unit={category.unit} />}
 
-      {showModal && (
+      {showScoreModal && (
         <AddScoreModal
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowScoreModal(false)}
           onSubmit={handleAddScore}
           submitting={submitting}
           danismanOptions={danismanOptions}
           defaultType={tab}
         />
+      )}
+
+      {showPeriodModal && (
+        <NewPeriodModal onClose={() => setShowPeriodModal(false)} onSubmit={handleAddPeriod} submitting={submitting} />
       )}
     </div>
   )

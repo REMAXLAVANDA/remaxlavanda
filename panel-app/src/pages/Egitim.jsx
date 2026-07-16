@@ -6,11 +6,13 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { education as educationProvider } from '../lib/dataProvider'
 import { badgesFor, checklistFor, checklistProgress, isModuleDone, moduleProgressFor } from '../lib/education'
+import { isWithinRange } from '../lib/dateRange'
 import ModuleProgressList from '../components/education/ModuleProgressList'
 import BadgeGrid from '../components/education/BadgeGrid'
 import AwardBadgeModal from '../components/education/AwardBadgeModal'
 import ChecklistPanel from '../components/education/ChecklistPanel'
 import TeamProgressTable from '../components/education/TeamProgressTable'
+import DateRangeFilter from '../components/common/DateRangeFilter'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 // badges_manage / onboarding_status_manage RLS'te sadece broker/owner.
@@ -41,6 +43,7 @@ export default function Egitim() {
   const [checklistUserId, setChecklistUserId] = useState(user.id)
   const [showAwardModal, setShowAwardModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [moduleFilters, setModuleFilters] = useState({ dateRange: 'tumu', customFrom: '', customTo: '' })
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
 
@@ -53,7 +56,19 @@ export default function Egitim() {
 
   const teamMembers = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
 
-  const myModuleProgress = useMemo(() => moduleProgressFor(user.id, modules, progress), [modules, progress, user.id])
+  // Eğitim modülleri eklendikleri tarihe göre filtrelenebilir (ör. "sadece bu
+  // dönem eklenen eğitimler"). Varsayılan "tümü" — hiçbir modül sessizce
+  // gizlenmesin (Fırsatlar/Operasyon'da yaşanan 30 günlük varsayılan filtre
+  // sorununu burada tekrarlamamak için).
+  const filteredModules = useMemo(
+    () => modules.filter((m) => isWithinRange(m.createdAt, moduleFilters.dateRange, moduleFilters.customFrom, moduleFilters.customTo)),
+    [modules, moduleFilters],
+  )
+
+  const myModuleProgress = useMemo(
+    () => moduleProgressFor(user.id, filteredModules, progress),
+    [filteredModules, progress, user.id],
+  )
   const myBadges = useMemo(() => badgesFor(user.id, userBadges, badges), [userBadges, badges, user.id])
   const checklistEntries = useMemo(
     () => checklistFor(checklistUserId, checklistTip, checklistItems, checklistStatus),
@@ -63,7 +78,7 @@ export default function Egitim() {
   const teamRows = useMemo(() => {
     if (!isManager) return []
     return teamMembers.map((u) => {
-      const mp = moduleProgressFor(u.id, modules, progress)
+      const mp = moduleProgressFor(u.id, filteredModules, progress)
       const cp = checklistProgress(u.id, 'baslangic', checklistItems, checklistStatus)
       return {
         id: u.id,
@@ -74,7 +89,7 @@ export default function Egitim() {
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isManager, modules, progress, checklistItems, checklistStatus, userBadges, badges])
+  }, [isManager, filteredModules, progress, checklistItems, checklistStatus, userBadges, badges])
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
@@ -143,14 +158,25 @@ export default function Egitim() {
       {!loading && !error && (
         <>
           <section>
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-ink-900">Modüllerim</h2>
               <span className="text-xs text-ink-400">
                 {myModuleProgress.completed}/{myModuleProgress.total} tamamlandı ({myModuleProgress.percent}%)
               </span>
             </div>
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={() => setModuleFilters((f) => ({ ...f, dateRange: 'tumu' }))}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  moduleFilters.dateRange === 'tumu' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                }`}
+              >
+                Tümü
+              </button>
+              <DateRangeFilter value={moduleFilters} onChange={setModuleFilters} />
+            </div>
             <ModuleProgressList
-              modules={modules}
+              modules={filteredModules}
               isDone={(id) => isModuleDone(id, user.id, progress)}
               onToggle={toggleModule}
             />

@@ -11,20 +11,24 @@ export function canManageScores(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 
-// Spesifikasyon gereği: "sadece liderden fark gösterilir" — mutlak değer
-// (özellikle ciro) hiçbir zaman ekrana basılmaz, sadece lidere göre fark.
+// periods_manage RLS kuralıyla aynı: sadece broker yeni dönem açabilir.
+export function canManagePeriods(role) {
+  return role === ROLES.BROKER
+}
+
+// Spesifikasyon gereği (broker onaylı): mutlak ciro/skor değeri hiçbir zaman
+// ekrana basılmaz — sadece ARDIŞIK sıradaki danışmana göre fark gösterilir
+// (1.-2. arası, 2.-3. arası, 3.-4. arası...), lidere göre değil.
 export function rankingsFor(type, scores, resolveName) {
   const ranked = scores
     .filter((s) => s.type === type)
     .sort((a, b) => b.value - a.value)
     .map((s, i) => ({ userId: s.userId, name: resolveName(s.userId), rank: i + 1, value: s.value }))
 
-  const leaderValue = ranked[0]?.value ?? 0
-
-  return ranked.map((r) => ({
+  return ranked.map((r, i) => ({
     ...r,
     isLeader: r.rank === 1,
-    diff: leaderValue - r.value,
+    diff: i === 0 ? 0 : ranked[i - 1].value - r.value,
   }))
 }
 
@@ -32,4 +36,22 @@ export function formatDiff(diff, unit) {
   if (diff === 0) return null
   if (unit === 'tl') return `-${diff.toLocaleString('tr-TR')} TL`
   return `-${diff} puan`
+}
+
+// Ofiste tek tıkla paylaşılabilecek düz metin özeti — panoya kopyalanır.
+export function buildShareText(periodLabel, categorySummaries) {
+  const lines = [`RE/MAX Lavanda — ${periodLabel}`, '']
+  for (const { label, unit, rankings } of categorySummaries) {
+    lines.push(`${label}:`)
+    if (rankings.length === 0) {
+      lines.push('  Veri yok')
+    } else {
+      rankings.forEach((r) => {
+        const diffText = r.isLeader ? 'Lider' : (formatDiff(r.diff, unit) ?? '—')
+        lines.push(`  ${r.rank}. ${r.name} — ${diffText}`)
+      })
+    }
+    lines.push('')
+  }
+  return lines.join('\n').trim()
 }

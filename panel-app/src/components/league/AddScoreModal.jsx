@@ -2,10 +2,12 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { LEAGUE_CATEGORIES } from '../../lib/league'
 
+const today = () => new Date().toISOString().slice(0, 10)
+
 export default function AddScoreModal({ onClose, onSubmit, submitting, danismanOptions, defaultType }) {
-  const [form, setForm] = useState({ userId: '', type: defaultType, value: '' })
+  const [form, setForm] = useState({ userId: '', type: defaultType, value: '', tarih: today() })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const canSubmit = form.userId && form.value !== '' && !Number.isNaN(Number(form.value))
+  const canSubmit = form.userId && form.value !== '' && !Number.isNaN(Number(form.value)) && form.tarih
 
   return (
     <Modal title="Skor Gir" onClose={onClose}>
@@ -13,7 +15,7 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ userId: form.userId, type: form.type, value: Number(form.value) })
+          onSubmit({ userId: form.userId, type: form.type, value: Number(form.value), tarih: form.tarih })
         }}
         className="space-y-3"
       >
@@ -52,6 +54,19 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
           placeholder="Değer"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
+
+        <div>
+          <label className="mb-1 block text-xs text-ink-500">
+            Hangi tarih için (geriye/ileriye tarihli girilebilir — o tarihi kapsayan döneme yazılır)
+          </label>
+          <input
+            required
+            type="date"
+            value={form.tarih}
+            onChange={(e) => set({ tarih: e.target.value })}
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          />
+        </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <button

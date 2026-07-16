@@ -6,11 +6,41 @@ const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
 
 export const MOCK_MODULES = [
-  { id: 'mod-1', title: "RE/MAX Lavanda'ya Hoş Geldin", description: 'Ofis kültürü ve temel süreçler', sortOrder: 1 },
-  { id: 'mod-2', title: 'Müzakere Teknikleri', description: 'Power Camp - temel müzakere becerileri', sortOrder: 2 },
-  { id: 'mod-3', title: 'Portföy Sunumu ve Fotoğraflama', description: 'Etkili ilan hazırlama', sortOrder: 3 },
-  { id: 'mod-4', title: 'Dijital Pazarlama Temelleri', description: 'Sosyal medya ve online tanıtım', sortOrder: 4 },
-  { id: 'mod-5', title: 'Sözleşme ve Hukuki Süreçler', description: 'Alım-satım sözleşmesi detayları', sortOrder: 5 },
+  {
+    id: 'mod-1',
+    title: "RE/MAX Lavanda'ya Hoş Geldin",
+    description: 'Ofis kültürü ve temel süreçler',
+    sortOrder: 1,
+    createdAt: daysAgo(120),
+  },
+  {
+    id: 'mod-2',
+    title: 'Müzakere Teknikleri',
+    description: 'Power Camp - temel müzakere becerileri',
+    sortOrder: 2,
+    createdAt: daysAgo(100),
+  },
+  {
+    id: 'mod-3',
+    title: 'Portföy Sunumu ve Fotoğraflama',
+    description: 'Etkili ilan hazırlama',
+    sortOrder: 3,
+    createdAt: daysAgo(45),
+  },
+  {
+    id: 'mod-4',
+    title: 'Dijital Pazarlama Temelleri',
+    description: 'Sosyal medya ve online tanıtım',
+    sortOrder: 4,
+    createdAt: daysAgo(10),
+  },
+  {
+    id: 'mod-5',
+    title: 'Sözleşme ve Hukuki Süreçler',
+    description: 'Alım-satım sözleşmesi detayları',
+    sortOrder: 5,
+    createdAt: daysAgo(2),
+  },
 ]
 
 // module_id, user_id, done_at

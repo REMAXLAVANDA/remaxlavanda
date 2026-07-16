@@ -162,6 +162,7 @@ export const education = {
       title: m.title,
       description: m.description,
       sortOrder: m.sort_order,
+      createdAt: m.created_at,
     }))
   },
   async listProgress() {
@@ -344,25 +345,50 @@ export const docs = {
 export { takip } from './mockProvider'
 
 // --- League (Lig) --------------------------------------------------------------
+function mapPeriod(row) {
+  return { id: row.id, ad: row.ad, baslangic: row.baslangic, bitis: row.bitis }
+}
+
 export const league = {
   async getPeriod() {
     const data = await run(client().from('periods').select('*').order('baslangic', { ascending: false }).limit(1).single())
-    return { id: data.id, ad: data.ad, baslangic: data.baslangic, bitis: data.bitis }
+    return mapPeriod(data)
+  },
+  async listPeriods() {
+    const data = await run(client().from('periods').select('*').order('baslangic', { ascending: false }))
+    return data.map(mapPeriod)
+  },
+  // periods_manage RLS'i sadece broker'a izin veriyor.
+  async createPeriod({ ad, baslangic, bitis }) {
+    const data = await run(client().from('periods').insert({ ad, baslangic, bitis }).select().single())
+    return mapPeriod(data)
   },
   async listScores() {
     const data = await run(client().from('score_entries').select('*'))
-    return data.map((s) => ({ userId: s.user_id, type: s.type, value: Number(s.value) }))
+    return data.map((s) => ({ userId: s.user_id, periodId: s.period_id, type: s.type, value: Number(s.value) }))
   },
-  // Aynı danışman/dönem/kategori için ikinci bir girişte var olan satırı
-  // günceller (yeni tekrar eklemek yerine) — score_entries_manage RLS'i
-  // zaten sadece broker/owner/ofis'e izin veriyor.
-  async addScore({ userId, periodId, type, value }, enteredBy) {
+  // Skor, seçilen dönem yerine "tarih"e göre doğru döneme otomatik atanır —
+  // ay sonunda 2-3 gün geriden ya da ileriden giriş yapılabilmesi için
+  // (broker onaylı akış). Tarih hiçbir mevcut dönemin aralığına düşmüyorsa
+  // açık bir hata döner — önce o dönem oluşturulmalı.
+  async addScore({ userId, type, value, tarih }, enteredBy) {
+    const period = await run(
+      client()
+        .from('periods')
+        .select('id')
+        .lte('baslangic', tarih)
+        .gte('bitis', tarih)
+        .maybeSingle(),
+    )
+    if (!period) {
+      throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
+    }
     const existing = await run(
       client()
         .from('score_entries')
         .select('id')
         .eq('user_id', userId)
-        .eq('period_id', periodId)
+        .eq('period_id', period.id)
         .eq('type', type)
         .maybeSingle(),
     )
@@ -372,10 +398,10 @@ export const league = {
       await run(
         client()
           .from('score_entries')
-          .insert({ user_id: userId, period_id: periodId, type, value, entered_by: enteredBy }),
+          .insert({ user_id: userId, period_id: period.id, type, value, entered_by: enteredBy }),
       )
     }
-    return { userId, type, value: Number(value) }
+    return { userId, periodId: period.id, type, value: Number(value) }
   },
 }
 

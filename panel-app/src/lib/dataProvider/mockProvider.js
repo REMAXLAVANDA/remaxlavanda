@@ -16,7 +16,7 @@ import {
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW, MOCK_BROKER_NOTES } from '../../data/mockTakip'
-import { MOCK_PERIOD, MOCK_SCORES } from '../../data/mockLeague'
+import { MOCK_PERIODS, MOCK_SCORES } from '../../data/mockLeague'
 import { MOCK_USERS } from '../../context/AuthContext'
 import { OTHER_USERS } from '../../data/mockOpportunities'
 import { canRevealContact } from '../opportunities'
@@ -244,17 +244,27 @@ export const takip = {
 // --- League (Lig) --------------------------------------------------------------
 export const league = {
   async getPeriod() {
-    return delay({ ...MOCK_PERIOD })
+    return delay({ ...MOCK_PERIODS[MOCK_PERIODS.length - 1] })
+  },
+  async listPeriods() {
+    return delay([...MOCK_PERIODS].sort((a, b) => new Date(b.baslangic) - new Date(a.baslangic)))
+  },
+  async createPeriod({ ad, baslangic, bitis }) {
+    const period = { id: `period-${Date.now()}`, ad, baslangic, bitis }
+    MOCK_PERIODS.push(period)
+    return delay({ ...period })
   },
   async listScores() {
     return delay([...MOCK_SCORES])
   },
-  async addScore({ userId, type, value }) {
+  async addScore({ userId, type, value, tarih }) {
     const numValue = Number(value)
-    const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type)
+    const period = MOCK_PERIODS.find((p) => p.baslangic <= tarih && p.bitis >= tarih)
+    if (!period) throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
+    const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type && s.periodId === period.id)
     if (existing) existing.value = numValue
-    else MOCK_SCORES.push({ userId, type, value: numValue })
-    return delay({ userId, type, value: numValue })
+    else MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue })
+    return delay({ userId, periodId: period.id, type, value: numValue })
   },
 }
 
