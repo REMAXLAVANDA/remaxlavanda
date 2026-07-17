@@ -1,10 +1,9 @@
 import { Folder } from 'lucide-react'
-import { DOC_CATEGORIES } from '../../lib/categories'
 
-export default function FolderList({ selected, onSelect, countFor }) {
+export default function FolderList({ categories, selected, onSelect, countFor }) {
   return (
     <div className="space-y-1">
-      {DOC_CATEGORIES.map((c) => (
+      {categories.map((c) => (
         <button
           key={c.key}
           onClick={() => onSelect(c.key)}

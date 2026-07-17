@@ -3,11 +3,13 @@ import { Users, Shield, Tag, ScrollText, Plus, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { users as usersProvider } from '../lib/dataProvider'
+import { users as usersProvider, categories as categoriesProvider } from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
+import { slugify } from '../lib/categories'
 import ModulePlaceholder from '../components/common/ModulePlaceholder'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
+import CategoryManager from '../components/settings/CategoryManager'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const TABS = [
@@ -28,6 +30,13 @@ export default function Ayarlar() {
     () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
     [canManage],
   )
+  const {
+    data: docCategories,
+    setData: setDocCategories,
+    loading: loadingCategories,
+    error: categoriesError,
+    reload: reloadCategories,
+  } = useAsyncList(() => (canManage ? categoriesProvider.list('docs') : Promise.resolve([])), [canManage])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -62,6 +71,70 @@ export default function Ayarlar() {
       showToast(err.message ?? 'Kullanıcı oluşturulamadı, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleAddCategory(label) {
+    try {
+      const maxOrder = (docCategories ?? []).reduce((max, c) => Math.max(max, c.sortOrder), 0)
+      const created = await categoriesProvider.create({
+        module: 'docs',
+        key: slugify(label),
+        label,
+        sortOrder: maxOrder + 1,
+      })
+      setDocCategories((prev) => [...prev, created])
+      showToast('Kategori eklendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Kategori eklenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleRenameCategory(id, label) {
+    try {
+      await categoriesProvider.update(id, { label })
+      setDocCategories((prev) => prev.map((c) => (c.id === id ? { ...c, label } : c)))
+      showToast('Kategori güncellendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Kategori güncellenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleDeleteCategory(id) {
+    try {
+      await categoriesProvider.remove(id)
+      setDocCategories((prev) => prev.filter((c) => c.id !== id))
+      showToast('Kategori silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Kategori silinemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleMoveCategory(id, direction) {
+    const list = docCategories ?? []
+    const index = list.findIndex((c) => c.id === id)
+    const swapIndex = direction === 'up' ? index - 1 : index + 1
+    if (index < 0 || swapIndex < 0 || swapIndex >= list.length) return
+    const a = list[index]
+    const b = list[swapIndex]
+    const aOrder = a.sortOrder
+    const bOrder = b.sortOrder
+    try {
+      await Promise.all([
+        categoriesProvider.update(a.id, { sortOrder: bOrder }),
+        categoriesProvider.update(b.id, { sortOrder: aOrder }),
+      ])
+      setDocCategories((prev) =>
+        prev
+          .map((c) => {
+            if (c.id === a.id) return { ...c, sortOrder: bOrder }
+            if (c.id === b.id) return { ...c, sortOrder: aOrder }
+            return c
+          })
+          .sort((x, y) => x.sortOrder - y.sortOrder),
+      )
+    } catch (err) {
+      showToast(err.message ?? 'Sıra değiştirilemedi, tekrar dene.', 'error')
     }
   }
 
@@ -104,7 +177,7 @@ export default function Ayarlar() {
         )}
       </div>
 
-      {tab === 'kullanicilar' ? (
+      {tab === 'kullanicilar' && (
         <>
           {loading && <LoadingState />}
           {!loading && error && <ErrorState error={error} onRetry={reload} />}
@@ -117,11 +190,34 @@ export default function Ayarlar() {
             />
           )}
         </>
-      ) : (
+      )}
+
+      {tab === 'kategori' && (
+        <>
+          {loadingCategories && <LoadingState />}
+          {!loadingCategories && categoriesError && <ErrorState error={categoriesError} onRetry={reloadCategories} />}
+          {!loadingCategories && !categoriesError && (
+            <>
+              <p className="mb-4 text-xs text-ink-400">
+                Rehber sayfasındaki klasörler — ekle, yeniden adlandır, sil veya sırasını değiştir.
+              </p>
+              <CategoryManager
+                categories={docCategories ?? []}
+                onAdd={handleAddCategory}
+                onRename={handleRenameCategory}
+                onDelete={handleDeleteCategory}
+                onMove={handleMoveCategory}
+              />
+            </>
+          )}
+        </>
+      )}
+
+      {(tab === 'yetki' || tab === 'log') && (
         <ModulePlaceholder
           icon={active.icon}
           title={active.label}
-          description="Yetki, kategori ve log yönetimi burada toplanacak."
+          description="Yetki ve log yönetimi burada toplanacak."
           note="İlgili modüllerle birlikte doldurulacak"
         />
       )}

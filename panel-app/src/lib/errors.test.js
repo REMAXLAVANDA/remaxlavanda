@@ -41,6 +41,12 @@ describe('mapSupabaseError', () => {
     expect(err.kind).toBe('conflict')
   })
 
+  it('23503 foreign key violation -> in_use, kullanıcıya net mesaj', () => {
+    const err = mapSupabaseError({ code: '23503', message: 'update or delete on table violates foreign key constraint' })
+    expect(err.kind).toBe('in_use')
+    expect(err.message).toMatch(/kullanımda/)
+  })
+
   it('500+ sunucu hatası -> server, dönen mesaj sabit ve güvenli', () => {
     const err = mapSupabaseError({ status: 500, message: 'internal server error at line 42' })
     expect(err.kind).toBe('server')

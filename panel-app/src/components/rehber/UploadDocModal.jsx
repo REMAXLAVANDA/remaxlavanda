@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
-import { DOC_CATEGORIES } from '../../lib/categories'
 
 const NEW_DOC = '__new__'
 
-export default function UploadDocModal({ onClose, onSubmit, submitting, docsInCategory, defaultCategory }) {
-  const [categoryKey, setCategoryKey] = useState(defaultCategory ?? DOC_CATEGORIES[0].key)
+export default function UploadDocModal({ onClose, onSubmit, submitting, docsInCategory, defaultCategory, categories }) {
+  const [categoryKey, setCategoryKey] = useState(defaultCategory ?? categories[0]?.key ?? '')
   const [docId, setDocId] = useState(NEW_DOC)
   const [baslik, setBaslik] = useState('')
   const [filename, setFilename] = useState('')
@@ -31,7 +30,7 @@ export default function UploadDocModal({ onClose, onSubmit, submitting, docsInCa
           }}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
         >
-          {DOC_CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <option key={c.key} value={c.key}>
               {c.label}
             </option>

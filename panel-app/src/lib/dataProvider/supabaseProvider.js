@@ -336,6 +336,36 @@ function mapDocVersion(v) {
   }
 }
 
+// --- Categories (Rehber klasörleri, Fırsatlar kategorileri) ----------------
+function mapCategory(row) {
+  return { id: row.id, module: row.module, key: row.key, label: row.label, sortOrder: row.sort_order, isActive: row.is_active }
+}
+
+export const categories = {
+  async list(module) {
+    const data = await run(
+      client().from('categories').select('*').eq('module', module).order('sort_order', { ascending: true }),
+    )
+    return data.map(mapCategory)
+  },
+  async create({ module, key, label, sortOrder }) {
+    const data = await run(
+      client().from('categories').insert({ module, key, label, sort_order: sortOrder }).select().single(),
+    )
+    return mapCategory(data)
+  },
+  async update(id, patch) {
+    const updateRow = {}
+    if (patch.label !== undefined) updateRow.label = patch.label
+    if (patch.sortOrder !== undefined) updateRow.sort_order = patch.sortOrder
+    const data = await run(client().from('categories').update(updateRow).eq('id', id).select().single())
+    return mapCategory(data)
+  },
+  async remove(id) {
+    await run(client().from('categories').delete().eq('id', id))
+  },
+}
+
 export const docs = {
   async listDocs() {
     const data = await run(

@@ -15,6 +15,7 @@ import {
 } from '../../data/mockEducation'
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
+import { MOCK_CATEGORIES } from '../../data/mockCategories'
 import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW, MOCK_BROKER_NOTES } from '../../data/mockTakip'
 import {
   MOCK_PERIODS,
@@ -222,6 +223,36 @@ export const callLogs = {
     if (!row) throw new Error('Çağrı kaydı bulunamadı.')
     Object.assign(row, patch)
     return delay({ ...row })
+  },
+}
+
+// --- Categories (Rehber klasörleri) --------------------------------------
+export const categories = {
+  async list(module) {
+    return delay(
+      MOCK_CATEGORIES.filter((c) => c.module === module).sort((a, b) => a.sortOrder - b.sortOrder),
+    )
+  },
+  async create({ module, key, label, sortOrder }) {
+    const row = { id: `cat-${Date.now()}`, module, key, label, sortOrder, isActive: true }
+    MOCK_CATEGORIES.push(row)
+    return delay({ ...row })
+  },
+  async update(id, patch) {
+    const row = MOCK_CATEGORIES.find((c) => c.id === id)
+    if (!row) throw new Error('Kategori bulunamadı.')
+    Object.assign(row, patch)
+    return delay({ ...row })
+  },
+  async remove(id) {
+    const inUse = MOCK_DOCS.some((d) => {
+      const cat = MOCK_CATEGORIES.find((c) => c.id === id)
+      return cat && d.categoryKey === cat.key
+    })
+    if (inUse) throw new Error('Bu kayıt hâlâ kullanımda olduğu için silinemedi — önce bağlı kayıtları taşı veya sil.')
+    const idx = MOCK_CATEGORIES.findIndex((c) => c.id === id)
+    if (idx !== -1) MOCK_CATEGORIES.splice(idx, 1)
+    return delay(null)
   },
 }
 

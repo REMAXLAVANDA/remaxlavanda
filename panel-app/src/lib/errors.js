@@ -19,6 +19,7 @@ const SESSION_EXPIRED_MESSAGE = 'Oturumun sona ermiş, tekrar giriş yapmalısı
 const FORBIDDEN_MESSAGE = 'Bu işlem için yetkin yok.'
 const NOT_FOUND_MESSAGE = 'Aradığın kayıt bulunamadı.'
 const CONFLICT_MESSAGE = 'Bu kayıt başka biri tarafından değiştirilmiş olabilir, sayfayı yenile.'
+const IN_USE_MESSAGE = 'Bu kayıt hâlâ kullanımda olduğu için silinemedi — önce bağlı kayıtları taşı veya sil.'
 const VALIDATION_MESSAGE = 'Girdiğin bilgilerde bir sorun var, kontrol edip tekrar dene.'
 const STORAGE_MESSAGE = 'Dosya işlemi sırasında bir sorun oluştu, tekrar dene.'
 const SERVER_MESSAGE = 'Sunucuda beklenmeyen bir sorun oluştu, tekrar dene.'
@@ -51,6 +52,9 @@ export function mapSupabaseError(error) {
   } else if (status === 404 || code === 'PGRST116') {
     kind = 'not_found'
     message = NOT_FOUND_MESSAGE
+  } else if (code === '23503') {
+    kind = 'in_use'
+    message = IN_USE_MESSAGE
   } else if (status === 409 || code === '23505') {
     kind = 'conflict'
     message = CONFLICT_MESSAGE
