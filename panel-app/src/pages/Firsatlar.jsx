@@ -1,22 +1,23 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Target, Wrench } from 'lucide-react'
 import FirsatlarTab from './firsatlar/FirsatlarTab'
 import OperasyonTab from './firsatlar/OperasyonTab'
 
 // Fırsatlar ve Operasyon aynı işin iki aşaması (gelen çağrı → portföy/fırsat)
-// — menüyü sadeleştirmek için tek sayfada iki sekme olarak birleştirildi.
-// /operasyon linki hâlâ çalışır (Panel'den gelen bağlantılar dahil), sadece
-// varsayılan sekmeyi Operasyon'a getirir; kenar çubuğunda artık ayrı bir
-// giriş yok (bkz. lib/modules.js).
-const TABS = [
-  { key: 'firsatlar', label: 'Fırsatlar', icon: Target },
-  { key: 'operasyon', label: 'Operasyon', icon: Wrench },
-]
-
+// — menüyü sadeleştirmek için tek sayfada, sekme yerine ÜST ÜSTE iki bölüm
+// olarak birleştirildi: en üstte Fırsatlar, altında Operasyon. /operasyon
+// linki hâlâ çalışır (Panel'den gelen bağlantılar dahil) — sayfayı doğrudan
+// Operasyon bölümüne kaydırır. Kenar çubuğunda artık ayrı bir giriş yok
+// (bkz. lib/modules.js).
 export default function Firsatlar() {
   const location = useLocation()
-  const [tab, setTab] = useState(location.pathname.startsWith('/operasyon') ? 'operasyon' : 'firsatlar')
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/operasyon')) {
+      document.getElementById('operasyon-bolumu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [location.pathname])
 
   return (
     <div>
@@ -30,24 +31,19 @@ export default function Firsatlar() {
         </div>
       </div>
 
-      <div className="mb-5 flex gap-1 border-b border-ink-100">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-              tab === t.key
-                ? 'border-brand-600 text-brand-700'
-                : 'border-transparent text-ink-500 hover:text-ink-800'
-            }`}
-          >
-            <t.icon size={16} />
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <section>
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
+          <Target size={16} className="text-brand-600" /> Fırsatlar
+        </h2>
+        <FirsatlarTab />
+      </section>
 
-      {tab === 'firsatlar' ? <FirsatlarTab /> : <OperasyonTab />}
+      <section id="operasyon-bolumu" className="mt-10 scroll-mt-6 border-t border-ink-100 pt-8">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
+          <Wrench size={16} className="text-brand-600" /> Operasyon
+        </h2>
+        <OperasyonTab />
+      </section>
     </div>
   )
 }
