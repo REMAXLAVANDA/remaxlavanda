@@ -14,19 +14,24 @@ export const MOCK_PERIODS = [
 
 export const MOCK_PERIOD = MOCK_PERIODS[0]
 
-// user_id, period_id, type (ciro | memnuniyet | sosyal_medya), value
+const day = 24 * 60 * 60 * 1000
+const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
+
+// user_id, period_id, type (ciro | memnuniyet | sosyal_medya), value,
+// updatedAt (score_entries.updated_at ile aynı — "en son ne zaman
+// güncellendi" Panel'deki Lig Durumu widget'ında bunu kullanır).
 export const MOCK_SCORES = [
-  { userId: 'u-danisman', periodId: 'period-1', type: 'ciro', value: 1250000 },
-  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'ciro', value: 1580000 },
-  { userId: 'ext-danisman-3', periodId: 'period-1', type: 'ciro', value: 620000 },
+  { userId: 'u-danisman', periodId: 'period-1', type: 'ciro', value: 1250000, updatedAt: daysAgo(1) },
+  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'ciro', value: 1580000, updatedAt: daysAgo(2) },
+  { userId: 'ext-danisman-3', periodId: 'period-1', type: 'ciro', value: 620000, updatedAt: daysAgo(6) },
 
-  { userId: 'u-danisman', periodId: 'period-1', type: 'memnuniyet', value: 90 },
-  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'memnuniyet', value: 88 },
-  { userId: 'ext-danisman-3', periodId: 'period-1', type: 'memnuniyet', value: 70 },
+  { userId: 'u-danisman', periodId: 'period-1', type: 'memnuniyet', value: 90, updatedAt: daysAgo(3) },
+  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'memnuniyet', value: 88, updatedAt: daysAgo(3) },
+  { userId: 'ext-danisman-3', periodId: 'period-1', type: 'memnuniyet', value: 70, updatedAt: daysAgo(6) },
 
-  { userId: 'u-danisman', periodId: 'period-1', type: 'sosyal_medya', value: 45 },
-  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'sosyal_medya', value: 72 },
-  { userId: 'ext-danisman-3', periodId: 'period-1', type: 'sosyal_medya', value: 30 },
+  { userId: 'u-danisman', periodId: 'period-1', type: 'sosyal_medya', value: 45, updatedAt: daysAgo(1) },
+  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'sosyal_medya', value: 72, updatedAt: daysAgo(0) },
+  { userId: 'ext-danisman-3', periodId: 'period-1', type: 'sosyal_medya', value: 30, updatedAt: daysAgo(4) },
 ]
 
 // Her ciro girişi 2 yorum hakkı getirir — user_id/period_id bazında hak ve

@@ -40,6 +40,16 @@ export function rankingsFor(type, scores, resolveName) {
   }))
 }
 
+// Bir dönemin skorları arasından en son güncellenen kaydın tarihini bulur
+// — Panel'deki "Lig Durumu" widget'ında "son güncelleme" olarak gösterilir.
+// score_entries dönem/tip başına tek satır tuttuğu için created_at yerine
+// updated_at kullanılıyor (bkz. trg_score_entries_updated_at migration'ı).
+export function latestUpdate(scores) {
+  const dates = scores.map((s) => s.updatedAt).filter(Boolean)
+  if (dates.length === 0) return null
+  return dates.reduce((max, d) => (d > max ? d : max))
+}
+
 export function formatDiff(diff, unit) {
   if (diff === 0) return null
   if (unit === 'tl') return `-${diff.toLocaleString('tr-TR')} TL`

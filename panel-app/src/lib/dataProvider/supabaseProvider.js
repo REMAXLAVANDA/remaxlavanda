@@ -464,7 +464,13 @@ export const league = {
   },
   async listScores() {
     const data = await run(client().from('score_entries').select('*'))
-    return data.map((s) => ({ userId: s.user_id, periodId: s.period_id, type: s.type, value: Number(s.value) }))
+    return data.map((s) => ({
+      userId: s.user_id,
+      periodId: s.period_id,
+      type: s.type,
+      value: Number(s.value),
+      updatedAt: s.updated_at,
+    }))
   },
   async addScore({ userId, type, value, tarih }, enteredBy) {
     const period = await resolvePeriodByDate(tarih)

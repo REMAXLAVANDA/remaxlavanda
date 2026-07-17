@@ -294,8 +294,13 @@ export const league = {
     const period = MOCK_PERIODS.find((p) => p.baslangic <= tarih && p.bitis >= tarih)
     if (!period) throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
     const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type && s.periodId === period.id)
-    if (existing) existing.value = numValue
-    else MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue })
+    const now = new Date().toISOString()
+    if (existing) {
+      existing.value = numValue
+      existing.updatedAt = now
+    } else {
+      MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, updatedAt: now })
+    }
     if (type === 'ciro') {
       const credit = MOCK_REVIEW_CREDITS.find((r) => r.userId === userId && r.periodId === period.id)
       if (credit) credit.hakSayisi += 2
@@ -332,8 +337,13 @@ export const league = {
     const existingScore = MOCK_SCORES.find(
       (s) => s.userId === userId && s.periodId === period.id && s.type === 'sosyal_medya',
     )
-    if (existingScore) existingScore.value = total
-    else MOCK_SCORES.push({ userId, periodId: period.id, type: 'sosyal_medya', value: total })
+    const now = new Date().toISOString()
+    if (existingScore) {
+      existingScore.value = total
+      existingScore.updatedAt = now
+    } else {
+      MOCK_SCORES.push({ userId, periodId: period.id, type: 'sosyal_medya', value: total, updatedAt: now })
+    }
     return delay({ userId, periodId: period.id, total })
   },
 }

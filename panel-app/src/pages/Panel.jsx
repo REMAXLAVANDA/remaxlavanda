@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap } from 'lucide-react'
+import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
@@ -9,34 +9,40 @@ import {
   opportunities as opportunitiesProvider,
   calendarEvents as calendarProvider,
   education as educationProvider,
+  league as leagueProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, maskPhone } from '../lib/callLogs'
 import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { OPPORTUNITY_TYPE_LABELS, formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
+import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor } from '../lib/league'
 import { relativeTime } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 
 async function loadAll() {
-  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus] = await Promise.all([
-    callLogsProvider.list(),
-    opportunitiesProvider.list(),
-    calendarProvider.list(),
-    calendarProvider.listAttendance(),
-    educationProvider.listModules(),
-    educationProvider.listProgress(),
-    educationProvider.listChecklistItems(),
-    educationProvider.listChecklistStatus(),
-  ])
-  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus }
+  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores] =
+    await Promise.all([
+      callLogsProvider.list(),
+      opportunitiesProvider.list(),
+      calendarProvider.list(),
+      calendarProvider.listAttendance(),
+      educationProvider.listModules(),
+      educationProvider.listProgress(),
+      educationProvider.listChecklistItems(),
+      educationProvider.listChecklistStatus(),
+      leagueProvider.listPeriods(),
+      leagueProvider.listScores(),
+    ])
+  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores }
 }
 
-function Widget({ icon: Icon, title, count, description, to, linkLabel, children }) {
+function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', children }) {
   return (
-    <div className="rounded-2xl border border-ink-100 bg-white p-5">
+    <div className={`rounded-2xl border border-ink-100 bg-white p-5 ${className}`}>
       <div className="mb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={16} className="text-brand-600" />
@@ -118,6 +124,20 @@ export default function Panel() {
       .sort((a, b) => a.modulePercent + a.checklistPercent - (b.modulePercent + b.checklistPercent))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, isEducationManager, teamMembers, user])
+
+  // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
+  const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
+  const activePeriod = data?.periods?.[0] ?? null
+  const periodScores = useMemo(
+    () => (data?.scores ?? []).filter((s) => s.periodId === activePeriod?.id),
+    [data, activePeriod],
+  )
+  const rankingsByCategory = useMemo(() => {
+    const map = {}
+    for (const c of LEAGUE_CATEGORIES) map[c.key] = rankingsFor(c.key, periodScores, resolveUserName)
+    return map
+  }, [periodScores, resolveUserName])
+  const lastLeagueUpdate = useMemo(() => latestUpdate(periodScores), [periodScores])
 
   const callTitle = isManager ? 'Atanmamış Çağrılar' : 'Sana Atanan Çağrılar'
   const callDescription = isManager
@@ -272,6 +292,28 @@ export default function Panel() {
                   <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
                 )}
               </div>
+            )}
+          </Widget>
+
+          <Widget
+            icon={Trophy}
+            title="Lig Durumu"
+            description={activePeriod ? activePeriod.ad : 'Henüz bir dönem oluşturulmamış'}
+            to="/lig"
+            linkLabel="Lig'e git"
+            className="md:col-span-2"
+          >
+            {!activePeriod ? (
+              <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
+            ) : (
+              <>
+                <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
+                <p className="text-xs text-ink-400">
+                  {lastLeagueUpdate
+                    ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}`
+                    : 'Bu dönemde henüz veri girilmedi.'}
+                </p>
+              </>
             )}
           </Widget>
         </div>
