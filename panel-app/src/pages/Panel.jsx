@@ -537,7 +537,7 @@ export default function Panel() {
   const callTitle = isManager ? 'Atanmamış Çağrılar' : 'Sana Atanan Çağrılar'
   const callDescription = isManager
     ? 'Henüz bir danışmana atanmamış, dağıtım bekleyen çağrılar'
-    : 'Ofisten yönlendirilen, dönüş yapman gereken çağrılar'
+    : 'Ofisten yönlendirilen, dönüş yapman gerekenler'
 
   return (
     <div>
