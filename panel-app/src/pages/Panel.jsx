@@ -1,6 +1,19 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy, Users as UsersIcon, AlertTriangle } from 'lucide-react'
+import {
+  LayoutDashboard,
+  PhoneCall,
+  Inbox,
+  Target,
+  CalendarDays,
+  GraduationCap,
+  Trophy,
+  Users as UsersIcon,
+  AlertTriangle,
+  TrendingUp,
+  Smile,
+  Share2,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
@@ -14,16 +27,18 @@ import {
 } from '../lib/dataProvider'
 import { canManageCalls, maskPhone } from '../lib/callLogs'
 import { ROLES } from '../lib/roles'
-import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS } from '../lib/calendar'
+import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
-import { relativeTime } from '../lib/format'
+import { relativeTime, isToday } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
-import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import DateRangeFilter from '../components/common/DateRangeFilter'
+
+const LEAGUE_CATEGORY_ICONS = { ciro: TrendingUp, memnuniyet: Smile, sosyal_medya: Share2 }
+const LEAGUE_CATEGORY_COLORS = { ciro: '#003da5', memnuniyet: '#7c3aed', sosyal_medya: '#16a34a' }
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
@@ -77,21 +92,95 @@ function EmptyRow({ text }) {
   )
 }
 
-// Broker'ın istediği "rapor odaklı" özet kartları — büyük sayı + kısa
-// dağılım, tıklanınca ilgili modüle götürüyor. Aşağıdaki liste widget'ları
-// "kim/ne" sorusuna cevap veriyor, bu kartlar "kaç tane" sorusuna.
-function StatCard({ icon: Icon, to, label, value, detail }) {
+// Yüzdelik halka — SVG stroke-dasharray tekniğiyle, ortasında yüzde metni.
+// Hem büyük StatCard'larda hem küçük satır ikonlarında (Portal Kullanımı,
+// Eksik Eğitim kişi satırları) aynı bileşen kullanılıyor.
+function ProgressRing({ percent, size = 88, strokeWidth = 8, color = '#003da5', fontSize }) {
+  const clamped = Math.max(0, Math.min(100, Math.round(percent || 0)))
+  const r = (size - strokeWidth) / 2
+  const c = 2 * Math.PI * r
+  const offset = c * (1 - clamped / 100)
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={strokeWidth} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-bold text-ink-900" style={{ fontSize: fontSize ?? size * 0.24 }}>
+          %{clamped}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// Uygulamada profil fotoğrafı YOK — mevcut kural (bkz. ProfileMenu,
+// HealthScoreRow) daireye baş harf koymak, mockup'taki avatar fotoğrafları
+// yerine bu kullanılıyor.
+function InitialsBadge({ name, size = 36 }) {
+  const initials = (name ?? '?')
+    .split(' ')
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toLocaleUpperCase('tr-TR')
+  return (
+    <div
+      className="flex shrink-0 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-700"
+      style={{ width: size, height: size, fontSize: size * 0.36 }}
+    >
+      {initials}
+    </div>
+  )
+}
+
+// %100 tamamlanan yeşil, yarı yolda turuncu, geride kırmızı — Eksik Eğitim
+// satırlarındaki modül/checklist halkalarında kullanılıyor.
+function ringColorFor(percent) {
+  if (percent >= 100) return '#16a34a'
+  if (percent >= 50) return '#f59e0b'
+  return '#dc1c2e'
+}
+
+// Broker'ın istediği "rapor odaklı" özet kartları — yüzdelik halka + kısa
+// dağılım, tıklanınca ilgili modüle götürüyor.
+function StatCard({ icon: Icon, to, label, percent, ratioLabel, ringColor, breakdown }) {
   return (
     <Link
       to={to}
       className="rounded-2xl border border-ink-100 bg-white p-5 transition-colors hover:border-brand-300 hover:bg-brand-50/40"
     >
-      <div className="mb-2 flex items-center gap-2 text-ink-400">
-        <Icon size={16} />
-        <span className="text-xs font-medium">{label}</span>
+      <div className="mb-4 flex items-center gap-2 text-ink-400">
+        <Icon size={15} />
+        <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-ink-900">{value}</p>
-      {detail && <p className="mt-1 text-xs text-ink-500">{detail}</p>}
+      <div className="flex flex-col items-center">
+        <ProgressRing percent={percent} color={ringColor} />
+        {ratioLabel && <p className="mt-2 text-xs text-ink-400">{ratioLabel}</p>}
+      </div>
+      {breakdown?.length > 0 && (
+        <div className="mt-4 space-y-1.5 border-t border-ink-100 pt-3">
+          {breakdown.map((b) => (
+            <div key={b.label} className="flex items-center gap-2 text-xs">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: b.color }} />
+              <span className="text-ink-500">{b.label}</span>
+              <span className="ml-auto font-medium text-ink-800">{b.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </Link>
   )
 }
@@ -269,15 +358,52 @@ export default function Panel() {
   }, [data, filters])
 
   const opportunityStats = useMemo(() => {
-    if (!data) return { total: 0, satici: 0, alici: 0 }
+    if (!data) return { total: 0, satici: 0, alici: 0, kapandi: 0 }
     const inRange = data.opps.filter((o) =>
       isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
     )
     const total = inRange.length
     const satici = inRange.filter((o) => o.type === 'satici').length
     const alici = inRange.filter((o) => o.type === 'alici').length
-    return { total, satici, alici }
+    const kapandi = inRange.filter((o) => o.status === 'kapandi').length
+    return { total, satici, alici, kapandi }
   }, [data, filters])
+
+  // --- Broker raporu: yaklaşan etkinliklerin ne kadarının katılım listesi
+  // netleşmiş olduğu (herkes RSVP vermiş) — StatCard'daki halkanın oranı bu,
+  // alttaki dağılım ise etkinlik türüne göre sayım.
+  const eventReadiness = useMemo(() => {
+    if (!data) return { ready: 0, total: 0 }
+    const total = upcomingEvents.length
+    const ready = upcomingEvents.filter((e) => {
+      const invitees = data.attendance.filter((a) => a.eventId === e.id)
+      return invitees.length > 0 && invitees.every((a) => a.status !== 'davetli')
+    }).length
+    return { ready, total }
+  }, [data, upcomingEvents])
+
+  const eventTypeBreakdown = useMemo(() => {
+    const counts = {}
+    for (const e of upcomingEvents) counts[e.type] = (counts[e.type] ?? 0) + 1
+    return Object.entries(counts).map(([type, count]) => ({ type, count }))
+  }, [upcomingEvents])
+
+  // --- Broker raporu: ekip genelinde modül + checklist tamamlama oranı,
+  // kişi kişi değil "kaç öğeden kaçı bitmiş" olarak toplanıyor.
+  const educationCompletion = useMemo(() => {
+    if (!data) return { completed: 0, total: 0 }
+    const subjects = isEducationManager ? teamMembers : [user]
+    let completed = 0
+    let total = 0
+    for (const u of subjects) {
+      const mp = moduleProgressFor(u.id, data.modules, data.progress)
+      const cp = checklistProgress(u.id, 'baslangic', data.checklistItems, data.checklistStatus)
+      completed += mp.completed + cp.completed
+      total += mp.total + cp.total
+    }
+    return { completed, total }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, isEducationManager, teamMembers, user])
 
   // --- Broker raporu: portalı en çok/en az kullanan (Supabase Auth'un
   // gerçekten tuttuğu son giriş zamanına göre — mock/uydurma veri değil).
@@ -296,6 +422,38 @@ export default function Panel() {
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamMembers])
+
+  // --- Broker raporu: "Portal Kullanımı"nı liste yerine son giriş zamanına
+  // göre 4 kovaya ayırıyor (Bugün/Dün/3 gün içinde/7+ gün) — tek tek isim
+  // yerine önce genel tabloyu görmek istendiği için.
+  const usageBuckets = useMemo(() => {
+    const buckets = { bugun: [], dun: [], uc_gun: [], yedi_gun: [] }
+    for (const r of activityRanking) {
+      if (!r.lastSignInAt) {
+        buckets.yedi_gun.push(r)
+        continue
+      }
+      if (isToday(r.lastSignInAt)) {
+        buckets.bugun.push(r)
+        continue
+      }
+      const diffDays = Math.floor((Date.now() - new Date(r.lastSignInAt).getTime()) / (24 * 60 * 60 * 1000))
+      if (diffDays === 1) buckets.dun.push(r)
+      else if (diffDays <= 3) buckets.uc_gun.push(r)
+      else buckets.yedi_gun.push(r)
+    }
+    return buckets
+  }, [activityRanking])
+
+  // --- Broker raporu: sıradaki tek etkinliğin detayı + katılımcı listesi.
+  const nextEvent = upcomingEvents[0] ?? null
+  const nextEventAttendees = useMemo(() => {
+    if (!nextEvent || !data) return []
+    return data.attendance
+      .filter((a) => a.eventId === nextEvent.id)
+      .map((a) => knownUsers[a.userId])
+      .filter(Boolean)
+  }, [nextEvent, data, knownUsers])
 
   // --- Broker/owner raporu: "Dikkat Gerekiyor" — sabah ilk bakışta görülmesi
   // gereken istisnalar. Tarih filtresinden BAĞIMSIZ (gecikme/durgunluk her
@@ -367,6 +525,15 @@ export default function Panel() {
     return map
   }, [periodScores, resolveUserName])
   const lastLeagueUpdate = useMemo(() => latestUpdate(periodScores), [periodScores])
+  const leagueLeaderRows = useMemo(
+    () =>
+      LEAGUE_CATEGORIES.map((c) => ({
+        key: c.key,
+        label: c.label,
+        leaderName: rankingsByCategory[c.key]?.find((r) => r.isLeader)?.name ?? null,
+      })),
+    [rankingsByCategory],
+  )
 
   const callTitle = isManager ? 'Atanmamış Çağrılar' : 'Sana Atanan Çağrılar'
   const callDescription = isManager
@@ -409,29 +576,48 @@ export default function Panel() {
             icon={PhoneCall}
             to="/operasyon"
             label="Operasyon"
-            value={callStats.total}
-            detail={`${callStats.assigned} atandı · ${callStats.donusYapildi} dönüş yapıldı · ${callStats.donusYapilmadi} bekliyor`}
+            percent={callStats.total ? Math.round((callStats.donusYapildi / callStats.total) * 100) : 0}
+            ratioLabel={`${callStats.donusYapildi} / ${callStats.total}`}
+            ringColor="#003da5"
+            breakdown={[
+              { label: 'Atandı', value: callStats.assigned, color: '#003da5' },
+              { label: 'Dönüş Yapıldı', value: callStats.donusYapildi, color: '#16a34a' },
+              { label: 'Bekliyor', value: callStats.donusYapilmadi, color: '#f59e0b' },
+            ]}
           />
           <StatCard
             icon={Target}
             to="/firsatlar"
             label="Fırsatlar / Portföy"
-            value={opportunityStats.total}
-            detail={`${opportunityStats.satici} satıcı · ${opportunityStats.alici} alıcı adayı`}
+            percent={opportunityStats.total ? Math.round((opportunityStats.kapandi / opportunityStats.total) * 100) : 0}
+            ratioLabel={`${opportunityStats.kapandi} / ${opportunityStats.total} kapandı`}
+            ringColor="#0369a1"
+            breakdown={[
+              { label: 'Satıcı', value: opportunityStats.satici, color: '#16a34a' },
+              { label: 'Alıcı Adayı', value: opportunityStats.alici, color: '#0369a1' },
+            ]}
           />
           <StatCard
             icon={CalendarDays}
             to="/takvim"
             label="Yaklaşan Etkinlikler"
-            value={upcomingEvents.length}
-            detail={upcomingLabel}
+            percent={eventReadiness.total ? Math.round((eventReadiness.ready / eventReadiness.total) * 100) : 0}
+            ratioLabel={`${eventReadiness.ready} / ${eventReadiness.total} netleşti`}
+            ringColor="#7c3aed"
+            breakdown={eventTypeBreakdown.map((b) => ({
+              label: EVENT_TYPE_LABELS[b.type],
+              value: b.count,
+              color: EVENT_TYPE_COLORS[b.type],
+            }))}
           />
           <StatCard
             icon={GraduationCap}
             to="/egitim"
             label="Eksik Eğitim / Checklist"
-            value={educationGaps.length}
-            detail="%100 altında olan kişi sayısı"
+            percent={educationCompletion.total ? Math.round((educationCompletion.completed / educationCompletion.total) * 100) : 0}
+            ratioLabel={`${educationCompletion.completed} / ${educationCompletion.total}`}
+            ringColor="#16a34a"
+            breakdown={[{ label: '%100 altında olan kişi', value: educationGaps.length, color: '#dc1c2e' }]}
           />
         </div>
       )}
@@ -524,27 +710,75 @@ export default function Panel() {
             <Widget
               icon={UsersIcon}
               title="Portal Kullanımı"
-              description="Danışmanlar, en son giriş yaptıkları zamana göre sıralı"
+              description="Danışmanlar, en son giriş yaptıkları zamana göre"
               to="/takip"
               linkLabel="Takip'e git"
-              className="md:col-span-2"
             >
               {activityRanking.length === 0 ? (
                 <EmptyRow text="Henüz danışman yok." />
               ) : (
                 <div className="space-y-1.5">
-                  {activityRanking.map((r, index) => (
-                    <div key={r.id} className="flex items-center justify-between rounded-lg border border-ink-100 px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 shrink-0 text-center text-xs font-medium text-ink-300">{index + 1}</span>
-                        <span className="text-sm font-medium text-ink-900">{r.name}</span>
+                  {[
+                    { key: 'bugun', label: 'Bugün giriş yapanlar', color: '#16a34a' },
+                    { key: 'dun', label: 'Dün giriş yapanlar', color: '#f59e0b' },
+                    { key: 'uc_gun', label: '3 gün içinde giriş yapanlar', color: '#003da5' },
+                    { key: 'yedi_gun', label: '7 günden uzun süredir giriş yapmayanlar', color: '#dc1c2e' },
+                  ].map((b) => {
+                    const people = usageBuckets[b.key]
+                    const percent = activityRanking.length ? (people.length / activityRanking.length) * 100 : 0
+                    return (
+                      <div key={b.key} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                        <ProgressRing percent={percent} size={38} strokeWidth={4} color={b.color} fontSize={9} />
+                        <span className="min-w-0 flex-1 text-sm text-ink-700">{b.label}</span>
+                        <span className="shrink-0 text-sm font-semibold text-ink-900">{people.length}</span>
                       </div>
-                      <span className={`text-xs ${r.lastSignInAt ? 'text-ink-500' : 'text-amber-600'}`}>
-                        {r.lastSignInAt ? `Son giriş: ${relativeTime(r.lastSignInAt)}` : 'Hiç giriş yapmadı'}
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
+              )}
+            </Widget>
+          )}
+
+          {isBrokerOrOwner && (
+            <Widget icon={CalendarDays} title="Yaklaşan Etkinlik" description={upcomingLabel} to="/takvim" linkLabel="Takvim'e git">
+              {!nextEvent ? (
+                <EmptyRow text="Bu aralıkta etkinlik yok." />
+              ) : (
+                <>
+                  <div className="rounded-xl border border-ink-100 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex w-12 shrink-0 flex-col items-center rounded-lg bg-red-50 py-1.5 text-red-600">
+                        <span className="text-lg font-bold leading-none">{new Date(nextEvent.startAt).getDate()}</span>
+                        <span className="text-[10px] font-medium uppercase">
+                          {new Date(nextEvent.startAt).toLocaleDateString('tr-TR', { month: 'short' })}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ink-900">{nextEvent.title}</p>
+                        <p className="mt-0.5 text-xs text-ink-400">
+                          {EVENT_TYPE_LABELS[nextEvent.type]} · {formatEventDate(nextEvent.startAt)} {formatEventTime(nextEvent.startAt)}
+                        </p>
+                      </div>
+                    </div>
+                    {nextEventAttendees.length > 0 && (
+                      <div className="mt-3 flex items-center -space-x-2">
+                        {nextEventAttendees.slice(0, 5).map((u) => (
+                          <div key={u.id} className="rounded-full ring-2 ring-white">
+                            <InitialsBadge name={u.name} size={28} />
+                          </div>
+                        ))}
+                        {nextEventAttendees.length > 5 && (
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-100 text-[10px] font-semibold text-ink-500 ring-2 ring-white">
+                            +{nextEventAttendees.length - 5}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {upcomingEvents.length > 1 && (
+                    <p className="mt-3 text-center text-xs text-ink-400">+{upcomingEvents.length - 1} etkinlik daha bu aralıkta</p>
+                  )}
+                </>
               )}
             </Widget>
           )}
@@ -610,6 +844,42 @@ export default function Panel() {
             </Widget>
           )}
 
+          {isBrokerOrOwner && (
+            <Widget
+              icon={GraduationCap}
+              title="Eksik Eğitim / Checklist"
+              description="Modül veya checklist tamamlama %100 altında olanlar"
+              to="/egitim"
+              linkLabel="Tümünü gör"
+            >
+              {educationGaps.length === 0 ? (
+                <EmptyRow text="Herkes tamamlamış, harika!" />
+              ) : (
+                <div className="space-y-1.5">
+                  {educationGaps.slice(0, 5).map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2">
+                      <InitialsBadge name={r.name} size={32} />
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-900">{r.name}</span>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <ProgressRing percent={r.modulePercent} size={32} strokeWidth={4} color={ringColorFor(r.modulePercent)} fontSize={8} />
+                          <span className="text-[9px] text-ink-400">Modül</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <ProgressRing percent={r.checklistPercent} size={32} strokeWidth={4} color={ringColorFor(r.checklistPercent)} fontSize={8} />
+                          <span className="text-[9px] text-ink-400">Checklist</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {educationGaps.length > 5 && (
+                    <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
+                  )}
+                </div>
+              )}
+            </Widget>
+          )}
+
           <Widget
             icon={Trophy}
             title="Lig Durumu"
@@ -622,7 +892,24 @@ export default function Panel() {
               <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
             ) : (
               <>
-                <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
+                <div className="mb-3 space-y-1.5">
+                  {leagueLeaderRows.map((row) => {
+                    const Icon = LEAGUE_CATEGORY_ICONS[row.key]
+                    const color = LEAGUE_CATEGORY_COLORS[row.key]
+                    return (
+                      <div key={row.key} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                        <div
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                          style={{ backgroundColor: `${color}1a`, color }}
+                        >
+                          <Icon size={15} />
+                        </div>
+                        <span className="min-w-0 flex-1 text-sm text-ink-700">{row.label}</span>
+                        <span className="shrink-0 text-sm font-medium text-ink-900">{row.leaderName ?? '—'}</span>
+                      </div>
+                    )
+                  })}
+                </div>
                 <p className="text-xs text-ink-400">
                   {lastLeagueUpdate
                     ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}`
