@@ -15,8 +15,10 @@ export default function OpportunitySection({
   onSelectCategory,
   tableRows,
   onRowClick,
-  onClaim,
-  claimingId,
+  onExpressInterest,
+  expressingId,
+  user,
+  interestedIds,
 }) {
   return (
     <div className="rounded-2xl border border-ink-100 bg-white">
@@ -60,8 +62,10 @@ export default function OpportunitySection({
               <OpportunityTable
                 opportunities={tableRows}
                 onRowClick={onRowClick}
-                onClaim={onClaim}
-                claimingId={claimingId}
+                onExpressInterest={onExpressInterest}
+                expressingId={expressingId}
+                user={user}
+                interestedIds={interestedIds}
               />
             </div>
           )}

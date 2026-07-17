@@ -17,21 +17,29 @@ export function canViewOpportunity(opp, user) {
   return false
 }
 
-export function canClaim(opp) {
-  return opp.status === 'acik' && !opp.claimerId
+// "İlgileniyorum" artık exclusive claim DEĞİL — birden fazla danışman aynı
+// açık fırsata ilgi gösterebilir (bkz. opportunity_interest tablosu).
+// Fırsat sahibi kendi fırsatına ilgi gösteremez. broker/owner zaten her
+// fırsatın müşteri bilgisini ve ilgilenen listesini görüyor — onlar için
+// "İlgileniyorum" düğmesinin bir anlamı yok, o yüzden gösterilmiyor.
+export function canExpressInterest(opp, user) {
+  if (!user) return false
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return false
+  return opp.status === 'acik' && opp.ownerId !== user.id
 }
 
 // Kolon seviyesinde gizlilik: satır görünür olsa bile isim/telefon herkese
 // açık DEĞİL. Supabase tarafında bu, get_opportunity_contact() SECURITY
-// DEFINER fonksiyonuyla uygulanacak (bkz. migration) — burada aynı kuralı
+// DEFINER fonksiyonuyla uygulanır (bkz. migration) — burada aynı kuralı
 // mock katmanında birebir uyguluyoruz. broker/owner her zaman görür;
-// diğerleri sadece kendi sahiplendiği (owner_id) veya üstlendiği
-// (claimer_id) kayıtta görür. Not: gerçek şifreleme (phone_enc/pgcrypto)
-// henüz bağlanmadı — bu şu an için sadece erişim kontrolü katmanı.
+// diğerleri SADECE kendi girdiği (owner_id) kayıtta görür — ilgi göstermek
+// (İlgileniyorum) müşteri bilgisini ASLA açmaz, fırsatı giren kişi kendisi
+// arar. Not: gerçek şifreleme (phone_enc/pgcrypto) henüz bağlanmadı — bu şu
+// an için sadece erişim kontrolü katmanı.
 export function canRevealContact(opp, user) {
   if (!user) return false
   if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
-  return opp.ownerId === user.id || opp.claimerId === user.id
+  return opp.ownerId === user.id
 }
 
 export function formatPrice(amount) {
@@ -41,8 +49,6 @@ export function formatPrice(amount) {
   )
 }
 
-// "İlgileniyorum" — sadece danışman/ofis/owner/broker claim edebilir
-// (RLS'te ayrı bir rol kısıtı yok, tek kısıt sahipsiz+açık olması).
 export const OPPORTUNITY_TYPE_LABELS = {
   satici: 'Satıcı',
   alici: 'Alıcı',

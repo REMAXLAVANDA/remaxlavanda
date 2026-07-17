@@ -33,8 +33,11 @@ export default function Firsatlar() {
   const [expanded, setExpanded] = useState({ satici: true, alici: true })
   const [activeCategory, setActiveCategory] = useState({ satici: null, alici: null })
   const [detailOpp, setDetailOpp] = useState(null)
-  const [claimingId, setClaimingId] = useState(null)
-  const [confirmClaimId, setConfirmClaimId] = useState(null)
+  const [expressingId, setExpressingId] = useState(null)
+  const [interestTargetId, setInterestTargetId] = useState(null)
+  // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
+  // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
+  const [interestedIds, setInterestedIds] = useState(() => new Set())
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -70,26 +73,35 @@ export default function Firsatlar() {
   const satici = sectionData('satici')
   const alici = sectionData('alici')
 
-  async function performClaim(id) {
-    setClaimingId(id)
+  async function performExpressInterest(id) {
+    setExpressingId(id)
     try {
-      const updated = await opportunitiesProvider.claim(id, user.id)
-      setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, ...updated } : o)))
-      showToast('Fırsat danışmana bildirildi', 'success')
+      await opportunitiesProvider.expressInterest(id, user.id)
+      setInterestedIds((prev) => new Set(prev).add(id))
+      showToast('İlgin, fırsatı giren kişiye bildirildi — seni arayacak.', 'success')
       setDetailOpp(null)
     } catch (err) {
-      showToast(err.message ?? 'Fırsat üstlenilemedi, tekrar dene.', 'error')
+      showToast(err.message ?? 'İlgi kaydedilemedi, tekrar dene.', 'error')
     } finally {
-      setClaimingId(null)
-      setConfirmClaimId(null)
+      setExpressingId(null)
+      setInterestTargetId(null)
     }
   }
 
   async function handleCreate(form) {
     setSubmitting(true)
     try {
-      const payload = { ...form, fiyat: form.fiyat ? Number(form.fiyat) : null }
-      const created = await opportunitiesProvider.create(payload, user.id, role === ROLES.DANISMAN)
+      const payload = {
+        ...form,
+        fiyat: form.fiyat ? Number(form.fiyat) : null,
+        fiyatMin: form.fiyatMin ? Number(form.fiyatMin) : null,
+        fiyatMax: form.fiyatMax ? Number(form.fiyatMax) : null,
+        m2: form.m2 ? Number(form.m2) : null,
+        binaYasi: form.binaYasi ? Number(form.binaYasi) : null,
+        aidat: form.aidat ? Number(form.aidat) : null,
+      }
+      const selfClaim = role === ROLES.DANISMAN && !form.havuzaAt
+      const created = await opportunitiesProvider.create(payload, user.id, selfClaim)
       setOpportunities((prev) => [created, ...prev])
       setShowModal(false)
       showToast('Fırsat eklendi.', 'success')
@@ -101,7 +113,9 @@ export default function Firsatlar() {
   }
 
   const canCreate = CAN_CREATE_ROLES.includes(role)
-  const confirmOpp = confirmClaimId ? (opportunities ?? []).find((o) => o.id === confirmClaimId) : null
+  const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
+  const isManager = role === ROLES.BROKER || role === ROLES.OWNER
+  const resolveName = (id) => knownUsers[id]?.name ?? '—'
 
   return (
     <div>
@@ -146,8 +160,10 @@ export default function Firsatlar() {
               onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, satici: category }))}
               tableRows={satici.rows}
               onRowClick={setDetailOpp}
-              onClaim={(opp) => setConfirmClaimId(opp.id)}
-              claimingId={claimingId}
+              onExpressInterest={(opp) => setInterestTargetId(opp.id)}
+              expressingId={expressingId}
+              user={user}
+              interestedIds={interestedIds}
             />
 
             <OpportunitySection
@@ -161,8 +177,10 @@ export default function Firsatlar() {
               onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, alici: category }))}
               tableRows={alici.rows}
               onRowClick={setDetailOpp}
-              onClaim={(opp) => setConfirmClaimId(opp.id)}
-              claimingId={claimingId}
+              onExpressInterest={(opp) => setInterestTargetId(opp.id)}
+              expressingId={expressingId}
+              user={user}
+              interestedIds={interestedIds}
             />
           </div>
         </>
@@ -173,7 +191,7 @@ export default function Firsatlar() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
-          selfClaim={role === ROLES.DANISMAN}
+          showPoolToggle={role === ROLES.DANISMAN}
         />
       )}
 
@@ -181,27 +199,30 @@ export default function Firsatlar() {
         <OpportunityDetailModal
           opportunity={detailOpp}
           user={user}
-          ownerName={knownUsers[detailOpp.ownerId]?.name}
-          claimerName={knownUsers[detailOpp.claimerId]?.name}
+          ownerName={resolveName(detailOpp.ownerId)}
+          resolveName={resolveName}
+          isOwnerOrManager={isManager || detailOpp.ownerId === user.id}
+          alreadyInterested={interestedIds.has(detailOpp.id)}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
+          fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
-          onClaim={() => setConfirmClaimId(detailOpp.id)}
-          claiming={claimingId === detailOpp.id}
+          onExpressInterest={() => setInterestTargetId(detailOpp.id)}
+          expressing={expressingId === detailOpp.id}
         />
       )}
 
-      {confirmClaimId && (
+      {interestTargetId && (
         <ConfirmDialog
-          title="Bu fırsatı üstleniyor musun?"
+          title="Bu fırsata ilgi göstermek istiyor musun?"
           message={
-            confirmOpp
-              ? `İlgileniyorum dediğinde "${confirmOpp.konum || 'bu fırsat'}" sana atanır ve havuzdan kalkar.`
-              : 'İlgileniyorum dediğinde bu fırsat sana atanır ve havuzdan kalkar.'
+            interestOpp
+              ? `"${interestOpp.konum || 'Bu fırsat'}" için ilgin, fırsatı giren kişiye bildirilir — müşteri bilgisi sana açılmaz, seni arayacak.`
+              : 'İlgin, fırsatı giren kişiye bildirilir — müşteri bilgisi sana açılmaz, seni arayacak.'
           }
           confirmLabel="Evet, ilgileniyorum"
-          onConfirm={() => performClaim(confirmClaimId)}
-          onCancel={() => setConfirmClaimId(null)}
-          confirming={claimingId === confirmClaimId}
+          onConfirm={() => performExpressInterest(interestTargetId)}
+          onCancel={() => setInterestTargetId(null)}
+          confirming={expressingId === interestTargetId}
         />
       )}
     </div>

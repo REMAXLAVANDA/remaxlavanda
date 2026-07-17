@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Lock, MapPin, Phone, User } from 'lucide-react'
+import { Lock, MapPin, Phone, User, Users } from 'lucide-react'
 import Modal from '../common/Modal'
 import { categoryLabel } from '../../lib/categories'
 import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
   OPPORTUNITY_TYPE_LABELS,
-  canClaim,
+  canExpressInterest,
   canRevealContact,
   formatPrice,
   relativeTime,
@@ -20,19 +20,25 @@ import {
 // istenir; sunucu tarafı (RLS/SECURITY DEFINER) yetkisi olmayana zaten
 // null döner. Buradaki canRevealContact() kontrolü SADECE gereksiz network
 // isteğini önlemek için bir optimizasyondur — gerçek güvenlik sınırı
-// değildir, o sunucu tarafındadır.
+// değildir, o sunucu tarafındadır. Müşteri bilgisi SADECE fırsatı giren
+// kişi (owner) ve broker/owner rolüne açılır — ilgi göstermek bunu ASLA
+// açmaz (bkz. showInterestButton / interestList aşağıda).
 export default function OpportunityDetailModal({
   opportunity: opp,
   user,
   ownerName,
-  claimerName,
+  resolveName,
+  isOwnerOrManager,
+  alreadyInterested,
   fetchContact,
+  fetchInterestList,
   onClose,
-  onClaim,
-  claiming,
+  onExpressInterest,
+  expressing,
 }) {
   const [contact, setContact] = useState(null)
   const [loadingContact, setLoadingContact] = useState(true)
+  const [interestList, setInterestList] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -62,8 +68,26 @@ export default function OpportunityDetailModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opp.id])
 
+  useEffect(() => {
+    let cancelled = false
+    if (!isOwnerOrManager) return undefined
+
+    fetchInterestList()
+      .then((rows) => {
+        if (!cancelled) setInterestList(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setInterestList([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opp.id, isOwnerOrManager])
+
   const hasContact = Boolean(contact?.leadAd)
-  const showClaim = canClaim(opp)
+  const showInterestButton = !isOwnerOrManager && canExpressInterest(opp, user) && !alreadyInterested
 
   return (
     <Modal title="Fırsat Detayı" onClose={onClose} maxWidth="max-w-lg">
@@ -85,8 +109,21 @@ export default function OpportunityDetailModal({
           <span className="mx-1 text-ink-300">·</span>
           {relativeTime(opp.createdAt)}
         </p>
-        <p className="text-base font-semibold text-ink-900">{formatPrice(opp.fiyat)}</p>
+        <p className="text-base font-semibold text-ink-900">
+          {opp.type === 'alici' && (opp.fiyatMin || opp.fiyatMax)
+            ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
+            : formatPrice(opp.fiyat)}
+        </p>
         {opp.ozet && <p className="text-ink-600">{opp.ozet}</p>}
+
+        <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-xs text-ink-500">
+          {opp.m2 && <span>{opp.m2} m²</span>}
+          {opp.odaSayisi && <span>{opp.odaSayisi}</span>}
+          {opp.binaYasi != null && <span>Bina yaşı: {opp.binaYasi}</span>}
+          {opp.kat && <span>Kat: {opp.kat}</span>}
+          {opp.aidat != null && <span>Aidat: {formatPrice(opp.aidat)}</span>}
+          {opp.isitma && <span>Isıtma: {opp.isitma}</span>}
+        </div>
       </div>
 
       <div className="mt-4 rounded-xl border border-ink-100 bg-ink-50/60 p-4">
@@ -105,24 +142,45 @@ export default function OpportunityDetailModal({
           </div>
         ) : (
           <p className="flex items-center gap-2 text-xs text-ink-400">
-            <Lock size={14} /> Müşteri bilgileri gizli — bu fırsatı üstlendiğinde açılır.
+            <Lock size={14} />
+            {alreadyInterested
+              ? 'İlgin bildirildi — müşteri bilgisi sana açılmaz, fırsatı giren kişi seni arayacak.'
+              : 'Müşteri bilgileri gizli — sadece fırsatı giren kişi görür.'}
           </p>
         )}
       </div>
 
+      {isOwnerOrManager && (
+        <div className="mt-4 rounded-xl border border-ink-100 p-4">
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-500">
+            <Users size={14} /> İlgilenen danışmanlar
+          </p>
+          {interestList == null ? (
+            <p className="text-xs text-ink-400">Yükleniyor...</p>
+          ) : interestList.length === 0 ? (
+            <p className="text-xs text-ink-400">Henüz kimse ilgi göstermedi.</p>
+          ) : (
+            <ul className="space-y-1 text-sm text-ink-700">
+              {interestList.map((row) => (
+                <li key={row.userId}>{resolveName(row.userId)}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-ink-50 pt-3 text-xs text-ink-400">
         <span>Kaydeden: {ownerName ?? '—'}</span>
-        {opp.claimerId && <span className="font-medium text-ink-600">Üstlenen: {claimerName ?? '—'}</span>}
       </div>
 
-      {showClaim && (
+      {showInterestButton && (
         <div className="mt-5 flex justify-end">
           <button
-            onClick={onClaim}
-            disabled={claiming}
+            onClick={onExpressInterest}
+            disabled={expressing}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
-            {claiming ? 'Gönderiliyor...' : 'İlgileniyorum'}
+            {expressing ? 'Gönderiliyor...' : 'İlgileniyorum'}
           </button>
         </div>
       )}

@@ -30,6 +30,9 @@ import { canRevealContact } from '../opportunities'
 const LATENCY_MS = 250
 const delay = (value, ms = LATENCY_MS) => new Promise((resolve) => setTimeout(() => resolve(value), ms))
 
+// opportunity_interest tablosunun mock karşılığı — {opportunityId, userId, createdAt}
+const MOCK_OPPORTUNITY_INTEREST = []
+
 // --- Opportunities (Fırsatlar) ----------------------------------------------
 export const opportunities = {
   // supabaseProvider.opportunities.list() lead_ad/lead_telefon'u SEÇMİYOR
@@ -59,17 +62,30 @@ export const opportunities = {
     const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
     return delay(publicRow)
   },
-  async claim(id, userId) {
-    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
-    if (!row || row.claimerId || row.status !== 'acik') {
-      throw new Error('Bu fırsat artık uygun değil (zaten alınmış olabilir).')
-    }
-    row.claimerId = userId
-    row.claimedAt = new Date().toISOString()
-    row.status = 'claimed'
-    // claim_opportunity() RPC de aynı şekilde leadAd/leadTelefon'suz döner.
-    const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
-    return delay(publicRow)
+  // "İlgileniyorum" artık exclusive claim değil — müşteri bilgisini AÇMAZ,
+  // sadece kim ilgilendiğini kaydeder (fırsatı giren kişi bunu görüp arar).
+  async expressInterest(opportunityId, userId) {
+    const exists = MOCK_OPPORTUNITY_INTEREST.some(
+      (r) => r.opportunityId === opportunityId && r.userId === userId,
+    )
+    if (exists) throw new Error('Bu fırsata zaten ilgi göstermiştin.')
+    MOCK_OPPORTUNITY_INTEREST.push({ opportunityId, userId, createdAt: new Date().toISOString() })
+    return delay(null)
+  },
+  async withdrawInterest(opportunityId, userId) {
+    const idx = MOCK_OPPORTUNITY_INTEREST.findIndex(
+      (r) => r.opportunityId === opportunityId && r.userId === userId,
+    )
+    if (idx !== -1) MOCK_OPPORTUNITY_INTEREST.splice(idx, 1)
+    return delay(null)
+  },
+  async listInterest(opportunityId) {
+    return delay(
+      MOCK_OPPORTUNITY_INTEREST.filter((r) => r.opportunityId === opportunityId).map((r) => ({
+        userId: r.userId,
+        createdAt: r.createdAt,
+      })),
+    )
   },
   // supabaseProvider.opportunities.getContact() ile birebir aynı davranış:
   // izinli değilse leadAd/leadTelefon null döner — mock modunda da UI'ın

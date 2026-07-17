@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canRevealContact, canViewOpportunity, canClaim, computeBoxCounts } from './opportunities'
+import { canRevealContact, canViewOpportunity, canExpressInterest, computeBoxCounts } from './opportunities'
 
 // Bu testler RLS'teki opportunities_select ve get_opportunity_contact()
 // kurallarının istemci tarafındaki AYNASI olan fonksiyonları doğrular.
@@ -11,7 +11,6 @@ const broker = { id: 'u-broker', role: 'broker' }
 const owner = { id: 'u-owner', role: 'owner' }
 const ofis = { id: 'u-ofis', role: 'ofis' }
 const danisman = { id: 'u-danisman', role: 'danisman' }
-const otherDanisman = { id: 'u-other', role: 'danisman' }
 
 function makeOpp(overrides = {}) {
   return {
@@ -67,14 +66,14 @@ describe('canRevealContact', () => {
     expect(canRevealContact(opp, ofis)).toBe(true)
   })
 
-  it('claim eden görür', () => {
-    const opp = makeOpp({ claimerId: 'u-danisman' })
-    expect(canRevealContact(opp, danisman)).toBe(true)
+  it('ilgi gösteren danışman GÖREMEZ (yeni kural: sadece sahibi/yönetim görür)', () => {
+    const opp = makeOpp({ ownerId: 'u-ofis', claimerId: 'u-danisman' })
+    expect(canRevealContact(opp, danisman)).toBe(false)
   })
 
-  it('ne sahibi ne claim eden olmayan danışman GÖREMEZ (gizlilik kuralı)', () => {
-    const opp = makeOpp({ ownerId: 'u-ofis', claimerId: 'u-danisman' })
-    expect(canRevealContact(opp, otherDanisman)).toBe(false)
+  it('sahibi ve claim eden aynı kişiyse (kendi eklediği fırsat) görür', () => {
+    const opp = makeOpp({ ownerId: 'u-danisman', claimerId: 'u-danisman', status: 'claimed' })
+    expect(canRevealContact(opp, danisman)).toBe(true)
   })
 
   it('kullanıcı yoksa göremez', () => {
@@ -82,18 +81,30 @@ describe('canRevealContact', () => {
   })
 })
 
-describe('canClaim', () => {
-  it('açık ve sahipsiz kayıt claim edilebilir', () => {
-    expect(canClaim(makeOpp({ status: 'acik', claimerId: null }))).toBe(true)
+describe('canExpressInterest', () => {
+  it('açık ve başkasının sahibi olduğu kayda ilgi gösterilebilir', () => {
+    const opp = makeOpp({ status: 'acik', ownerId: 'u-ofis' })
+    expect(canExpressInterest(opp, danisman)).toBe(true)
   })
 
-  it('zaten claim edilmiş kayıt tekrar claim edilemez', () => {
-    expect(canClaim(makeOpp({ status: 'claimed', claimerId: 'u-x' }))).toBe(false)
+  it('kendi eklediği kayda ilgi gösteremez', () => {
+    const opp = makeOpp({ status: 'acik', ownerId: 'u-danisman' })
+    expect(canExpressInterest(opp, danisman)).toBe(false)
   })
 
-  it('kapanmış/iptal kayıt claim edilemez', () => {
-    expect(canClaim(makeOpp({ status: 'kapandi' }))).toBe(false)
-    expect(canClaim(makeOpp({ status: 'iptal' }))).toBe(false)
+  it('broker/owner zaten her şeyi gördüğü için ilgi gösteremez', () => {
+    const opp = makeOpp({ status: 'acik', ownerId: 'u-ofis' })
+    expect(canExpressInterest(opp, broker)).toBe(false)
+    expect(canExpressInterest(opp, owner)).toBe(false)
+  })
+
+  it('kapanmış/iptal kayda ilgi gösterilemez', () => {
+    expect(canExpressInterest(makeOpp({ status: 'kapandi' }), danisman)).toBe(false)
+    expect(canExpressInterest(makeOpp({ status: 'iptal' }), danisman)).toBe(false)
+  })
+
+  it('kullanıcı yoksa ilgi gösterilemez', () => {
+    expect(canExpressInterest(makeOpp({ status: 'acik' }), null)).toBe(false)
   })
 })
 

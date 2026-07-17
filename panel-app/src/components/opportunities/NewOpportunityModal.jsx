@@ -10,14 +10,26 @@ const EMPTY_FORM = {
   leadTelefon: '',
   konum: '',
   fiyat: '',
+  fiyatMin: '',
+  fiyatMax: '',
   ozet: '',
+  m2: '',
+  odaSayisi: '',
+  binaYasi: '',
+  kat: '',
+  aidat: '',
+  isitma: '',
+  havuzaAt: false,
 }
 
-export default function NewOpportunityModal({ onClose, onSubmit, submitting, selfClaim = false }) {
+// showPoolToggle: sadece danışman rolünde gösterilir — diğer roller zaten
+// her zaman havuza ekliyor (bkz. Firsatlar.jsx CAN_CREATE_ROLES/handleCreate).
+export default function NewOpportunityModal({ onClose, onSubmit, submitting, showPoolToggle = false }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
   const canSubmit = form.leadAd.trim().length > 0
+  const isAlici = form.type === 'alici'
 
   return (
     <Modal title="Yeni Fırsat" onClose={onClose}>
@@ -29,10 +41,19 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sel
         }}
         className="space-y-3"
       >
-        {selfClaim && (
-          <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-700">
-            Bu fırsat kaydettiğinde direkt sana atanır, havuza düşmez.
-          </p>
+        {showPoolToggle && (
+          <label className="flex items-start gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
+            <input
+              type="checkbox"
+              checked={form.havuzaAt}
+              onChange={(e) => set({ havuzaAt: e.target.checked })}
+              className="mt-0.5 h-4 w-4 rounded border-ink-300"
+            />
+            <span>
+              Havuza at — diğer danışmanlar görüp ilgi gösterebilsin. Müşteri ad/telefonu ilgi gösterene hiçbir
+              zaman açılmaz, sadece sen görürsün. Tik kapalıysa fırsat direkt sende kalır.
+            </span>
+          </label>
         )}
         <div className="flex gap-1.5">
           {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
@@ -80,14 +101,82 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sel
           placeholder="Konum (ör. Tekirdağ / Süleymanpaşa)"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
-        <input
-          type="number"
-          min="0"
-          value={form.fiyat}
-          onChange={(e) => set({ fiyat: e.target.value })}
-          placeholder="Yaklaşık Fiyat (₺)"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+
+        {isAlici ? (
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min="0"
+              value={form.fiyatMin}
+              onChange={(e) => set({ fiyatMin: e.target.value })}
+              placeholder="Bütçe min (₺)"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+            <input
+              type="number"
+              min="0"
+              value={form.fiyatMax}
+              onChange={(e) => set({ fiyatMax: e.target.value })}
+              placeholder="Bütçe max (₺)"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </div>
+        ) : (
+          <input
+            type="number"
+            min="0"
+            value={form.fiyat}
+            onChange={(e) => set({ fiyat: e.target.value })}
+            placeholder="Yaklaşık Fiyat (₺)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        )}
+
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            min="0"
+            value={form.m2}
+            onChange={(e) => set({ m2: e.target.value })}
+            placeholder="m²"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <input
+            value={form.odaSayisi}
+            onChange={(e) => set({ odaSayisi: e.target.value })}
+            placeholder="Oda sayısı (ör. 3+1)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <input
+            type="number"
+            min="0"
+            value={form.binaYasi}
+            onChange={(e) => set({ binaYasi: e.target.value })}
+            placeholder="Bina yaşı"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <input
+            value={form.kat}
+            onChange={(e) => set({ kat: e.target.value })}
+            placeholder="Kat"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <input
+            type="number"
+            min="0"
+            value={form.aidat}
+            onChange={(e) => set({ aidat: e.target.value })}
+            placeholder="Aidat (₺)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <input
+            value={form.isitma}
+            onChange={(e) => set({ isitma: e.target.value })}
+            placeholder="Isıtma (ör. Doğalgaz)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        </div>
+
         <textarea
           value={form.ozet}
           onChange={(e) => set({ ozet: e.target.value })}

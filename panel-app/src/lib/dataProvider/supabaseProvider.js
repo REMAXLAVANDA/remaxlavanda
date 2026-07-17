@@ -23,6 +23,10 @@ async function run(promise) {
 }
 
 // --- Opportunities (Fırsatlar) ----------------------------------------------
+const OPPORTUNITY_COLUMNS =
+  'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, ' +
+  'm2, oda_sayisi, bina_yasi, kat, aidat, isitma, fiyat_min, fiyat_max, categories(key)'
+
 function mapOpportunity(row) {
   return {
     id: row.id,
@@ -36,6 +40,14 @@ function mapOpportunity(row) {
     claimerId: row.claimer_id,
     claimedAt: row.claimed_at,
     createdAt: row.created_at,
+    m2: row.m2,
+    odaSayisi: row.oda_sayisi,
+    binaYasi: row.bina_yasi,
+    kat: row.kat,
+    aidat: row.aidat,
+    isitma: row.isitma,
+    fiyatMin: row.fiyat_min,
+    fiyatMax: row.fiyat_max,
     // Bilinçli olarak leadAd/leadTelefon YOK — bkz. dosya başı not.
   }
 }
@@ -43,12 +55,7 @@ function mapOpportunity(row) {
 export const opportunities = {
   async list() {
     const data = await run(
-      client()
-        .from('opportunities')
-        .select(
-          'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, categories(key)',
-        )
-        .order('created_at', { ascending: false }),
+      client().from('opportunities').select(OPPORTUNITY_COLUMNS).order('created_at', { ascending: false }),
     )
     return data.map(mapOpportunity)
   },
@@ -66,20 +73,47 @@ export const opportunities = {
       fiyat: payload.fiyat ?? null,
       ozet: payload.ozet || null,
       owner_id: ownerId,
-      // Danışman kendi bulduğu müşteriyi eklerken direkt kendine atanmış
-      // olsun — açık havuza düşüp başka bir danışmana kaptırılmasın
-      // (bkz. opportunities_insert RLS: danışman sadece owner=claimer=
-      // kendisi olan satır ekleyebilir).
+      m2: payload.m2 ?? null,
+      oda_sayisi: payload.odaSayisi || null,
+      bina_yasi: payload.binaYasi ?? null,
+      kat: payload.kat || null,
+      aidat: payload.aidat ?? null,
+      isitma: payload.isitma || null,
+      fiyat_min: payload.fiyatMin ?? null,
+      fiyat_max: payload.fiyatMax ?? null,
+      // Danışman kendi bulduğu müşteriyi eklerken (havuza atmadıysa) direkt
+      // kendine atanmış olsun — açık havuza düşüp başka bir danışmana
+      // kaptırılmasın (bkz. opportunities_insert RLS: danışman sadece
+      // owner=claimer=kendisi olan satır ekleyebilir).
       ...(selfClaim ? { claimer_id: ownerId, status: 'claimed', claimed_at: new Date().toISOString() } : {}),
     }
-    const data = await run(client().from('opportunities').insert(insertRow).select().single())
+    const data = await run(client().from('opportunities').insert(insertRow).select(OPPORTUNITY_COLUMNS).single())
     return mapOpportunity(data)
   },
-  async claim(id) {
-    // claim_opportunity(uuid) RPC — auth.uid() kullanır, client'tan userId
-    // parametresi ALMAZ (aksi IDOR'a açık olurdu).
-    const data = await run(client().rpc('claim_opportunity', { p_opportunity_id: id }))
-    return mapOpportunity(data)
+  // "İlgileniyorum" artık exclusive claim değil — opportunity_interest'e
+  // kayıt ekler, müşteri bilgisini AÇMAZ. Fırsatı giren kişi kimin
+  // ilgilendiğini görüp kendisi arar (bkz. listInterest).
+  async expressInterest(opportunityId, userId) {
+    await run(
+      client().from('opportunity_interest').insert({ opportunity_id: opportunityId, user_id: userId }),
+    )
+  },
+  async withdrawInterest(opportunityId, userId) {
+    await run(
+      client()
+        .from('opportunity_interest')
+        .delete()
+        .eq('opportunity_id', opportunityId)
+        .eq('user_id', userId),
+    )
+  },
+  // Sadece fırsatı giren kişi veya yönetim görebilir (RLS ile garanti
+  // altında) — kimlerin ilgilendiğini listeler ki owner onları arayabilsin.
+  async listInterest(opportunityId) {
+    const data = await run(
+      client().from('opportunity_interest').select('user_id, created_at').eq('opportunity_id', opportunityId),
+    )
+    return data.map((row) => ({ userId: row.user_id, createdAt: row.created_at }))
   },
   async getContact(id) {
     const data = await run(client().rpc('get_opportunity_contact', { p_opportunity_id: id }))

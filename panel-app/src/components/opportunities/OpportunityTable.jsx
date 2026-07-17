@@ -2,7 +2,7 @@ import { categoryLabel } from '../../lib/categories'
 import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
-  canClaim,
+  canExpressInterest,
   formatPrice,
   relativeTime,
 } from '../../lib/opportunities'
@@ -10,7 +10,7 @@ import {
 // Gizlilik kuralı: bu tabloda müşteri isim/telefon/danışman bilgisi HİÇ
 // gösterilmiyor. Detay sadece satıra tıklayınca açılan modalda, izinliyse
 // gösteriliyor (bkz. OpportunityDetailModal + canRevealContact).
-export default function OpportunityTable({ opportunities, onRowClick, onClaim, claimingId }) {
+export default function OpportunityTable({ opportunities, onRowClick, onExpressInterest, expressingId, user, interestedIds }) {
   if (opportunities.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-ink-200 bg-white py-10 text-center text-sm text-ink-400">
@@ -62,16 +62,18 @@ export default function OpportunityTable({ opportunities, onRowClick, onClaim, c
                 </span>
               </td>
               <td className="px-4 py-3 text-right">
-                {canClaim(opp) ? (
+                {interestedIds?.has(opp.id) ? (
+                  <span className="text-xs font-medium text-emerald-600">İlgilendin ✓</span>
+                ) : canExpressInterest(opp, user) ? (
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      onClaim(opp)
+                      onExpressInterest(opp)
                     }}
-                    disabled={claimingId === opp.id}
+                    disabled={expressingId === opp.id}
                     className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
                   >
-                    {claimingId === opp.id ? 'Gönderiliyor...' : 'İlgileniyorum'}
+                    {expressingId === opp.id ? 'Gönderiliyor...' : 'İlgileniyorum'}
                   </button>
                 ) : (
                   <span className="text-xs text-ink-300">—</span>
