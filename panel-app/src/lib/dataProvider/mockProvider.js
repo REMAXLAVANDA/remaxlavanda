@@ -392,6 +392,19 @@ function allMockUserRows() {
   ]
 }
 
+// list_user_activity() RPC'sinin mock karşılığı — gerçek auth.users.
+// last_sign_in_at'a denk düşer. ext-danisman-3 kasıtlı olarak hiç giriş
+// yapmamış (null) — "hiç giriş yapmadı" durumunu test etmek için.
+const hoursAgo = (n) => new Date(Date.now() - n * 60 * 60 * 1000).toISOString()
+const MOCK_USER_ACTIVITY = {
+  'u-broker': hoursAgo(1),
+  'u-owner': hoursAgo(5),
+  'u-ofis': hoursAgo(2),
+  'u-danisman': hoursAgo(30),
+  'ext-danisman-2': hoursAgo(0.5),
+  'ext-danisman-3': null,
+}
+
 export const users = {
   // supabaseProvider.users.listKnown() sadece durum='aktif' kullanıcıları
   // döner — mock tarafında da aynı davranışı simüle ediyoruz (MOCK_USERS +
@@ -422,5 +435,12 @@ export const users = {
     const created = { id: `mock-user-${Date.now()}`, name: ad, email, role: rol, durum: 'aktif' }
     MOCK_EXTRA_USERS.push(created)
     return delay({ ...created })
+  },
+  async listActivity() {
+    return delay(
+      allMockUserRows()
+        .filter((u) => u.durum === 'aktif')
+        .map((u) => ({ userId: u.id, lastSignInAt: MOCK_USER_ACTIVITY[u.id] ?? null })),
+    )
   },
 }

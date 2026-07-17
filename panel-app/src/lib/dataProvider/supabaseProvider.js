@@ -651,4 +651,11 @@ export const users = {
     if (!data?.ok) throw new Error(data?.error ?? 'Hesap oluşturulamadı.')
     return { id: data.user.id, name: data.user.ad, email: data.user.email, role: data.user.rol }
   },
+  // list_user_activity() RPC'si — yönetim dışı roller için sessizce boş
+  // dizi döner (bkz. migration), o yüzden burada ayrı bir rol kontrolüne
+  // gerek yok, Panel'in tek Promise.all'ında herkes için güvenle çağrılabilir.
+  async listActivity() {
+    const data = await run(client().rpc('list_user_activity'))
+    return data.map((row) => ({ userId: row.user_id, lastSignInAt: row.last_sign_in_at }))
+  },
 }

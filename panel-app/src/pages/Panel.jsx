@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy } from 'lucide-react'
+import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy, Users as UsersIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
@@ -10,6 +10,7 @@ import {
   calendarEvents as calendarProvider,
   education as educationProvider,
   league as leagueProvider,
+  users as usersProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, maskPhone } from '../lib/callLogs'
 import { ROLES } from '../lib/roles'
@@ -28,7 +29,7 @@ const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
 
 async function loadAll() {
-  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores] =
+  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity] =
     await Promise.all([
       callLogsProvider.list(),
       opportunitiesProvider.list(),
@@ -40,8 +41,9 @@ async function loadAll() {
       educationProvider.listChecklistStatus(),
       leagueProvider.listPeriods(),
       leagueProvider.listScores(),
+      usersProvider.listActivity(),
     ])
-  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores }
+  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity }
 }
 
 function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', children }) {
@@ -249,6 +251,24 @@ export default function Panel() {
     return { total, satici, alici }
   }, [data, filters])
 
+  // --- Broker raporu: portalı en çok/en az kullanan (Supabase Auth'un
+  // gerçekten tuttuğu son giriş zamanına göre — mock/uydurma veri değil).
+  // Sadece danışmanlar sıralanıyor, Takip'in ekip kapsamıyla aynı.
+  const activityRanking = useMemo(() => {
+    if (!data) return []
+    const byUserId = {}
+    for (const a of data.activity) byUserId[a.userId] = a.lastSignInAt
+    return teamMembers
+      .map((u) => ({ id: u.id, name: u.name, lastSignInAt: byUserId[u.id] ?? null }))
+      .sort((a, b) => {
+        if (!a.lastSignInAt && !b.lastSignInAt) return 0
+        if (!a.lastSignInAt) return 1
+        if (!b.lastSignInAt) return -1
+        return new Date(b.lastSignInAt) - new Date(a.lastSignInAt)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, teamMembers])
+
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const activePeriod = data?.periods?.[0] ?? null
@@ -322,80 +342,112 @@ export default function Panel() {
 
       {!loading && !error && (
         <div className="grid gap-4 md:grid-cols-2 md:grid-flow-row-dense">
-          <Widget
-            icon={PhoneCall}
-            title={callTitle}
-            count={pendingCalls.length}
-            description={callDescription}
-            to="/operasyon"
-            linkLabel="Operasyon'a git"
-          >
-            {pendingCalls.length === 0 ? (
-              <EmptyRow text="Bekleyen çağrı yok, harika!" />
-            ) : (
-              <div className="space-y-2">
-                {pendingCalls.slice(0, 5).map((call) => (
-                  <div key={call.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium text-ink-900">{call.arayanAd}</p>
-                      <p className="text-xs text-ink-400">
-                        {call.kaynak} · {maskPhone(call.arayanTelefon)}
-                      </p>
-                    </div>
-                    <span className="text-xs text-ink-400">{relativeTime(call.createdAt)}</span>
-                  </div>
-                ))}
-                {pendingCalls.length > 5 && (
-                  <p className="pt-1 text-center text-xs text-ink-400">+{pendingCalls.length - 5} tane daha</p>
-                )}
-              </div>
-            )}
-          </Widget>
-
-          {isDanisman ? (
+          {role !== ROLES.BROKER && (
             <Widget
-              icon={Target}
-              title="Açık Fırsatlar"
-              count={openOpportunities.length}
-              description="Havuzda henüz kimsenin almadığı fırsatlar"
-              to="/firsatlar"
-              linkLabel="Fırsatlar'a git"
-              className="md:col-span-2"
+              icon={PhoneCall}
+              title={callTitle}
+              count={pendingCalls.length}
+              description={callDescription}
+              to="/operasyon"
+              linkLabel="Operasyon'a git"
             >
-              {openOpportunities.length === 0 ? (
-                <EmptyRow text="Havuzda bekleyen fırsat yok." />
+              {pendingCalls.length === 0 ? (
+                <EmptyRow text="Bekleyen çağrı yok, harika!" />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
-                  <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
+                <div className="space-y-2">
+                  {pendingCalls.slice(0, 5).map((call) => (
+                    <div key={call.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+                      <div>
+                        <p className="text-sm font-medium text-ink-900">{call.arayanAd}</p>
+                        <p className="text-xs text-ink-400">
+                          {call.kaynak} · {maskPhone(call.arayanTelefon)}
+                        </p>
+                      </div>
+                      <span className="text-xs text-ink-400">{relativeTime(call.createdAt)}</span>
+                    </div>
+                  ))}
+                  {pendingCalls.length > 5 && (
+                    <p className="pt-1 text-center text-xs text-ink-400">+{pendingCalls.length - 5} tane daha</p>
+                  )}
                 </div>
               )}
             </Widget>
-          ) : (
-            <Widget
-              icon={Target}
-              title="Açık Fırsatlar"
-              count={openOpportunities.length}
-              description="Havuzda henüz kimsenin almadığı fırsatlar"
-              to="/firsatlar"
-              linkLabel="Fırsatlar'a git"
-            >
-              {openOpportunities.length === 0 ? (
-                <EmptyRow text="Havuzda bekleyen fırsat yok." />
-              ) : (
-                <div className="space-y-2">
-                  {openOpportunities.slice(0, 5).map((o) => (
-                    <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
-                        <p className="text-xs text-ink-400">{o.konum ?? '—'}</p>
+          )}
+
+          {role !== ROLES.BROKER &&
+            (isDanisman ? (
+              <Widget
+                icon={Target}
+                title="Açık Fırsatlar"
+                count={openOpportunities.length}
+                description="Havuzda henüz kimsenin almadığı fırsatlar"
+                to="/firsatlar"
+                linkLabel="Fırsatlar'a git"
+                className="md:col-span-2"
+              >
+                {openOpportunities.length === 0 ? (
+                  <EmptyRow text="Havuzda bekleyen fırsat yok." />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
+                    <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
+                  </div>
+                )}
+              </Widget>
+            ) : (
+              <Widget
+                icon={Target}
+                title="Açık Fırsatlar"
+                count={openOpportunities.length}
+                description="Havuzda henüz kimsenin almadığı fırsatlar"
+                to="/firsatlar"
+                linkLabel="Fırsatlar'a git"
+              >
+                {openOpportunities.length === 0 ? (
+                  <EmptyRow text="Havuzda bekleyen fırsat yok." />
+                ) : (
+                  <div className="space-y-2">
+                    {openOpportunities.slice(0, 5).map((o) => (
+                      <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+                        <div>
+                          <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
+                          <p className="text-xs text-ink-400">{o.konum ?? '—'}</p>
+                        </div>
+                        <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
                       </div>
-                      <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
+                    ))}
+                    {openOpportunities.length > 5 && (
+                      <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
+                    )}
+                  </div>
+                )}
+              </Widget>
+            ))}
+
+          {role === ROLES.BROKER && (
+            <Widget
+              icon={UsersIcon}
+              title="Portal Kullanımı"
+              description="Danışmanlar, en son giriş yaptıkları zamana göre sıralı"
+              to="/takip"
+              linkLabel="Takip'e git"
+              className="md:col-span-2"
+            >
+              {activityRanking.length === 0 ? (
+                <EmptyRow text="Henüz danışman yok." />
+              ) : (
+                <div className="space-y-1.5">
+                  {activityRanking.map((r, index) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-lg border border-ink-100 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 shrink-0 text-center text-xs font-medium text-ink-300">{index + 1}</span>
+                        <span className="text-sm font-medium text-ink-900">{r.name}</span>
+                      </div>
+                      <span className={`text-xs ${r.lastSignInAt ? 'text-ink-500' : 'text-amber-600'}`}>
+                        {r.lastSignInAt ? `Son giriş: ${relativeTime(r.lastSignInAt)}` : 'Hiç giriş yapmadı'}
+                      </span>
                     </div>
                   ))}
-                  {openOpportunities.length > 5 && (
-                    <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
-                  )}
                 </div>
               )}
             </Widget>
