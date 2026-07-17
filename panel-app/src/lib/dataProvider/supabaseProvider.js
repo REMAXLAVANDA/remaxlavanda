@@ -25,7 +25,7 @@ async function run(promise) {
 // --- Opportunities (Fırsatlar) ----------------------------------------------
 const OPPORTUNITY_COLUMNS =
   'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, ' +
-  'm2, oda_sayisi, bina_yasi, kat, aidat, isitma, fiyat_min, fiyat_max, categories(key)'
+  'm2, oda_sayisi, fiyat_min, fiyat_max, categories(key)'
 
 function mapOpportunity(row) {
   return {
@@ -42,10 +42,6 @@ function mapOpportunity(row) {
     createdAt: row.created_at,
     m2: row.m2,
     odaSayisi: row.oda_sayisi,
-    binaYasi: row.bina_yasi,
-    kat: row.kat,
-    aidat: row.aidat,
-    isitma: row.isitma,
     fiyatMin: row.fiyat_min,
     fiyatMax: row.fiyat_max,
     // Bilinçli olarak leadAd/leadTelefon YOK — bkz. dosya başı not.
@@ -75,10 +71,6 @@ export const opportunities = {
       owner_id: ownerId,
       m2: payload.m2 ?? null,
       oda_sayisi: payload.odaSayisi || null,
-      bina_yasi: payload.binaYasi ?? null,
-      kat: payload.kat || null,
-      aidat: payload.aidat ?? null,
-      isitma: payload.isitma || null,
       fiyat_min: payload.fiyatMin ?? null,
       fiyat_max: payload.fiyatMax ?? null,
       // Danışman kendi bulduğu müşteriyi eklerken (havuza atmadıysa) direkt

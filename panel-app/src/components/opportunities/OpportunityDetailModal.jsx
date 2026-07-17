@@ -119,10 +119,6 @@ export default function OpportunityDetailModal({
         <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-xs text-ink-500">
           {opp.m2 && <span>{opp.m2} m²</span>}
           {opp.odaSayisi && <span>{opp.odaSayisi}</span>}
-          {opp.binaYasi != null && <span>Bina yaşı: {opp.binaYasi}</span>}
-          {opp.kat && <span>Kat: {opp.kat}</span>}
-          {opp.aidat != null && <span>Aidat: {formatPrice(opp.aidat)}</span>}
-          {opp.isitma && <span>Isıtma: {opp.isitma}</span>}
         </div>
       </div>
 

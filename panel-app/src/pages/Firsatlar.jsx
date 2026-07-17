@@ -6,6 +6,7 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { opportunities as opportunitiesProvider } from '../lib/dataProvider'
 import { canViewOpportunity, computeBoxCounts, isWithinRange } from '../lib/opportunities'
+import { parseThousands } from '../lib/format'
 import { ROLES } from '../lib/roles'
 import OpportunitySection from '../components/opportunities/OpportunitySection'
 import OpportunityDetailModal from '../components/opportunities/OpportunityDetailModal'
@@ -93,12 +94,10 @@ export default function Firsatlar() {
     try {
       const payload = {
         ...form,
-        fiyat: form.fiyat ? Number(form.fiyat) : null,
-        fiyatMin: form.fiyatMin ? Number(form.fiyatMin) : null,
-        fiyatMax: form.fiyatMax ? Number(form.fiyatMax) : null,
+        fiyat: parseThousands(form.fiyat),
+        fiyatMin: parseThousands(form.fiyatMin),
+        fiyatMax: parseThousands(form.fiyatMax),
         m2: form.m2 ? Number(form.m2) : null,
-        binaYasi: form.binaYasi ? Number(form.binaYasi) : null,
-        aidat: form.aidat ? Number(form.aidat) : null,
       }
       const selfClaim = role === ROLES.DANISMAN && !form.havuzaAt
       const created = await opportunitiesProvider.create(payload, user.id, selfClaim)

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
+import { capitalizeWords, formatThousands } from '../../lib/format'
 
 const EMPTY_FORM = {
   type: 'satici',
@@ -15,12 +16,12 @@ const EMPTY_FORM = {
   ozet: '',
   m2: '',
   odaSayisi: '',
-  binaYasi: '',
-  kat: '',
-  aidat: '',
-  isitma: '',
   havuzaAt: false,
 }
+
+// Konut için standart oda sayısı seçenekleri — serbest metin yerine
+// listeden seçilsin diye (yazım farklılıkları/hatalar olmasın).
+const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+2', '6+1 ve üzeri']
 
 // showPoolToggle: sadece danışman rolünde gösterilir — diğer roller zaten
 // her zaman havuza ekliyor (bkz. Firsatlar.jsx CAN_CREATE_ROLES/handleCreate).
@@ -30,6 +31,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
 
   const canSubmit = form.leadAd.trim().length > 0
   const isAlici = form.type === 'alici'
+  const isKonut = form.category === 'konut'
 
   return (
     <Modal title="Yeni Fırsat" onClose={onClose}>
@@ -37,7 +39,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit(form)
+          onSubmit({ ...form, leadAd: capitalizeWords(form.leadAd.trim()) })
         }}
         className="space-y-3"
       >
@@ -72,7 +74,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
 
         <select
           value={form.category}
-          onChange={(e) => set({ category: e.target.value })}
+          onChange={(e) => set({ category: e.target.value, odaSayisi: '' })}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
         >
           {OPPORTUNITY_CATEGORIES.map((c) => (
@@ -86,6 +88,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
           required
           value={form.leadAd}
           onChange={(e) => set({ leadAd: e.target.value })}
+          onBlur={(e) => set({ leadAd: capitalizeWords(e.target.value) })}
           placeholder="Ad Soyad"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
@@ -105,28 +108,25 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         {isAlici ? (
           <div className="flex gap-2">
             <input
-              type="number"
-              min="0"
+              inputMode="numeric"
               value={form.fiyatMin}
-              onChange={(e) => set({ fiyatMin: e.target.value })}
+              onChange={(e) => set({ fiyatMin: formatThousands(e.target.value) })}
               placeholder="Bütçe min (₺)"
               className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
             />
             <input
-              type="number"
-              min="0"
+              inputMode="numeric"
               value={form.fiyatMax}
-              onChange={(e) => set({ fiyatMax: e.target.value })}
+              onChange={(e) => set({ fiyatMax: formatThousands(e.target.value) })}
               placeholder="Bütçe max (₺)"
               className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
             />
           </div>
         ) : (
           <input
-            type="number"
-            min="0"
+            inputMode="numeric"
             value={form.fiyat}
-            onChange={(e) => set({ fiyat: e.target.value })}
+            onChange={(e) => set({ fiyat: formatThousands(e.target.value) })}
             placeholder="Yaklaşık Fiyat (₺)"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
@@ -141,40 +141,20 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
             placeholder="m²"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
-          <input
-            value={form.odaSayisi}
-            onChange={(e) => set({ odaSayisi: e.target.value })}
-            placeholder="Oda sayısı (ör. 3+1)"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-          <input
-            type="number"
-            min="0"
-            value={form.binaYasi}
-            onChange={(e) => set({ binaYasi: e.target.value })}
-            placeholder="Bina yaşı"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-          <input
-            value={form.kat}
-            onChange={(e) => set({ kat: e.target.value })}
-            placeholder="Kat"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-          <input
-            type="number"
-            min="0"
-            value={form.aidat}
-            onChange={(e) => set({ aidat: e.target.value })}
-            placeholder="Aidat (₺)"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-          <input
-            value={form.isitma}
-            onChange={(e) => set({ isitma: e.target.value })}
-            placeholder="Isıtma (ör. Doğalgaz)"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
+          {isKonut && (
+            <select
+              value={form.odaSayisi}
+              onChange={(e) => set({ odaSayisi: e.target.value })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            >
+              <option value="">Oda sayısı seç</option>
+              {ODA_SAYISI_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <textarea
