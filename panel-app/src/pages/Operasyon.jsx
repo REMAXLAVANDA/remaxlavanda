@@ -135,7 +135,7 @@ export default function Operasyon() {
           </div>
 
           <div className="mb-5">
-            <CallFilters filters={filters} onChange={setFilters} />
+            <CallFilters filters={filters} onChange={setFilters} showKaynak={isManager} />
           </div>
 
           <CallTable

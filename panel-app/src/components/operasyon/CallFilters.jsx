@@ -15,7 +15,9 @@ function Chip({ active, children, ...props }) {
   )
 }
 
-export default function CallFilters({ filters, onChange }) {
+// showKaynak: danışman rolü için gizlenir — kaynak (Santral/Sponsorlu/
+// Google Ads vb.) ofis/yönetim işi, danışmanın filtrelemesine gerek yok.
+export default function CallFilters({ filters, onChange, showKaynak = true }) {
   const set = (patch) => onChange({ ...filters, ...patch })
 
   return (
@@ -30,16 +32,18 @@ export default function CallFilters({ filters, onChange }) {
         />
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>
-          Tüm Kaynaklar
-        </Chip>
-        {CALL_SOURCES.map((s) => (
-          <Chip key={s} active={filters.kaynak === s} onClick={() => set({ kaynak: s })}>
-            {s}
+      {showKaynak && (
+        <div className="flex flex-wrap gap-1.5">
+          <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>
+            Tüm Kaynaklar
           </Chip>
-        ))}
-      </div>
+          {CALL_SOURCES.map((s) => (
+            <Chip key={s} active={filters.kaynak === s} onClick={() => set({ kaynak: s })}>
+              {s}
+            </Chip>
+          ))}
+        </div>
+      )}
 
       <DateRangeFilter value={filters} onChange={onChange} />
     </div>

@@ -46,7 +46,7 @@ export default function CallTable({
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead>
           <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
-            <th className="px-4 py-2.5">Kaynak</th>
+            {isManager && <th className="px-4 py-2.5">Kaynak</th>}
             <th className="px-4 py-2.5">Arayan</th>
             <th className="px-4 py-2.5">Telefon</th>
             <th className="px-4 py-2.5">Sonuç</th>
@@ -62,11 +62,13 @@ export default function CallTable({
             const canEditResult = isManager || call.assignedTo === currentUserId
             return (
               <tr key={call.id} className="border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50">
-                <td className="px-4 py-3">
-                  <span className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
-                    {call.kaynak}
-                  </span>
-                </td>
+                {isManager && (
+                  <td className="px-4 py-3">
+                    <span className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
+                      {call.kaynak}
+                    </span>
+                  </td>
+                )}
                 <td className="px-4 py-3 font-medium text-ink-900">
                   <span className="flex items-center gap-1.5">
                     {call.arayanAd}

@@ -14,7 +14,7 @@ import {
 import { canManageCalls, maskPhone } from '../lib/callLogs'
 import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
-import { OPPORTUNITY_TYPE_LABELS, formatPrice } from '../lib/opportunities'
+import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor } from '../lib/league'
 import { relativeTime } from '../lib/format'
@@ -71,6 +71,54 @@ function EmptyRow({ text }) {
   )
 }
 
+// Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun
+// diye kategori/konum/fiyat/tarih tek satırda yan yana gösterilir (tür
+// rozeti YOK, zaten satıcı/alıcı bloğuna göre ayrılmış durumda).
+function OpportunityMiniRow({ o }) {
+  const priceLabel =
+    o.type === 'alici' && (o.fiyatMin || o.fiyatMax)
+      ? `${formatPrice(o.fiyatMin)} – ${formatPrice(o.fiyatMax)}`
+      : formatPrice(o.fiyat)
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-ink-100 px-3 py-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
+          {categoryLabel(o.category)}
+        </span>
+        <span className="truncate text-sm font-medium text-ink-900">{o.konum ?? '—'}</span>
+      </div>
+      <div className="shrink-0 whitespace-nowrap text-right text-xs">
+        <span className="font-medium text-ink-700">{priceLabel}</span>
+        <span className="ml-2 text-ink-400">{relativeTime(o.createdAt)}</span>
+      </div>
+    </div>
+  )
+}
+
+// Satıcı/Alıcı ayrı blok halinde gösterilsin diye tek bir liste bileşeni.
+function OpportunityMiniBlock({ dotColor, label, items }) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-1.5">
+        <span className={`h-2 w-2 rounded-full ${dotColor}`} />
+        <h3 className="text-xs font-semibold text-ink-500">
+          {label} <span className="font-normal text-ink-300">({items.length})</span>
+        </h3>
+      </div>
+      {items.length === 0 ? (
+        <p className="rounded-lg bg-ink-50 px-3 py-4 text-center text-xs text-ink-400">Yok</p>
+      ) : (
+        <div className="space-y-1.5">
+          {items.slice(0, 4).map((o) => (
+            <OpportunityMiniRow key={o.id} o={o} />
+          ))}
+          {items.length > 4 && <p className="pt-0.5 text-center text-xs text-ink-400">+{items.length - 4} tane daha</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Panel() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
@@ -88,13 +136,16 @@ export default function Panel() {
     return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [data, isManager, user.id])
 
-  // --- Fırsatlar: havuzdaki (henüz kimsenin almadığı) açık fırsatlar ---
+  // --- Fırsatlar: havuzdaki (henüz kimsenin almadığı) açık fırsatlar —
+  // satıcı/alıcı ayrı bloklarda gösterilsin diye ayrı listeleniyor.
   const openOpportunities = useMemo(() => {
     if (!data) return []
     return data.opps
       .filter((o) => o.status === 'acik')
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [data])
+  const openSatici = useMemo(() => openOpportunities.filter((o) => o.type === 'satici'), [openOpportunities])
+  const openAlici = useMemo(() => openOpportunities.filter((o) => o.type === 'alici'), [openOpportunities])
 
   // --- Takvim: önümüzdeki 48 saat içindeki (görebildiğin) etkinlikler ---
   const upcomingEvents = useMemo(() => {
@@ -160,7 +211,7 @@ export default function Panel() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 md:grid-flow-row-dense">
           <Widget
             icon={PhoneCall}
             title={callTitle}
@@ -198,42 +249,14 @@ export default function Panel() {
             description="Havuzda henüz kimsenin almadığı fırsatlar"
             to="/firsatlar"
             linkLabel="Fırsatlar'a git"
+            className="md:col-span-2"
           >
             {openOpportunities.length === 0 ? (
               <EmptyRow text="Havuzda bekleyen fırsat yok." />
             ) : (
-              <div className="space-y-2">
-                {openOpportunities.slice(0, 5).map((o) => {
-                  const priceLabel =
-                    o.type === 'alici' && (o.fiyatMin || o.fiyatMax)
-                      ? `${formatPrice(o.fiyatMin)} – ${formatPrice(o.fiyatMax)}`
-                      : formatPrice(o.fiyat)
-                  const detailBits = [o.odaSayisi, o.m2 ? `${o.m2} m²` : null].filter(Boolean)
-                  return (
-                    <div key={o.id} className="rounded-xl border border-ink-100 px-3 py-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
-                            {OPPORTUNITY_TYPE_LABELS[o.type]}
-                          </span>
-                          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-                            {categoryLabel(o.category)}
-                          </span>
-                        </div>
-                        <span className="shrink-0 text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
-                      </div>
-                      <p className="mt-1.5 text-sm font-medium text-ink-900">{o.konum ?? '—'}</p>
-                      <p className="text-xs text-ink-500">
-                        {priceLabel}
-                        {detailBits.length > 0 && <span className="text-ink-400"> · {detailBits.join(' · ')}</span>}
-                      </p>
-                      {o.ozet && <p className="mt-1 truncate text-xs text-ink-400">{o.ozet}</p>}
-                    </div>
-                  )
-                })}
-                {openOpportunities.length > 5 && (
-                  <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
-                )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
+                <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
               </div>
             )}
           </Widget>
