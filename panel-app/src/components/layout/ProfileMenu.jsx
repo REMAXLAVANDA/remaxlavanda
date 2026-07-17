@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings, LogOut, ChevronDown, Check } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { ROLE_LABELS, ROLE_ORDER } from '../../lib/roles'
+import { ROLE_LABELS, ROLE_ORDER, canManageUsers } from '../../lib/roles'
 
 export default function ProfileMenu() {
   const { user, role, setRole, isMock, signOut } = useAuth()
@@ -86,16 +86,18 @@ export default function ProfileMenu() {
           )}
 
           <div className="p-2">
-            <button
-              onClick={() => {
-                setOpen(false)
-                navigate('/ayarlar')
-              }}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50"
-            >
-              <Settings size={16} />
-              Ayarlar
-            </button>
+            {canManageUsers(role) && (
+              <button
+                onClick={() => {
+                  setOpen(false)
+                  navigate('/ayarlar')
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50"
+              >
+                <Settings size={16} />
+                Ayarlar
+              </button>
+            )}
             <button
               onClick={handleLogout}
               disabled={signingOut}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus } from 'lucide-react'
+import { Users, Shield, Tag, ScrollText, Plus, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useAsyncList } from '../hooks/useAsyncList'
@@ -25,8 +25,8 @@ export default function Ayarlar() {
   const canManage = canManageUsers(role)
 
   const { data: allUsers, setData: setAllUsers, loading, error, reload } = useAsyncList(
-    () => usersProvider.listAll(),
-    [],
+    () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
+    [canManage],
   )
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -63,6 +63,16 @@ export default function Ayarlar() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (!canManage) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center">
+        <Lock size={28} className="text-ink-300" />
+        <p className="text-sm font-medium text-ink-600">Bu sayfaya erişim yetkin yok.</p>
+        <p className="text-xs text-ink-400">Ayarlar sadece broker ve owner rollerine açıktır.</p>
+      </div>
+    )
   }
 
   return (
