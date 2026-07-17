@@ -7,6 +7,9 @@ import { MODULES } from '../../lib/modules'
 function useCurrentTitle() {
   const { pathname } = useLocation()
   if (pathname.startsWith('/ayarlar')) return 'Ayarlar'
+  // /operasyon artık ayrı bir menü değil, Fırsatlar sayfasının bir sekmesi
+  // (bkz. pages/Firsatlar.jsx) — ama link olarak hâlâ çalışıyor.
+  if (pathname.startsWith('/operasyon')) return 'Fırsatlar'
   const active = MODULES.find((m) => pathname.startsWith(m.path))
   return active?.label ?? 'RE/MAX Lavanda'
 }

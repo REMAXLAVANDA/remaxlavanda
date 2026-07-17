@@ -1,22 +1,22 @@
 import { useMemo, useState } from 'react'
-import { Wrench, Plus } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { callLogs as callLogsProvider } from '../lib/dataProvider'
-import { canManageCalls, canViewCall, computeCallStats } from '../lib/callLogs'
-import { isWithinRange } from '../lib/dateRange'
-import CallTable from '../components/operasyon/CallTable'
-import CallFilters from '../components/operasyon/CallFilters'
-import StatsCards from '../components/operasyon/StatsCards'
-import NewCallModal from '../components/operasyon/NewCallModal'
-import EditCallDetailsModal from '../components/operasyon/EditCallDetailsModal'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import { Plus } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { callLogs as callLogsProvider } from '../../lib/dataProvider'
+import { canManageCalls, canViewCall, computeCallStats } from '../../lib/callLogs'
+import { isWithinRange } from '../../lib/dateRange'
+import CallTable from '../../components/operasyon/CallTable'
+import CallFilters from '../../components/operasyon/CallFilters'
+import StatsCards from '../../components/operasyon/StatsCards'
+import NewCallModal from '../../components/operasyon/NewCallModal'
+import EditCallDetailsModal from '../../components/operasyon/EditCallDetailsModal'
+import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
 
-export default function Operasyon() {
+export default function OperasyonTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
@@ -104,17 +104,9 @@ export default function Operasyon() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-            <Wrench size={20} />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-ink-900">{isManager ? 'Operasyon' : 'Sana Atanan Çağrılar'}</h1>
-            <p className="text-xs text-ink-400">
-              {isManager ? 'Sponsorlu reklam ve çağrı kayıtları' : 'Santralden sana yönlendirilen çağrılar'}
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-ink-500">
+          {isManager ? 'Sponsorlu reklam ve çağrı kayıtları' : 'Santralden sana yönlendirilen çağrılar'}
+        </p>
         {isManager && (
           <button
             onClick={() => setShowModal(true)}

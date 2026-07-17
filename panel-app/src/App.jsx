@@ -12,7 +12,6 @@ import { getSupabaseClient, MissingSupabaseConfigError } from './lib/supabaseCli
 import Panel from './pages/Panel'
 import Firsatlar from './pages/Firsatlar'
 import Egitim from './pages/Egitim'
-import Operasyon from './pages/Operasyon'
 import Takip from './pages/Takip'
 import Lig from './pages/Lig'
 import Rehber from './pages/Rehber'
@@ -72,7 +71,7 @@ export default function App() {
                     }
                   />
                   <Route path="/egitim" element={<Egitim />} />
-                  <Route path="/operasyon" element={<Operasyon />} />
+                  <Route path="/operasyon" element={<Firsatlar />} />
                   <Route path="/takip" element={<Takip />} />
                   <Route path="/lig" element={<Lig />} />
                   <Route path="/rehber" element={<Rehber />} />
