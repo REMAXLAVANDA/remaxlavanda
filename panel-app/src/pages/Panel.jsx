@@ -72,6 +72,25 @@ function EmptyRow({ text }) {
   )
 }
 
+// Broker'ın istediği "rapor odaklı" özet kartları — büyük sayı + kısa
+// dağılım, tıklanınca ilgili modüle götürüyor. Aşağıdaki liste widget'ları
+// "kim/ne" sorusuna cevap veriyor, bu kartlar "kaç tane" sorusuna.
+function StatCard({ icon: Icon, to, label, value, detail }) {
+  return (
+    <Link
+      to={to}
+      className="rounded-2xl border border-ink-100 bg-white p-5 transition-colors hover:border-brand-300 hover:bg-brand-50/40"
+    >
+      <div className="mb-2 flex items-center gap-2 text-ink-400">
+        <Icon size={16} />
+        <span className="text-xs font-medium">{label}</span>
+      </div>
+      <p className="text-2xl font-semibold text-ink-900">{value}</p>
+      {detail && <p className="mt-1 text-xs text-ink-500">{detail}</p>}
+    </Link>
+  )
+}
+
 // Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun diye
 // kategori/mahalle/detay(oda-m²)/fiyat/tarih tek satırda yan yana gösterilir
 // (tür rozeti YOK, zaten satıcı/alıcı bloğuna göre ayrılmış durumda). İl/ilçe
@@ -184,6 +203,24 @@ export default function Panel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, isEducationManager, teamMembers, user])
 
+  // --- Broker raporu: Operasyon/Fırsatlar özet sayıları (bkz. StatCard) ---
+  const callStats = useMemo(() => {
+    if (!data) return { total: 0, assigned: 0, donusYapildi: 0, donusYapilmadi: 0 }
+    const total = data.calls.length
+    const assigned = data.calls.filter((c) => c.assignedTo).length
+    const donusYapildi = data.calls.filter((c) => c.assignedTo && c.donusYapildiMi).length
+    const donusYapilmadi = data.calls.filter((c) => c.assignedTo && !c.donusYapildiMi).length
+    return { total, assigned, donusYapildi, donusYapilmadi }
+  }, [data])
+
+  const opportunityStats = useMemo(() => {
+    if (!data) return { total: 0, satici: 0, alici: 0 }
+    const total = data.opps.length
+    const satici = data.opps.filter((o) => o.type === 'satici').length
+    const alici = data.opps.filter((o) => o.type === 'alici').length
+    return { total, satici, alici }
+  }, [data])
+
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const activePeriod = data?.periods?.[0] ?? null
@@ -217,6 +254,39 @@ export default function Panel() {
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
+
+      {!loading && !error && role === ROLES.BROKER && (
+        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            icon={PhoneCall}
+            to="/operasyon"
+            label="Operasyon"
+            value={callStats.total}
+            detail={`${callStats.assigned} atandı · ${callStats.donusYapildi} dönüş yapıldı · ${callStats.donusYapilmadi} bekliyor`}
+          />
+          <StatCard
+            icon={Target}
+            to="/firsatlar"
+            label="Fırsatlar / Portföy"
+            value={opportunityStats.total}
+            detail={`${opportunityStats.satici} satıcı · ${opportunityStats.alici} alıcı adayı`}
+          />
+          <StatCard
+            icon={CalendarDays}
+            to="/takvim"
+            label="Yaklaşan Etkinlikler"
+            value={upcomingEvents.length}
+            detail="Önümüzdeki 48 saat"
+          />
+          <StatCard
+            icon={GraduationCap}
+            to="/egitim"
+            label="Eksik Eğitim / Checklist"
+            value={educationGaps.length}
+            detail="%100 altında olan kişi sayısı"
+          />
+        </div>
+      )}
 
       {!loading && !error && (
         <div className="grid gap-4 md:grid-cols-2 md:grid-flow-row-dense">
