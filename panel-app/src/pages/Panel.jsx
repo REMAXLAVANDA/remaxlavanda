@@ -12,6 +12,7 @@ import {
   league as leagueProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, maskPhone } from '../lib/callLogs'
+import { ROLES } from '../lib/roles'
 import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { formatPrice } from '../lib/opportunities'
@@ -124,6 +125,7 @@ export default function Panel() {
   const { knownUsers } = useKnownUsers()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const isManager = canManageCalls(role)
+  const isDanisman = role === ROLES.DANISMAN
   const isEducationManager = EDUCATION_MANAGE_ROLES.includes(role)
   const teamMembers = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
 
@@ -242,24 +244,54 @@ export default function Panel() {
             )}
           </Widget>
 
-          <Widget
-            icon={Target}
-            title="Açık Fırsatlar"
-            count={openOpportunities.length}
-            description="Havuzda henüz kimsenin almadığı fırsatlar"
-            to="/firsatlar"
-            linkLabel="Fırsatlar'a git"
-            className="md:col-span-2"
-          >
-            {openOpportunities.length === 0 ? (
-              <EmptyRow text="Havuzda bekleyen fırsat yok." />
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
-                <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
-              </div>
-            )}
-          </Widget>
+          {isDanisman ? (
+            <Widget
+              icon={Target}
+              title="Açık Fırsatlar"
+              count={openOpportunities.length}
+              description="Havuzda henüz kimsenin almadığı fırsatlar"
+              to="/firsatlar"
+              linkLabel="Fırsatlar'a git"
+              className="md:col-span-2"
+            >
+              {openOpportunities.length === 0 ? (
+                <EmptyRow text="Havuzda bekleyen fırsat yok." />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
+                  <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
+                </div>
+              )}
+            </Widget>
+          ) : (
+            <Widget
+              icon={Target}
+              title="Açık Fırsatlar"
+              count={openOpportunities.length}
+              description="Havuzda henüz kimsenin almadığı fırsatlar"
+              to="/firsatlar"
+              linkLabel="Fırsatlar'a git"
+            >
+              {openOpportunities.length === 0 ? (
+                <EmptyRow text="Havuzda bekleyen fırsat yok." />
+              ) : (
+                <div className="space-y-2">
+                  {openOpportunities.slice(0, 5).map((o) => (
+                    <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+                      <div>
+                        <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
+                        <p className="text-xs text-ink-400">{o.konum ?? '—'}</p>
+                      </div>
+                      <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
+                    </div>
+                  ))}
+                  {openOpportunities.length > 5 && (
+                    <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
+                  )}
+                </div>
+              )}
+            </Widget>
+          )}
 
           <Widget
             icon={CalendarDays}
