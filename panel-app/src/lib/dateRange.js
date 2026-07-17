@@ -7,6 +7,7 @@ export const DATE_RANGES = [
   { key: '30g', label: '30 gün', days: 30 },
   { key: '4a', label: '4 ay', days: 120 },
   { key: 'yil', label: 'Bu yıl', days: null },
+  { key: 'tumu', label: 'Tümü', days: null },
   { key: 'ozel', label: 'Özel', days: null },
 ]
 

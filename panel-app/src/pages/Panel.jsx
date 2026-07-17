@@ -163,6 +163,7 @@ export default function Panel() {
   // ve broker'ın özet kartları buna göre daralıyor.
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const selectedRange = DATE_RANGES.find((r) => r.key === filters.dateRange)
+  const upcomingLabel = filters.dateRange === 'tumu' ? 'Tüm yaklaşan etkinlikler' : `Önümüzdeki ${selectedRange?.label ?? '7 gün'}`
 
   // --- Operasyon: atanmamış (yönetim) / sana atanan dönüşü bekleyen (danışman) ---
   const pendingCalls = useMemo(() => {
@@ -194,7 +195,9 @@ export default function Panel() {
     if (!data) return []
     const now = Date.now()
     let windowEnd
-    if (filters.dateRange === 'ozel' && filters.customTo) {
+    if (filters.dateRange === 'tumu') {
+      windowEnd = Infinity
+    } else if (filters.dateRange === 'ozel' && filters.customTo) {
       windowEnd = new Date(filters.customTo).getTime() + 24 * 60 * 60 * 1000 - 1
     } else if (selectedRange?.days) {
       windowEnd = now + selectedRange.days * 24 * 60 * 60 * 1000
@@ -328,7 +331,7 @@ export default function Panel() {
             to="/takvim"
             label="Yaklaşan Etkinlikler"
             value={upcomingEvents.length}
-            detail={`Önümüzdeki ${selectedRange?.label ?? '7 gün'}`}
+            detail={upcomingLabel}
           />
           <StatCard
             icon={GraduationCap}
@@ -457,7 +460,7 @@ export default function Panel() {
             icon={CalendarDays}
             title="Yaklaşan Etkinlikler"
             count={upcomingEvents.length}
-            description={`Önümüzdeki ${selectedRange?.label ?? '7 gün'}`}
+            description={upcomingLabel}
             to="/takvim"
             linkLabel="Takvim'e git"
           >
