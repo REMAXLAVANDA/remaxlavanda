@@ -7,7 +7,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { callLogs as callLogsProvider } from '../lib/dataProvider'
 import { canManageCalls, canViewCall, computeCallStats } from '../lib/callLogs'
 import { isWithinRange } from '../lib/dateRange'
-import CallCard from '../components/operasyon/CallCard'
+import CallTable from '../components/operasyon/CallTable'
 import CallFilters from '../components/operasyon/CallFilters'
 import StatsCards from '../components/operasyon/StatsCards'
 import NewCallModal from '../components/operasyon/NewCallModal'
@@ -121,27 +121,16 @@ export default function Operasyon() {
             <CallFilters filters={filters} onChange={setFilters} />
           </div>
 
-          {visible.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
-              Bu filtrelere uyan çağrı yok.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {visible.map((call) => (
-                <CallCard
-                  key={call.id}
-                  call={call}
-                  assignedName={call.assignedTo ? userName(call.assignedTo) : null}
-                  isManager={isManager}
-                  canEditOwn={call.assignedTo === user.id}
-                  inviteeOptions={inviteeOptions}
-                  onAssign={(id) => handleAssign(call.id, id)}
-                  onSetResult={(sonuc) => handleSetResult(call.id, sonuc)}
-                  onToggle={(field) => handleToggle(call.id, field)}
-                />
-              ))}
-            </div>
-          )}
+          <CallTable
+            calls={visible}
+            currentUserId={user.id}
+            isManager={isManager}
+            inviteeOptions={inviteeOptions}
+            resolveName={userName}
+            onAssign={handleAssign}
+            onSetResult={handleSetResult}
+            onToggle={handleToggle}
+          />
         </>
       )}
 
