@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -18,11 +18,14 @@ import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor } from '../lib/league'
+import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
 import { relativeTime } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
+import DateRangeFilter from '../components/common/DateRangeFilter'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
+const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
 
 async function loadAll() {
   const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores] =
@@ -153,6 +156,11 @@ export default function Panel() {
   const isDanisman = role === ROLES.DANISMAN
   const isEducationManager = EDUCATION_MANAGE_ROLES.includes(role)
   const teamMembers = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
+  // Panel'in üstündeki tek tarih filtresi — dört rol için de aynı, varsayılan
+  // her zaman "7 gün" (bkz. INITIAL_FILTERS). Operasyon/Fırsatlar listeleri
+  // ve broker'ın özet kartları buna göre daralıyor.
+  const [filters, setFilters] = useState(INITIAL_FILTERS)
+  const selectedRange = DATE_RANGES.find((r) => r.key === filters.dateRange)
 
   // --- Operasyon: atanmamış (yönetim) / sana atanan dönüşü bekleyen (danışman) ---
   const pendingCalls = useMemo(() => {
@@ -160,8 +168,10 @@ export default function Panel() {
     const list = isManager
       ? data.calls.filter((c) => !c.assignedTo)
       : data.calls.filter((c) => c.assignedTo === user.id && !c.donusYapildiMi)
-    return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [data, isManager, user.id])
+    return list
+      .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }, [data, isManager, user.id, filters])
 
   // --- Fırsatlar: havuzdaki (henüz kimsenin almadığı) açık fırsatlar —
   // satıcı/alıcı ayrı bloklarda gösterilsin diye ayrı listeleniyor.
@@ -169,24 +179,35 @@ export default function Panel() {
     if (!data) return []
     return data.opps
       .filter((o) => o.status === 'acik')
+      .filter((o) => isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [data])
+  }, [data, filters])
   const openSatici = useMemo(() => openOpportunities.filter((o) => o.type === 'satici'), [openOpportunities])
   const openAlici = useMemo(() => openOpportunities.filter((o) => o.type === 'alici'), [openOpportunities])
 
-  // --- Takvim: önümüzdeki 48 saat içindeki (görebildiğin) etkinlikler ---
+  // --- Takvim: seçilen aralık kadar İLERİYE bakan (görebildiğin) etkinlikler
+  // — diğerleri geriye bakıyor (ne zaman girildi), takvim doğası gereği
+  // ileriye bakıyor ama aynı "7 gün" varsayılanını paylaşıyor.
   const upcomingEvents = useMemo(() => {
     if (!data) return []
     const now = Date.now()
-    const in48h = now + 48 * 60 * 60 * 1000
+    let windowEnd
+    if (filters.dateRange === 'ozel' && filters.customTo) {
+      windowEnd = new Date(filters.customTo).getTime() + 24 * 60 * 60 * 1000 - 1
+    } else if (selectedRange?.days) {
+      windowEnd = now + selectedRange.days * 24 * 60 * 60 * 1000
+    } else {
+      const endOfYear = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59)
+      windowEnd = endOfYear.getTime()
+    }
     return data.events
       .filter((e) => canViewEvent(e, user, data.attendance))
       .filter((e) => {
         const t = new Date(e.startAt).getTime()
-        return t >= now && t <= in48h
+        return t >= now && t <= windowEnd
       })
       .sort((a, b) => new Date(a.startAt) - new Date(b.startAt))
-  }, [data, user])
+  }, [data, user, filters, selectedRange])
 
   // --- Eğitim/Checklist: eksik olanlar (yönetim: ekip, danışman: kendisi) ---
   const educationGaps = useMemo(() => {
@@ -203,23 +224,30 @@ export default function Panel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, isEducationManager, teamMembers, user])
 
-  // --- Broker raporu: Operasyon/Fırsatlar özet sayıları (bkz. StatCard) ---
+  // --- Broker raporu: Operasyon/Fırsatlar özet sayıları (bkz. StatCard) —
+  // üstteki tarih filtresine göre daralıyor, panelin geri kalanıyla tutarlı.
   const callStats = useMemo(() => {
     if (!data) return { total: 0, assigned: 0, donusYapildi: 0, donusYapilmadi: 0 }
-    const total = data.calls.length
-    const assigned = data.calls.filter((c) => c.assignedTo).length
-    const donusYapildi = data.calls.filter((c) => c.assignedTo && c.donusYapildiMi).length
-    const donusYapilmadi = data.calls.filter((c) => c.assignedTo && !c.donusYapildiMi).length
+    const inRange = data.calls.filter((c) =>
+      isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
+    )
+    const total = inRange.length
+    const assigned = inRange.filter((c) => c.assignedTo).length
+    const donusYapildi = inRange.filter((c) => c.assignedTo && c.donusYapildiMi).length
+    const donusYapilmadi = inRange.filter((c) => c.assignedTo && !c.donusYapildiMi).length
     return { total, assigned, donusYapildi, donusYapilmadi }
-  }, [data])
+  }, [data, filters])
 
   const opportunityStats = useMemo(() => {
     if (!data) return { total: 0, satici: 0, alici: 0 }
-    const total = data.opps.length
-    const satici = data.opps.filter((o) => o.type === 'satici').length
-    const alici = data.opps.filter((o) => o.type === 'alici').length
+    const inRange = data.opps.filter((o) =>
+      isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
+    )
+    const total = inRange.length
+    const satici = inRange.filter((o) => o.type === 'satici').length
+    const alici = inRange.filter((o) => o.type === 'alici').length
     return { total, satici, alici }
-  }, [data])
+  }, [data, filters])
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
@@ -252,6 +280,10 @@ export default function Panel() {
         </div>
       </div>
 
+      <div className="mb-5">
+        <DateRangeFilter value={filters} onChange={setFilters} />
+      </div>
+
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
@@ -276,7 +308,7 @@ export default function Panel() {
             to="/takvim"
             label="Yaklaşan Etkinlikler"
             value={upcomingEvents.length}
-            detail="Önümüzdeki 48 saat"
+            detail={`Önümüzdeki ${selectedRange?.label ?? '7 gün'}`}
           />
           <StatCard
             icon={GraduationCap}
@@ -373,12 +405,12 @@ export default function Panel() {
             icon={CalendarDays}
             title="Yaklaşan Etkinlikler"
             count={upcomingEvents.length}
-            description="Önümüzdeki 48 saat"
+            description={`Önümüzdeki ${selectedRange?.label ?? '7 gün'}`}
             to="/takvim"
             linkLabel="Takvim'e git"
           >
             {upcomingEvents.length === 0 ? (
-              <EmptyRow text="Önümüzdeki 48 saatte etkinlik yok." />
+              <EmptyRow text="Bu aralıkta etkinlik yok." />
             ) : (
               <div className="space-y-2">
                 {upcomingEvents.slice(0, 5).map((e) => (
