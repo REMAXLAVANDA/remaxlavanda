@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy, Users as UsersIcon } from 'lucide-react'
+import { LayoutDashboard, PhoneCall, Inbox, Target, CalendarDays, GraduationCap, Trophy, Users as UsersIcon, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
@@ -96,6 +96,24 @@ function StatCard({ icon: Icon, to, label, value, detail }) {
   )
 }
 
+// "Dikkat Gerekiyor" satırı — broker/owner'ın sabah ilk açtığında görmesi
+// gereken, müdahale gerektirebilecek istisnalar. Bilerek müşteri ismi/
+// telefonu YOK — sadece sayı + genel özet, detay ilgili sayfada.
+function AttentionRow({ icon: Icon, text, to }) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 transition-colors hover:bg-amber-100"
+    >
+      <div className="flex items-center gap-2.5">
+        <Icon size={16} className="shrink-0 text-amber-600" />
+        <span className="text-sm font-medium text-ink-900">{text}</span>
+      </div>
+      <span className="shrink-0 text-xs font-medium text-amber-700">İncele →</span>
+    </Link>
+  )
+}
+
 // Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun diye
 // kategori/mahalle/detay(oda-m²)/fiyat/tarih tek satırda yan yana gösterilir
 // (tür rozeti YOK, zaten satıcı/alıcı bloğuna göre ayrılmış durumda). İl/ilçe
@@ -156,6 +174,13 @@ export default function Panel() {
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const isManager = canManageCalls(role)
   const isDanisman = role === ROLES.DANISMAN
+  // Broker ve owner ikisi de "rapor odaklı" paneli görür — owner sadece
+  // izler/müdahale etmez ama görebildiği detay broker ile aynı genişlikte
+  // olmalı (kullanıcının tanımı: en yüksek görüntüleme yetkisi, sıfır
+  // müdahale). Panel zaten salt-okunur bir özet olduğu için burada ek bir
+  // kısıtlamaya gerek yok — asıl "müdahale edememe" ilgili sayfaların
+  // (Operasyon/Fırsatlar/Ayarlar vb.) kendi RLS'lerinde uygulanıyor.
+  const isBrokerOrOwner = role === ROLES.BROKER || role === ROLES.OWNER
   const isEducationManager = EDUCATION_MANAGE_ROLES.includes(role)
   const teamMembers = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
   // Panel'in üstündeki tek tarih filtresi — dört rol için de aynı, varsayılan
@@ -272,6 +297,63 @@ export default function Panel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamMembers])
 
+  // --- Broker/owner raporu: "Dikkat Gerekiyor" — sabah ilk bakışta görülmesi
+  // gereken istisnalar. Tarih filtresinden BAĞIMSIZ (gecikme/durgunluk her
+  // zaman güncel olmalı, seçilen rapor aralığına göre değişmemeli).
+  const attentionItems = useMemo(() => {
+    if (!data) return []
+    const now = Date.now()
+    const items = []
+
+    const staleReturns = data.calls.filter(
+      (c) => c.assignedTo && !c.donusYapildiMi && now - new Date(c.createdAt).getTime() > 2 * 24 * 60 * 60 * 1000,
+    )
+    if (staleReturns.length > 0) {
+      items.push({
+        id: 'stale-returns',
+        icon: PhoneCall,
+        to: '/operasyon',
+        text: `${staleReturns.length} çağrıda 2 günden uzun süredir dönüş yapılmadı`,
+      })
+    }
+
+    const staleOpps = data.opps.filter(
+      (o) => o.status === 'acik' && now - new Date(o.createdAt).getTime() > 3 * 24 * 60 * 60 * 1000,
+    )
+    if (staleOpps.length > 0) {
+      items.push({
+        id: 'stale-opps',
+        icon: Target,
+        to: '/firsatlar',
+        text: `${staleOpps.length} fırsat 3 günden uzun süredir havuzda bekliyor`,
+      })
+    }
+
+    const inactiveAgents = activityRanking.filter(
+      (r) => !r.lastSignInAt || now - new Date(r.lastSignInAt).getTime() > 7 * 24 * 60 * 60 * 1000,
+    )
+    if (inactiveAgents.length > 0) {
+      items.push({
+        id: 'inactive-agents',
+        icon: UsersIcon,
+        to: '/takip',
+        text: `${inactiveAgents.length} danışman 7 günden uzun süredir portala girmedi`,
+      })
+    }
+
+    const behindEducation = educationGaps.filter((r) => r.modulePercent < 50 || r.checklistPercent < 50)
+    if (behindEducation.length > 0) {
+      items.push({
+        id: 'behind-education',
+        icon: GraduationCap,
+        to: '/egitim',
+        text: `${behindEducation.length} danışmanın eğitim/checklist tamamlama oranı %50'nin altında`,
+      })
+    }
+
+    return items
+  }, [data, activityRanking, educationGaps])
+
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const activePeriod = data?.periods?.[0] ?? null
@@ -310,7 +392,18 @@ export default function Panel() {
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      {!loading && !error && role === ROLES.BROKER && (
+      {!loading && !error && isBrokerOrOwner && attentionItems.length > 0 && (
+        <div className="mb-5 space-y-1.5">
+          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-700">
+            <AlertTriangle size={14} /> Dikkat Gerekiyor
+          </h2>
+          {attentionItems.map((item) => (
+            <AttentionRow key={item.id} icon={item.icon} text={item.text} to={item.to} />
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && isBrokerOrOwner && (
         <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard
             icon={PhoneCall}
@@ -345,7 +438,7 @@ export default function Panel() {
 
       {!loading && !error && (
         <div className="grid gap-4 md:grid-cols-2 md:grid-flow-row-dense">
-          {role !== ROLES.BROKER && (
+          {!isBrokerOrOwner && (
             <Widget
               icon={PhoneCall}
               title={callTitle}
@@ -377,7 +470,7 @@ export default function Panel() {
             </Widget>
           )}
 
-          {role !== ROLES.BROKER &&
+          {!isBrokerOrOwner &&
             (isDanisman ? (
               <Widget
                 icon={Target}
@@ -427,7 +520,7 @@ export default function Panel() {
               </Widget>
             ))}
 
-          {role === ROLES.BROKER && (
+          {isBrokerOrOwner && (
             <Widget
               icon={UsersIcon}
               title="Portal Kullanımı"
@@ -456,62 +549,66 @@ export default function Panel() {
             </Widget>
           )}
 
-          <Widget
-            icon={CalendarDays}
-            title="Yaklaşan Etkinlikler"
-            count={upcomingEvents.length}
-            description={upcomingLabel}
-            to="/takvim"
-            linkLabel="Takvim'e git"
-          >
-            {upcomingEvents.length === 0 ? (
-              <EmptyRow text="Bu aralıkta etkinlik yok." />
-            ) : (
-              <div className="space-y-2">
-                {upcomingEvents.slice(0, 5).map((e) => (
-                  <div key={e.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium text-ink-900">{e.title}</p>
-                      <p className="text-xs text-ink-400">
-                        {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
-                      </p>
+          {!isBrokerOrOwner && (
+            <Widget
+              icon={CalendarDays}
+              title="Yaklaşan Etkinlikler"
+              count={upcomingEvents.length}
+              description={upcomingLabel}
+              to="/takvim"
+              linkLabel="Takvim'e git"
+            >
+              {upcomingEvents.length === 0 ? (
+                <EmptyRow text="Bu aralıkta etkinlik yok." />
+              ) : (
+                <div className="space-y-2">
+                  {upcomingEvents.slice(0, 5).map((e) => (
+                    <div key={e.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+                      <div>
+                        <p className="text-sm font-medium text-ink-900">{e.title}</p>
+                        <p className="text-xs text-ink-400">
+                          {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Widget>
+                  ))}
+                </div>
+              )}
+            </Widget>
+          )}
 
-          <Widget
-            icon={GraduationCap}
-            title={isEducationManager ? 'Eksik Eğitim / Checklist' : 'Eğitim / Checklist Durumun'}
-            count={isEducationManager ? educationGaps.length : 0}
-            description={
-              isEducationManager
-                ? 'Modül veya checklist tamamlama %100 altında olanlar'
-                : 'Modül ve checklist tamamlama oranın'
-            }
-            to="/egitim"
-            linkLabel="Eğitim'e git"
-          >
-            {educationGaps.length === 0 ? (
-              <EmptyRow text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'} />
-            ) : (
-              <div className="space-y-2">
-                {educationGaps.slice(0, 5).map((r) => (
-                  <div key={r.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                    <p className="text-sm font-medium text-ink-900">{r.name}</p>
-                    <span className="text-xs text-ink-400">
-                      Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
-                    </span>
-                  </div>
-                ))}
-                {educationGaps.length > 5 && (
-                  <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
-                )}
-              </div>
-            )}
-          </Widget>
+          {!isBrokerOrOwner && (
+            <Widget
+              icon={GraduationCap}
+              title={isEducationManager ? 'Eksik Eğitim / Checklist' : 'Eğitim / Checklist Durumun'}
+              count={isEducationManager ? educationGaps.length : 0}
+              description={
+                isEducationManager
+                  ? 'Modül veya checklist tamamlama %100 altında olanlar'
+                  : 'Modül ve checklist tamamlama oranın'
+              }
+              to="/egitim"
+              linkLabel="Eğitim'e git"
+            >
+              {educationGaps.length === 0 ? (
+                <EmptyRow text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'} />
+              ) : (
+                <div className="space-y-2">
+                  {educationGaps.slice(0, 5).map((r) => (
+                    <div key={r.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+                      <p className="text-sm font-medium text-ink-900">{r.name}</p>
+                      <span className="text-xs text-ink-400">
+                        Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
+                      </span>
+                    </div>
+                  ))}
+                  {educationGaps.length > 5 && (
+                    <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
+                  )}
+                </div>
+              )}
+            </Widget>
+          )}
 
           <Widget
             icon={Trophy}
