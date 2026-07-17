@@ -72,14 +72,17 @@ function EmptyRow({ text }) {
   )
 }
 
-// Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun
-// diye kategori/konum/fiyat/tarih tek satırda yan yana gösterilir (tür
-// rozeti YOK, zaten satıcı/alıcı bloğuna göre ayrılmış durumda).
+// Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun diye
+// kategori/mahalle/detay(oda-m²)/fiyat/tarih tek satırda yan yana gösterilir
+// (tür rozeti YOK, zaten satıcı/alıcı bloğuna göre ayrılmış durumda). İl/ilçe
+// bilgisi bilerek yok — hepsi aynı bölgede olduğu için ayırt edici değil,
+// mahalle ve oda sayısı/m² gibi detaylar çok daha anlamlı.
 function OpportunityMiniRow({ o }) {
   const priceLabel =
     o.type === 'alici' && (o.fiyatMin || o.fiyatMax)
       ? `${formatPrice(o.fiyatMin)} – ${formatPrice(o.fiyatMax)}`
       : formatPrice(o.fiyat)
+  const detailBits = [o.odaSayisi, o.m2 ? `${o.m2} m²` : null].filter(Boolean)
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-ink-100 px-3 py-2">
       <div className="flex min-w-0 items-center gap-2">
@@ -87,6 +90,9 @@ function OpportunityMiniRow({ o }) {
           {categoryLabel(o.category)}
         </span>
         <span className="truncate text-sm font-medium text-ink-900">{o.konum ?? '—'}</span>
+        {detailBits.length > 0 && (
+          <span className="shrink-0 text-xs text-ink-400">{detailBits.join(' · ')}</span>
+        )}
       </div>
       <div className="shrink-0 whitespace-nowrap text-right text-xs">
         <span className="font-medium text-ink-700">{priceLabel}</span>

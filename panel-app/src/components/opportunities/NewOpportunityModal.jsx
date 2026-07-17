@@ -98,7 +98,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         <input
           value={form.konum}
           onChange={(e) => set({ konum: e.target.value })}
-          placeholder="Konum (ör. Tekirdağ / Süleymanpaşa)"
+          placeholder="Mahalle (ör. Hürriyet Mahallesi)"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
 

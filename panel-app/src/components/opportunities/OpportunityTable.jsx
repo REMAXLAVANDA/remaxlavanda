@@ -24,7 +24,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead>
           <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
-            <th className="px-4 py-2.5">Bölge</th>
+            <th className="px-4 py-2.5">Mahalle</th>
             <th className="px-4 py-2.5">Tür</th>
             <th className="px-4 py-2.5">Fiyat</th>
             <th className="px-4 py-2.5">Özet</th>
