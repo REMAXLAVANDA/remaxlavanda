@@ -281,6 +281,11 @@ export const callLogs = {
     if ('portfoyAlindiMi' in patch) dbPatch.portfoy_alindi_mi = patch.portfoyAlindiMi
     if ('donusYapildiMi' in patch) dbPatch.donus_yapildi_mi = patch.donusYapildiMi
     if ('donusAt' in patch) dbPatch.donus_at = patch.donusAt
+    // Arayan detayları — sadece son 7 gündeki kayıtlarda owner/ofis
+    // düzenleyebilir, broker sınırsız (bkz. trg_call_logs_detail_edit_window).
+    if ('arayanAd' in patch) dbPatch.arayan_ad = patch.arayanAd
+    if ('arayanTelefon' in patch) dbPatch.arayan_telefon = patch.arayanTelefon || null
+    if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
     const data = await run(client().from('call_logs').update(dbPatch).eq('id', id).select().single())
     return mapCallLog(data)
   },

@@ -27,6 +27,17 @@ export function canManageCalls(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 
+// trg_call_logs_detail_edit_window ile aynı kural: arayan adı/telefon/
+// kaynak alanlarını broker her zaman düzenleyebilir; owner/ofis sadece
+// son 7 günün kayıtlarında — hatalı girişi düzeltebilsinler, eski
+// kayıtları karıştırmasınlar.
+export function canEditCallDetails(role, createdAt) {
+  if (role === ROLES.BROKER) return true
+  if (role !== ROLES.OWNER && role !== ROLES.OFIS) return false
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  return new Date(createdAt).getTime() >= sevenDaysAgo
+}
+
 // Telefonu maskeler: son 2 haneyi gösterir. PART 2'deki tasarım kararı —
 // numara DB'de düz metin ama UI'da varsayılan olarak maskeli gösteriliyor.
 export function maskPhone(phone) {

@@ -11,6 +11,7 @@ import CallTable from '../components/operasyon/CallTable'
 import CallFilters from '../components/operasyon/CallFilters'
 import StatsCards from '../components/operasyon/StatsCards'
 import NewCallModal from '../components/operasyon/NewCallModal'
+import EditCallDetailsModal from '../components/operasyon/EditCallDetailsModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
@@ -25,6 +26,7 @@ export default function Operasyon() {
   )
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
+  const [editingCall, setEditingCall] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   const isManager = canManageCalls(role)
@@ -68,6 +70,21 @@ export default function Operasyon() {
     const patch = { [field]: !call[field] }
     if (field === 'donusYapildiMi') patch.donusAt = patch.donusYapildiMi ? new Date().toISOString() : null
     updateCall(id, patch)
+  }
+
+  async function handleEditDetails(form) {
+    if (!editingCall) return
+    setSubmitting(true)
+    try {
+      const updated = await callLogsProvider.update(editingCall.id, form)
+      setCalls((prev) => prev.map((c) => (c.id === editingCall.id ? updated : c)))
+      setEditingCall(null)
+      showToast('Çağrı bilgileri güncellendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   async function handleCreate(form) {
@@ -124,12 +141,14 @@ export default function Operasyon() {
           <CallTable
             calls={visible}
             currentUserId={user.id}
+            currentRole={role}
             isManager={isManager}
             inviteeOptions={inviteeOptions}
             resolveName={userName}
             onAssign={handleAssign}
             onSetResult={handleSetResult}
             onToggle={handleToggle}
+            onEditDetails={setEditingCall}
           />
         </>
       )}
@@ -140,6 +159,15 @@ export default function Operasyon() {
           onSubmit={handleCreate}
           submitting={submitting}
           inviteeOptions={inviteeOptions}
+        />
+      )}
+
+      {editingCall && (
+        <EditCallDetailsModal
+          call={editingCall}
+          onClose={() => setEditingCall(null)}
+          onSubmit={handleEditDetails}
+          submitting={submitting}
         />
       )}
     </div>

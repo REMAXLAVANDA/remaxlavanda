@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Target, StickyNote } from 'lucide-react'
-import { CALL_RESULT_LABELS, CALL_RESULT_STYLES, maskPhone } from '../../lib/callLogs'
+import { Eye, EyeOff, Target, StickyNote, Pencil } from 'lucide-react'
+import { CALL_RESULT_LABELS, CALL_RESULT_STYLES, canEditCallDetails, maskPhone } from '../../lib/callLogs'
 import { relativeTime } from '../../lib/format'
 
 function PhoneCell({ phone }) {
@@ -21,7 +21,18 @@ function PhoneCell({ phone }) {
 
 // Operasyon listesi satır/sütun mantığıyla, alt alta sıralı tablo olarak
 // gösterilir — kutu kutu kart yerine tek bakışta tarama yapılabilsin diye.
-export default function CallTable({ calls, currentUserId, isManager, inviteeOptions, resolveName, onAssign, onSetResult, onToggle }) {
+export default function CallTable({
+  calls,
+  currentUserId,
+  currentRole,
+  isManager,
+  inviteeOptions,
+  resolveName,
+  onAssign,
+  onSetResult,
+  onToggle,
+  onEditDetails,
+}) {
   if (calls.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
@@ -43,6 +54,7 @@ export default function CallTable({ calls, currentUserId, isManager, inviteeOpti
             <th className="px-4 py-2.5">Dönüş</th>
             <th className="px-4 py-2.5">Atanan</th>
             <th className="px-4 py-2.5">Tarih</th>
+            <th className="px-4 py-2.5" />
           </tr>
         </thead>
         <tbody>
@@ -146,6 +158,17 @@ export default function CallTable({ calls, currentUserId, isManager, inviteeOpti
                   )}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-ink-400">{relativeTime(call.createdAt)}</td>
+                <td className="px-4 py-3 text-right">
+                  {canEditCallDetails(currentRole, call.createdAt) && (
+                    <button
+                      onClick={() => onEditDetails(call)}
+                      className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                      title="Bilgileri düzenle"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  )}
+                </td>
               </tr>
             )
           })}
