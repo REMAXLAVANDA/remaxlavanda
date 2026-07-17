@@ -21,16 +21,6 @@ export default function Firsatlar() {
 
   return (
     <div>
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-          <Target size={20} />
-        </div>
-        <div>
-          <h1 className="text-base font-semibold text-ink-900">Fırsatlar</h1>
-          <p className="text-xs text-ink-400">Portföy ve operasyon tek yerde</p>
-        </div>
-      </div>
-
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
           <Target size={16} className="text-brand-600" /> Fırsatlar

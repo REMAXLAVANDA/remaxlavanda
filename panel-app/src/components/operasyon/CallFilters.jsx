@@ -1,4 +1,3 @@
-import { Search } from 'lucide-react'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import DateRangeFilter from '../common/DateRangeFilter'
 
@@ -22,16 +21,6 @@ export default function CallFilters({ filters, onChange, showKaynak = true }) {
 
   return (
     <div className="space-y-3 rounded-2xl border border-ink-100 bg-white p-4">
-      <div className="flex items-center gap-2 rounded-lg bg-ink-50 px-3 py-2">
-        <Search size={16} className="text-ink-400" />
-        <input
-          value={filters.search}
-          onChange={(e) => set({ search: e.target.value })}
-          placeholder="İsim ara..."
-          className="w-full bg-transparent text-sm text-ink-800 outline-none placeholder:text-ink-400"
-        />
-      </div>
-
       {showKaynak && (
         <div className="flex flex-wrap gap-1.5">
           <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>

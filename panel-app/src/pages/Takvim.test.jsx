@@ -68,7 +68,10 @@ describe('Takvim sayfası render regresyonu', () => {
     const { container, errors } = await renderTakvim(role)
 
     expect(errors).toEqual([])
-    expect(container.textContent).toContain('Takvim')
+    // Sayfa artık kendi "Takvim" başlığını basmıyor (Topbar zaten gösteriyor,
+    // bkz. pages/Takvim.jsx'teki header sadeleştirmesi) — bunun yerine her
+    // rolde görünen tür filtre çubuğunu smoke-test olarak kontrol ediyoruz.
+    expect(container.textContent).toContain('Tümü')
   })
 
   it('FullCalendar grid bileşenini gerçekten DOM üzerine mount eder', async () => {

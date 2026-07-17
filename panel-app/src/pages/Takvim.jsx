@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CalendarDays, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -103,25 +103,16 @@ export default function Takvim() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-            <CalendarDays size={20} />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-ink-900">Takvim</h1>
-            <p className="text-xs text-ink-400">Toplantı · Eğitim · Etkinlik · Broker Görüşmesi</p>
-          </div>
-        </div>
-        {isManager && (
+      {isManager && (
+        <div className="mb-4 flex justify-end">
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
             <Plus size={16} /> Yeni Etkinlik
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}

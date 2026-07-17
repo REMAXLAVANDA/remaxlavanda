@@ -1,20 +1,20 @@
 import { useMemo, useState } from 'react'
-import { Award, GraduationCap, Plus } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { education as educationProvider } from '../lib/dataProvider'
-import { badgesFor, checklistFor, checklistProgress, isModuleDone, moduleProgressFor } from '../lib/education'
-import { isWithinRange } from '../lib/dateRange'
-import ModuleProgressList from '../components/education/ModuleProgressList'
-import BadgeGrid from '../components/education/BadgeGrid'
-import AwardBadgeModal from '../components/education/AwardBadgeModal'
-import ChecklistPanel from '../components/education/ChecklistPanel'
-import AddChecklistItemModal from '../components/education/AddChecklistItemModal'
-import TeamProgressTable from '../components/education/TeamProgressTable'
-import DateRangeFilter from '../components/common/DateRangeFilter'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import { Award, Plus } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { education as educationProvider } from '../../lib/dataProvider'
+import { badgesFor, checklistFor, checklistProgress, isModuleDone, moduleProgressFor } from '../../lib/education'
+import { isWithinRange } from '../../lib/dateRange'
+import ModuleProgressList from '../../components/education/ModuleProgressList'
+import BadgeGrid from '../../components/education/BadgeGrid'
+import AwardBadgeModal from '../../components/education/AwardBadgeModal'
+import ChecklistPanel from '../../components/education/ChecklistPanel'
+import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
+import TeamProgressTable from '../../components/education/TeamProgressTable'
+import DateRangeFilter from '../../components/common/DateRangeFilter'
+import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 // badges_manage / onboarding_status_manage / onboarding_items_manage RLS'te
 // sadece broker/owner.
@@ -41,7 +41,7 @@ async function loadAll() {
   return { modules, progress, badges, userBadges, checklistItems, checklistStatus }
 }
 
-export default function Egitim() {
+export default function EgitimTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
@@ -195,15 +195,7 @@ export default function Egitim() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-          <GraduationCap size={20} />
-        </div>
-        <div>
-          <h1 className="text-base font-semibold text-ink-900">Eğitim</h1>
-          <p className="text-xs text-ink-400">Power Camp modülleri, rozetler ve checklist</p>
-        </div>
-      </div>
+      <p className="text-xs text-ink-400">Power Camp modülleri, rozetler ve checklist</p>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}

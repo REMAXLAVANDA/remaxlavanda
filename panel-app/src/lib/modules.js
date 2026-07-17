@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Target,
   CalendarDays,
-  GraduationCap,
   HeartPulse,
   Trophy,
   BookOpen,
@@ -41,21 +40,15 @@ export const MODULES = [
     roles: ALL_ROLES,
   },
   {
-    key: 'egitim',
-    path: '/egitim',
-    label: 'Eğitim',
-    description: 'Power Camp, modüller, rozetler',
-    icon: GraduationCap,
-    roles: ALL_ROLES,
-  },
-  {
     key: 'takip',
     path: '/takip',
     label: 'Takip',
-    description: 'Danışman 360° sağlık skoru',
+    description: 'Sağlık skoru ve eğitim/checklist takibi',
     icon: HeartPulse,
     // Herkes modüle girebilir; sayfa içeriği role göre uyarlanıyor —
-    // danışman sadece kendi skorunu görür, yönetim tüm ekibi görür.
+    // danışman sadece kendi skorunu/eğitimini görür, yönetim tüm ekibi
+    // görür. Eğitim artık ayrı bir menü değil, bu sayfanın alt bölümü
+    // (bkz. pages/Takip.jsx) — /egitim linki hâlâ çalışır.
     roles: ALL_ROLES,
   },
   {

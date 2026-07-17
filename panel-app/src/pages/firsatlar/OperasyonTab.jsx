@@ -14,7 +14,7 @@ import NewCallModal from '../../components/operasyon/NewCallModal'
 import EditCallDetailsModal from '../../components/operasyon/EditCallDetailsModal'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
-const INITIAL_FILTERS = { search: '', kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
+const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
 
 export default function OperasyonTab() {
   const { user, role } = useAuth()
@@ -37,7 +37,6 @@ export default function OperasyonTab() {
       .filter((c) => canViewCall(c, user))
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
-      .filter((c) => !filters.search.trim() || c.arayanAd.toLowerCase().includes(filters.search.trim().toLowerCase()))
       .sort((a, b) => {
         if (a.donusYapildiMi !== b.donusYapildiMi) return a.donusYapildiMi ? 1 : -1
         return new Date(b.createdAt) - new Date(a.createdAt)
