@@ -41,14 +41,14 @@ export const opportunities = {
   async list() {
     return delay(MOCK_OPPORTUNITIES.map(({ leadAd: _leadAd, leadTelefon: _leadTelefon, ...rest }) => ({ ...rest })))
   },
-  async create(payload, ownerId) {
+  async create(payload, ownerId, selfClaim = false) {
     const row = {
       id: `opp-${Date.now()}`,
       ...payload,
-      status: 'acik',
+      status: selfClaim ? 'claimed' : 'acik',
       ownerId,
-      claimerId: null,
-      claimedAt: null,
+      claimerId: selfClaim ? ownerId : null,
+      claimedAt: selfClaim ? new Date().toISOString() : null,
       createdAt: new Date().toISOString(),
     }
     MOCK_OPPORTUNITIES.unshift(row)

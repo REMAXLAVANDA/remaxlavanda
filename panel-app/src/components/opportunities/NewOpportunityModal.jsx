@@ -13,7 +13,7 @@ const EMPTY_FORM = {
   ozet: '',
 }
 
-export default function NewOpportunityModal({ onClose, onSubmit, submitting }) {
+export default function NewOpportunityModal({ onClose, onSubmit, submitting, selfClaim = false }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
@@ -29,6 +29,11 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting }) {
         }}
         className="space-y-3"
       >
+        {selfClaim && (
+          <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-700">
+            Bu fırsat kaydettiğinde direkt sana atanır, havuza düşmez.
+          </p>
+        )}
         <div className="flex gap-1.5">
           {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
             <button

@@ -6,6 +6,7 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { opportunities as opportunitiesProvider } from '../lib/dataProvider'
 import { canViewOpportunity, computeBoxCounts, isWithinRange } from '../lib/opportunities'
+import { ROLES } from '../lib/roles'
 import OpportunitySection from '../components/opportunities/OpportunitySection'
 import OpportunityDetailModal from '../components/opportunities/OpportunityDetailModal'
 import OpportunityFilters from '../components/opportunities/OpportunityFilters'
@@ -15,8 +16,10 @@ import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const INITIAL_FILTERS = { search: '', dateRange: '7g', customFrom: '', customTo: '' }
 
-// RLS'teki opportunities_insert kuralıyla birebir aynı: broker/owner/ofis.
-const CAN_CREATE_ROLES = ['broker', 'owner', 'ofis']
+// RLS'teki opportunities_insert kuralıyla birebir aynı: broker/owner/ofis
+// serbestçe ekler (açık havuza düşer); danışman da ekleyebilir ama kendi
+// bulduğu müşteri direkt kendine atanmış olarak kaydedilir (bkz. handleCreate).
+const CAN_CREATE_ROLES = ['broker', 'owner', 'ofis', 'danisman']
 
 export default function Firsatlar() {
   const { user, role } = useAuth()
@@ -86,7 +89,7 @@ export default function Firsatlar() {
     setSubmitting(true)
     try {
       const payload = { ...form, fiyat: form.fiyat ? Number(form.fiyat) : null }
-      const created = await opportunitiesProvider.create(payload, user.id)
+      const created = await opportunitiesProvider.create(payload, user.id, role === ROLES.DANISMAN)
       setOpportunities((prev) => [created, ...prev])
       setShowModal(false)
       showToast('Fırsat eklendi.', 'success')
@@ -166,7 +169,12 @@ export default function Firsatlar() {
       )}
 
       {showModal && (
-        <NewOpportunityModal onClose={() => setShowModal(false)} onSubmit={handleCreate} submitting={submitting} />
+        <NewOpportunityModal
+          onClose={() => setShowModal(false)}
+          onSubmit={handleCreate}
+          submitting={submitting}
+          selfClaim={role === ROLES.DANISMAN}
+        />
       )}
 
       {detailOpp && (

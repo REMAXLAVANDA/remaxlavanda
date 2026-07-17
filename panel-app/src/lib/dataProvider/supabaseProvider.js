@@ -52,7 +52,7 @@ export const opportunities = {
     )
     return data.map(mapOpportunity)
   },
-  async create(payload, ownerId) {
+  async create(payload, ownerId, selfClaim = false) {
     // category anahtarını (ör. 'konut') categories.id'ye çevir.
     const categoryRow = await run(
       client().from('categories').select('id').eq('module', 'opportunities').eq('key', payload.category).single(),
@@ -66,6 +66,11 @@ export const opportunities = {
       fiyat: payload.fiyat ?? null,
       ozet: payload.ozet || null,
       owner_id: ownerId,
+      // Danışman kendi bulduğu müşteriyi eklerken direkt kendine atanmış
+      // olsun — açık havuza düşüp başka bir danışmana kaptırılmasın
+      // (bkz. opportunities_insert RLS: danışman sadece owner=claimer=
+      // kendisi olan satır ekleyebilir).
+      ...(selfClaim ? { claimer_id: ownerId, status: 'claimed', claimed_at: new Date().toISOString() } : {}),
     }
     const data = await run(client().from('opportunities').insert(insertRow).select().single())
     return mapOpportunity(data)
