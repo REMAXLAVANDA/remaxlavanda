@@ -104,7 +104,7 @@ export default function OperasyonTab() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <p className="text-sm text-ink-500">
-          {isManager ? 'Sponsorlu reklam ve çağrı kayıtları' : 'Santralden sana yönlendirilen çağrılar'}
+          {isManager ? 'Sponsorlu reklam ve çağrı kayıtları' : 'Ofisten yönlendirilen çağrılar'}
         </p>
         {isManager && (
           <button
