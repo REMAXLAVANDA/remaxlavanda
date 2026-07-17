@@ -13,6 +13,8 @@ import {
 import { canManageCalls, maskPhone } from '../lib/callLogs'
 import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
+import { OPPORTUNITY_TYPE_LABELS, formatPrice } from '../lib/opportunities'
+import { categoryLabel } from '../lib/categories'
 import { relativeTime } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -181,15 +183,34 @@ export default function Panel() {
               <EmptyRow text="Havuzda bekleyen fırsat yok." />
             ) : (
               <div className="space-y-2">
-                {openOpportunities.slice(0, 5).map((o) => (
-                  <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
-                      <p className="text-xs text-ink-400">{o.konum ?? '—'}</p>
+                {openOpportunities.slice(0, 5).map((o) => {
+                  const priceLabel =
+                    o.type === 'alici' && (o.fiyatMin || o.fiyatMax)
+                      ? `${formatPrice(o.fiyatMin)} – ${formatPrice(o.fiyatMax)}`
+                      : formatPrice(o.fiyat)
+                  const detailBits = [o.odaSayisi, o.m2 ? `${o.m2} m²` : null].filter(Boolean)
+                  return (
+                    <div key={o.id} className="rounded-xl border border-ink-100 px-3 py-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
+                            {OPPORTUNITY_TYPE_LABELS[o.type]}
+                          </span>
+                          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                            {categoryLabel(o.category)}
+                          </span>
+                        </div>
+                        <span className="shrink-0 text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
+                      </div>
+                      <p className="mt-1.5 text-sm font-medium text-ink-900">{o.konum ?? '—'}</p>
+                      <p className="text-xs text-ink-500">
+                        {priceLabel}
+                        {detailBits.length > 0 && <span className="text-ink-400"> · {detailBits.join(' · ')}</span>}
+                      </p>
+                      {o.ozet && <p className="mt-1 truncate text-xs text-ink-400">{o.ozet}</p>}
                     </div>
-                    <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
-                  </div>
-                ))}
+                  )
+                })}
                 {openOpportunities.length > 5 && (
                   <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
                 )}
