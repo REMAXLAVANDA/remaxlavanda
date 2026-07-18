@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Copy, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
 import { getSignedDocUrl } from '../../lib/storage'
 
@@ -18,6 +18,19 @@ export default function DocCard({
 }) {
   const [showHistory, setShowHistory] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  // IBAN/şirket bilgisi gibi metin dokümanları çoğu zaman olduğu gibi
+  // kopyalanıp bir müşteriye yapıştırılıyor — tek tıkla panoya alınabilsin.
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(doc.contentText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Panoya erişim izni yoksa sessizce vazgeçiyoruz — ikincil bir aksiyon.
+    }
+  }
 
   async function handleDownload() {
     setDownloading(true)
@@ -90,7 +103,26 @@ export default function DocCard({
       </div>
 
       {doc.contentText && (
-        <p className="mt-3 whitespace-pre-line rounded-xl bg-ink-50 p-3 text-sm text-ink-700">{doc.contentText}</p>
+        <div className="relative mt-3">
+          <p className="whitespace-pre-line rounded-xl bg-ink-50 p-3 pr-16 text-sm text-ink-700">
+            {doc.contentText}
+          </p>
+          <button
+            onClick={handleCopy}
+            title="Kopyala"
+            className="absolute right-2 top-2 flex items-center gap-1 rounded-lg bg-white px-2 py-1 text-xs font-medium text-ink-500 shadow-sm hover:bg-ink-100"
+          >
+            {copied ? (
+              <>
+                <Check size={13} className="text-emerald-600" /> Kopyalandı
+              </>
+            ) : (
+              <>
+                <Copy size={13} /> Kopyala
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       {current && (

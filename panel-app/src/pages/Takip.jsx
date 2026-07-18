@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { HeartPulse, GraduationCap } from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 import TakipTab from './takip/TakipTab'
 import EgitimTab from './takip/EgitimTab'
 
@@ -22,9 +22,6 @@ export default function Takip() {
   return (
     <div>
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
-          <HeartPulse size={16} className="text-brand-600" /> Takip
-        </h2>
         <TakipTab />
       </section>
 
