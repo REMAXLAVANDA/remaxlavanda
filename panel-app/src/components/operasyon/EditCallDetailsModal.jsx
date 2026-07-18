@@ -65,6 +65,9 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
                 className="h-4 w-4 rounded border-ink-300"
               />
               Satıldı
+              {form.satildiMi && call.satisTarihi && (
+                <span className="text-ink-400">({new Date(call.satisTarihi).toLocaleDateString('tr-TR')})</span>
+              )}
             </label>
           </div>
         )}

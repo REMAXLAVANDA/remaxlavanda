@@ -76,11 +76,18 @@ export default function OperasyonTab() {
     updateCall(id, patch)
   }
 
+  // "Dönüş Yapıldı" için donusAt nasıl otomatik set ediliyorsa, "Satıldı"
+  // işaretlenince de satisTarihi aynı şekilde otomatik dolsun — satışın NE
+  // ZAMAN olduğu elle ayrıca girilmesin.
   async function handleEditDetails(form) {
     if (!editingCall) return
     setSubmitting(true)
     try {
-      const updated = await callLogsProvider.update(editingCall.id, form)
+      const patch = { ...form }
+      if (form.satildiMi !== editingCall.satildiMi) {
+        patch.satisTarihi = form.satildiMi ? new Date().toISOString() : null
+      }
+      const updated = await callLogsProvider.update(editingCall.id, patch)
       setCalls((prev) => prev.map((c) => (c.id === editingCall.id ? updated : c)))
       setEditingCall(null)
       showToast('Çağrı bilgileri güncellendi.', 'success')

@@ -3,6 +3,11 @@ import { Eye, EyeOff, Target, StickyNote, Pencil } from 'lucide-react'
 import { CALL_RESULT_LABELS, CALL_RESULT_STYLES, canEditCallDetails, maskPhone } from '../../lib/callLogs'
 import { relativeTime } from '../../lib/format'
 
+function satisTarihiLabel(satisTarihi) {
+  if (!satisTarihi) return 'Satış tarihi'
+  return `Satış: ${new Date(satisTarihi).toLocaleDateString('tr-TR')}`
+}
+
 function PhoneCell({ phone }) {
   const [revealed, setRevealed] = useState(false)
   return (
@@ -104,24 +109,39 @@ export default function CallTable({
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  {canEditResult ? (
-                    <button
-                      onClick={() => onToggle(call.id, 'portfoyAlindiMi')}
-                      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
+                  <div className="flex items-center gap-1.5">
+                    {canEditResult ? (
+                      <button
+                        onClick={() => onToggle(call.id, 'portfoyAlindiMi')}
+                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
+                          call.portfoyAlindiMi ? 'bg-emerald-50 text-emerald-700' : 'bg-ink-100 text-ink-500'
+                        }`}
+                      >
+                        {call.portfoyAlindiMi ? 'Alındı' : 'Alınmadı'}
+                        {call.satildiMi && (
+                          <span className="text-brand-700" title={satisTarihiLabel(call.satisTarihi)}>
+                            · Satıldı
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
                         call.portfoyAlindiMi ? 'bg-emerald-50 text-emerald-700' : 'bg-ink-100 text-ink-500'
-                      }`}
-                    >
-                      {call.portfoyAlindiMi ? 'Alındı' : 'Alınmadı'}
-                      {call.satildiMi && <span className="text-brand-700">· Satıldı</span>}
-                    </button>
-                  ) : (
-                    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
-                      call.portfoyAlindiMi ? 'bg-emerald-50 text-emerald-700' : 'bg-ink-100 text-ink-500'
-                    }`}>
-                      {call.portfoyAlindiMi ? 'Alındı' : 'Alınmadı'}
-                      {call.satildiMi && <span className="text-brand-700">· Satıldı</span>}
-                    </span>
-                  )}
+                      }`}>
+                        {call.portfoyAlindiMi ? 'Alındı' : 'Alınmadı'}
+                        {call.satildiMi && (
+                          <span className="text-brand-700" title={satisTarihiLabel(call.satisTarihi)}>
+                            · Satıldı
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    {call.portfoyNo && (
+                      <span className="whitespace-nowrap text-xs text-ink-400" title="Portföy no">
+                        {call.portfoyNo}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   {canEditResult ? (

@@ -255,6 +255,7 @@ export const callLogs = {
       portfoyAlindiMi: false,
       portfoyNo: null,
       satildiMi: false,
+      satisTarihi: null,
       donusYapildiMi: false,
       donusAt: null,
       opportunityId: null,
