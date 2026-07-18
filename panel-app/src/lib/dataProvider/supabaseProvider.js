@@ -546,14 +546,26 @@ function mapPeriod(row) {
 // "Tarih"e göre doğru döneme otomatik atama — ay sonunda 2-3 gün geriden ya
 // da ileriden giriş yapılabilmesi için (broker onaylı akış). Tarih hiçbir
 // mevcut dönemin aralığına düşmüyorsa açık bir hata döner.
+//
+// periods tablosunda aralıkların çakışmasını engelleyen bir kısıt yok — iki
+// dönem aynı tarihi kapsarsa (ör. yeni dönem açılırken eskisinin bitişi
+// güncellenmemişse) .maybeSingle() "birden fazla satır" hatası fırlatıp
+// bunu genel "Aradığın kayıt bulunamadı" mesajına çeviriyordu. Bunun yerine
+// eşleşen dönemlerden en yenisini (baslangic'i en yakın) seçiyoruz.
 async function resolvePeriodByDate(tarih) {
-  const period = await run(
-    client().from('periods').select('id').lte('baslangic', tarih).gte('bitis', tarih).maybeSingle(),
+  const periods = await run(
+    client()
+      .from('periods')
+      .select('id')
+      .lte('baslangic', tarih)
+      .gte('bitis', tarih)
+      .order('baslangic', { ascending: false })
+      .limit(1),
   )
-  if (!period) {
+  if (!periods.length) {
     throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
   }
-  return period
+  return periods[0]
 }
 
 // Her ciro girişi 2 yorum hakkı getirir (broker onaylı kural) — var olan
