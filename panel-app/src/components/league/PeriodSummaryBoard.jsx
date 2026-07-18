@@ -1,5 +1,5 @@
 import { Crown } from 'lucide-react'
-import { MEDALS, formatDiff } from '../../lib/league'
+import { MEDALS, formatDiff, formatLeadMargin } from '../../lib/league'
 
 // Sekmeler arasında geçmeden üç kategorinin ilk 3'ünü tek bakışta gösteren
 // "podyum" panosu — dönem sonunda ofiste paylaşılacak görüntü tam olarak bu.
@@ -23,7 +23,12 @@ export default function PeriodSummaryBoard({ categories, rankingsByCategory }) {
                     <span className="w-6 shrink-0 text-center text-base">{MEDALS[r.rank - 1]}</span>
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-900">{r.name}</span>
                     {r.isLeader ? (
-                      <Crown size={14} className="shrink-0 text-brand-600" />
+                      <span className="flex shrink-0 items-center gap-1">
+                        {formatLeadMargin(r.diff, c.unit) && (
+                          <span className="text-[11px] font-medium text-brand-600">{formatLeadMargin(r.diff, c.unit)}</span>
+                        )}
+                        <Crown size={14} className="text-brand-600" />
+                      </span>
                     ) : (
                       <span className="shrink-0 text-[11px] font-medium text-ink-400">{formatDiff(r.diff, c.unit)}</span>
                     )}

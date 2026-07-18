@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Crown, ChevronDown, ChevronRight } from 'lucide-react'
-import { MEDALS, formatDiff } from '../../lib/league'
+import { MEDALS, formatDiff, formatLeadMargin } from '../../lib/league'
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('tr-TR')
@@ -42,8 +42,13 @@ export default function LeagueBoard({ rankings, unit, historyByUser }) {
               <span className="w-7 shrink-0 text-center text-lg">{MEDALS[r.rank - 1] ?? r.rank}</span>
               <span className="min-w-0 flex-1 text-sm font-medium text-ink-900">{r.name}</span>
               {r.isLeader ? (
-                <span className="flex items-center gap-1 rounded-full bg-brand-600 px-2.5 py-1 text-xs font-medium text-white">
-                  <Crown size={12} /> Lider
+                <span className="flex items-center gap-1.5">
+                  {formatLeadMargin(r.diff, unit) && (
+                    <span className="text-xs font-medium text-ink-500">{formatLeadMargin(r.diff, unit)}</span>
+                  )}
+                  <span className="flex items-center gap-1 rounded-full bg-brand-600 px-2.5 py-1 text-xs font-medium text-white">
+                    <Crown size={12} /> Lider
+                  </span>
                 </span>
               ) : (
                 <span className="text-xs font-medium text-ink-500">{formatDiff(r.diff, unit)}</span>

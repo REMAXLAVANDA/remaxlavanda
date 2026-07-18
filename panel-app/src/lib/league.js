@@ -2,28 +2,10 @@ import { ROLES } from './roles'
 
 export const MEDALS = ['🥇', '🥈', '🥉']
 
-// description: danışmanın "neyden puan kazanıyorum" sorusuna cevap versin
-// diye podyumun altında herkese gösteriliyor.
 export const LEAGUE_CATEGORIES = [
-  {
-    key: 'ciro',
-    label: 'Ciro',
-    unit: 'tl',
-    description: 'Dönem içinde girilen tüm satışların toplamı — en çok satış tutarına ulaşan lider olur.',
-  },
-  {
-    key: 'memnuniyet',
-    label: 'Memnuniyet',
-    unit: 'puan',
-    description:
-      'Kaç yorum alındığı VE kaç işlem üzerinden alındığı birlikte değerlendirilir (Yorum Hakkı panelinde işaretlenir) — az işlemden yüksek yüzde, çok işlemden sağlam bir sonucun önüne geçmesin diye.',
-  },
-  {
-    key: 'sosyal_medya',
-    label: 'Sosyal Medya',
-    unit: 'puan',
-    description: 'Instagram/LinkedIn/YouTube paylaşımları, reklam bütçesi ve Google yorumlarından kazanılan puanların toplamı (aşağıdaki puan tablosu).',
-  },
+  { key: 'ciro', label: 'Ciro', unit: 'tl' },
+  { key: 'memnuniyet', label: 'Memnuniyet', unit: 'puan' },
+  { key: 'sosyal_medya', label: 'Sosyal Medya', unit: 'puan' },
 ]
 
 // Sosyal Medya puanlı aktivite kayıtlarından, Memnuniyet de Yorum
@@ -61,18 +43,23 @@ export function wilsonScoreLowerBound(basarili, toplam) {
 
 // Spesifikasyon gereği (broker onaylı): mutlak ciro/skor değeri hiçbir zaman
 // ekrana basılmaz — sadece ARDIŞIK sıradaki danışmana göre fark gösterilir
-// (1.-2. arası, 2.-3. arası, 3.-4. arası...), lidere göre değil.
+// (1.-2. arası, 2.-3. arası, 3.-4. arası...). Lider için de fark
+// gösterilir — ama "bir üsttekine göre" değil, ikinci sıradakine göre ne
+// kadar ÖNDE olduğu (liderin üstünde kimse yok, o yüzden 2.'ye göre fark
+// hesaplanır). Tek kişilik sıralamada (yarışacak kimse yoksa) fark 0 kalır.
 export function rankingsFor(type, scores, resolveName) {
   const ranked = scores
     .filter((s) => s.type === type)
     .sort((a, b) => b.value - a.value)
     .map((s, i) => ({ userId: s.userId, name: resolveName(s.userId), rank: i + 1, value: s.value }))
 
-  return ranked.map((r, i) => ({
-    ...r,
-    isLeader: r.rank === 1,
-    diff: i === 0 ? 0 : ranked[i - 1].value - r.value,
-  }))
+  return ranked.map((r, i) => {
+    let diff = 0
+    if (ranked.length > 1) {
+      diff = i === 0 ? r.value - ranked[1].value : ranked[i - 1].value - r.value
+    }
+    return { ...r, isLeader: r.rank === 1, diff }
+  })
 }
 
 // Bir dönemin skorları arasından en son güncellenen kaydın tarihini bulur
@@ -91,6 +78,14 @@ export function formatDiff(diff, unit) {
   return `-${diff} puan`
 }
 
+// Liderin 2. sıradakine göre ne kadar önde olduğunu gösterir — mutlak
+// değer değil, sadece aradaki fark (formatDiff'in "geride" halinin tersi).
+export function formatLeadMargin(diff, unit) {
+  if (diff === 0) return null
+  const amount = unit === 'tl' ? `${diff.toLocaleString('tr-TR')} TL` : `${diff} puan`
+  return `+${amount} önde`
+}
+
 // Ofiste tek tıkla paylaşılabilecek düz metin özeti — panoya kopyalanır.
 export function buildShareText(periodLabel, categorySummaries) {
   const lines = [`RE/MAX Lavanda — ${periodLabel}`, '']
@@ -100,7 +95,9 @@ export function buildShareText(periodLabel, categorySummaries) {
       lines.push('  Veri yok')
     } else {
       rankings.forEach((r) => {
-        const diffText = r.isLeader ? 'Lider' : (formatDiff(r.diff, unit) ?? '—')
+        const diffText = r.isLeader
+          ? ['Lider', formatLeadMargin(r.diff, unit)].filter(Boolean).join(' — ')
+          : (formatDiff(r.diff, unit) ?? '—')
         lines.push(`  ${r.rank}. ${r.name} — ${diffText}`)
       })
     }
