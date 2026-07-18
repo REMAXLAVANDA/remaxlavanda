@@ -58,33 +58,8 @@ export default function Lig() {
     [data, periodId],
   )
 
-  // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
-  // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
-  const rankingsByCategory = useMemo(() => {
-    const map = {}
-    for (const c of LEAGUE_CATEGORIES) map[c.key] = rankingsFor(c.key, periodScores, userName)
-    return map
-  }, [periodScores, userName])
-
-  const rankings = rankingsByCategory[tab] ?? []
   const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
   const activityTypes = data?.activityTypes ?? []
-
-  // Ciro sekmesindeki sıralama satırına tıklayınca "sonradan kontrol"
-  // amaçlı girilen ciro geçmişi (tarih + tutar) görülebilsin diye —
-  // score_entries.value tek satır olduğu için geçmiş burada ayrı tutuluyor.
-  const ciroHistoryByUser = useMemo(() => {
-    const rows = (data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId)
-    const map = {}
-    for (const g of rows) {
-      if (!map[g.userId]) map[g.userId] = []
-      map[g.userId].push(g)
-    }
-    for (const list of Object.values(map)) {
-      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    }
-    return map
-  }, [data, periodId])
 
   // Ciro'ya dönen müşteriler isim isim burada — yorum hakkı (kaç isim
   // girildi) ve alınan yorum sayısı (kaçının alindiMi'si işaretli) artık
@@ -108,6 +83,43 @@ export default function Lig() {
       })
       .sort((a, b) => b.hakSayisi - a.hakSayisi)
   }, [data, periodId, danismanOptions])
+
+  // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
+  // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
+  // Memnuniyet artık serbest bir puan değil — kaç yorum GERÇEKTEN alındığının
+  // (yüzde değil, ham sayı) sıralaması. Yüzdeye göre sıralarsak 1 işlemden
+  // %100 alan, 17 işlemden %67 alanın önüne geçerdi — bu adil değil, ham
+  // sayı hacmi de yansıtıyor (Ciro'daki "mutlak TL kazanır" mantığıyla aynı).
+  const rankingsByCategory = useMemo(() => {
+    const map = {}
+    for (const c of LEAGUE_CATEGORIES) {
+      if (c.key === 'memnuniyet') {
+        const memnuniyetScores = reviewCreditRows.map((r) => ({ userId: r.userId, type: 'memnuniyet', value: r.alinanSayisi }))
+        map[c.key] = rankingsFor(c.key, memnuniyetScores, userName)
+      } else {
+        map[c.key] = rankingsFor(c.key, periodScores, userName)
+      }
+    }
+    return map
+  }, [periodScores, userName, reviewCreditRows])
+
+  const rankings = rankingsByCategory[tab] ?? []
+
+  // Ciro sekmesindeki sıralama satırına tıklayınca "sonradan kontrol"
+  // amaçlı girilen ciro geçmişi (tarih + tutar) görülebilsin diye —
+  // score_entries.value tek satır olduğu için geçmiş burada ayrı tutuluyor.
+  const ciroHistoryByUser = useMemo(() => {
+    const rows = (data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId)
+    const map = {}
+    for (const g of rows) {
+      if (!map[g.userId]) map[g.userId] = []
+      map[g.userId].push(g)
+    }
+    for (const list of Object.values(map)) {
+      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    }
+    return map
+  }, [data, periodId])
 
   // Ciro girilirken müşteri isimleri de aynı formda eklenebiliyor (bkz.
   // AddScoreModal) — ayrı bir menüye gitmeye gerek kalmasın diye. Skor
@@ -259,12 +271,12 @@ export default function Lig() {
               <Megaphone size={16} /> Aktivite Ekle
             </button>
           )}
-          {isManager && !loading && !error && period && tab !== 'sosyal_medya' && (
+          {isManager && !loading && !error && period && tab === 'ciro' && (
             <button
               onClick={() => setShowScoreModal(true)}
               className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
             >
-              <Plus size={16} /> Skor Gir
+              <Plus size={16} /> Ciro Gir
             </button>
           )}
         </div>
@@ -323,7 +335,6 @@ export default function Lig() {
           onSubmit={handleAddScore}
           submitting={submitting}
           danismanOptions={danismanOptions}
-          defaultType={tab}
         />
       )}
 
