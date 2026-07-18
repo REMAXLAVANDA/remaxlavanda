@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 import { MANUAL_SCORE_CATEGORIES } from '../../lib/league'
+import { formatThousands, parseThousands } from '../../lib/format'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -8,7 +9,14 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
   const initialType = MANUAL_SCORE_CATEGORIES.some((c) => c.key === defaultType) ? defaultType : MANUAL_SCORE_CATEGORIES[0].key
   const [form, setForm] = useState({ userId: '', type: initialType, value: '', tarih: today() })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const canSubmit = form.userId && form.value !== '' && !Number.isNaN(Number(form.value)) && form.tarih
+  const category = MANUAL_SCORE_CATEGORIES.find((c) => c.key === form.type)
+  const parsedValue = parseThousands(form.value)
+  // Ciro binlik ayraçlı ("4.750.000") gösterilsin diye type="number" yerine
+  // formatThousands ile biçimlenen bir metin alanı kullanılıyor — native
+  // number input'lar Türkçe binlik ayracını (nokta) geçersiz sayıp değeri
+  // sessizce boşaltıyor, bu da Kaydet'i hiç açılmayan gri bir düğmeye
+  // çeviriyordu.
+  const canSubmit = form.userId && parsedValue !== null && form.tarih
 
   return (
     <Modal title="Skor Gir" onClose={onClose}>
@@ -16,7 +24,7 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ userId: form.userId, type: form.type, value: Number(form.value), tarih: form.tarih })
+          onSubmit({ userId: form.userId, type: form.type, value: parsedValue, tarih: form.tarih })
         }}
         className="space-y-3"
       >
@@ -48,11 +56,10 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
 
         <input
           required
-          type="number"
-          inputMode="decimal"
+          inputMode="numeric"
           value={form.value}
-          onChange={(e) => set({ value: e.target.value })}
-          placeholder="Değer"
+          onChange={(e) => set({ value: formatThousands(e.target.value) })}
+          placeholder={category?.unit === 'tl' ? 'Değer (₺)' : 'Değer (puan)'}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
 
