@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Settings2, Check } from 'lucide-react'
 
-// social_activity_types_manage RLS'i sadece broker'a izin veriyor — bu
-// yüzden bu panel sadece broker'a gösteriliyor (bkz. Lig.jsx).
-export default function ActivityPointsSettings({ activityTypes, onUpdatePoint }) {
+// Herkese gösteriliyor (danışman "neyden puan kazanıyorum" görsün diye) —
+// ama puanı değiştirme (social_activity_types_manage RLS'i sadece broker'a
+// izin veriyor) sadece editable=true olduğunda (broker) mümkün.
+export default function ActivityPointsSettings({ activityTypes, onUpdatePoint, editable }) {
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [draft, setDraft] = useState('')
@@ -46,7 +47,7 @@ export default function ActivityPointsSettings({ activityTypes, onUpdatePoint })
                       <Check size={14} />
                     </button>
                   </div>
-                ) : (
+                ) : editable ? (
                   <button
                     onClick={() => {
                       setEditingId(t.id)
@@ -56,6 +57,10 @@ export default function ActivityPointsSettings({ activityTypes, onUpdatePoint })
                   >
                     {t.puan} puan
                   </button>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600">
+                    {t.puan} puan
+                  </span>
                 )}
               </div>
             )

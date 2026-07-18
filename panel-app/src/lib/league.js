@@ -2,10 +2,28 @@ import { ROLES } from './roles'
 
 export const MEDALS = ['🥇', '🥈', '🥉']
 
+// description: danışmanın "neyden puan kazanıyorum" sorusuna cevap versin
+// diye podyumun altında herkese gösteriliyor.
 export const LEAGUE_CATEGORIES = [
-  { key: 'ciro', label: 'Ciro', unit: 'tl' },
-  { key: 'memnuniyet', label: 'Memnuniyet', unit: 'puan' },
-  { key: 'sosyal_medya', label: 'Sosyal Medya', unit: 'puan' },
+  {
+    key: 'ciro',
+    label: 'Ciro',
+    unit: 'tl',
+    description: 'Dönem içinde girilen tüm satışların toplamı — en çok satış tutarına ulaşan lider olur.',
+  },
+  {
+    key: 'memnuniyet',
+    label: 'Memnuniyet',
+    unit: 'puan',
+    description:
+      'Müşterilerden gerçekten alınan yorum sayısı (Yorum Hakkı panelinde işaretlenir). Yüzde değil, kaç yorum alındığının ham sayısı sıralamayı belirler.',
+  },
+  {
+    key: 'sosyal_medya',
+    label: 'Sosyal Medya',
+    unit: 'puan',
+    description: 'Instagram/LinkedIn/YouTube paylaşımları, reklam bütçesi ve Google yorumlarından kazanılan puanların toplamı (aşağıdaki puan tablosu).',
+  },
 ]
 
 // Sosyal Medya puanlı aktivite kayıtlarından, Memnuniyet de Yorum

@@ -308,23 +308,9 @@ export default function Lig() {
         />
       )}
 
-      {!loading && !error && period && tab === 'sosyal_medya' && isBroker && (
-        <ActivityPointsSettings activityTypes={activityTypes} onUpdatePoint={handleUpdatePoint} />
+      {!loading && !error && period && (
+        <ActivityPointsSettings activityTypes={activityTypes} onUpdatePoint={handleUpdatePoint} editable={isBroker} />
       )}
-
-      <div className="mb-5 flex gap-1 border-b border-ink-100">
-        {LEAGUE_CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            onClick={() => setTab(c.key)}
-            className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-              tab === c.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-800'
-            }`}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
@@ -333,8 +319,27 @@ export default function Lig() {
           Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
         </p>
       )}
-      {!loading && !error && period && (
-        <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
+
+      {/* Detaylı sıralama listesi (herkesin adı + görece farkı) sadece
+          yönetime (broker/owner/ofis) açık — danışman sadece podyumdaki
+          ilk 3'ü ve kendi Yorum Hakkı satırını görür. */}
+      {isManager && !loading && !error && period && (
+        <>
+          <div className="mb-5 flex gap-1 border-b border-ink-100">
+            {LEAGUE_CATEGORIES.map((c) => (
+              <button
+                key={c.key}
+                onClick={() => setTab(c.key)}
+                className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                  tab === c.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-800'
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
+        </>
       )}
 
       {showScoreModal && (
