@@ -10,6 +10,7 @@ import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
 import ActivityPointsSettings from '../components/league/ActivityPointsSettings'
+import CriteriaPanel from '../components/league/CriteriaPanel'
 import AddScoreModal from '../components/league/AddScoreModal'
 import AddSocialActivityModal from '../components/league/AddSocialActivityModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
@@ -310,6 +311,64 @@ export default function Lig() {
           expandedId={expandedCiroUserId}
           onToggleExpand={setExpandedCiroUserId}
         />
+      )}
+
+      {!loading && !error && period && (
+        <CriteriaPanel title="Ciro Nasıl Hesaplanır?">
+          <p>
+            "Ciro Gir" ile eklediğin her satışın tutarı dönem boyunca toplanır — üstüne yazılmaz, birikir. Örnek:
+            dönem içinde 500.000 TL, 300.000 TL ve 200.000 TL'lik 3 satış girersen, dönem toplamın 1.000.000 TL olur.
+            En yüksek toplama ulaşan lider olur.
+          </p>
+        </CriteriaPanel>
+      )}
+
+      {!loading && !error && period && (
+        <CriteriaPanel title="Memnuniyet Nasıl Hesaplanır?">
+          <div className="space-y-3">
+            <p>
+              Yorum Hakkı panelinde müşteriden gerçekten yorum alınıp alınmadığı işaretlenir. Sıralama ham yüzdeyle
+              değil, kaç işlemden kaç yorum alındığı BİRLİKTE değerlendirilerek yapılır — az işlemden gelen yüksek
+              yüzde, çok işlemden gelen sağlam bir sonucun önüne geçmez.
+            </p>
+            <div className="overflow-x-auto rounded-lg border border-ink-100">
+              <table className="w-full min-w-[420px] text-left text-xs">
+                <thead>
+                  <tr className="border-b border-ink-100 bg-ink-50 text-ink-400">
+                    <th className="px-3 py-2 font-medium">İşlem</th>
+                    <th className="px-3 py-2 font-medium">Alınan</th>
+                    <th className="px-3 py-2 font-medium">Ham yüzde</th>
+                    <th className="px-3 py-2 font-medium">Puan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-ink-50">
+                    <td className="px-3 py-2">1</td>
+                    <td className="px-3 py-2">1</td>
+                    <td className="px-3 py-2">%100</td>
+                    <td className="px-3 py-2 font-medium text-ink-800">21</td>
+                  </tr>
+                  <tr className="border-b border-ink-50">
+                    <td className="px-3 py-2">5</td>
+                    <td className="px-3 py-2">3</td>
+                    <td className="px-3 py-2">%60</td>
+                    <td className="px-3 py-2 font-medium text-ink-800">23</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2">17</td>
+                    <td className="px-3 py-2">12</td>
+                    <td className="px-3 py-2">%71</td>
+                    <td className="px-3 py-2 font-medium text-ink-800">47</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-ink-400">
+              1 işlemden %100 alan, 17 işlemden %71 alandan (12 yorum) daha az puan alır — çünkü ikincisinin arkasında
+              çok daha fazla kanıt var. İşlem sayısı arttıkça puan gerçek yüzdene yaklaşır.
+            </p>
+          </div>
+        </CriteriaPanel>
       )}
 
       {!loading && !error && period && (
