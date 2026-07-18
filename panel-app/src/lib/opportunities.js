@@ -42,6 +42,14 @@ export function canRevealContact(opp, user) {
   return opp.ownerId === user.id
 }
 
+// Silme, "admin her şeyi gözlemler isterse siler" tanımına göre SADECE
+// broker'a açık — owner en yüksek görüntüleme yetkisine sahip ama sıfır
+// müdahale ilkesi gereği silemez; ofis/danışman da girdiği kaydı
+// kalıcı silmek yerine düzeltmeli (yanlış girişte broker'a haber verir).
+export function canDeleteOpportunity(role) {
+  return role === ROLES.BROKER
+}
+
 export function formatPrice(amount) {
   if (amount == null) return '—'
   return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(

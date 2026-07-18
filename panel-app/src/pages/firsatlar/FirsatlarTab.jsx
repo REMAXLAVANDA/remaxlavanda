@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { opportunities as opportunitiesProvider } from '../../lib/dataProvider'
-import { canViewOpportunity, computeBoxCounts, isWithinRange } from '../../lib/opportunities'
+import { canDeleteOpportunity, canViewOpportunity, computeBoxCounts, isWithinRange } from '../../lib/opportunities'
 import { parseThousands } from '../../lib/format'
 import { ROLES } from '../../lib/roles'
 import OpportunitySection from '../../components/opportunities/OpportunitySection'
@@ -36,6 +36,8 @@ export default function FirsatlarTab() {
   const [detailOpp, setDetailOpp] = useState(null)
   const [expressingId, setExpressingId] = useState(null)
   const [interestTargetId, setInterestTargetId] = useState(null)
+  const [deleteTargetId, setDeleteTargetId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
@@ -111,8 +113,25 @@ export default function FirsatlarTab() {
     }
   }
 
+  async function performDelete(id) {
+    setDeleting(true)
+    try {
+      await opportunitiesProvider.remove(id)
+      setOpportunities((prev) => prev.filter((o) => o.id !== id))
+      setDetailOpp(null)
+      showToast('Fırsat silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Fırsat silinemedi, tekrar dene.', 'error')
+    } finally {
+      setDeleting(false)
+      setDeleteTargetId(null)
+    }
+  }
+
   const canCreate = CAN_CREATE_ROLES.includes(role)
+  const canDelete = canDeleteOpportunity(role)
   const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
+  const deleteOpp = deleteTargetId ? (opportunities ?? []).find((o) => o.id === deleteTargetId) : null
   const isManager = role === ROLES.BROKER || role === ROLES.OWNER
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
 
@@ -194,10 +213,12 @@ export default function FirsatlarTab() {
           resolveName={resolveName}
           isOwnerOrManager={isManager || detailOpp.ownerId === user.id}
           alreadyInterested={interestedIds.has(detailOpp.id)}
+          canDelete={canDelete}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
           onExpressInterest={() => setInterestTargetId(detailOpp.id)}
+          onDeleteRequest={() => setDeleteTargetId(detailOpp.id)}
           expressing={expressingId === detailOpp.id}
         />
       )}
@@ -214,6 +235,22 @@ export default function FirsatlarTab() {
           onConfirm={() => performExpressInterest(interestTargetId)}
           onCancel={() => setInterestTargetId(null)}
           confirming={expressingId === interestTargetId}
+        />
+      )}
+
+      {deleteTargetId && (
+        <ConfirmDialog
+          title="Bu fırsatı silmek istiyor musun?"
+          message={
+            deleteOpp
+              ? `"${deleteOpp.konum || 'Bu fırsat'}" kalıcı olarak silinecek, geri alınamaz.`
+              : 'Bu fırsat kalıcı olarak silinecek, geri alınamaz.'
+          }
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={() => performDelete(deleteTargetId)}
+          onCancel={() => setDeleteTargetId(null)}
+          confirming={deleting}
         />
       )}
     </div>

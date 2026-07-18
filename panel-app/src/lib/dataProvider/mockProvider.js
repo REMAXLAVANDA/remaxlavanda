@@ -99,6 +99,19 @@ export const opportunities = {
     }
     return delay({ leadAd: null, leadTelefon: null })
   },
+  // supabaseProvider.opportunities.remove()'daki call_logs.opportunity_id
+  // FK kısıtını mock'ta da taklit ediyoruz — bağlı bir çağrı kaydı varsa
+  // gerçek Postgres 23503 hatasıyla aynı 'in_use' mesajını fırlatır.
+  async remove(id) {
+    const inUse = MOCK_CALLS.some((c) => c.opportunityId === id)
+    if (inUse) throw new Error('Bu kayıt hâlâ kullanımda olduğu için silinemedi — önce bağlı kayıtları taşı veya sil.')
+    const idx = MOCK_OPPORTUNITIES.findIndex((o) => o.id === id)
+    if (idx !== -1) MOCK_OPPORTUNITIES.splice(idx, 1)
+    for (let i = MOCK_OPPORTUNITY_INTEREST.length - 1; i >= 0; i--) {
+      if (MOCK_OPPORTUNITY_INTEREST[i].opportunityId === id) MOCK_OPPORTUNITY_INTEREST.splice(i, 1)
+    }
+    return delay(null)
+  },
 }
 
 // --- Calendar events + attendance (Takvim) ----------------------------------

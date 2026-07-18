@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Lock, MapPin, Phone, User, Users } from 'lucide-react'
+import { Lock, MapPin, Phone, Trash2, User, Users } from 'lucide-react'
 import Modal from '../common/Modal'
 import { categoryLabel } from '../../lib/categories'
 import {
@@ -30,10 +30,12 @@ export default function OpportunityDetailModal({
   resolveName,
   isOwnerOrManager,
   alreadyInterested,
+  canDelete,
   fetchContact,
   fetchInterestList,
   onClose,
   onExpressInterest,
+  onDeleteRequest,
   expressing,
 }) {
   const [contact, setContact] = useState(null)
@@ -165,8 +167,16 @@ export default function OpportunityDetailModal({
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-ink-50 pt-3 text-xs text-ink-400">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink-50 pt-3 text-xs text-ink-400">
         <span>Kaydeden: {ownerName ?? '—'}</span>
+        {canDelete && (
+          <button
+            onClick={onDeleteRequest}
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+          >
+            <Trash2 size={13} /> Sil
+          </button>
+        )}
       </div>
 
       {showInterestButton && (

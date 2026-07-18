@@ -112,6 +112,21 @@ export const opportunities = {
     const row = Array.isArray(data) ? data[0] : data
     return { leadAd: row?.lead_ad ?? null, leadTelefon: row?.lead_telefon ?? null }
   },
+  // opportunities_delete RLS'i sadece broker'a izin verir (bkz.
+  // lib/opportunities.js canDeleteOpportunity). call_logs.opportunity_id
+  // bu satırı referans alıyorsa (ON DELETE için NO ACTION) Postgres 23503
+  // döner — lib/errors.js bunu 'in_use' olarak kullanıcıya net bir mesajla
+  // gösterir, burada ayrıca kontrol etmeye gerek yok.
+  // NOT: RLS izni engellerse PostgREST hata FIRLATMAZ, sessizce 0 satır
+  // siler — bu yüzden .select() ile dönen satırı kontrol edip, boşsa
+  // kendimiz hata fırlatıyoruz (aksi halde "silindi" diye yalan bir
+  // başarı mesajı gösterirdik).
+  async remove(id) {
+    const data = await run(client().from('opportunities').delete().eq('id', id).select('id'))
+    if (!data || data.length === 0) {
+      throw new Error('Fırsat silinemedi — yetkin olmayabilir, tekrar dene.')
+    }
+  },
 }
 
 // --- Calendar events + attendance (Takvim) ----------------------------------
