@@ -1,5 +1,5 @@
 import Modal from '../common/Modal'
-import { Calendar, Clock, MapPin } from 'lucide-react'
+import { Calendar, Clock, MapPin, Pencil, Trash2 } from 'lucide-react'
 import {
   ATTENDANCE_STATUS_LABELS,
   ATTENDANCE_STATUS_STYLES,
@@ -18,6 +18,8 @@ export default function EventDetailModal({
   creatorName,
   onSetMyStatus,
   onSetAttendeeStatus,
+  onEditRequest,
+  onDeleteRequest,
   onClose,
 }) {
   return (
@@ -42,7 +44,25 @@ export default function EventDetailModal({
       </div>
 
       {event.description && <p className="mt-3 text-sm text-ink-600">{event.description}</p>}
-      <p className="mt-2 text-xs text-ink-400">Düzenleyen: {creatorName ?? '—'}</p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-ink-400">Düzenleyen: {creatorName ?? '—'}</p>
+        {isManager && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onEditRequest}
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
+            >
+              <Pencil size={13} /> Düzenle
+            </button>
+            <button
+              onClick={onDeleteRequest}
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+            >
+              <Trash2 size={13} /> Sil
+            </button>
+          </div>
+        )}
+      </div>
 
       {myAttendance && (
         <div className="mt-4 border-t border-ink-50 pt-3">

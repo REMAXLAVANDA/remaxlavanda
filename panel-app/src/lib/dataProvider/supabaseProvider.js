@@ -82,6 +82,27 @@ export const opportunities = {
     const data = await run(client().from('opportunities').insert(insertRow).select(OPPORTUNITY_COLUMNS).single())
     return mapOpportunity(data)
   },
+  // opportunities_update_manage RLS'i broker/owner'a her satırı, ofis/
+  // danışmana SADECE kendi girdiği (owner_id) kaydı düzenletir — bkz.
+  // lib/opportunities.js canEditOpportunity. type/category bilerek
+  // patch'e alınmıyor (hangi kutuya düştüğünü değiştirmek ayrı bir işlem
+  // sayılır, burada sadece "yanlış yazılmış" alanlar düzeltiliyor).
+  async update(id, patch) {
+    const updateRow = {}
+    if ('leadAd' in patch) updateRow.lead_ad = patch.leadAd
+    if ('leadTelefon' in patch) updateRow.lead_telefon = patch.leadTelefon || null
+    if ('konum' in patch) updateRow.konum = patch.konum
+    if ('fiyat' in patch) updateRow.fiyat = patch.fiyat ?? null
+    if ('fiyatMin' in patch) updateRow.fiyat_min = patch.fiyatMin ?? null
+    if ('fiyatMax' in patch) updateRow.fiyat_max = patch.fiyatMax ?? null
+    if ('ozet' in patch) updateRow.ozet = patch.ozet || null
+    if ('m2' in patch) updateRow.m2 = patch.m2 ?? null
+    if ('odaSayisi' in patch) updateRow.oda_sayisi = patch.odaSayisi || null
+    const data = await run(
+      client().from('opportunities').update(updateRow).eq('id', id).select(OPPORTUNITY_COLUMNS).single(),
+    )
+    return mapOpportunity(data)
+  },
   // "İlgileniyorum" artık exclusive claim değil — opportunity_interest'e
   // kayıt ekler, müşteri bilgisini AÇMAZ. Fırsatı giren kişi kimin
   // ilgilendiğini görüp kendisi arar (bkz. listInterest).
@@ -194,6 +215,31 @@ export const calendarEvents = {
         .single(),
     )
     return mapAttendance(data)
+  },
+  // calendar_events_manage RLS'i (for all) zaten broker/owner/ofis'e
+  // düzenleme+silme izni veriyordu — sadece bu iki fonksiyon hiç
+  // yazılmamıştı. Davetli listesi burada değişmiyor (ayrı bir işlem
+  // sayılır), sadece etkinliğin kendi alanları (başlık/tarih/konum vb.).
+  async update(id, patch) {
+    const updateRow = {}
+    if ('type' in patch) updateRow.type = patch.type
+    if ('title' in patch) updateRow.title = patch.title
+    if ('description' in patch) updateRow.description = patch.description || null
+    if ('location' in patch) updateRow.location = patch.location || null
+    if ('date' in patch || 'startTime' in patch) {
+      updateRow.start_at = new Date(`${patch.date}T${patch.startTime}`).toISOString()
+    }
+    if ('date' in patch || 'endTime' in patch) {
+      updateRow.end_at = patch.endTime ? new Date(`${patch.date}T${patch.endTime}`).toISOString() : null
+    }
+    const data = await run(client().from('calendar_events').update(updateRow).eq('id', id).select().single())
+    return mapEvent(data)
+  },
+  async remove(id) {
+    const data = await run(client().from('calendar_events').delete().eq('id', id).select('id'))
+    if (!data || data.length === 0) {
+      throw new Error('Etkinlik silinemedi — yetkin olmayabilir, tekrar dene.')
+    }
   },
 }
 

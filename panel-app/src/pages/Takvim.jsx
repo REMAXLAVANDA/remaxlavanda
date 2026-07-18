@@ -9,6 +9,8 @@ import { canViewEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '../lib/calen
 import EventCalendar from '../components/calendar/EventCalendar'
 import EventDetailModal from '../components/calendar/EventDetailModal'
 import NewEventModal from '../components/calendar/NewEventModal'
+import EditEventModal from '../components/calendar/EditEventModal'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 // calendar_events_manage RLS kuralıyla aynı: broker/owner/ofis oluşturur ve
@@ -35,6 +37,9 @@ export default function Takvim() {
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [editingEvent, setEditingEvent] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
   const events = data?.events ?? EMPTY
@@ -97,6 +102,39 @@ export default function Takvim() {
     }
   }
 
+  async function handleUpdate(form) {
+    if (!selectedEventId) return
+    setSubmitting(true)
+    try {
+      const updated = await calendarProvider.update(selectedEventId, form)
+      setData((prev) => ({ ...prev, events: prev.events.map((e) => (e.id === updated.id ? updated : e)) }))
+      setEditingEvent(false)
+      showToast('Etkinlik güncellendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleDelete(id) {
+    setDeleting(true)
+    try {
+      await calendarProvider.remove(id)
+      setData((prev) => ({
+        events: prev.events.filter((e) => e.id !== id),
+        attendance: prev.attendance.filter((a) => a.eventId !== id),
+      }))
+      setSelectedEventId(null)
+      showToast('Etkinlik silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Etkinlik silinemedi, tekrar dene.', 'error')
+    } finally {
+      setDeleting(false)
+      setDeleteTargetId(null)
+    }
+  }
+
   const selectedAttendance = selectedEventId ? attendance.filter((a) => a.eventId === selectedEventId) : []
   const selectedAttendees = selectedAttendance.map((a) => ({ ...a, name: userName(a.userId) }))
   const myAttendance = selectedAttendance.find((a) => a.userId === user.id)
@@ -147,7 +185,7 @@ export default function Takvim() {
         </>
       )}
 
-      {selectedEvent && (
+      {selectedEvent && !editingEvent && (
         <EventDetailModal
           event={selectedEvent}
           attendees={selectedAttendees}
@@ -156,7 +194,18 @@ export default function Takvim() {
           creatorName={userName(selectedEvent.creatorId)}
           onSetMyStatus={handleSetMyStatus}
           onSetAttendeeStatus={handleSetAttendeeStatus}
+          onEditRequest={() => setEditingEvent(true)}
+          onDeleteRequest={() => setDeleteTargetId(selectedEvent.id)}
           onClose={() => setSelectedEventId(null)}
+        />
+      )}
+
+      {selectedEvent && editingEvent && (
+        <EditEventModal
+          event={selectedEvent}
+          onClose={() => setEditingEvent(false)}
+          onSubmit={handleUpdate}
+          submitting={submitting}
         />
       )}
 
@@ -166,6 +215,18 @@ export default function Takvim() {
           onSubmit={handleCreate}
           submitting={submitting}
           inviteeOptions={Object.values(knownUsers).filter((u) => u.id !== user.id)}
+        />
+      )}
+
+      {deleteTargetId && (
+        <ConfirmDialog
+          title="Bu etkinliği silmek istiyor musun?"
+          message="Etkinlik ve tüm katılım kayıtları kalıcı olarak silinecek, geri alınamaz."
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={() => handleDelete(deleteTargetId)}
+          onCancel={() => setDeleteTargetId(null)}
+          confirming={deleting}
         />
       )}
     </div>

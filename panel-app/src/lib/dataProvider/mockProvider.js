@@ -63,6 +63,15 @@ export const opportunities = {
     const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
     return delay(publicRow)
   },
+  // supabaseProvider.update() ile birebir aynı davranış: sadece "detay"
+  // alanları düzeltilebilir, type/category değişmez.
+  async update(id, patch) {
+    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
+    if (!row) throw new Error('Fırsat bulunamadı.')
+    Object.assign(row, patch)
+    const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
+    return delay(publicRow)
+  },
   // "İlgileniyorum" artık exclusive claim değil — müşteri bilgisini AÇMAZ,
   // sadece kim ilgilendiğini kaydeder (fırsatı giren kişi bunu görüp arar).
   async expressInterest(opportunityId, userId) {
@@ -151,6 +160,27 @@ export const calendarEvents = {
     // supabaseProvider.mapAttendance() sadece {eventId,userId,status} döner —
     // aynı şekli koruyoruz ki iki sağlayıcı arasında fark olmasın.
     return delay({ eventId: row.eventId, userId: row.userId, status: row.status })
+  },
+  async update(id, patch) {
+    const row = MOCK_EVENTS.find((e) => e.id === id)
+    if (!row) throw new Error('Etkinlik bulunamadı.')
+    if ('type' in patch) row.type = patch.type
+    if ('title' in patch) row.title = patch.title
+    if ('description' in patch) row.description = patch.description || null
+    if ('location' in patch) row.location = patch.location || null
+    if ('date' in patch || 'startTime' in patch) row.startAt = new Date(`${patch.date}T${patch.startTime}`).toISOString()
+    if ('date' in patch || 'endTime' in patch) {
+      row.endAt = patch.endTime ? new Date(`${patch.date}T${patch.endTime}`).toISOString() : null
+    }
+    return delay({ ...row })
+  },
+  async remove(id) {
+    const idx = MOCK_EVENTS.findIndex((e) => e.id === id)
+    if (idx !== -1) MOCK_EVENTS.splice(idx, 1)
+    for (let i = MOCK_ATTENDANCE.length - 1; i >= 0; i--) {
+      if (MOCK_ATTENDANCE[i].eventId === id) MOCK_ATTENDANCE.splice(i, 1)
+    }
+    return delay(null)
   },
 }
 

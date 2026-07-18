@@ -5,13 +5,20 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { opportunities as opportunitiesProvider } from '../../lib/dataProvider'
-import { canDeleteOpportunity, canViewOpportunity, computeBoxCounts, isWithinRange } from '../../lib/opportunities'
+import {
+  canDeleteOpportunity,
+  canEditOpportunity,
+  canViewOpportunity,
+  computeBoxCounts,
+  isWithinRange,
+} from '../../lib/opportunities'
 import { parseThousands } from '../../lib/format'
 import { ROLES } from '../../lib/roles'
 import OpportunitySection from '../../components/opportunities/OpportunitySection'
 import OpportunityDetailModal from '../../components/opportunities/OpportunityDetailModal'
 import OpportunityFilters from '../../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
+import EditOpportunityModal from '../../components/opportunities/EditOpportunityModal'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -38,6 +45,8 @@ export default function FirsatlarTab() {
   const [interestTargetId, setInterestTargetId] = useState(null)
   const [deleteTargetId, setDeleteTargetId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [editTarget, setEditTarget] = useState(null)
+  const [editingSubmitting, setEditingSubmitting] = useState(false)
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
@@ -128,6 +137,29 @@ export default function FirsatlarTab() {
     }
   }
 
+  async function handleEditSubmit(form) {
+    if (!editTarget) return
+    setEditingSubmitting(true)
+    try {
+      const payload = {
+        ...form,
+        fiyat: parseThousands(form.fiyat),
+        fiyatMin: parseThousands(form.fiyatMin),
+        fiyatMax: parseThousands(form.fiyatMax),
+        m2: form.m2 ? Number(form.m2) : null,
+      }
+      const updated = await opportunitiesProvider.update(editTarget.opp.id, payload)
+      setOpportunities((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)))
+      setEditTarget(null)
+      setDetailOpp(null)
+      showToast('Fırsat güncellendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setEditingSubmitting(false)
+    }
+  }
+
   const canCreate = CAN_CREATE_ROLES.includes(role)
   const canDelete = canDeleteOpportunity(role)
   const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
@@ -214,12 +246,24 @@ export default function FirsatlarTab() {
           isOwnerOrManager={isManager || detailOpp.ownerId === user.id}
           alreadyInterested={interestedIds.has(detailOpp.id)}
           canDelete={canDelete}
+          canEdit={canEditOpportunity(detailOpp, user)}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
           onExpressInterest={() => setInterestTargetId(detailOpp.id)}
           onDeleteRequest={() => setDeleteTargetId(detailOpp.id)}
+          onEditRequest={(contact) => setEditTarget({ opp: detailOpp, contact })}
           expressing={expressingId === detailOpp.id}
+        />
+      )}
+
+      {editTarget && (
+        <EditOpportunityModal
+          opportunity={editTarget.opp}
+          contact={editTarget.contact}
+          onClose={() => setEditTarget(null)}
+          onSubmit={handleEditSubmit}
+          submitting={editingSubmitting}
         />
       )}
 

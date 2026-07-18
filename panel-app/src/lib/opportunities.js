@@ -50,6 +50,17 @@ export function canDeleteOpportunity(role) {
   return role === ROLES.BROKER
 }
 
+// Düzenleme opportunities_update_manage RLS'iyle birebir aynı: broker/owner
+// (is_manager()) her satırı düzenler; ofis/danışman SADECE kendi girdiği
+// (owner_id) kaydı düzeltebilir — kalıcı silme yerine yanlış girişi
+// kendisi telafi eder (canDeleteOpportunity'nin aksine broker sınırlaması
+// YOK, çünkü düzeltme silmekten çok daha az risklidir).
+export function canEditOpportunity(opp, user) {
+  if (!user) return false
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
+  return opp.ownerId === user.id
+}
+
 export function formatPrice(amount) {
   if (amount == null) return '—'
   return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(
