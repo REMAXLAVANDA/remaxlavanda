@@ -66,13 +66,19 @@ export const MOCK_CIRO_GIRISLERI = [
   { id: 'cg-6', userId: 'ext-danisman-3', periodId: 'period-1', value: 620000, tarih: isoDate(6), createdAt: daysAgo(6) },
 ]
 
+// Puanlar tanınırlık katkısına göre yeniden ağırlıklandırıldı (broker
+// onaylı): Google Yorumu doğrudan güven/dönüşüm getirdiği için en değerli;
+// Instagram Post emlak gibi görsel bir işte LinkedIn'den çok daha fazla
+// yerel erişim sağladığı için yükseltildi, LinkedIn buna göre düşürüldü.
+// Meta Reklam Bütçesi kasıtlı olarak değiştirilmedi (bütçeye bağlı olması
+// yapısal bir durum, puan ayarıyla çözülmüyor).
 export const MOCK_ACTIVITY_TYPES = [
-  { id: 'act-1', ad: 'Instagram Post', puan: 5, sortOrder: 1 },
+  { id: 'act-1', ad: 'Instagram Post', puan: 8, sortOrder: 1 },
   { id: 'act-2', ad: 'Instagram Story', puan: 2, sortOrder: 2 },
-  { id: 'act-3', ad: 'LinkedIn Paylaşımı', puan: 5, sortOrder: 3 },
-  { id: 'act-4', ad: 'YouTube Videosu', puan: 15, sortOrder: 4 },
+  { id: 'act-3', ad: 'LinkedIn Paylaşımı', puan: 3, sortOrder: 3 },
+  { id: 'act-4', ad: 'YouTube Videosu', puan: 12, sortOrder: 4 },
   { id: 'act-5', ad: 'Meta Reklam Bütçesi (100 TL)', puan: 3, sortOrder: 5 },
-  { id: 'act-6', ad: 'Google Yorumu', puan: 10, sortOrder: 6 },
+  { id: 'act-6', ad: 'Google Yorumu', puan: 15, sortOrder: 6 },
 ]
 
 // user_id, period_id, activity_type_id, adet

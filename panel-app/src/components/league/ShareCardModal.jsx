@@ -4,12 +4,32 @@ import { Download } from 'lucide-react'
 import Modal from '../common/Modal'
 import ShareCard from './ShareCard'
 
+function Chip({ active, children, ...props }) {
+  return (
+    <button
+      {...props}
+      className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+        active ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
 // html-to-image DOM'daki kartı aynen (CSS gradient/blur dahil) PNG'ye
-// çeviriyor — pixelRatio 3 ile ekranda küçük görünen 360x640'lık kart,
-// paylaşıma uygun net bir görsel olarak (1080x1920) indiriliyor.
+// çeviriyor — pixelRatio 3 ile ekranda küçük görünen kart, paylaşıma uygun
+// net bir görsel (1080p'nin katları) olarak indiriliyor. Kategori seçimi —
+// bazı danışman sadece kendinin önde olduğu kategoriyi paylaşmak
+// isteyebilir, "Tümü" yerine tek kategori de seçilebiliyor. Format seçimi
+// de post (4:5) / hikaye (9:16) arasında.
 export default function ShareCardModal({ onClose, categories, rankingsByCategory, periodLabel }) {
   const cardRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
+  const [categoryKey, setCategoryKey] = useState('all')
+  const [format, setFormat] = useState('story')
+
+  const categoriesToShow = categoryKey === 'all' ? categories : categories.filter((c) => c.key === categoryKey)
 
   async function handleDownload() {
     if (!cardRef.current) return
@@ -17,7 +37,8 @@ export default function ShareCardModal({ onClose, categories, rankingsByCategory
     try {
       const dataUrl = await toPng(cardRef.current, { pixelRatio: 3 })
       const link = document.createElement('a')
-      link.download = `remax-lavanda-lig-${periodLabel.replace(/\s+/g, '-')}.png`
+      const suffix = categoryKey === 'all' ? 'tumu' : categoryKey
+      link.download = `remax-lavanda-lig-${suffix}-${format}.png`
       link.href = dataUrl
       link.click()
     } finally {
@@ -30,9 +51,37 @@ export default function ShareCardModal({ onClose, categories, rankingsByCategory
       <p className="mb-3 text-xs text-ink-500">
         Sadece isim ve sıralama gösterilir — tutar/puan bilgisi yok, sosyal medyada rahatça paylaşabilirsin.
       </p>
-      <div className="flex justify-center">
-        <ShareCard ref={cardRef} categories={categories} rankingsByCategory={rankingsByCategory} periodLabel={periodLabel} />
+
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        <Chip active={categoryKey === 'all'} onClick={() => setCategoryKey('all')}>
+          Tümü
+        </Chip>
+        {categories.map((c) => (
+          <Chip key={c.key} active={categoryKey === c.key} onClick={() => setCategoryKey(c.key)}>
+            {c.label}
+          </Chip>
+        ))}
       </div>
+
+      <div className="mb-4 flex gap-1.5">
+        <Chip active={format === 'post'} onClick={() => setFormat('post')}>
+          Gönderi (4:5)
+        </Chip>
+        <Chip active={format === 'story'} onClick={() => setFormat('story')}>
+          Hikaye (9:16)
+        </Chip>
+      </div>
+
+      <div className="flex justify-center">
+        <ShareCard
+          ref={cardRef}
+          categories={categoriesToShow}
+          rankingsByCategory={rankingsByCategory}
+          periodLabel={periodLabel}
+          format={format}
+        />
+      </div>
+
       <button
         onClick={handleDownload}
         disabled={downloading}
