@@ -594,6 +594,48 @@ export const league = {
   },
   async addScore({ userId, type, value, tarih }, enteredBy) {
     const period = await resolvePeriodByDate(tarih)
+
+    // Ciro kümülatiftir: her "Skor Gir" BİR SATIŞIN tutarıdır, dönem
+    // toplamı ciro_girisleri'ndeki tüm satışların toplamına eşittir
+    // (Sosyal Medya'daki "logdan topla" deseniyle aynı) — "value" burada
+    // üstüne yazılacak bir toplam değil, eklenecek bir satış tutarı.
+    if (type === 'ciro') {
+      await run(
+        client()
+          .from('ciro_girisleri')
+          .insert({ user_id: userId, period_id: period.id, value, tarih, entered_by: enteredBy }),
+      )
+      const rows = await run(
+        client()
+          .from('ciro_girisleri')
+          .select('value')
+          .eq('user_id', userId)
+          .eq('period_id', period.id),
+      )
+      const total = rows.reduce((sum, r) => sum + Number(r.value), 0)
+      const existing = await run(
+        client()
+          .from('score_entries')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('period_id', period.id)
+          .eq('type', 'ciro')
+          .maybeSingle(),
+      )
+      if (existing) {
+        await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
+      } else {
+        await run(
+          client()
+            .from('score_entries')
+            .insert({ user_id: userId, period_id: period.id, type: 'ciro', value: total, entered_by: enteredBy }),
+        )
+      }
+      return { userId, periodId: period.id, type, value: total }
+    }
+
+    // memnuniyet (ve ilerideki manuel tipler): tek satır, her girişte
+    // üstüne yazılır — kümülatif değil, "şu anki puan" anlamına gelir.
     const existing = await run(
       client()
         .from('score_entries')
@@ -610,16 +652,6 @@ export const league = {
         client()
           .from('score_entries')
           .insert({ user_id: userId, period_id: period.id, type, value, entered_by: enteredBy }),
-      )
-    }
-    // Ciro girişleri ayrıca geçmişe loglanır — score_entries.value her
-    // seferinde üstüne yazıldığı için, "sonradan kontrol" için tek kayıt
-    // yeterli değil (bkz. ciro_girisleri migration'ı).
-    if (type === 'ciro') {
-      await run(
-        client()
-          .from('ciro_girisleri')
-          .insert({ user_id: userId, period_id: period.id, value, tarih, entered_by: enteredBy }),
       )
     }
     return { userId, periodId: period.id, type, value: Number(value) }

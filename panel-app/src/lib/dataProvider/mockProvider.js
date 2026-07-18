@@ -387,14 +387,10 @@ export const league = {
     const numValue = Number(value)
     const period = MOCK_PERIODS.find((p) => p.baslangic <= tarih && p.bitis >= tarih)
     if (!period) throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
-    const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type && s.periodId === period.id)
     const now = new Date().toISOString()
-    if (existing) {
-      existing.value = numValue
-      existing.updatedAt = now
-    } else {
-      MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, updatedAt: now })
-    }
+
+    // Ciro kümülatiftir: her giriş bir satıştır, dönem toplamı
+    // ciro_girisleri'ndeki tüm satışların toplamıdır.
     if (type === 'ciro') {
       MOCK_CIRO_GIRISLERI.unshift({
         id: `ciro-giris-${Date.now()}`,
@@ -404,6 +400,26 @@ export const league = {
         tarih,
         createdAt: now,
       })
+      const total = MOCK_CIRO_GIRISLERI.filter((g) => g.userId === userId && g.periodId === period.id).reduce(
+        (sum, g) => sum + Number(g.value),
+        0,
+      )
+      const existingScore = MOCK_SCORES.find((s) => s.userId === userId && s.type === 'ciro' && s.periodId === period.id)
+      if (existingScore) {
+        existingScore.value = total
+        existingScore.updatedAt = now
+      } else {
+        MOCK_SCORES.push({ userId, periodId: period.id, type: 'ciro', value: total, updatedAt: now })
+      }
+      return delay({ userId, periodId: period.id, type, value: total })
+    }
+
+    const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type && s.periodId === period.id)
+    if (existing) {
+      existing.value = numValue
+      existing.updatedAt = now
+    } else {
+      MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, updatedAt: now })
     }
     return delay({ userId, periodId: period.id, type, value: numValue })
   },

@@ -20,9 +20,11 @@ const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
 // user_id, period_id, type (ciro | memnuniyet | sosyal_medya), value,
 // updatedAt (score_entries.updated_at ile aynı — "en son ne zaman
 // güncellendi" Panel'deki Lig Durumu widget'ında bunu kullanır).
+// NOT: ciro değerleri MOCK_CIRO_GIRISLERI'ndeki (aşağıda) satışların
+// toplamıyla aynı olmalı — ciro artık kümülatif.
 export const MOCK_SCORES = [
-  { userId: 'u-danisman', periodId: 'period-1', type: 'ciro', value: 1250000, updatedAt: daysAgo(1) },
-  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'ciro', value: 1580000, updatedAt: daysAgo(2) },
+  { userId: 'u-danisman', periodId: 'period-1', type: 'ciro', value: 2330000, updatedAt: daysAgo(1) },
+  { userId: 'ext-danisman-2', periodId: 'period-1', type: 'ciro', value: 2530000, updatedAt: daysAgo(2) },
   { userId: 'ext-danisman-3', periodId: 'period-1', type: 'ciro', value: 620000, updatedAt: daysAgo(6) },
 
   { userId: 'u-danisman', periodId: 'period-1', type: 'memnuniyet', value: 90, updatedAt: daysAgo(3) },
@@ -51,10 +53,9 @@ export const MOCK_CIRO_MUSTERILERI = [
   { id: 'cm-10', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Merve Şen', alindiMi: false, createdAt: daysAgo(2) },
 ]
 
-// user_id, period_id, value, tarih — her "Skor Gir" ciro girişi
-// (yeni/güncelleme fark etmeksizin) burada ayrı bir satır olarak kalır;
-// score_entries.value son giriş neyse onu gösterir, bu liste "sonradan
-// kontrol" için geçmişi tutar.
+// user_id, period_id, value, tarih — her "Skor Gir" ciro girişi BİR SATIŞ
+// olarak burada ayrı bir satır kalır; score_entries.value bunların
+// toplamıdır (kümülatif), bu liste de "sonradan kontrol" için geçmişi tutar.
 const isoDate = (n) => new Date(Date.now() - n * day).toISOString().slice(0, 10)
 export const MOCK_CIRO_GIRISLERI = [
   { id: 'cg-1', userId: 'u-danisman', periodId: 'period-1', value: 1250000, tarih: isoDate(1), createdAt: daysAgo(1) },

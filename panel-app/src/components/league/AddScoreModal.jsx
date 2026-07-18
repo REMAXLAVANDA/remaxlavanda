@@ -6,11 +6,12 @@ import { formatThousands, parseThousands } from '../../lib/format'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-// Ciro girilirken müşteri isimleri de AYNI formda eklenebilsin diye —
-// ayrı bir "Yorum Hakkı" menüsüne gitmeye gerek kalmasın. Eski (isimsiz)
-// ciro kayıtlarına da isim eklemek için: aynı danışman + o dönemi
-// kapsayan bir tarih seçip burada isim eklemek yeterli, değeri değiştirmek
-// zorunlu değil.
+// Ciro kümülatiftir: her "Kaydet" BİR SATIŞ ekler, dönem toplamına yazılmaz
+// üstüne — bu yüzden burada girilen tutar her zaman "bu satışın tutarı"dır,
+// önceki toplam değil. Müşteri isimleri de AYNI formda eklenebiliyor, ayrı
+// bir "Yorum Hakkı" menüsüne gitmeye gerek kalmasın diye. Sadece isim
+// eklemek (yeni bir satış olmadan) için Yorum Hakkı panelindeki "isim ekle"
+// kullanılmalı — buradan 0 tutarla göndermek satış sayısını bozar.
 export default function AddScoreModal({ onClose, onSubmit, submitting, danismanOptions, defaultType }) {
   const initialType = MANUAL_SCORE_CATEGORIES.some((c) => c.key === defaultType) ? defaultType : MANUAL_SCORE_CATEGORIES[0].key
   const [form, setForm] = useState({ userId: '', type: initialType, value: '', tarih: today() })
@@ -74,15 +75,14 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
           inputMode="numeric"
           value={form.value}
           onChange={(e) => set({ value: formatThousands(e.target.value) })}
-          placeholder={category?.unit === 'tl' ? 'Değer (₺)' : 'Değer (puan)'}
+          placeholder={category?.unit === 'tl' ? 'Bu satışın tutarı (₺)' : 'Değer (puan)'}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
 
         {category?.unit === 'tl' && (
           <div className="space-y-1.5 rounded-lg bg-ink-50 p-3">
             <p className="text-xs text-ink-500">
-              Satışa dönen müşteri(ler) — her isim 1 yorum hakkı getirir, eski (isimsiz) bir ciroya isim eklemek
-              için de aynı danışman + tarih ile buradan ekleyebilirsin.
+              Bu satışa dönen müşteri(ler) — her isim 1 yorum hakkı getirir.
             </p>
             {musteriler.length > 0 && (
               <div className="space-y-1">
