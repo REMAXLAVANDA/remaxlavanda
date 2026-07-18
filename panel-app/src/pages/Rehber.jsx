@@ -6,6 +6,7 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { docs as docsProvider, categories as categoriesProvider } from '../lib/dataProvider'
 import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
+import { uploadDocFile } from '../lib/storage'
 import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
 import PreviewModal from '../components/rehber/PreviewModal'
@@ -31,6 +32,7 @@ export default function Rehber() {
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [previewVersion, setPreviewVersion] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
+  const [editingDoc, setEditingDoc] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   const canManage = canManageDocs(role)
@@ -53,26 +55,41 @@ export default function Rehber() {
     return docs.filter((d) => d.categoryKey === categoryKey).length
   }
 
-  async function handleUpload({ categoryKey, docId, baslik, filename }) {
+  async function handleSubmitDoc(form) {
     setSubmitting(true)
     try {
-      const result = await docsProvider.upload({ categoryKey, docId, baslik, filename }, user.id)
+      let targetDocId = form.docId
+      if (!targetDocId) {
+        const created = await docsProvider.createDoc({ categoryKey: form.categoryKey, baslik: form.baslik }, user.id)
+        targetDocId = created.id
+        setData((prev) => ({ ...prev, docs: [...prev.docs, created] }))
+      }
 
-      setData((prev) => ({
-        ...prev,
-        docs: docId
-          ? prev.docs
-          : [...prev.docs, { id: result.docId, categoryKey, baslik, createdBy: user.id }],
-        versions: [
-          ...prev.versions.map((v) => (v.docId === result.docId ? { ...v, isCurrent: false } : v)),
-          result.version,
-        ],
-      }))
-      setSelectedCategory(categoryKey)
+      if (form.mode === 'file') {
+        const storagePath = await uploadDocFile(form.file, { categoryKey: form.categoryKey, docId: targetDocId })
+        const version = await docsProvider.addVersion(
+          { docId: targetDocId, filename: form.file.name, storagePath },
+          user.id,
+        )
+        setData((prev) => ({
+          ...prev,
+          versions: [...prev.versions.map((v) => (v.docId === targetDocId ? { ...v, isCurrent: false } : v)), version],
+        }))
+        showToast('Dosya yüklendi.', 'success')
+      } else {
+        await docsProvider.setContentText(targetDocId, form.contentText)
+        setData((prev) => ({
+          ...prev,
+          docs: prev.docs.map((d) => (d.id === targetDocId ? { ...d, contentText: form.contentText } : d)),
+        }))
+        showToast('Yazı kaydedildi.', 'success')
+      }
+
+      setSelectedCategory(form.categoryKey)
       setShowUpload(false)
-      showToast('Dosya yüklendi.', 'success')
+      setEditingDoc(null)
     } catch (err) {
-      showToast(err.message ?? 'Dosya yüklenemedi, tekrar dene.', 'error')
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -86,7 +103,7 @@ export default function Rehber() {
             onClick={() => setShowUpload(true)}
             className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
-            <Plus size={16} /> Dosya Yükle
+            <Plus size={16} /> Ekle
           </button>
         </div>
       )}
@@ -112,6 +129,8 @@ export default function Rehber() {
                   history={versionsForDoc(doc.id, versions)}
                   onPreview={setPreviewVersion}
                   resolveName={userName}
+                  canManage={canManage}
+                  onEditText={() => setEditingDoc(doc)}
                 />
               ))
             )}
@@ -124,10 +143,21 @@ export default function Rehber() {
       {showUpload && (
         <UploadDocModal
           onClose={() => setShowUpload(false)}
-          onSubmit={handleUpload}
+          onSubmit={handleSubmitDoc}
           submitting={submitting}
           docsInCategory={docsInCategory}
           defaultCategory={selectedCategory}
+          categories={categories}
+        />
+      )}
+
+      {editingDoc && (
+        <UploadDocModal
+          editingDoc={editingDoc}
+          onClose={() => setEditingDoc(null)}
+          onSubmit={handleSubmitDoc}
+          submitting={submitting}
+          docsInCategory={docsInCategory}
           categories={categories}
         />
       )}

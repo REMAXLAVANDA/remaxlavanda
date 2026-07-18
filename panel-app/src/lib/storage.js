@@ -1,5 +1,6 @@
 import { getSupabaseClient } from './supabaseClient'
 import { mapSupabaseError } from './errors'
+import { USE_SUPABASE } from './env'
 
 const BUCKET = 'docs'
 const MAX_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB — bucket policy ile birebir aynı (defense in depth)
@@ -49,12 +50,21 @@ export function validateFile(file) {
 }
 
 // Gerçek dosya baytlarını Storage'a yükler. Kayıt satırı (docs/doc_versions)
-// AYRI bir işlemdir — bkz. dataProvider supabaseProvider.docs.upload().
+// AYRI bir işlemdir — bkz. dataProvider supabaseProvider.docs.addVersion().
 // Bucket zaten server-side mime/boyut kısıtı uyguluyor (bkz. migration),
 // buradaki validateFile() sadece kullanıcıya erken/anlaşılır geri bildirim.
+//
+// Mock modda gerçek Supabase Storage yok — dosyayı tarayıcı belleğinde
+// bir blob URL'e çeviriyoruz ki Önizle/İndir dev ortamında da gerçekten
+// çalışsın (üretimde bu dal hiç çalışmaz, USE_SUPABASE her zaman true).
 export async function uploadDocFile(file, { categoryKey, docId }, onProgress) {
   const check = validateFile(file)
   if (!check.ok) throw new Error(check.reason)
+
+  if (!USE_SUPABASE) {
+    onProgress?.(100)
+    return URL.createObjectURL(file)
+  }
 
   const client = getSupabaseClient()
   const path = buildStoragePath({ categoryKey, docId, filename: file.name })
@@ -70,6 +80,10 @@ export async function uploadDocFile(file, { categoryKey, docId }, onProgress) {
 }
 
 export async function getSignedDocUrl(path, expiresInSeconds = 300) {
+  // Mock modda path zaten uploadDocFile()'ın döndürdüğü blob URL — doğrudan
+  // kullanılabilir, imzalamaya gerek yok.
+  if (!USE_SUPABASE) return path
+
   const client = getSupabaseClient()
   const { data, error } = await client.storage.from(BUCKET).createSignedUrl(path, expiresInSeconds)
   if (error) throw mapSupabaseError(error)
@@ -77,6 +91,7 @@ export async function getSignedDocUrl(path, expiresInSeconds = 300) {
 }
 
 export async function deleteDocFile(path) {
+  if (!USE_SUPABASE) return
   const client = getSupabaseClient()
   const { error } = await client.storage.from(BUCKET).remove([path])
   if (error) throw mapSupabaseError(error)

@@ -455,38 +455,49 @@ export const docs = {
     const data = await run(client().from('doc_versions').select('*'))
     return data.map(mapDocVersion)
   },
-  // NOT: gerçek dosya baytları burada değil, storage.js -> uploadDocFile() ile
-  // yüklenir; bu fonksiyon sadece docs/doc_versions KAYIT satırlarını yazar.
-  // signedUrl parametresi storage.js'den gelen gerçek dosya yolunu taşır.
-  async upload({ categoryKey, docId, baslik, filename, storagePath }, userId) {
-    let targetDocId = docId
-    if (!targetDocId) {
-      const categoryRow = await run(
-        client().from('categories').select('id').eq('module', 'docs').eq('key', categoryKey).single(),
-      )
-      const docRow = await run(
-        client().from('docs').insert({ category_id: categoryRow.id, baslik, created_by: userId }).select().single(),
-      )
-      targetDocId = docRow.id
-    }
-    await run(client().from('doc_versions').update({ is_current: false }).eq('doc_id', targetDocId))
-    const existing = await run(client().from('doc_versions').select('version_no').eq('doc_id', targetDocId))
+  // Sadece docs KAYIT satırını oluşturur — gerçek dosya baytları (varsa)
+  // AYRI bir adımda storage.js -> uploadDocFile() ile yüklenir, çünkü
+  // storage path'i oluşturmak (buildStoragePath) docId'yi gerektiriyor.
+  // Bu yüzden akış: createDoc() -> uploadDocFile() -> addVersion() (dosya
+  // için) ya da createDoc() -> setContentText() (metin için).
+  async createDoc({ categoryKey, baslik }, userId) {
+    const categoryRow = await run(
+      client().from('categories').select('id').eq('module', 'docs').eq('key', categoryKey).single(),
+    )
+    const docRow = await run(
+      client().from('docs').insert({ category_id: categoryRow.id, baslik, created_by: userId }).select().single(),
+    )
+    return { id: docRow.id, categoryKey, baslik: docRow.baslik, contentText: null, createdBy: docRow.created_by }
+  },
+  // storagePath, storage.js -> uploadDocFile()'ın dosyayı GERÇEKTEN
+  // Supabase Storage'a yükledikten sonra döndürdüğü gerçek yol.
+  async addVersion({ docId, filename, storagePath }, userId) {
+    await run(client().from('doc_versions').update({ is_current: false }).eq('doc_id', docId))
+    const existing = await run(client().from('doc_versions').select('version_no').eq('doc_id', docId))
     const versionNo = existing.length === 0 ? 1 : Math.max(...existing.map((v) => v.version_no)) + 1
     const versionRow = await run(
       client()
         .from('doc_versions')
         .insert({
-          doc_id: targetDocId,
+          doc_id: docId,
           version_no: versionNo,
           filename,
-          url: storagePath ?? '#',
+          url: storagePath,
           is_current: true,
           uploaded_by: userId,
         })
         .select()
         .single(),
     )
-    return { docId: targetDocId, version: mapDocVersion(versionRow) }
+    return mapDocVersion(versionRow)
+  },
+  // Dosya değil, yazılı içerik (ör. şirket bilgileri) — doc_versions'a
+  // hiç dokunmaz, sadece docs.content_text'i yazar/günceller.
+  async setContentText(docId, contentText) {
+    const data = await run(
+      client().from('docs').update({ content_text: contentText }).eq('id', docId).select().single(),
+    )
+    return data.content_text
   },
 }
 

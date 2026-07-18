@@ -1,9 +1,24 @@
 import { useState } from 'react'
-import { ChevronDown, Download, Eye, FileText } from 'lucide-react'
+import { ChevronDown, Download, Eye, FileText, Pencil } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
+import { getSignedDocUrl } from '../../lib/storage'
 
-export default function DocCard({ doc, current, history, onPreview, resolveName }) {
+export default function DocCard({ doc, current, history, onPreview, resolveName, canManage, onEditText }) {
   const [showHistory, setShowHistory] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      const url = await getSignedDocUrl(current.url)
+      window.open(url, '_blank', 'noopener')
+    } catch {
+      // İndirme linki alınamazsa sessizce vazgeçiyoruz — bu ikincil bir
+      // aksiyon, sayfayı bloke eden bir hata state'i gerektirmiyor.
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-4">
@@ -22,6 +37,15 @@ export default function DocCard({ doc, current, history, onPreview, resolveName 
             <p className="text-xs text-ink-400">Henüz dosya yüklenmedi</p>
           )}
         </div>
+        {canManage && !current && doc.contentText != null && (
+          <button
+            onClick={onEditText}
+            title="Düzenle"
+            className="shrink-0 rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+          >
+            <Pencil size={15} />
+          </button>
+        )}
       </div>
 
       {doc.contentText && (
@@ -36,12 +60,13 @@ export default function DocCard({ doc, current, history, onPreview, resolveName 
           >
             <Eye size={13} /> Önizle
           </button>
-          <a
-            href={current.url}
-            className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100"
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
           >
             <Download size={13} /> İndir
-          </a>
+          </button>
           {history.length > 1 && (
             <button
               onClick={() => setShowHistory((v) => !v)}

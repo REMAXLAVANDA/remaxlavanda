@@ -307,27 +307,33 @@ export const docs = {
   async listVersions() {
     return delay([...MOCK_DOC_VERSIONS])
   },
-  async upload({ categoryKey, docId, baslik, filename, storagePath }, userId) {
-    let targetDocId = docId
-    if (!targetDocId) {
-      targetDocId = `doc-${Date.now()}`
-      MOCK_DOCS.push({ id: targetDocId, categoryKey, baslik, createdBy: userId })
-    }
-    const existing = MOCK_DOC_VERSIONS.filter((v) => v.docId === targetDocId)
+  async createDoc({ categoryKey, baslik }, userId) {
+    const row = { id: `doc-${Date.now()}`, categoryKey, baslik, contentText: null, createdBy: userId }
+    MOCK_DOCS.push(row)
+    return delay({ ...row })
+  },
+  async addVersion({ docId, filename, storagePath }, userId) {
+    const existing = MOCK_DOC_VERSIONS.filter((v) => v.docId === docId)
     for (const v of existing) v.isCurrent = false
     const versionNo = existing.length === 0 ? 1 : Math.max(...existing.map((v) => v.versionNo)) + 1
     const versionRow = {
       id: `v-${Date.now()}`,
-      docId: targetDocId,
+      docId,
       versionNo,
       filename,
-      url: storagePath ?? '#',
+      url: storagePath,
       isCurrent: true,
       uploadedBy: userId,
       uploadedAt: new Date().toISOString(),
     }
     MOCK_DOC_VERSIONS.push(versionRow)
-    return delay({ docId: targetDocId, version: versionRow })
+    return delay(versionRow)
+  },
+  async setContentText(docId, contentText) {
+    const row = MOCK_DOCS.find((d) => d.id === docId)
+    if (!row) throw new Error('Doküman bulunamadı.')
+    row.contentText = contentText
+    return delay(contentText)
   },
 }
 
