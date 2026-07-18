@@ -61,6 +61,19 @@ export default function Rehber() {
   async function handleSubmitDoc(form) {
     setSubmitting(true)
     try {
+      // Sadece başlık düzeltmesi (dosya dokümanları için "Düzenle") —
+      // ne yeni versiyon ne içerik değişir.
+      if (form.mode === 'rename') {
+        await docsProvider.update(form.docId, { baslik: form.baslik })
+        setData((prev) => ({
+          ...prev,
+          docs: prev.docs.map((d) => (d.id === form.docId ? { ...d, baslik: form.baslik } : d)),
+        }))
+        showToast('Başlık güncellendi.', 'success')
+        setEditingDoc(null)
+        return
+      }
+
       let targetDocId = form.docId
       if (!targetDocId) {
         const created = await docsProvider.createDoc({ categoryKey: form.categoryKey, baslik: form.baslik }, user.id)
@@ -80,10 +93,11 @@ export default function Rehber() {
         }))
         showToast('Dosya yüklendi.', 'success')
       } else {
-        await docsProvider.setContentText(targetDocId, form.contentText)
+        const patch = { contentText: form.contentText, ...(form.baslik ? { baslik: form.baslik } : {}) }
+        await docsProvider.update(targetDocId, patch)
         setData((prev) => ({
           ...prev,
-          docs: prev.docs.map((d) => (d.id === targetDocId ? { ...d, contentText: form.contentText } : d)),
+          docs: prev.docs.map((d) => (d.id === targetDocId ? { ...d, ...patch } : d)),
         }))
         showToast('Yazı kaydedildi.', 'success')
       }
@@ -159,7 +173,7 @@ export default function Rehber() {
                   onPreview={setPreviewVersion}
                   resolveName={userName}
                   canManage={canManage}
-                  onEditText={() => setEditingDoc(doc)}
+                  onEdit={() => setEditingDoc(doc)}
                   onDeleteRequest={() => setDeleteTarget(doc)}
                 />
               ))

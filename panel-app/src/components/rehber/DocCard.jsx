@@ -3,7 +3,7 @@ import { ChevronDown, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-rea
 import { relativeTime } from '../../lib/format'
 import { getSignedDocUrl } from '../../lib/storage'
 
-export default function DocCard({ doc, current, history, onPreview, resolveName, canManage, onEditText, onDeleteRequest }) {
+export default function DocCard({ doc, current, history, onPreview, resolveName, canManage, onEdit, onDeleteRequest }) {
   const [showHistory, setShowHistory] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
@@ -39,15 +39,13 @@ export default function DocCard({ doc, current, history, onPreview, resolveName,
         </div>
         {canManage && (
           <div className="flex shrink-0 items-center gap-0.5">
-            {!current && doc.contentText != null && (
-              <button
-                onClick={onEditText}
-                title="Düzenle"
-                className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
-              >
-                <Pencil size={15} />
-              </button>
-            )}
+            <button
+              onClick={onEdit}
+              title="Düzenle"
+              className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+            >
+              <Pencil size={15} />
+            </button>
             <button
               onClick={onDeleteRequest}
               title="Sil"

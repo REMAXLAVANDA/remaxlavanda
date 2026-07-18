@@ -10,11 +10,13 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-// İki mod: gerçek dosya yükleme (Storage'a) ya da doğrudan yazı girme
-// (docs.content_text — dosya gerektirmeyen şirket bilgisi/hazır metin gibi
-// içerikler için). editingDoc verilirse mod otomatik "yazı" olur ve mevcut
-// metin düzenlenir (bkz. DocCard'daki "Düzenle" — sadece metin dokümanları
-// için).
+// Üç kullanım: (1) yeni dosya yükleme (Storage'a), (2) yeni yazı girme
+// (docs.content_text — dosya gerektirmeyen şirket bilgisi gibi içerikler
+// için), (3) var olan bir dokümanı düzenleme (editingDoc) — başlık HER
+// zaman düzenlenebilir, içerik SADECE metin dokümanlarında (contentText
+// dolu olanlarda) düzenlenebilir; dosya dokümanlarında yeni dosya/versiyon
+// eklemek ayrı bir akış (bkz. "+ Yeni doküman" altındaki mevcut doküman
+// seçimi), burada sadece başlık düzeltilir.
 export default function UploadDocModal({
   onClose,
   onSubmit,
@@ -24,7 +26,9 @@ export default function UploadDocModal({
   categories,
   editingDoc,
 }) {
-  const [mode, setMode] = useState(editingDoc ? 'text' : 'file')
+  const isEditingText = Boolean(editingDoc) && editingDoc.contentText != null
+  const isEditingFile = Boolean(editingDoc) && editingDoc.contentText == null
+  const [mode, setMode] = useState(isEditingText ? 'text' : 'file')
   const [categoryKey, setCategoryKey] = useState(editingDoc?.categoryKey ?? defaultCategory ?? categories[0]?.key ?? '')
   const [docId, setDocId] = useState(editingDoc?.id ?? NEW_DOC)
   const [baslik, setBaslik] = useState(editingDoc?.baslik ?? '')
@@ -33,7 +37,11 @@ export default function UploadDocModal({
   const [fileError, setFileError] = useState(null)
 
   const isNewDoc = docId === NEW_DOC
-  const canSubmit = mode === 'file' ? Boolean(file) && (isNewDoc ? baslik.trim().length > 0 : true) : baslik.trim().length > 0 && contentText.trim().length > 0
+  const canSubmit = isEditingFile
+    ? baslik.trim().length > 0
+    : mode === 'file'
+      ? Boolean(file) && (isNewDoc ? baslik.trim().length > 0 : true)
+      : baslik.trim().length > 0 && contentText.trim().length > 0
 
   function handleFileChange(e) {
     const selected = e.target.files?.[0] ?? null
@@ -52,20 +60,23 @@ export default function UploadDocModal({
     setFileError(null)
   }
 
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (!canSubmit) return
+    if (isEditingFile) {
+      onSubmit({ mode: 'rename', docId: editingDoc.id, baslik: baslik.trim() })
+    } else if (isEditingText) {
+      onSubmit({ mode: 'text', categoryKey: editingDoc.categoryKey, docId: editingDoc.id, baslik: baslik.trim(), contentText: contentText.trim() })
+    } else if (mode === 'file') {
+      onSubmit({ mode: 'file', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? baslik : null, file })
+    } else {
+      onSubmit({ mode: 'text', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? baslik : null, contentText: contentText.trim() })
+    }
+  }
+
   return (
-    <Modal title={editingDoc ? 'Metni Düzenle' : 'Doküman Ekle'} onClose={onClose}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!canSubmit) return
-          onSubmit(
-            mode === 'file'
-              ? { mode: 'file', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? baslik : null, file }
-              : { mode: 'text', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? baslik : null, contentText: contentText.trim() },
-          )
-        }}
-        className="space-y-3"
-      >
+    <Modal title={editingDoc ? (isEditingFile ? 'Başlığı Düzenle' : 'Metni Düzenle') : 'Doküman Ekle'} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-3">
         {!editingDoc && (
           <div className="flex gap-1.5">
             <button
@@ -123,7 +134,7 @@ export default function UploadDocModal({
           </select>
         )}
 
-        {isNewDoc && !editingDoc && (
+        {(isEditingFile || isEditingText || isNewDoc) && (
           <input
             required
             value={baslik}
@@ -133,7 +144,7 @@ export default function UploadDocModal({
           />
         )}
 
-        {mode === 'file' ? (
+        {isEditingFile ? null : mode === 'file' ? (
           <div>
             <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-ink-300 bg-ink-50 px-3 py-3 text-sm text-ink-600 hover:bg-ink-100">
               <Upload size={16} className="shrink-0 text-ink-400" />

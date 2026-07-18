@@ -329,11 +329,12 @@ export const docs = {
     MOCK_DOC_VERSIONS.push(versionRow)
     return delay(versionRow)
   },
-  async setContentText(docId, contentText) {
+  async update(docId, patch) {
     const row = MOCK_DOCS.find((d) => d.id === docId)
     if (!row) throw new Error('Doküman bulunamadı.')
-    row.contentText = contentText
-    return delay(contentText)
+    if (patch.baslik !== undefined) row.baslik = patch.baslik
+    if (patch.contentText !== undefined) row.contentText = patch.contentText
+    return delay(null)
   },
   async remove(docId) {
     const idx = MOCK_DOCS.findIndex((d) => d.id === docId)

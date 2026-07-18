@@ -491,13 +491,13 @@ export const docs = {
     )
     return mapDocVersion(versionRow)
   },
-  // Dosya değil, yazılı içerik (ör. şirket bilgileri) — doc_versions'a
-  // hiç dokunmaz, sadece docs.content_text'i yazar/günceller.
-  async setContentText(docId, contentText) {
-    const data = await run(
-      client().from('docs').update({ content_text: contentText }).eq('id', docId).select().single(),
-    )
-    return data.content_text
+  // Doküman başlığı (her doküman için) ve/veya yazılı içeriği (sadece
+  // metin dokümanları için) düzenler — doc_versions'a hiç dokunmaz.
+  async update(docId, patch) {
+    const updateRow = {}
+    if (patch.baslik !== undefined) updateRow.baslik = patch.baslik
+    if (patch.contentText !== undefined) updateRow.content_text = patch.contentText
+    await run(client().from('docs').update(updateRow).eq('id', docId))
   },
   // doc_versions satırları DB'de ON DELETE CASCADE ile otomatik silinir —
   // ama Storage'daki gerçek dosya baytları bu cascade'e dahil DEĞİL, o
