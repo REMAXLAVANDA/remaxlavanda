@@ -1,22 +1,10 @@
-// Takip modülü — 360° sağlık skoru için, henüz portalda gerçek bir izleme
-// sistemi olmayan iki bileşen (portal kullanımı, müşteri memnuniyeti) mock
-// sabit değer olarak tutuluyor. Diğer üç bileşen (eğitim, toplantı katılımı,
-// lead dönüşü) gerçek mock verilerden (education/calendar/call_logs) hesaplanır.
+// Takip modülü — 360° sağlık skoru artık beş bileşenin beşi de gerçek (mock)
+// verilerden hesaplanıyor (education/calendar/call_logs/user_activity/
+// ciro_musterileri, bkz. lib/takip.js). broker_notes şemada henüz bir
+// tabloya karşılık gelmiyor, o yüzden hâlâ burada sabit mock değer.
 
 const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
-
-export const MOCK_PORTAL_USAGE = {
-  'u-danisman': 65,
-  'ext-danisman-2': 90,
-  'ext-danisman-3': 40,
-}
-
-export const MOCK_CUSTOMER_REVIEW = {
-  'u-danisman': 90,
-  'ext-danisman-2': 88,
-  'ext-danisman-3': 70,
-}
 
 export const MOCK_BROKER_NOTES = {
   'u-danisman': [

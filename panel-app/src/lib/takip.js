@@ -33,21 +33,45 @@ export function leadResponsePercent(userId, calls) {
   return Math.round((responded / assigned.length) * 100)
 }
 
-export function computeHealthScore(userId, { modules, progress, events, attendance, calls, portalUsage, customerReview }) {
+// Portal kullanımı artık gerçek son giriş zamanından (auth.users ->
+// list_user_activity RPC) hesaplanır — sabit mock değer değil. Bugün giriş
+// 100, her geçen gün -10 puan, hiç giriş yapmamışsa 0 (bu "veri yok"
+// sayılmaz, gerçek ve olumsuz bir sinyaldir).
+export function portalUsagePercent(userId, activity) {
+  const row = activity.find((a) => a.userId === userId)
+  if (!row) return null
+  if (!row.lastSignInAt) return 0
+  const diffDays = Math.floor((Date.now() - new Date(row.lastSignInAt).getTime()) / (24 * 60 * 60 * 1000))
+  return Math.max(0, 100 - diffDays * 10)
+}
+
+// Müşteri memnuniyeti artık Lig > Ciro'da zaten girilen ciro_musterileri
+// kayıtlarından hesaplanır (o dönemle sınırlı değil, danışmanın tüm
+// geçmişi) — ayrı, hiç dolmayan bir mock sayı değil.
+export function customerReviewPercent(userId, ciroMusterileri) {
+  const mine = ciroMusterileri.filter((c) => c.userId === userId)
+  if (mine.length === 0) return null
+  const alinan = mine.filter((c) => c.alindiMi).length
+  return Math.round((alinan / mine.length) * 100)
+}
+
+export function computeHealthScore(userId, { modules, progress, events, attendance, calls, activity, ciroMusterileri }) {
   const educationPercent = moduleProgressFor(userId, modules, progress).percent
   const meetingPercent = meetingAttendPercent(userId, events, attendance)
   const leadPercent = leadResponsePercent(userId, calls)
-  const portalUsagePercent = portalUsage[userId] ?? null
-  const customerReviewPercent = customerReview[userId] ?? null
+  const portalPercent = portalUsagePercent(userId, activity)
+  const reviewPercent = customerReviewPercent(userId, ciroMusterileri)
 
   // Veri yoksa o bileşen için nötr (100) varsayılır — yeni katılan birini
-  // haksız yere düşük skorla cezalandırmamak için.
+  // haksız yere düşük skorla cezalandırmamak için. Portal kullanımı bunun
+  // istisnası: satır varsa ama hiç giriş yoksa bu "veri yok" değil, gerçek
+  // 0 kullanım demektir (bkz. portalUsagePercent).
   const metrics = {
     education: educationPercent,
     meetingAttend: meetingPercent ?? 100,
     leadResponse: leadPercent ?? 100,
-    portalUsage: portalUsagePercent ?? 100,
-    customerReview: customerReviewPercent ?? 100,
+    portalUsage: portalPercent ?? 100,
+    customerReview: reviewPercent ?? 100,
   }
 
   const score = Math.round(
@@ -63,8 +87,8 @@ export function computeHealthScore(userId, { modules, progress, events, attendan
       education: educationPercent,
       meetingAttend: meetingPercent,
       leadResponse: leadPercent,
-      portalUsage: portalUsagePercent,
-      customerReview: customerReviewPercent,
+      portalUsage: portalPercent,
+      customerReview: reviewPercent,
     },
   }
 }

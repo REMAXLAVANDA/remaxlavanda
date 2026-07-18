@@ -13,6 +13,7 @@ import {
   Smile,
   Share2,
   Megaphone,
+  HeartPulse,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -29,6 +30,7 @@ import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callL
 import { ROLES } from '../lib/roles'
 import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
+import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor } from '../lib/league'
@@ -45,7 +47,7 @@ const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
 
 async function loadAll() {
-  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity] =
+  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity, ciroMusterileri] =
     await Promise.all([
       callLogsProvider.list(),
       opportunitiesProvider.list(),
@@ -58,8 +60,9 @@ async function loadAll() {
       leagueProvider.listPeriods(),
       leagueProvider.listScores(),
       usersProvider.listActivity(),
+      leagueProvider.listCiroMusterileri(),
     ])
-  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity }
+  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity, ciroMusterileri }
 }
 
 function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', children }) {
@@ -547,6 +550,18 @@ export default function Panel() {
     [rankingsByCategory],
   )
 
+  // --- Takip: en iyi/en kötü 360° sağlık skoru — Takip'e girmeden Panel'de
+  // tek bakışta görülsün diye (bkz. lib/takip.js computeHealthScore).
+  const healthRanking = useMemo(() => {
+    if (!data) return []
+    return teamMembers
+      .map((u) => ({ user: u, ...computeHealthScore(u.id, data) }))
+      .sort((a, b) => b.score - a.score)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, teamMembers])
+  const bestHealth = healthRanking[0] ?? null
+  const worstHealth = healthRanking.length > 1 ? healthRanking[healthRanking.length - 1] : null
+
   const callTitle = isManager ? 'Atanmamış Çağrılar' : 'Sana Atanan Çağrılar'
   const callDescription = isManager
     ? 'Henüz bir danışmana atanmamış, dağıtım bekleyen çağrılar'
@@ -931,6 +946,38 @@ export default function Panel() {
                     : 'Bu dönemde henüz veri girilmedi.'}
                 </p>
               </>
+            )}
+          </Widget>
+
+          <Widget
+            icon={HeartPulse}
+            title="Danışman Sağlık Skoru"
+            description="360° skor — en iyi ve en dikkat gereken"
+            to="/takip"
+            linkLabel="Takip'e git"
+            className="md:col-span-2"
+          >
+            {!bestHealth ? (
+              <EmptyRow text="Henüz danışman yok." />
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                  <span className="shrink-0 text-lg">🏆</span>
+                  <span className="min-w-0 flex-1 text-sm text-ink-700">{bestHealth.user.name}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[bestHealth.status]}`}>
+                    {bestHealth.score} · {STATUS_LABELS[bestHealth.status]}
+                  </span>
+                </div>
+                {worstHealth && (
+                  <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                    <span className="shrink-0 text-lg">⚠️</span>
+                    <span className="min-w-0 flex-1 text-sm text-ink-700">{worstHealth.user.name}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[worstHealth.status]}`}>
+                      {worstHealth.score} · {STATUS_LABELS[worstHealth.status]}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </Widget>
         </div>

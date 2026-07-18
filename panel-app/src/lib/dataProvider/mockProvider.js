@@ -16,7 +16,7 @@ import {
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
-import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW, MOCK_BROKER_NOTES } from '../../data/mockTakip'
+import { MOCK_BROKER_NOTES } from '../../data/mockTakip'
 import {
   MOCK_PERIODS,
   MOCK_SCORES,
@@ -352,16 +352,11 @@ export const docs = {
 }
 
 // --- Takip (360° sağlık skoru) -----------------------------------------------
-// portal_usage / customer_review şemada henüz bir tabloya karşılık gelmiyor
-// (bkz. supabaseProvider.js aynı bölümdeki not) — ikisi de burada sabit mock
-// değer olarak tutuluyor; broker_notes de aynı sebeple henüz mock.
+// Portal kullanımı ve müşteri memnuniyeti artık gerçek verilerden hesaplanıyor
+// (bkz. lib/takip.js) — users.listActivity() ve league.listCiroMusterileri()
+// üzerinden. broker_notes şemada henüz bir tabloya karşılık gelmiyor, sabit
+// mock değer olarak kalıyor.
 export const takip = {
-  async listUsage() {
-    return delay({ ...MOCK_PORTAL_USAGE })
-  },
-  async listReviews() {
-    return delay({ ...MOCK_CUSTOMER_REVIEW })
-  },
   async listBrokerNotes() {
     return delay({ ...MOCK_BROKER_NOTES })
   },

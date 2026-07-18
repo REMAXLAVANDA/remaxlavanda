@@ -532,10 +532,11 @@ export const docs = {
 }
 
 // --- Takip (360° sağlık skoru) -----------------------------------------------
-// portal_usage / customer_review şemada henüz bir tabloya karşılık gelmiyor
-// (bkz. mockProvider.js aynı bölüm) — bu yüzden burada da mock'tan okunuyor.
-// broker_notes GERÇEKTEN bir tabloya bağlanabilir ama bu PART'ta ayrı bir
-// migration gerektirdiği için kapsam dışı bırakıldı; TODO olarak işaretli.
+// Portal kullanımı ve müşteri memnuniyeti artık gerçek verilerden hesaplanıyor
+// (bkz. lib/takip.js — users.listActivity() ve league.listCiroMusterileri()
+// zaten yukarıda tanımlı, gerçek sorgular yapıyor). broker_notes GERÇEKTEN
+// bir tabloya bağlanabilir ama bu PART'ta ayrı bir migration gerektirdiği
+// için kapsam dışı bırakıldı; TODO olarak işaretli, hâlâ mock'tan okunuyor.
 export { takip } from './mockProvider'
 
 // --- League (Lig) --------------------------------------------------------------

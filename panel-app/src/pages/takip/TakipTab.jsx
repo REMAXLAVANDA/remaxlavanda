@@ -2,7 +2,14 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { education as educationProvider, calendarEvents as calendarProvider, callLogs as callLogsProvider, takip as takipProvider } from '../../lib/dataProvider'
+import {
+  education as educationProvider,
+  calendarEvents as calendarProvider,
+  callLogs as callLogsProvider,
+  takip as takipProvider,
+  users as usersProvider,
+  league as leagueProvider,
+} from '../../lib/dataProvider'
 import { computeHealthScore } from '../../lib/takip'
 import HealthScoreRow from '../../components/takip/HealthScoreRow'
 import HealthDetailModal from '../../components/takip/HealthDetailModal'
@@ -10,21 +17,23 @@ import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 
-// Takip skoru, education/calendar/callLogs/takip domain'lerinin kesişimidir
-// — tek bir Promise.all ile hepsi birlikte yüklenir, tek loading/error
-// durumu.
+// Takip skoru, education/calendar/callLogs/users/league domain'lerinin
+// kesişimidir — tek bir Promise.all ile hepsi birlikte yüklenir, tek
+// loading/error durumu. Portal kullanımı ve müşteri memnuniyeti artık
+// gerçek verilerden (son giriş zamanı, ciro_musterileri) hesaplanıyor —
+// bkz. lib/takip.js.
 async function loadAll() {
-  const [modules, progress, events, attendance, calls, portalUsage, customerReview, brokerNotes] = await Promise.all([
+  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes] = await Promise.all([
     educationProvider.listModules(),
     educationProvider.listProgress(),
     calendarProvider.list(),
     calendarProvider.listAttendance(),
     callLogsProvider.list(),
-    takipProvider.listUsage(),
-    takipProvider.listReviews(),
+    usersProvider.listActivity(),
+    leagueProvider.listCiroMusterileri(),
     takipProvider.listBrokerNotes(),
   ])
-  return { modules, progress, events, attendance, calls, portalUsage, customerReview, brokerNotes }
+  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes }
 }
 
 export default function TakipTab() {
