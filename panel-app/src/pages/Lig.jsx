@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Plus, Copy, CalendarPlus, Megaphone } from 'lucide-react'
+import { Plus, Copy, CalendarPlus, Megaphone, Eye } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -11,6 +11,7 @@ import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
 import ActivityPointsSettings from '../components/league/ActivityPointsSettings'
 import CriteriaPanel from '../components/league/CriteriaPanel'
+import ShareCardModal from '../components/league/ShareCardModal'
 import AddScoreModal from '../components/league/AddScoreModal'
 import AddSocialActivityModal from '../components/league/AddSocialActivityModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
@@ -37,6 +38,7 @@ export default function Lig() {
   const [showScoreModal, setShowScoreModal] = useState(false)
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showActivityModal, setShowActivityModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   // ReviewCreditsPanel'in kendi state'i değil, burada tutuluyor — isim
   // ekleme/silme/işaretleme her seferinde reload() tetikleyip paneli kısa
@@ -262,6 +264,15 @@ export default function Lig() {
         <div className="flex items-center gap-2">
           {!loading && !error && period && (
             <button
+              onClick={() => setShowShareModal(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
+              title="Sosyal medyada paylaşılabilir görsel — sadece isim/sıra, mali bilgi yok"
+            >
+              <Eye size={16} /> Görseli Göster
+            </button>
+          )}
+          {!loading && !error && period && (
+            <button
               onClick={handleCopySummary}
               className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
             >
@@ -425,6 +436,15 @@ export default function Lig() {
           submitting={submitting}
           danismanOptions={danismanOptions}
           activityTypes={activityTypes}
+        />
+      )}
+
+      {showShareModal && period && (
+        <ShareCardModal
+          onClose={() => setShowShareModal(false)}
+          categories={LEAGUE_CATEGORIES}
+          rankingsByCategory={rankingsByCategory}
+          periodLabel={period.ad}
         />
       )}
     </div>

@@ -10,8 +10,7 @@ export default function PeriodSummaryBoard({ categories, rankingsByCategory }) {
         const top3 = (rankingsByCategory[c.key] ?? []).slice(0, 3)
         return (
           <div key={c.key} className="rounded-2xl border border-ink-100 bg-white p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-400">{c.label}</h3>
-            {c.description && <p className="mb-3 mt-1 text-[11px] leading-snug text-ink-400">{c.description}</p>}
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-400">{c.label}</h3>
             {top3.length === 0 ? (
               <p className="py-6 text-center text-xs text-ink-400">Veri yok</p>
             ) : (
