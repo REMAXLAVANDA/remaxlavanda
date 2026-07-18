@@ -12,7 +12,7 @@ export const OPPORTUNITY_CATEGORIES = [
 ]
 
 export function categoryLabel(key) {
-  return OPPORTUNITY_CATEGORIES.find((c) => c.key === key)?.label ?? key
+  return OPPORTUNITY_CATEGORIES.find((c) => c.key === key)?.label ?? key ?? 'Diğer'
 }
 
 // categories_manage RLS kuralıyla birebir aynı: sadece broker ve owner

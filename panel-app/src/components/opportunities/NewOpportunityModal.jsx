@@ -29,7 +29,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
   const [form, setForm] = useState(EMPTY_FORM)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
-  const canSubmit = form.leadAd.trim().length > 0
+  const canSubmit = form.leadAd.trim().length > 0 && form.konum.trim().length > 0
   const isAlici = form.type === 'alici'
   const isKonut = form.category === 'konut'
 
@@ -99,9 +99,10 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
         <input
+          required
           value={form.konum}
           onChange={(e) => set({ konum: e.target.value })}
-          placeholder="Mahalle (ör. Hürriyet Mahallesi)"
+          placeholder="Mahalle (ör. Hürriyet Mahallesi) — zorunlu"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
 
@@ -160,7 +161,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         <textarea
           value={form.ozet}
           onChange={(e) => set({ ozet: e.target.value })}
-          placeholder="Kısa özet"
+          placeholder="Ek notlar (konum yukarıdaki Mahalle alanına yazılmalı, buraya değil)"
           rows={3}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

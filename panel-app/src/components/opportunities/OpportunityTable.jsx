@@ -34,53 +34,62 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
           </tr>
         </thead>
         <tbody>
-          {opportunities.map((opp) => (
-            <tr
-              key={opp.id}
-              onClick={() => onRowClick(opp)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  onRowClick(opp)
-                }
-              }}
-              tabIndex={0}
-              role="button"
-              aria-label={`${opp.konum || 'Fırsat'} detayını aç`}
-              className="cursor-pointer border-b border-ink-50 outline-none last:border-0 hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400"
-            >
-              <td className="px-4 py-3 text-ink-700">{opp.konum || '—'}</td>
-              <td className="px-4 py-3 text-ink-500">{categoryLabel(opp.category)}</td>
-              <td className="px-4 py-3 font-medium text-ink-900">{formatPrice(opp.fiyat)}</td>
-              <td className="max-w-[260px] truncate px-4 py-3 text-ink-500">{opp.ozet || '—'}</td>
-              <td className="px-4 py-3 whitespace-nowrap text-ink-400">{relativeTime(opp.createdAt)}</td>
-              <td className="px-4 py-3">
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${OPPORTUNITY_STATUS_STYLES[opp.status]}`}
-                >
-                  {OPPORTUNITY_STATUS_LABELS[opp.status]}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-right">
-                {interestedIds?.has(opp.id) ? (
-                  <span className="text-xs font-medium text-emerald-600">İlgilendin ✓</span>
-                ) : canExpressInterest(opp, user) ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onExpressInterest(opp)
-                    }}
-                    disabled={expressingId === opp.id}
-                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
+          {opportunities.map((opp) => {
+            // Alıcı fırsatlarının fiyatı fiyat değil fiyatMin/fiyatMax'ta
+            // tutulur — bunu ayırt etmeden hep opp.fiyat okumak alıcı
+            // satırlarında Fiyat sütununu hep boş ("—") gösteriyordu.
+            const priceLabel =
+              opp.type === 'alici' && (opp.fiyatMin != null || opp.fiyatMax != null)
+                ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
+                : formatPrice(opp.fiyat)
+            return (
+              <tr
+                key={opp.id}
+                onClick={() => onRowClick(opp)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onRowClick(opp)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`${opp.konum || 'Fırsat'} detayını aç`}
+                className="cursor-pointer border-b border-ink-50 outline-none last:border-0 hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400"
+              >
+                <td className="px-4 py-3 text-ink-700">{opp.konum || '—'}</td>
+                <td className="px-4 py-3 text-ink-500">{categoryLabel(opp.category)}</td>
+                <td className="px-4 py-3 font-medium text-ink-900">{priceLabel}</td>
+                <td className="max-w-[260px] truncate px-4 py-3 text-ink-500">{opp.ozet || '—'}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-ink-400">{relativeTime(opp.createdAt)}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${OPPORTUNITY_STATUS_STYLES[opp.status]}`}
                   >
-                    {expressingId === opp.id ? 'Gönderiliyor...' : 'İlgileniyorum'}
-                  </button>
-                ) : (
-                  <span className="text-xs text-ink-300">—</span>
-                )}
-              </td>
-            </tr>
-          ))}
+                    {OPPORTUNITY_STATUS_LABELS[opp.status]}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {interestedIds?.has(opp.id) ? (
+                    <span className="text-xs font-medium text-emerald-600">İlgilendin ✓</span>
+                  ) : canExpressInterest(opp, user) ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onExpressInterest(opp)
+                      }}
+                      disabled={expressingId === opp.id}
+                      className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
+                    >
+                      {expressingId === opp.id ? 'Gönderiliyor...' : 'İlgileniyorum'}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-ink-300">—</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
