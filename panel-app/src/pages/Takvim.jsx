@@ -55,9 +55,9 @@ export default function Takvim() {
 
   const selectedEvent = events.find((e) => e.id === selectedEventId)
 
-  async function updateAttendance(eventId, userId, status) {
+  async function updateAttendance(eventId, userId, status, extra) {
     try {
-      const updated = await calendarProvider.updateAttendance(eventId, userId, status)
+      const updated = await calendarProvider.updateAttendance(eventId, userId, status, extra)
       setData((prev) => ({
         ...prev,
         attendance: prev.attendance.map((a) =>
@@ -76,8 +76,28 @@ export default function Takvim() {
     if (ok) showToast('Katılım durumun güncellendi.', 'success')
   }
 
+  async function handleSubmitMazeret(mazeretText) {
+    const ok = await updateAttendance(selectedEventId, user.id, 'mazeretli', { mazeretText })
+    if (ok) showToast('Mazeretin gönderildi, yönetim inceleyecek.', 'success')
+  }
+
   async function handleSetAttendeeStatus(userId, status) {
     await updateAttendance(selectedEventId, userId, status)
+  }
+
+  async function handleResolveMazeret(userId, decision) {
+    try {
+      const updated = await calendarProvider.resolveMazeret(selectedEventId, userId, decision, user.id)
+      setData((prev) => ({
+        ...prev,
+        attendance: prev.attendance.map((a) =>
+          a.eventId === updated.eventId && a.userId === updated.userId ? updated : a,
+        ),
+      }))
+      showToast(decision === 'onaylandi' ? 'Mazeret kabul edildi.' : 'Mazeret reddedildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Mazeret güncellenemedi, tekrar dene.', 'error')
+    }
   }
 
   async function handleCreate(form) {
@@ -193,7 +213,9 @@ export default function Takvim() {
           isManager={isManager}
           creatorName={userName(selectedEvent.creatorId)}
           onSetMyStatus={handleSetMyStatus}
+          onSubmitMazeret={handleSubmitMazeret}
           onSetAttendeeStatus={handleSetAttendeeStatus}
+          onResolveMazeret={handleResolveMazeret}
           onEditRequest={() => setEditingEvent(true)}
           onDeleteRequest={() => setDeleteTargetId(selectedEvent.id)}
           onClose={() => setSelectedEventId(null)}

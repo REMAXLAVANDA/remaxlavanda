@@ -15,11 +15,18 @@ const WEIGHTS = {
 // girdiler parametre olarak alınıyor. Böylece dataProvider hangi kaynaktan
 // (mock/supabase) beslenirse beslensin bu fonksiyonlar aynı şekilde çalışır;
 // çağıran taraf (Takip.jsx) veriyi dataProvider'dan yükleyip buraya geçirir.
+// Mazeret bildirilip henüz incelenmemiş (bekliyor) ya da kabul edilmiş
+// (onaylandi) satırlar nötr sayılır — sağlık skorunu hiç etkilemez, ne artı
+// ne eksi (bkz. event_attendance_update_self RLS + migration notu).
+// Reddedilen mazeret "katılmadı" ile aynı muameleyi görür.
 export function meetingAttendPercent(userId, events, attendance) {
   const resolved = attendance.filter((a) => {
     if (a.userId !== userId) return false
     const event = events.find((e) => e.id === a.eventId)
-    return event && isPastEvent(event) && (a.status === 'katildi' || a.status === 'katilmadi')
+    if (!event || !isPastEvent(event)) return false
+    if (a.status === 'katildi' || a.status === 'katilmadi') return true
+    if (a.status === 'mazeretli' && a.mazeretStatus === 'reddedildi') return true
+    return false
   })
   if (resolved.length === 0) return null
   const attended = resolved.filter((a) => a.status === 'katildi').length

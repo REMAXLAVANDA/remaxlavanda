@@ -153,14 +153,42 @@ export const calendarEvents = {
     }
     return delay(row)
   },
-  async updateAttendance(eventId, userId, status) {
+  async updateAttendance(eventId, userId, status, { mazeretText } = {}) {
     const row = MOCK_ATTENDANCE.find((a) => a.eventId === eventId && a.userId === userId)
     if (!row) throw new Error('Katılım kaydı bulunamadı.')
     row.status = status
     row.respondedAt = new Date().toISOString()
-    // supabaseProvider.mapAttendance() sadece {eventId,userId,status} döner —
-    // aynı şekli koruyoruz ki iki sağlayıcı arasında fark olmasın.
-    return delay({ eventId: row.eventId, userId: row.userId, status: row.status })
+    if (status === 'mazeretli') {
+      row.mazeretText = mazeretText
+      row.mazeretStatus = 'bekliyor'
+    }
+    // supabaseProvider.mapAttendance() ile aynı şekli koruyoruz ki iki
+    // sağlayıcı arasında fark olmasın.
+    return delay({
+      eventId: row.eventId,
+      userId: row.userId,
+      status: row.status,
+      mazeretText: row.mazeretText ?? null,
+      mazeretStatus: row.mazeretStatus ?? null,
+      mazeretReviewedBy: row.mazeretReviewedBy ?? null,
+      mazeretReviewedAt: row.mazeretReviewedAt ?? null,
+    })
+  },
+  async resolveMazeret(eventId, userId, decision, reviewerId) {
+    const row = MOCK_ATTENDANCE.find((a) => a.eventId === eventId && a.userId === userId)
+    if (!row) throw new Error('Katılım kaydı bulunamadı.')
+    row.mazeretStatus = decision
+    row.mazeretReviewedBy = reviewerId
+    row.mazeretReviewedAt = new Date().toISOString()
+    return delay({
+      eventId: row.eventId,
+      userId: row.userId,
+      status: row.status,
+      mazeretText: row.mazeretText ?? null,
+      mazeretStatus: row.mazeretStatus ?? null,
+      mazeretReviewedBy: row.mazeretReviewedBy ?? null,
+      mazeretReviewedAt: row.mazeretReviewedAt ?? null,
+    })
   },
   async update(id, patch) {
     const row = MOCK_EVENTS.find((e) => e.id === id)

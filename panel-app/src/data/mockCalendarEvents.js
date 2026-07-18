@@ -109,10 +109,28 @@ export const MOCK_ATTENDANCE = [
   { eventId: 'ev-5', userId: 'u-danisman', status: 'katilmadi' },
   { eventId: 'ev-5', userId: 'ext-danisman-2', status: 'katildi' },
 
-  // ev-6 (geçmiş)
+  // ev-6 (geçmiş) — biri mazeretini reddedildi olarak işaretlenmiş
+  // (sağlık skorunda "katılmadı" gibi sayılıyor), diğeri hâlâ inceleniyor
+  // (bekliyor iken skoru etkilemiyor) — mazeret sisteminin iki ucunu
+  // göstermek için.
   { eventId: 'ev-6', userId: 'u-danisman', status: 'katildi' },
-  { eventId: 'ev-6', userId: 'ext-danisman-2', status: 'katilmadi' },
+  {
+    eventId: 'ev-6',
+    userId: 'ext-danisman-2',
+    status: 'mazeretli',
+    mazeretText: 'Trafik kazası nedeniyle yola çıkamadım.',
+    mazeretStatus: 'reddedildi',
+    mazeretReviewedBy: 'u-broker',
+    mazeretReviewedAt: at(-14, 10, 0),
+  },
 
   // ev-7 (geçmiş)
   { eventId: 'ev-7', userId: 'ext-danisman-2', status: 'katildi' },
+  {
+    eventId: 'ev-7',
+    userId: 'ext-danisman-3',
+    status: 'mazeretli',
+    mazeretText: 'Aile ile ilgili acil bir durum çıktı.',
+    mazeretStatus: 'bekliyor',
+  },
 ]

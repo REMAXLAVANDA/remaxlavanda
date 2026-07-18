@@ -165,7 +165,15 @@ function mapEvent(row) {
 }
 
 function mapAttendance(row) {
-  return { eventId: row.event_id, userId: row.user_id, status: row.status }
+  return {
+    eventId: row.event_id,
+    userId: row.user_id,
+    status: row.status,
+    mazeretText: row.mazeret_text,
+    mazeretStatus: row.mazeret_status,
+    mazeretReviewedBy: row.mazeret_reviewed_by,
+    mazeretReviewedAt: row.mazeret_reviewed_at,
+  }
 }
 
 export const calendarEvents = {
@@ -204,11 +212,34 @@ export const calendarEvents = {
     }
     return mapEvent(eventRow)
   },
-  async updateAttendance(eventId, userId, status) {
+  // status='mazeretli' iken mazeretText zorunlu — event_attendance_update_self
+  // RLS'i danışmanın kendi satırında status'ü sadece 'onayladi'/'mazeretli'
+  // yapmasına izin veriyor, mazeret_status'ü de otomatik 'bekliyor' yapıyoruz
+  // (danışman bunu kendi başına onaylandi/reddedildi yapamaz).
+  async updateAttendance(eventId, userId, status, { mazeretText } = {}) {
+    const updateRow = { status, responded_at: new Date().toISOString() }
+    if (status === 'mazeretli') {
+      updateRow.mazeret_text = mazeretText
+      updateRow.mazeret_status = 'bekliyor'
+    }
     const data = await run(
       client()
         .from('event_attendance')
-        .update({ status, responded_at: new Date().toISOString() })
+        .update(updateRow)
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .select()
+        .single(),
+    )
+    return mapAttendance(data)
+  },
+  // Sadece yönetim çağırabilir (event_attendance_update_manager RLS) —
+  // mazereti kabul/red eder, kim ne zaman karar verdiğini kaydeder.
+  async resolveMazeret(eventId, userId, decision, reviewerId) {
+    const data = await run(
+      client()
+        .from('event_attendance')
+        .update({ mazeret_status: decision, mazeret_reviewed_by: reviewerId, mazeret_reviewed_at: new Date().toISOString() })
         .eq('event_id', eventId)
         .eq('user_id', userId)
         .select()

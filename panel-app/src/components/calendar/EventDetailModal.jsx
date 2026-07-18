@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import Modal from '../common/Modal'
 import { Calendar, Clock, MapPin, Pencil, Trash2 } from 'lucide-react'
 import {
   ATTENDANCE_STATUS_LABELS,
   ATTENDANCE_STATUS_STYLES,
+  MAZERET_STATUS_LABELS,
+  MAZERET_STATUS_STYLES,
   EVENT_TYPE_LABELS,
   EVENT_TYPE_STYLES,
-  QUICK_ATTENDANCE_OPTIONS,
   formatEventDate,
   formatEventTime,
 } from '../../lib/calendar'
@@ -17,11 +19,23 @@ export default function EventDetailModal({
   isManager,
   creatorName,
   onSetMyStatus,
+  onSubmitMazeret,
   onSetAttendeeStatus,
+  onResolveMazeret,
   onEditRequest,
   onDeleteRequest,
   onClose,
 }) {
+  const [showMazeretForm, setShowMazeretForm] = useState(false)
+  const [mazeretDraft, setMazeretDraft] = useState('')
+
+  function submitMazeret() {
+    if (!mazeretDraft.trim()) return
+    onSubmitMazeret(mazeretDraft.trim())
+    setShowMazeretForm(false)
+    setMazeretDraft('')
+  }
+
   return (
     <Modal title={event.title} onClose={onClose} maxWidth="max-w-lg">
       <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${EVENT_TYPE_STYLES[event.type]}`}>
@@ -67,47 +81,115 @@ export default function EventDetailModal({
       {myAttendance && (
         <div className="mt-4 border-t border-ink-50 pt-3">
           <p className="mb-2 text-xs font-medium text-ink-400">Katılım Durumun</p>
-          <div className="flex flex-wrap gap-1.5">
-            {QUICK_ATTENDANCE_OPTIONS.map((status) => (
-              <button
-                key={status}
-                onClick={() => onSetMyStatus(status)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  myAttendance.status === status
-                    ? 'bg-brand-600 text-white'
-                    : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-                }`}
-              >
-                {ATTENDANCE_STATUS_LABELS[status]}
-              </button>
-            ))}
-          </div>
+          {myAttendance.status === 'mazeretli' ? (
+            <div className="rounded-xl bg-sky-50 p-3 text-sm">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <span className="font-medium text-sky-700">Mazeret bildirdin</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${MAZERET_STATUS_STYLES[myAttendance.mazeretStatus]}`}
+                >
+                  {MAZERET_STATUS_LABELS[myAttendance.mazeretStatus]}
+                </span>
+              </div>
+              <p className="text-ink-600">{myAttendance.mazeretText}</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => onSetMyStatus('onayladi')}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                    myAttendance.status === 'onayladi'
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                  }`}
+                >
+                  Katılacağım
+                </button>
+                <button
+                  onClick={() => setShowMazeretForm((v) => !v)}
+                  className="rounded-full bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100"
+                >
+                  Mazeret Bildir
+                </button>
+              </div>
+              {showMazeretForm && (
+                <div className="mt-2 space-y-1.5">
+                  <textarea
+                    value={mazeretDraft}
+                    onChange={(e) => setMazeretDraft(e.target.value)}
+                    placeholder="Neden katılamıyorsun?"
+                    rows={2}
+                    className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                  />
+                  <button
+                    onClick={submitMazeret}
+                    disabled={!mazeretDraft.trim()}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    Gönder
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
       {attendees.length > 0 && (
         <div className="mt-4 border-t border-ink-50 pt-3">
           <p className="mb-2 text-xs font-medium text-ink-400">Katılımcılar ({attendees.length})</p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {attendees.map((a) => (
-              <div key={a.userId} className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-ink-700">{a.name}</span>
-                {isManager ? (
-                  <select
-                    value={a.status}
-                    onChange={(e) => onSetAttendeeStatus(a.userId, e.target.value)}
-                    className="rounded-lg border border-ink-200 px-2 py-1 text-xs text-ink-600"
-                  >
-                    {Object.entries(ATTENDANCE_STATUS_LABELS).map(([key, label]) => (
-                      <option key={key} value={key}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[a.status]}`}>
-                    {ATTENDANCE_STATUS_LABELS[a.status]}
-                  </span>
+              <div key={a.userId} className="text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-ink-700">{a.name}</span>
+                  {isManager ? (
+                    <select
+                      value={a.status}
+                      onChange={(e) => onSetAttendeeStatus(a.userId, e.target.value)}
+                      className="rounded-lg border border-ink-200 px-2 py-1 text-xs text-ink-600"
+                    >
+                      {Object.entries(ATTENDANCE_STATUS_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[a.status]}`}>
+                      {ATTENDANCE_STATUS_LABELS[a.status]}
+                    </span>
+                  )}
+                </div>
+
+                {a.status === 'mazeretli' && (
+                  <div className="mt-1 rounded-lg bg-sky-50 p-2 text-xs">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-medium ${MAZERET_STATUS_STYLES[a.mazeretStatus]}`}
+                      >
+                        {MAZERET_STATUS_LABELS[a.mazeretStatus]}
+                      </span>
+                      {isManager && a.mazeretStatus === 'bekliyor' && (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => onResolveMazeret(a.userId, 'onaylandi')}
+                            className="rounded-full bg-emerald-600 px-2 py-0.5 font-medium text-white hover:bg-emerald-700"
+                          >
+                            Kabul Et
+                          </button>
+                          <button
+                            onClick={() => onResolveMazeret(a.userId, 'reddedildi')}
+                            className="rounded-full bg-red-600 px-2 py-0.5 font-medium text-white hover:bg-red-700"
+                          >
+                            Reddet
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-ink-600">{a.mazeretText}</p>
+                  </div>
                 )}
               </div>
             ))}

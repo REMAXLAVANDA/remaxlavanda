@@ -45,8 +45,23 @@ export const ATTENDANCE_STATUS_STYLES = {
   mazeretli: 'bg-sky-50 text-sky-700',
 }
 
-// FullCalendar event tıklamasında sunulan 4 hızlı katılım seçeneği.
-export const QUICK_ATTENDANCE_OPTIONS = ['katildi', 'katilmadi', 'gec', 'mazeretli']
+export const MAZERET_STATUS_LABELS = {
+  bekliyor: 'İnceleniyor',
+  onaylandi: 'Kabul Edildi',
+  reddedildi: 'Reddedildi',
+}
+
+export const MAZERET_STATUS_STYLES = {
+  bekliyor: 'bg-amber-50 text-amber-700',
+  onaylandi: 'bg-emerald-50 text-emerald-700',
+  reddedildi: 'bg-red-50 text-red-600',
+}
+
+// Danışman kendi katılımını artık serbestçe her duruma çekemiyor (bkz.
+// event_attendance_update_self RLS) — sadece RSVP (onayladi) ya da mazeret
+// bildirebilir. Gerçek katıldı/katılmadı/geç kaldı kararını ve mazeret
+// kabul/red'ini yönetim (broker/owner/ofis) Katılımcılar listesinden verir.
+export const SELF_ATTENDANCE_OPTIONS = ['onayladi', 'mazeretli']
 
 // calendar_events_select RLS kuralının mock karşılığı: broker/owner/ofis
 // tüm etkinlikleri görür, danışman sadece davetli olduğu etkinlikleri görür.
