@@ -1,9 +1,21 @@
 import { useState } from 'react'
-import { ChevronDown, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
 import { getSignedDocUrl } from '../../lib/storage'
 
-export default function DocCard({ doc, current, history, onPreview, resolveName, canManage, onEdit, onDeleteRequest }) {
+export default function DocCard({
+  doc,
+  current,
+  history,
+  onPreview,
+  resolveName,
+  canManage,
+  onEdit,
+  onDeleteRequest,
+  onMove,
+  isFirst,
+  isLast,
+}) {
   const [showHistory, setShowHistory] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
@@ -23,6 +35,26 @@ export default function DocCard({ doc, current, history, onPreview, resolveName,
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-4">
       <div className="flex items-start gap-3">
+        {canManage && (
+          <div className="flex shrink-0 flex-col">
+            <button
+              onClick={() => onMove('up')}
+              disabled={isFirst}
+              aria-label="Yukarı taşı"
+              className="rounded p-0.5 text-ink-300 hover:bg-ink-50 hover:text-ink-700 disabled:opacity-30"
+            >
+              <ChevronUp size={16} />
+            </button>
+            <button
+              onClick={() => onMove('down')}
+              disabled={isLast}
+              aria-label="Aşağı taşı"
+              className="rounded p-0.5 text-ink-300 hover:bg-ink-50 hover:text-ink-700 disabled:opacity-30"
+            >
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        )}
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
           <FileText size={18} />
         </div>

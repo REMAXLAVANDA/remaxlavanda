@@ -302,13 +302,13 @@ export const categories = {
 // --- Docs (Rehber) ------------------------------------------------------------
 export const docs = {
   async listDocs() {
-    return delay([...MOCK_DOCS])
+    return delay([...MOCK_DOCS].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
   },
   async listVersions() {
     return delay([...MOCK_DOC_VERSIONS])
   },
-  async createDoc({ categoryKey, baslik }, userId) {
-    const row = { id: `doc-${Date.now()}`, categoryKey, baslik, contentText: null, createdBy: userId }
+  async createDoc({ categoryKey, baslik, sortOrder }, userId) {
+    const row = { id: `doc-${Date.now()}`, categoryKey, baslik, contentText: null, createdBy: userId, sortOrder: sortOrder ?? 0 }
     MOCK_DOCS.push(row)
     return delay({ ...row })
   },
@@ -334,6 +334,7 @@ export const docs = {
     if (!row) throw new Error('Doküman bulunamadı.')
     if (patch.baslik !== undefined) row.baslik = patch.baslik
     if (patch.contentText !== undefined) row.contentText = patch.contentText
+    if (patch.sortOrder !== undefined) row.sortOrder = patch.sortOrder
     return delay(null)
   },
   async remove(docId) {

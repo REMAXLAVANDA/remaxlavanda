@@ -76,7 +76,12 @@ export default function Rehber() {
 
       let targetDocId = form.docId
       if (!targetDocId) {
-        const created = await docsProvider.createDoc({ categoryKey: form.categoryKey, baslik: form.baslik }, user.id)
+        const sameCategory = docs.filter((d) => d.categoryKey === form.categoryKey)
+        const maxOrder = sameCategory.reduce((max, d) => Math.max(max, d.sortOrder ?? 0), 0)
+        const created = await docsProvider.createDoc(
+          { categoryKey: form.categoryKey, baslik: form.baslik, sortOrder: maxOrder + 1 },
+          user.id,
+        )
         targetDocId = created.id
         setData((prev) => ({ ...prev, docs: [...prev.docs, created] }))
       }
@@ -138,6 +143,35 @@ export default function Rehber() {
     }
   }
 
+  async function handleMoveDoc(id, direction) {
+    const list = docsInCategory
+    const index = list.findIndex((d) => d.id === id)
+    const swapIndex = direction === 'up' ? index - 1 : index + 1
+    if (index < 0 || swapIndex < 0 || swapIndex >= list.length) return
+    const a = list[index]
+    const b = list[swapIndex]
+    const aOrder = a.sortOrder ?? 0
+    const bOrder = b.sortOrder ?? 0
+    try {
+      await Promise.all([
+        docsProvider.update(a.id, { sortOrder: bOrder }),
+        docsProvider.update(b.id, { sortOrder: aOrder }),
+      ])
+      setData((prev) => ({
+        ...prev,
+        docs: prev.docs
+          .map((d) => {
+            if (d.id === a.id) return { ...d, sortOrder: bOrder }
+            if (d.id === b.id) return { ...d, sortOrder: aOrder }
+            return d
+          })
+          .sort((x, y) => (x.sortOrder ?? 0) - (y.sortOrder ?? 0)),
+      }))
+    } catch (err) {
+      showToast(err.message ?? 'Sıra değiştirilemedi, tekrar dene.', 'error')
+    }
+  }
+
   return (
     <div>
       {canManage && (
@@ -164,7 +198,7 @@ export default function Rehber() {
                 Bu klasörde henüz doküman yok.
               </div>
             ) : (
-              docsInCategory.map((doc) => (
+              docsInCategory.map((doc, index) => (
                 <DocCard
                   key={doc.id}
                   doc={doc}
@@ -175,6 +209,9 @@ export default function Rehber() {
                   canManage={canManage}
                   onEdit={() => setEditingDoc(doc)}
                   onDeleteRequest={() => setDeleteTarget(doc)}
+                  onMove={(direction) => handleMoveDoc(doc.id, direction)}
+                  isFirst={index === 0}
+                  isLast={index === docsInCategory.length - 1}
                 />
               ))
             )}

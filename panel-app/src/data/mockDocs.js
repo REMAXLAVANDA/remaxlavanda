@@ -5,11 +5,11 @@ const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
 
 export const MOCK_DOCS = [
-  { id: 'doc-1', categoryKey: 'sozlesme', baslik: 'Standart Alıcı Sözleşmesi', createdBy: 'u-broker' },
-  { id: 'doc-2', categoryKey: 'sozlesme', baslik: 'Standart Satıcı Sözleşmesi', createdBy: 'u-broker' },
-  { id: 'doc-3', categoryKey: 'iban', baslik: 'Ofis IBAN Bilgileri', createdBy: 'u-broker' },
-  { id: 'doc-4', categoryKey: 'logo', baslik: 'RE/MAX Lavanda Logo Paketi', createdBy: 'u-ofis' },
-  { id: 'doc-5', categoryKey: 'hazir-metin', baslik: 'İlan Açıklama Şablonları', createdBy: 'u-ofis' },
+  { id: 'doc-1', categoryKey: 'sozlesme', baslik: 'Standart Alıcı Sözleşmesi', createdBy: 'u-broker', sortOrder: 1 },
+  { id: 'doc-2', categoryKey: 'sozlesme', baslik: 'Standart Satıcı Sözleşmesi', createdBy: 'u-broker', sortOrder: 2 },
+  { id: 'doc-3', categoryKey: 'iban', baslik: 'Ofis IBAN Bilgileri', createdBy: 'u-broker', sortOrder: 1 },
+  { id: 'doc-4', categoryKey: 'logo', baslik: 'RE/MAX Lavanda Logo Paketi', createdBy: 'u-ofis', sortOrder: 1 },
+  { id: 'doc-5', categoryKey: 'hazir-metin', baslik: 'İlan Açıklama Şablonları', createdBy: 'u-ofis', sortOrder: 1 },
 ]
 
 export const MOCK_DOC_VERSIONS = [

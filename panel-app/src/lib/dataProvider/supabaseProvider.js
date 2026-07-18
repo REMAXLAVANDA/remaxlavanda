@@ -441,7 +441,11 @@ export const categories = {
 export const docs = {
   async listDocs() {
     const data = await run(
-      client().from('docs').select('id, baslik, content_text, created_by, created_at, categories(key)'),
+      client()
+        .from('docs')
+        .select('id, baslik, content_text, created_by, created_at, sort_order, categories(key)')
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true }),
     )
     return data.map((d) => ({
       id: d.id,
@@ -449,6 +453,7 @@ export const docs = {
       baslik: d.baslik,
       contentText: d.content_text,
       createdBy: d.created_by,
+      sortOrder: d.sort_order,
     }))
   },
   async listVersions() {
@@ -460,14 +465,25 @@ export const docs = {
   // storage path'i oluşturmak (buildStoragePath) docId'yi gerektiriyor.
   // Bu yüzden akış: createDoc() -> uploadDocFile() -> addVersion() (dosya
   // için) ya da createDoc() -> setContentText() (metin için).
-  async createDoc({ categoryKey, baslik }, userId) {
+  async createDoc({ categoryKey, baslik, sortOrder }, userId) {
     const categoryRow = await run(
       client().from('categories').select('id').eq('module', 'docs').eq('key', categoryKey).single(),
     )
     const docRow = await run(
-      client().from('docs').insert({ category_id: categoryRow.id, baslik, created_by: userId }).select().single(),
+      client()
+        .from('docs')
+        .insert({ category_id: categoryRow.id, baslik, created_by: userId, sort_order: sortOrder ?? 0 })
+        .select()
+        .single(),
     )
-    return { id: docRow.id, categoryKey, baslik: docRow.baslik, contentText: null, createdBy: docRow.created_by }
+    return {
+      id: docRow.id,
+      categoryKey,
+      baslik: docRow.baslik,
+      contentText: null,
+      createdBy: docRow.created_by,
+      sortOrder: docRow.sort_order,
+    }
   },
   // storagePath, storage.js -> uploadDocFile()'ın dosyayı GERÇEKTEN
   // Supabase Storage'a yükledikten sonra döndürdüğü gerçek yol.
@@ -497,6 +513,7 @@ export const docs = {
     const updateRow = {}
     if (patch.baslik !== undefined) updateRow.baslik = patch.baslik
     if (patch.contentText !== undefined) updateRow.content_text = patch.contentText
+    if (patch.sortOrder !== undefined) updateRow.sort_order = patch.sortOrder
     await run(client().from('docs').update(updateRow).eq('id', docId))
   },
   // doc_versions satırları DB'de ON DELETE CASCADE ile otomatik silinir —
