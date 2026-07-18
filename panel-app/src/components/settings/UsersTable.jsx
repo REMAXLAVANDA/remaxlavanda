@@ -1,4 +1,5 @@
 import { ROLES, ROLE_LABELS } from '../../lib/roles'
+import { relativeTime } from '../../lib/format'
 
 const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
 
@@ -13,7 +14,10 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
         <div key={u.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-ink-100 bg-white p-3.5">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-ink-900">{u.name}</p>
-            <p className="text-xs text-ink-400">{u.email ?? '—'}</p>
+            <p className="text-xs text-ink-400">
+              {u.email ?? '—'}
+              {u.createdAt && <> · Kayıt: {relativeTime(u.createdAt)}</>}
+            </p>
           </div>
 
           {canManage ? (

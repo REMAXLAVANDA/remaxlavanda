@@ -773,8 +773,8 @@ export const users = {
   // amaçlı) — users_select_all RLS'i is_active() ile sadece çağıranın
   // kendisinin aktif olmasını şart koşuyor, hedef satırın durumunu değil.
   async listAll() {
-    const data = await run(client().from('users').select('id, ad, email, rol, durum').order('ad'))
-    return data.map((u) => ({ id: u.id, name: u.ad, email: u.email, role: u.rol, durum: u.durum }))
+    const data = await run(client().from('users').select('id, ad, email, rol, durum, created_at').order('ad'))
+    return data.map((u) => ({ id: u.id, name: u.ad, email: u.email, role: u.rol, durum: u.durum, createdAt: u.created_at }))
   },
   // users_update_self_or_broker RLS'i sadece broker/owner'a (veya kendi
   // satırına) izin veriyor.
@@ -804,5 +804,16 @@ export const users = {
   async listActivity() {
     const data = await run(client().rpc('list_user_activity'))
     return data.map((row) => ({ userId: row.user_id, lastSignInAt: row.last_sign_in_at }))
+  },
+  // TC no / doğum tarihi — ayrı, kısıtlı-görünürlüklü tabloda tutuluyor
+  // (bkz. user_private_info_select RLS: sadece broker/owner/ofis + kişinin
+  // kendisi görebilir). user_private_info_write RLS'i is_manager() şartı
+  // koyduğu için sadece broker/owner çağırabilir.
+  async upsertPrivateInfo(userId, { dogumTarihi, tcNo }) {
+    await run(
+      client()
+        .from('user_private_info')
+        .upsert({ user_id: userId, dogum_tarihi: dogumTarihi ?? null, tc_no: tcNo ?? null }),
+    )
   },
 }

@@ -479,11 +479,13 @@ export const league = {
 // Ayarlar > Kullanıcılar'dan mock modda eklenen/düzenlenen kullanıcılar —
 // MOCK_USERS/OTHER_USERS sabit dev hesapları olduğu için ayrı tutuluyor.
 const MOCK_EXTRA_USERS = []
+const MOCK_PRIVATE_INFO = {}
+const usersDaysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString()
 
 function allMockUserRows() {
   return [
-    ...Object.values(MOCK_USERS).map((u) => ({ id: u.id, name: u.name, email: `${u.id}@lavanda.dev`, role: u.role, durum: u.durum ?? 'aktif' })),
-    ...Object.values(OTHER_USERS).map((u) => ({ id: u.id, name: u.name, email: `${u.id}@lavanda.dev`, role: u.role ?? 'danisman', durum: u.durum ?? 'aktif' })),
+    ...Object.values(MOCK_USERS).map((u) => ({ id: u.id, name: u.name, email: `${u.id}@lavanda.dev`, role: u.role, durum: u.durum ?? 'aktif', createdAt: usersDaysAgo(240) })),
+    ...Object.values(OTHER_USERS).map((u) => ({ id: u.id, name: u.name, email: `${u.id}@lavanda.dev`, role: u.role ?? 'danisman', durum: u.durum ?? 'aktif', createdAt: usersDaysAgo(180) })),
     ...MOCK_EXTRA_USERS,
   ]
 }
@@ -528,7 +530,7 @@ export const users = {
     return delay({ id, ...patch })
   },
   async createUser({ ad, email, password: _password, rol }) {
-    const created = { id: `mock-user-${Date.now()}`, name: ad, email, role: rol, durum: 'aktif' }
+    const created = { id: `mock-user-${Date.now()}`, name: ad, email, role: rol, durum: 'aktif', createdAt: new Date().toISOString() }
     MOCK_EXTRA_USERS.push(created)
     return delay({ ...created })
   },
@@ -538,5 +540,9 @@ export const users = {
         .filter((u) => u.durum === 'aktif')
         .map((u) => ({ userId: u.id, lastSignInAt: MOCK_USER_ACTIVITY[u.id] ?? null })),
     )
+  },
+  async upsertPrivateInfo(userId, { dogumTarihi, tcNo }) {
+    MOCK_PRIVATE_INFO[userId] = { dogumTarihi: dogumTarihi ?? null, tcNo: tcNo ?? null }
+    return delay({ userId, ...MOCK_PRIVATE_INFO[userId] })
   },
 }

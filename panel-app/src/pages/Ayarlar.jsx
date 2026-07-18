@@ -67,6 +67,13 @@ export default function Ayarlar() {
       setAllUsers((prev) => [...prev, { ...created, durum: 'aktif' }])
       setShowCreateModal(false)
       showToast('Kullanıcı oluşturuldu.', 'success')
+      if (form.dogumTarihi || form.tcNo) {
+        try {
+          await usersProvider.upsertPrivateInfo(created.id, { dogumTarihi: form.dogumTarihi || null, tcNo: form.tcNo || null })
+        } catch {
+          showToast('Kullanıcı oluşturuldu ama doğum tarihi/TC no kaydedilemedi.', 'error')
+        }
+      }
     } catch (err) {
       showToast(err.message ?? 'Kullanıcı oluşturulamadı, tekrar dene.', 'error')
     } finally {
