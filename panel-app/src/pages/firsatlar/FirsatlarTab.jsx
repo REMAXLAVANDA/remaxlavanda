@@ -110,7 +110,10 @@ export default function FirsatlarTab() {
         fiyatMax: parseThousands(form.fiyatMax),
         m2: form.m2 ? Number(form.m2) : null,
       }
-      const selfClaim = role === ROLES.DANISMAN && !form.havuzaAt
+      // Broker da fiilen danışmanlık yapabiliyor (kendi getirdiği müşteriyi
+      // kendine alabilmesi lazım) — owner/ofis bu kapsam dışı, onlar kendi
+      // portföyü olarak tutmaz. Bkz. NewOpportunityModal showPoolToggle.
+      const selfClaim = (role === ROLES.DANISMAN || role === ROLES.BROKER) && !form.havuzaAt
       const created = await opportunitiesProvider.create(payload, user.id, selfClaim)
       setOpportunities((prev) => [created, ...prev])
       setShowModal(false)
@@ -233,7 +236,7 @@ export default function FirsatlarTab() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
-          showPoolToggle={role === ROLES.DANISMAN}
+          showPoolToggle={role === ROLES.DANISMAN || role === ROLES.BROKER}
         />
       )}
 
