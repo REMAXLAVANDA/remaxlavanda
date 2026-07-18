@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { league as leagueProvider } from '../lib/dataProvider'
-import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor } from '../lib/league'
+import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
@@ -94,15 +94,19 @@ export default function Lig() {
 
   // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
   // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
-  // Memnuniyet artık serbest bir puan değil — kaç yorum GERÇEKTEN alındığının
-  // (yüzde değil, ham sayı) sıralaması. Yüzdeye göre sıralarsak 1 işlemden
-  // %100 alan, 17 işlemden %67 alanın önüne geçerdi — bu adil değil, ham
-  // sayı hacmi de yansıtıyor (Ciro'daki "mutlak TL kazanır" mantığıyla aynı).
+  // Memnuniyet artık serbest bir puan değil — Wilson skoru (bkz. lib/league)
+  // ile hesaplanıyor: hem oran hem işlem hacmi birlikte tartılıyor. Ham
+  // yüzdeyle sıralarsak 1 işlemden %100 alan, 17 işlemden %70 alanın önüne
+  // geçerdi (az veri = yanıltıcı yüksek yüzde) — Wilson bunu düzeltiyor.
   const rankingsByCategory = useMemo(() => {
     const map = {}
     for (const c of LEAGUE_CATEGORIES) {
       if (c.key === 'memnuniyet') {
-        const memnuniyetScores = reviewCreditRows.map((r) => ({ userId: r.userId, type: 'memnuniyet', value: r.alinanSayisi }))
+        const memnuniyetScores = reviewCreditRows.map((r) => ({
+          userId: r.userId,
+          type: 'memnuniyet',
+          value: Math.round(wilsonScoreLowerBound(r.alinanSayisi, r.hakSayisi) * 100),
+        }))
         map[c.key] = rankingsFor(c.key, memnuniyetScores, userName)
       } else {
         map[c.key] = rankingsFor(c.key, periodScores, userName)

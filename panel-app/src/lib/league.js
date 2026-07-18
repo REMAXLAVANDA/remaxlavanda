@@ -16,7 +16,7 @@ export const LEAGUE_CATEGORIES = [
     label: 'Memnuniyet',
     unit: 'puan',
     description:
-      'Müşterilerden gerçekten alınan yorum sayısı (Yorum Hakkı panelinde işaretlenir). Yüzde değil, kaç yorum alındığının ham sayısı sıralamayı belirler.',
+      'Kaç yorum alındığı VE kaç işlem üzerinden alındığı birlikte değerlendirilir (Yorum Hakkı panelinde işaretlenir) — az işlemden yüksek yüzde, çok işlemden sağlam bir sonucun önüne geçmesin diye.',
   },
   {
     key: 'sosyal_medya',
@@ -41,6 +41,22 @@ export function canManageScores(role) {
 // broker yeni dönem açabilir veya sosyal medya puanlarını değiştirebilir.
 export function canManagePeriods(role) {
   return role === ROLES.BROKER
+}
+
+// Wilson skoru (alt güven sınırı, %95) — "kaç yorum alındı / kaç işlem
+// yapıldı" oranını ham yüzde olarak değil, örneklem büyüklüğüyle tartarak
+// hesaplar. Reddit/Yelp gibi platformların "en iyi" sıralamasında kullandığı
+// standart yöntem: 1 işlemden %100 alan, 17 işlemden %70 alanın önüne
+// GEÇEMEZ — az veri "belirsiz" sayılıp puanı aşağı çeker, çok veri gerçek
+// orana yaklaştırır. 0-1 arası değer döner, çağıran tarafta 0-100'e ölçeklenir.
+export function wilsonScoreLowerBound(basarili, toplam) {
+  if (toplam === 0) return 0
+  const z = 1.96
+  const p = basarili / toplam
+  const denominator = 1 + (z * z) / toplam
+  const centre = p + (z * z) / (2 * toplam)
+  const margin = z * Math.sqrt((p * (1 - p) + (z * z) / (4 * toplam)) / toplam)
+  return (centre - margin) / denominator
 }
 
 // Spesifikasyon gereği (broker onaylı): mutlak ciro/skor değeri hiçbir zaman
