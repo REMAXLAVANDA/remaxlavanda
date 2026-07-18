@@ -56,3 +56,20 @@ export function computeCallStats(calls) {
   const conversionRate = total === 0 ? 0 : Math.round((converted / total) * 100)
   return { total, unassigned, pendingReturn, converted, conversionRate }
 }
+
+// "Reklamlardan kaç yetki aldık" raporu — Santral hariç her kaynağın kaç
+// portföy (yetki) kazandırdığını gösterir. Santral kasıtlı olarak dışarıda
+// bırakıldı çünkü o organik/switchboard trafiği, reklam değil.
+export function computeSourceConversion(calls) {
+  const bySource = {}
+  for (const c of calls) {
+    if (c.kaynak === 'Santral') continue
+    if (!bySource[c.kaynak]) bySource[c.kaynak] = { total: 0, converted: 0, sold: 0 }
+    bySource[c.kaynak].total += 1
+    if (c.portfoyAlindiMi) bySource[c.kaynak].converted += 1
+    if (c.satildiMi) bySource[c.kaynak].sold += 1
+  }
+  return Object.entries(bySource)
+    .map(([kaynak, v]) => ({ kaynak, ...v }))
+    .sort((a, b) => b.converted - a.converted)
+}

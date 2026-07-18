@@ -338,6 +338,8 @@ function mapCallLog(row) {
     assignedTo: row.assigned_to,
     sonuc: row.sonuc,
     portfoyAlindiMi: row.portfoy_alindi_mi,
+    portfoyNo: row.portfoy_no,
+    satildiMi: row.satildi_mi,
     donusYapildiMi: row.donus_yapildi_mi,
     donusAt: row.donus_at,
     opportunityId: row.opportunity_id,
@@ -371,6 +373,8 @@ export const callLogs = {
     if ('assignedTo' in patch) dbPatch.assigned_to = patch.assignedTo
     if ('sonuc' in patch) dbPatch.sonuc = patch.sonuc
     if ('portfoyAlindiMi' in patch) dbPatch.portfoy_alindi_mi = patch.portfoyAlindiMi
+    if ('portfoyNo' in patch) dbPatch.portfoy_no = patch.portfoyNo || null
+    if ('satildiMi' in patch) dbPatch.satildi_mi = patch.satildiMi
     if ('donusYapildiMi' in patch) dbPatch.donus_yapildi_mi = patch.donusYapildiMi
     if ('donusAt' in patch) dbPatch.donus_at = patch.donusAt
     // Arayan detayları — sadece son 7 gündeki kayıtlarda owner/ofis

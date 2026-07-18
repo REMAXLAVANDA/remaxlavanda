@@ -19,6 +19,32 @@ function PhoneCell({ phone }) {
   )
 }
 
+// Portföy alındığında hangi gerçek portföye (yetkiye) karşılık geldiğini
+// not düşmek için — reklam kaynaklarından kaç yetki alındığını takip
+// edebilmenin ilk adımı. Sadece portfoyAlindiMi=true iken görünür.
+function PortfoyNoCell({ value, editable, onSave }) {
+  const [draft, setDraft] = useState(value ?? '')
+
+  if (!editable) {
+    return value ? <span className="text-xs text-ink-500">{value}</span> : null
+  }
+
+  return (
+    <input
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        if (draft.trim() !== (value ?? '')) onSave(draft.trim())
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+      }}
+      placeholder="Portföy no"
+      className="mt-1 w-24 rounded-lg border border-ink-200 px-1.5 py-1 text-xs text-ink-700 placeholder:text-ink-300"
+    />
+  )
+}
+
 // Operasyon listesi satır/sütun mantığıyla, alt alta sıralı tablo olarak
 // gösterilir — kutu kutu kart yerine tek bakışta tarama yapılabilsin diye.
 export default function CallTable({
@@ -31,6 +57,7 @@ export default function CallTable({
   onAssign,
   onSetResult,
   onToggle,
+  onSetPortfoyNo,
   onEditDetails,
 }) {
   if (calls.length === 0) {
@@ -119,6 +146,31 @@ export default function CallTable({
                     }`}>
                       {call.portfoyAlindiMi ? 'Alındı' : 'Alınmadı'}
                     </span>
+                  )}
+                  {call.portfoyAlindiMi && (
+                    <div className="mt-1 flex flex-col gap-1">
+                      <PortfoyNoCell
+                        value={call.portfoyNo}
+                        editable={canEditResult}
+                        onSave={(value) => onSetPortfoyNo(call.id, value)}
+                      />
+                      {canEditResult ? (
+                        <button
+                          onClick={() => onToggle(call.id, 'satildiMi')}
+                          className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                            call.satildiMi ? 'bg-brand-50 text-brand-700' : 'bg-ink-100 text-ink-500'
+                          }`}
+                        >
+                          {call.satildiMi ? 'Satıldı' : 'Satılmadı'}
+                        </button>
+                      ) : (
+                        call.satildiMi && (
+                          <span className="whitespace-nowrap rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
+                            Satıldı
+                          </span>
+                        )
+                      )}
+                    </div>
                   )}
                 </td>
                 <td className="px-4 py-3">

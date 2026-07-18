@@ -5,11 +5,12 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { callLogs as callLogsProvider } from '../../lib/dataProvider'
-import { canManageCalls, canViewCall, computeCallStats } from '../../lib/callLogs'
+import { canManageCalls, canViewCall, computeCallStats, computeSourceConversion } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import CallTable from '../../components/operasyon/CallTable'
 import CallFilters from '../../components/operasyon/CallFilters'
 import StatsCards from '../../components/operasyon/StatsCards'
+import SourceConversionBoard from '../../components/operasyon/SourceConversionBoard'
 import NewCallModal from '../../components/operasyon/NewCallModal'
 import EditCallDetailsModal from '../../components/operasyon/EditCallDetailsModal'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
@@ -44,6 +45,7 @@ export default function OperasyonTab() {
   }, [calls, user, filters])
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
+  const sourceStats = useMemo(() => computeSourceConversion(visible), [visible])
 
   const inviteeOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
 
@@ -74,6 +76,10 @@ export default function OperasyonTab() {
     const patch = { [field]: !call[field] }
     if (field === 'donusYapildiMi') patch.donusAt = patch.donusYapildiMi ? new Date().toISOString() : null
     updateCall(id, patch)
+  }
+
+  function handleSetPortfoyNo(id, portfoyNo) {
+    updateCall(id, { portfoyNo })
   }
 
   async function handleEditDetails(form) {
@@ -130,6 +136,8 @@ export default function OperasyonTab() {
             <StatsCards stats={stats} />
           </div>
 
+          {isManager && <SourceConversionBoard rows={sourceStats} />}
+
           <div className="mb-5">
             <CallFilters filters={filters} onChange={setFilters} showKaynak={isManager} />
           </div>
@@ -144,6 +152,7 @@ export default function OperasyonTab() {
             onAssign={handleAssign}
             onSetResult={handleSetResult}
             onToggle={handleToggle}
+            onSetPortfoyNo={handleSetPortfoyNo}
             onEditDetails={setEditingCall}
           />
         </>

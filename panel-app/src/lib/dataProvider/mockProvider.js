@@ -253,6 +253,8 @@ export const callLogs = {
       assignedTo: form.assignedTo || null,
       sonuc: null,
       portfoyAlindiMi: false,
+      portfoyNo: null,
+      satildiMi: false,
       donusYapildiMi: false,
       donusAt: null,
       opportunityId: null,
