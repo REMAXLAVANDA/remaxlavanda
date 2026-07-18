@@ -18,11 +18,14 @@ const DIMENSIONS = {
 // Sosyal medyada paylaşılabilecek görsel — mutlak TL/puan değeri ya da
 // görece fark BURADA HİÇ GÖSTERİLMEZ (in-app listeden bile daha kısıtlı):
 // sadece isim + kaçıncı sırada olduğu. Kişisel/mali bilgi sızmasın diye
-// danışman bunu çekinmeden kendi hesabında paylaşabilsin. categories tek
-// elemanlı verilirse (danışman sadece kendi güçlü olduğu alanı paylaşmak
-// isteyebilir) o kategori büyütülerek tek başına gösterilir.
-const ShareCard = forwardRef(function ShareCard({ categories, rankingsByCategory, periodLabel, format = 'story' }, ref) {
-  const single = categories.length === 1
+// danışman bunu çekinmeden kendi hesabında paylaşabilsin. Her zaman TEK bir
+// kategori gösterilir (danışman sadece kendi güçlü olduğu alanı paylaşmak
+// ister — "Tümü" seçeneği kaldırıldı, üç kategori birden hem sığmıyordu
+// hem de amaca hizmet etmiyordu) — o kategori büyük ve ortalanmış gösterilir.
+const ShareCard = forwardRef(function ShareCard({ category, rankings, periodLabel, format = 'story' }, ref) {
+  const style = CATEGORY_STYLE[category.key]
+  const Icon = style.icon
+  const top3 = rankings.slice(0, 3)
 
   return (
     <div
@@ -42,50 +45,30 @@ const ShareCard = forwardRef(function ShareCard({ categories, rankingsByCategory
         </div>
       </div>
 
-      <h2 className="relative mt-5 text-lg font-bold leading-snug">
-        {single ? `${categories[0].label} Liderleri 🏆` : 'Bu Dönemin Liderleri 🏆'}
-      </h2>
+      <h2 className="relative mt-5 text-lg font-bold leading-snug">{category.label} Liderleri 🏆</h2>
 
-      <div className={`relative mt-4 flex-1 space-y-4 ${single ? 'flex flex-col justify-center' : ''}`}>
-        {categories.map((c) => {
-          const style = CATEGORY_STYLE[c.key]
-          const Icon = style.icon
-          const top3 = (rankingsByCategory[c.key] ?? []).slice(0, 3)
-          return (
-            <div key={c.key} className={`rounded-2xl bg-white/10 backdrop-blur-sm ${single ? 'p-5' : 'p-3'}`}>
-              <div className={`flex items-center gap-1.5 ${single ? 'mb-4' : 'mb-2'}`}>
-                <span
-                  className={`flex items-center justify-center rounded-full bg-gradient-to-br ${style.from} ${style.to} ${single ? 'h-9 w-9' : 'h-6 w-6'}`}
-                >
-                  <Icon size={single ? 18 : 13} className="text-white" />
-                </span>
-                <span className={`font-bold uppercase tracking-wide text-white/90 ${single ? 'text-base' : 'text-xs'}`}>
-                  {c.label}
-                </span>
-              </div>
-              {top3.length === 0 ? (
-                <p className="py-2 text-center text-xs text-white/50">Henüz veri yok</p>
-              ) : (
-                <div className={single ? 'space-y-2.5' : 'space-y-1'}>
-                  {top3.map((r) => (
-                    <div
-                      key={r.userId}
-                      className={`flex items-center gap-2 rounded-lg bg-white/10 ${single ? 'px-3 py-3' : 'px-2 py-1.5'}`}
-                    >
-                      <span className={`shrink-0 text-center ${single ? 'w-8 text-2xl' : 'w-5 text-sm'}`}>
-                        {MEDALS[r.rank - 1]}
-                      </span>
-                      <span className={`min-w-0 flex-1 truncate font-medium text-white ${single ? 'text-lg' : 'text-sm'}`}>
-                        {r.name}
-                      </span>
-                      {r.isLeader && <Crown size={single ? 18 : 13} className="shrink-0 text-amber-300" />}
-                    </div>
-                  ))}
+      <div className="relative mt-4 flex flex-1 flex-col justify-center">
+        <div className="rounded-2xl bg-white/10 p-5 backdrop-blur-sm">
+          <div className="mb-4 flex items-center gap-1.5">
+            <span className={`flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br ${style.from} ${style.to}`}>
+              <Icon size={18} className="text-white" />
+            </span>
+            <span className="text-base font-bold uppercase tracking-wide text-white/90">{category.label}</span>
+          </div>
+          {top3.length === 0 ? (
+            <p className="py-2 text-center text-sm text-white/50">Henüz veri yok</p>
+          ) : (
+            <div className="space-y-2.5">
+              {top3.map((r) => (
+                <div key={r.userId} className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-3">
+                  <span className="w-8 shrink-0 text-center text-2xl">{MEDALS[r.rank - 1]}</span>
+                  <span className="min-w-0 flex-1 truncate text-lg font-medium text-white">{r.name}</span>
+                  {r.isLeader && <Crown size={18} className="shrink-0 text-amber-300" />}
                 </div>
-              )}
+              ))}
             </div>
-          )
-        })}
+          )}
+        </div>
       </div>
 
       <p className="relative mt-4 text-center text-[11px] font-medium text-white/60">remaxlavanda.com.tr</p>

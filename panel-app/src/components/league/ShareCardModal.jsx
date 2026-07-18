@@ -19,17 +19,18 @@ function Chip({ active, children, ...props }) {
 
 // html-to-image DOM'daki kartı aynen (CSS gradient/blur dahil) PNG'ye
 // çeviriyor — pixelRatio 3 ile ekranda küçük görünen kart, paylaşıma uygun
-// net bir görsel (1080p'nin katları) olarak indiriliyor. Kategori seçimi —
-// bazı danışman sadece kendinin önde olduğu kategoriyi paylaşmak
-// isteyebilir, "Tümü" yerine tek kategori de seçilebiliyor. Format seçimi
-// de post (4:5) / hikaye (9:16) arasında.
+// net bir görsel (1080p'nin katları) olarak indiriliyor. "Tümü" seçeneği
+// kaldırıldı — üç kategori birden hem sığmıyordu hem de amaca hizmet
+// etmiyordu (danışman sadece kendinin önde olduğu TEK kategoriyi paylaşmak
+// ister). Format seçimi post (4:5) / hikaye (9:16) arasında.
 export default function ShareCardModal({ onClose, categories, rankingsByCategory, periodLabel }) {
   const cardRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
-  const [categoryKey, setCategoryKey] = useState('all')
+  const [categoryKey, setCategoryKey] = useState(categories[0].key)
   const [format, setFormat] = useState('story')
 
-  const categoriesToShow = categoryKey === 'all' ? categories : categories.filter((c) => c.key === categoryKey)
+  const category = categories.find((c) => c.key === categoryKey)
+  const rankings = rankingsByCategory[categoryKey] ?? []
 
   async function handleDownload() {
     if (!cardRef.current) return
@@ -37,8 +38,7 @@ export default function ShareCardModal({ onClose, categories, rankingsByCategory
     try {
       const dataUrl = await toPng(cardRef.current, { pixelRatio: 3 })
       const link = document.createElement('a')
-      const suffix = categoryKey === 'all' ? 'tumu' : categoryKey
-      link.download = `remax-lavanda-lig-${suffix}-${format}.png`
+      link.download = `remax-lavanda-lig-${categoryKey}-${format}.png`
       link.href = dataUrl
       link.click()
     } finally {
@@ -53,9 +53,6 @@ export default function ShareCardModal({ onClose, categories, rankingsByCategory
       </p>
 
       <div className="mb-3 flex flex-wrap gap-1.5">
-        <Chip active={categoryKey === 'all'} onClick={() => setCategoryKey('all')}>
-          Tümü
-        </Chip>
         {categories.map((c) => (
           <Chip key={c.key} active={categoryKey === c.key} onClick={() => setCategoryKey(c.key)}>
             {c.label}
@@ -73,13 +70,7 @@ export default function ShareCardModal({ onClose, categories, rankingsByCategory
       </div>
 
       <div className="flex justify-center">
-        <ShareCard
-          ref={cardRef}
-          categories={categoriesToShow}
-          rankingsByCategory={rankingsByCategory}
-          periodLabel={periodLabel}
-          format={format}
-        />
+        <ShareCard ref={cardRef} category={category} rankings={rankings} periodLabel={periodLabel} format={format} />
       </div>
 
       <button
