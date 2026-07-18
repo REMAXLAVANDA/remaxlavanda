@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { ROLES } from '../lib/roles'
 import { USE_SUPABASE } from '../lib/env'
 import { getSupabaseClient } from '../lib/supabaseClient'
-import { mapSupabaseError } from '../lib/errors'
+import { ApiError, mapSupabaseError } from '../lib/errors'
 
 // Mock modda kullanılan sabit kullanıcı seti — sadece development'ta,
 // USE_SUPABASE=false iken devrede. lib/dataProvider/mockProvider.js
@@ -55,7 +55,7 @@ function RealAuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  async function loadProfile(userId) {
+  async function loadProfileOnce(userId) {
     const client = getSupabaseClient()
     const { data, error: profileError } = await client
       .from('users')
@@ -75,6 +75,25 @@ function RealAuthProvider({ children }) {
     }
 
     return { id: data.id, name: data.ad, email: data.email, role: data.rol }
+  }
+
+  // Girişten hemen sonra (özellikle sign-in akışında) auth.uid() bağlamının
+  // PostgREST tarafında oturmasıyla bu ilk profil sorgusu arasında kısa bir
+  // gecikme yaşanabiliyor — bu durumda users_select_all RLS'i (is_active())
+  // satırı henüz "görmez" ve .single() PGRST116 (not_found) fırlatır. Gerçek
+  // "pasif kullanıcı" hatası sessizOut() içinde ayrı fırlatıldığı için burada
+  // SADECE not_found ile başarısız olursa kısa bir bekleyip bir kez daha
+  // deniyoruz — aksi halde kullanıcı hiçbir hata görmeden login'e geri atılıyordu.
+  async function loadProfile(userId) {
+    try {
+      return await loadProfileOnce(userId)
+    } catch (err) {
+      if (err instanceof ApiError && err.kind === 'not_found') {
+        await new Promise((resolve) => setTimeout(resolve, 700))
+        return await loadProfileOnce(userId)
+      }
+      throw err
+    }
   }
 
   useEffect(() => {

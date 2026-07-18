@@ -4,13 +4,18 @@ import { Loader2, Lock, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const { signIn, isAuthenticated } = useAuth()
+  const { signIn, isAuthenticated, error: authError } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  // signIn() başarılı olsa bile arkadan gelen profil yüklemesi (bkz.
+  // AuthContext'teki onAuthStateChange) başarısız olursa kullanıcı sessizce
+  // login'e geri atılıyordu — o hatayı burada da gösteriyoruz ki kullanıcı
+  // "hiçbir şey olmadı" hissine kapılmasın.
+  const displayError = error ?? authError
 
   if (isAuthenticated) {
     return <Navigate to={location.state?.from ?? '/panel'} replace />
@@ -78,7 +83,7 @@ export default function Login() {
             </div>
           </div>
 
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
+          {displayError && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{displayError}</p>}
 
           <button
             type="submit"
