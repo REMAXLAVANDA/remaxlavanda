@@ -92,10 +92,19 @@ export default function Lig() {
       .sort((a, b) => b.hakSayisi - a.hakSayisi)
   }, [data, periodId, danismanOptions])
 
+  // Ciro girilirken müşteri isimleri de aynı formda eklenebiliyor (bkz.
+  // AddScoreModal) — ayrı bir menüye gitmeye gerek kalmasın diye. Skor
+  // kaydedilince addScore'un döndürdüğü periodId ile isimler de eklenir;
+  // eski (isimsiz) bir ciroya isim eklemek için de aynı yol kullanılıyor.
   async function handleAddScore(form) {
     setSubmitting(true)
     try {
-      await leagueProvider.addScore(form, user.id)
+      const result = await leagueProvider.addScore(form, user.id)
+      if (form.type === 'ciro' && form.musteriler?.length) {
+        for (const adSoyad of form.musteriler) {
+          await leagueProvider.addCiroMusteri({ userId: form.userId, periodId: result.periodId, adSoyad }, user.id)
+        }
+      }
       setShowScoreModal(false)
       showToast('Skor kaydedildi.', 'success')
       reload()
