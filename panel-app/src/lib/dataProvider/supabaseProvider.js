@@ -612,7 +612,33 @@ export const league = {
           .insert({ user_id: userId, period_id: period.id, type, value, entered_by: enteredBy }),
       )
     }
+    // Ciro girişleri ayrıca geçmişe loglanır — score_entries.value her
+    // seferinde üstüne yazıldığı için, "sonradan kontrol" için tek kayıt
+    // yeterli değil (bkz. ciro_girisleri migration'ı).
+    if (type === 'ciro') {
+      await run(
+        client()
+          .from('ciro_girisleri')
+          .insert({ user_id: userId, period_id: period.id, value, tarih, entered_by: enteredBy }),
+      )
+    }
     return { userId, periodId: period.id, type, value: Number(value) }
+  },
+  // --- Ciro giriş geçmişi (denetim için — score_entries.value'nun üstüne
+  // her seferinde yazılması yüzünden ayrı tutuluyor) -------------------------
+  async listCiroGirisleri() {
+    const data = await run(
+      client().from('ciro_girisleri').select('*').order('created_at', { ascending: false }),
+    )
+    return data.map((r) => ({
+      id: r.id,
+      userId: r.user_id,
+      periodId: r.period_id,
+      value: Number(r.value),
+      tarih: r.tarih,
+      enteredBy: r.entered_by,
+      createdAt: r.created_at,
+    }))
   },
   // --- Ciro müşterileri (yorum hakkı VE "yorum alındı" durumu bunlardan
   // hesaplanır — review_credits artık kullanılmıyor) --------------------------

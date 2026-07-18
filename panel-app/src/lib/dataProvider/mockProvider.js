@@ -23,6 +23,7 @@ import {
   MOCK_ACTIVITY_TYPES,
   MOCK_ACTIVITY_LOG,
   MOCK_CIRO_MUSTERILERI,
+  MOCK_CIRO_GIRISLERI,
 } from '../../data/mockLeague'
 import { MOCK_USERS } from '../../context/AuthContext'
 import { OTHER_USERS } from '../../data/mockOpportunities'
@@ -394,7 +395,20 @@ export const league = {
     } else {
       MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, updatedAt: now })
     }
+    if (type === 'ciro') {
+      MOCK_CIRO_GIRISLERI.unshift({
+        id: `ciro-giris-${Date.now()}`,
+        userId,
+        periodId: period.id,
+        value: numValue,
+        tarih,
+        createdAt: now,
+      })
+    }
     return delay({ userId, periodId: period.id, type, value: numValue })
+  },
+  async listCiroGirisleri() {
+    return delay([...MOCK_CIRO_GIRISLERI])
   },
   async listCiroMusterileri() {
     return delay([...MOCK_CIRO_MUSTERILERI])

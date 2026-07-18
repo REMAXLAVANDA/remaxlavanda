@@ -51,6 +51,20 @@ export const MOCK_CIRO_MUSTERILERI = [
   { id: 'cm-10', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Merve Şen', alindiMi: false, createdAt: daysAgo(2) },
 ]
 
+// user_id, period_id, value, tarih — her "Skor Gir" ciro girişi
+// (yeni/güncelleme fark etmeksizin) burada ayrı bir satır olarak kalır;
+// score_entries.value son giriş neyse onu gösterir, bu liste "sonradan
+// kontrol" için geçmişi tutar.
+const isoDate = (n) => new Date(Date.now() - n * day).toISOString().slice(0, 10)
+export const MOCK_CIRO_GIRISLERI = [
+  { id: 'cg-1', userId: 'u-danisman', periodId: 'period-1', value: 1250000, tarih: isoDate(1), createdAt: daysAgo(1) },
+  { id: 'cg-2', userId: 'u-danisman', periodId: 'period-1', value: 780000, tarih: isoDate(10), createdAt: daysAgo(10) },
+  { id: 'cg-3', userId: 'u-danisman', periodId: 'period-1', value: 300000, tarih: isoDate(18), createdAt: daysAgo(18) },
+  { id: 'cg-4', userId: 'ext-danisman-2', periodId: 'period-1', value: 1580000, tarih: isoDate(2), createdAt: daysAgo(2) },
+  { id: 'cg-5', userId: 'ext-danisman-2', periodId: 'period-1', value: 950000, tarih: isoDate(14), createdAt: daysAgo(14) },
+  { id: 'cg-6', userId: 'ext-danisman-3', periodId: 'period-1', value: 620000, tarih: isoDate(6), createdAt: daysAgo(6) },
+]
+
 export const MOCK_ACTIVITY_TYPES = [
   { id: 'act-1', ad: 'Instagram Post', puan: 5, sortOrder: 1 },
   { id: 'act-2', ad: 'Instagram Story', puan: 2, sortOrder: 2 },

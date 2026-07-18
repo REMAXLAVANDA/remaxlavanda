@@ -16,13 +16,14 @@ import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 async function loadAll() {
-  const [periods, scores, activityTypes, ciroMusterileri] = await Promise.all([
+  const [periods, scores, activityTypes, ciroMusterileri, ciroGirisleri] = await Promise.all([
     leagueProvider.listPeriods(),
     leagueProvider.listScores(),
     leagueProvider.listActivityTypes(),
     leagueProvider.listCiroMusterileri(),
+    leagueProvider.listCiroGirisleri(),
   ])
-  return { periods, scores, activityTypes, ciroMusterileri }
+  return { periods, scores, activityTypes, ciroMusterileri, ciroGirisleri }
 }
 
 export default function Lig() {
@@ -68,6 +69,22 @@ export default function Lig() {
   const rankings = rankingsByCategory[tab] ?? []
   const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
   const activityTypes = data?.activityTypes ?? []
+
+  // Ciro sekmesindeki sıralama satırına tıklayınca "sonradan kontrol"
+  // amaçlı girilen ciro geçmişi (tarih + tutar) görülebilsin diye —
+  // score_entries.value tek satır olduğu için geçmiş burada ayrı tutuluyor.
+  const ciroHistoryByUser = useMemo(() => {
+    const rows = (data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId)
+    const map = {}
+    for (const g of rows) {
+      if (!map[g.userId]) map[g.userId] = []
+      map[g.userId].push(g)
+    }
+    for (const list of Object.values(map)) {
+      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    }
+    return map
+  }, [data, periodId])
 
   // Ciro'ya dönen müşteriler isim isim burada — yorum hakkı (kaç isim
   // girildi) ve alınan yorum sayısı (kaçının alindiMi'si işaretli) artık
@@ -296,7 +313,9 @@ export default function Lig() {
           Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
         </p>
       )}
-      {!loading && !error && period && <LeagueBoard rankings={rankings} unit={category.unit} />}
+      {!loading && !error && period && (
+        <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
+      )}
 
       {showScoreModal && (
         <AddScoreModal
