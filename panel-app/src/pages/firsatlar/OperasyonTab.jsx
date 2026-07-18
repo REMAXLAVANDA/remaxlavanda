@@ -60,8 +60,13 @@ export default function OperasyonTab() {
     updateCall(id, { assignedTo })
   }
 
+  // "Portföy Alındı" sonucu seçilince ayrı Portföy sütunundaki Alındı/
+  // Alınmadı bayrağı da otomatik "Alındı" olsun — ikisi aynı gerçeği
+  // ayrı yerlerde tutuyor, elle iki kez işaretlemeye gerek kalmasın.
   function handleSetResult(id, sonuc) {
-    updateCall(id, { sonuc })
+    const patch = { sonuc }
+    if (sonuc === 'portfoy_alindi') patch.portfoyAlindiMi = true
+    updateCall(id, patch)
   }
 
   function handleToggle(id, field) {

@@ -6,12 +6,14 @@ export const CALL_RESULT_LABELS = {
   ulasildi: 'Ulaşıldı',
   ulasilamadi: 'Ulaşılamadı',
   ilgilenmiyor: 'İlgilenmiyor',
+  portfoy_alindi: 'Portföy Alındı',
 }
 
 export const CALL_RESULT_STYLES = {
   ulasildi: 'bg-emerald-50 text-emerald-700',
   ulasilamadi: 'bg-amber-50 text-amber-700',
   ilgilenmiyor: 'bg-ink-100 text-ink-500',
+  portfoy_alindi: 'bg-brand-50 text-brand-700',
 }
 
 // call_logs_select RLS kuralının mock karşılığı: broker/owner/ofis tüm
