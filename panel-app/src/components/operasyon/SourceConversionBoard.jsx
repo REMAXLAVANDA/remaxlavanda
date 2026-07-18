@@ -4,7 +4,7 @@ export default function SourceConversionBoard({ rows }) {
   if (rows.length === 0) return null
 
   return (
-    <div className="mb-5 overflow-x-auto rounded-2xl border border-ink-100 bg-white">
+    <div className="-mx-5 overflow-x-auto border-t border-ink-50">
       <table className="w-full min-w-[480px] text-left text-sm">
         <thead>
           <tr className="border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">

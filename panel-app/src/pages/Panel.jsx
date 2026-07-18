@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Smile,
   Share2,
+  Megaphone,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -24,7 +25,7 @@ import {
   league as leagueProvider,
   users as usersProvider,
 } from '../lib/dataProvider'
-import { canManageCalls, maskPhone } from '../lib/callLogs'
+import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callLogs'
 import { ROLES } from '../lib/roles'
 import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
@@ -35,6 +36,7 @@ import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
 import { relativeTime, isToday } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
+import SourceConversionBoard from '../components/operasyon/SourceConversionBoard'
 
 const LEAGUE_CATEGORY_ICONS = { ciro: TrendingUp, memnuniyet: Smile, sosyal_medya: Share2 }
 const LEAGUE_CATEGORY_COLORS = { ciro: '#003da5', memnuniyet: '#7c3aed', sosyal_medya: '#16a34a' }
@@ -354,6 +356,17 @@ export default function Panel() {
     const donusYapildi = inRange.filter((c) => c.assignedTo && c.donusYapildiMi).length
     const donusYapilmadi = inRange.filter((c) => c.assignedTo && !c.donusYapildiMi).length
     return { total, assigned, donusYapildi, donusYapilmadi }
+  }, [data, filters])
+
+  // --- Broker raporu: "Reklamlardan kaç yetki aldık" — kaynak bazında
+  // çağrı/portföy/satış dökümü. Operasyon'da (veri girişi sayfası) DEĞİL,
+  // sadece burada (rapor sayfası) gösteriliyor.
+  const sourceStats = useMemo(() => {
+    if (!data) return []
+    const inRange = data.calls.filter((c) =>
+      isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
+    )
+    return computeSourceConversion(inRange)
   }, [data, filters])
 
   const opportunityStats = useMemo(() => {
@@ -725,6 +738,19 @@ export default function Panel() {
                   })}
                 </div>
               )}
+            </Widget>
+          )}
+
+          {isBrokerOrOwner && sourceStats.length > 0 && (
+            <Widget
+              icon={Megaphone}
+              title="Reklam Kaynakları"
+              description="Çağrı → yetki → satış dönüşümü, kaynak bazında"
+              to="/operasyon"
+              linkLabel="Operasyon'a git"
+              className="md:col-span-2"
+            >
+              <SourceConversionBoard rows={sourceStats} />
             </Widget>
           )}
 
