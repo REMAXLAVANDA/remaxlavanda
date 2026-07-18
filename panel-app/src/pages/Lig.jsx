@@ -84,6 +84,14 @@ export default function Lig() {
       .sort((a, b) => b.hakSayisi - a.hakSayisi)
   }, [data, periodId, danismanOptions])
 
+  // Sıralama (Ciro/Memnuniyet/Sosyal Medya) herkese açık bir "ofis başarı
+  // panosu" — ama Yorum Hakkı panelindeki müşteri isimleri kişisel veri:
+  // danışman SADECE kendi satırını (kendi hak/alınan sayısı + kendi eksik
+  // müşteri listesi) görür, başka danışmanın adını/müşterisini göremez.
+  // reviewCreditRows'un TAMAMI hâlâ rankingsByCategory'de (Memnuniyet
+  // sıralaması) kullanılıyor — burada sadece PANELE gidecek liste kısıtlanıyor.
+  const visibleReviewCreditRows = isManager ? reviewCreditRows : reviewCreditRows.filter((r) => r.userId === user.id)
+
   // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
   // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
   // Memnuniyet artık serbest bir puan değil — kaç yorum GERÇEKTEN alındığının
@@ -290,7 +298,7 @@ export default function Lig() {
 
       {!loading && !error && period && (
         <ReviewCreditsPanel
-          rows={reviewCreditRows}
+          rows={visibleReviewCreditRows}
           isManager={isManager}
           onAddMusteri={handleAddCiroMusteri}
           onRemoveMusteri={handleRemoveCiroMusteri}
