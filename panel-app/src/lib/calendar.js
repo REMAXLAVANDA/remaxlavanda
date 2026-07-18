@@ -5,15 +5,18 @@ export const EVENT_TYPE_LABELS = {
   egitim: 'Eğitim',
   etkinlik: 'Etkinlik',
   broker_gorusmesi: 'Broker Görüşmesi',
+  kocluk_gorusmesi: 'Koçluk Görüşmesi',
 }
 
 // Spesifikasyon: toplantı mavi, eğitim yeşil, etkinlik sarı, broker
-// görüşmesi kırmızı. Badge sınıfları + FullCalendar hex renkleri.
+// görüşmesi kırmızı, koçluk görüşmesi mor. Badge sınıfları + FullCalendar
+// hex renkleri.
 export const EVENT_TYPE_STYLES = {
   toplanti: 'bg-blue-50 text-blue-700',
   egitim: 'bg-emerald-50 text-emerald-700',
   etkinlik: 'bg-amber-50 text-amber-700',
   broker_gorusmesi: 'bg-red-50 text-red-700',
+  kocluk_gorusmesi: 'bg-violet-50 text-violet-700',
 }
 
 export const EVENT_TYPE_COLORS = {
@@ -21,6 +24,7 @@ export const EVENT_TYPE_COLORS = {
   egitim: '#16a34a',
   etkinlik: '#f59e0b',
   broker_gorusmesi: '#dc1c2e',
+  kocluk_gorusmesi: '#7c3aed',
 }
 
 export const ATTENDANCE_STATUS_LABELS = {

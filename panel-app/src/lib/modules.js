@@ -35,7 +35,7 @@ export const MODULES = [
     key: 'takvim',
     path: '/takvim',
     label: 'Takvim',
-    description: 'Toplantı · Eğitim · Etkinlik · Broker Görüşmesi',
+    description: 'Toplantı · Eğitim · Etkinlik · Broker/Koçluk Görüşmesi',
     icon: CalendarDays,
     roles: ALL_ROLES,
   },
