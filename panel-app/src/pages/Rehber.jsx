@@ -6,11 +6,12 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { docs as docsProvider, categories as categoriesProvider } from '../lib/dataProvider'
 import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
-import { uploadDocFile } from '../lib/storage'
+import { uploadDocFile, deleteDocFile } from '../lib/storage'
 import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
 import PreviewModal from '../components/rehber/PreviewModal'
 import UploadDocModal from '../components/rehber/UploadDocModal'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const EMPTY = []
@@ -33,6 +34,8 @@ export default function Rehber() {
   const [previewVersion, setPreviewVersion] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
   const [editingDoc, setEditingDoc] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const canManage = canManageDocs(role)
@@ -95,6 +98,32 @@ export default function Rehber() {
     }
   }
 
+  async function handleDeleteDoc(doc) {
+    setDeleting(true)
+    try {
+      const docVersions = versionsForDoc(doc.id, versions)
+      // Gerçek dosya baytları DB cascade'ine dahil değil — her versiyonun
+      // Storage'daki asıl dosyasını ayrı ayrı siliyoruz (bkz. docs.remove()
+      // notu). '#' olanlar eski/sahte demo kayıtları, storage'da karşılığı
+      // yok, atlanıyor.
+      await Promise.all(
+        docVersions.filter((v) => v.url && v.url !== '#').map((v) => deleteDocFile(v.url).catch(() => {})),
+      )
+      await docsProvider.remove(doc.id)
+      setData((prev) => ({
+        ...prev,
+        docs: prev.docs.filter((d) => d.id !== doc.id),
+        versions: prev.versions.filter((v) => v.docId !== doc.id),
+      }))
+      showToast('Doküman silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Silinemedi, tekrar dene.', 'error')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
+
   return (
     <div>
       {canManage && (
@@ -131,6 +160,7 @@ export default function Rehber() {
                   resolveName={userName}
                   canManage={canManage}
                   onEditText={() => setEditingDoc(doc)}
+                  onDeleteRequest={() => setDeleteTarget(doc)}
                 />
               ))
             )}
@@ -159,6 +189,18 @@ export default function Rehber() {
           submitting={submitting}
           docsInCategory={docsInCategory}
           categories={categories}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Bu dokümanı silmek istiyor musun?"
+          message={`"${deleteTarget.baslik}" ve tüm sürümleri kalıcı olarak silinecek, geri alınamaz.`}
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={() => handleDeleteDoc(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          confirming={deleting}
         />
       )}
     </div>

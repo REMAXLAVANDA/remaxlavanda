@@ -499,6 +499,13 @@ export const docs = {
     )
     return data.content_text
   },
+  // doc_versions satırları DB'de ON DELETE CASCADE ile otomatik silinir —
+  // ama Storage'daki gerçek dosya baytları bu cascade'e dahil DEĞİL, o
+  // yüzden asıl dosyaları çağıran (Rehber.jsx) storage.js -> deleteDocFile()
+  // ile AYRI ayrı siliyor, biz sadece kayıt satırını kaldırıyoruz.
+  async remove(docId) {
+    await run(client().from('docs').delete().eq('id', docId))
+  },
 }
 
 // --- Takip (360° sağlık skoru) -----------------------------------------------

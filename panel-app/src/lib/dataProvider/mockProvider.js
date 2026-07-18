@@ -335,6 +335,14 @@ export const docs = {
     row.contentText = contentText
     return delay(contentText)
   },
+  async remove(docId) {
+    const idx = MOCK_DOCS.findIndex((d) => d.id === docId)
+    if (idx !== -1) MOCK_DOCS.splice(idx, 1)
+    for (let i = MOCK_DOC_VERSIONS.length - 1; i >= 0; i--) {
+      if (MOCK_DOC_VERSIONS[i].docId === docId) MOCK_DOC_VERSIONS.splice(i, 1)
+    }
+    return delay(null)
+  },
 }
 
 // --- Takip (360° sağlık skoru) -----------------------------------------------

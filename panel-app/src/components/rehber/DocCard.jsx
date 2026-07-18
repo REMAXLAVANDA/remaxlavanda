@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { ChevronDown, Download, Eye, FileText, Pencil } from 'lucide-react'
+import { ChevronDown, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
 import { getSignedDocUrl } from '../../lib/storage'
 
-export default function DocCard({ doc, current, history, onPreview, resolveName, canManage, onEditText }) {
+export default function DocCard({ doc, current, history, onPreview, resolveName, canManage, onEditText, onDeleteRequest }) {
   const [showHistory, setShowHistory] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
@@ -37,14 +37,25 @@ export default function DocCard({ doc, current, history, onPreview, resolveName,
             <p className="text-xs text-ink-400">Henüz dosya yüklenmedi</p>
           )}
         </div>
-        {canManage && !current && doc.contentText != null && (
-          <button
-            onClick={onEditText}
-            title="Düzenle"
-            className="shrink-0 rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
-          >
-            <Pencil size={15} />
-          </button>
+        {canManage && (
+          <div className="flex shrink-0 items-center gap-0.5">
+            {!current && doc.contentText != null && (
+              <button
+                onClick={onEditText}
+                title="Düzenle"
+                className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+              >
+                <Pencil size={15} />
+              </button>
+            )}
+            <button
+              onClick={onDeleteRequest}
+              title="Sil"
+              className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
         )}
       </div>
 
