@@ -403,9 +403,20 @@ function mapCategory(row) {
 }
 
 export const categories = {
+  // İkinci sıralama anahtarı (created_at) bilerek eklendi — sort_order
+  // teorik olarak benzersiz olmalı ama pratikte (bkz. 20260718110000
+  // migration'ının notu) iki kategori aynı değere sahip olabiliyor. Tek
+  // anahtarla sıralarken eşitlik durumunda Postgres'in sırası GARANTİ
+  // DEĞİL — bu da "ilk ikisi değişmiyor" gibi kararsız sıralama
+  // davranışına yol açıyordu.
   async list(module) {
     const data = await run(
-      client().from('categories').select('*').eq('module', module).order('sort_order', { ascending: true }),
+      client()
+        .from('categories')
+        .select('*')
+        .eq('module', module)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true }),
     )
     return data.map(mapCategory)
   },
