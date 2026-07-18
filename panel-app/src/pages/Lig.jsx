@@ -16,13 +16,13 @@ import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 async function loadAll() {
-  const [periods, scores, reviewCredits, activityTypes] = await Promise.all([
+  const [periods, scores, activityTypes, ciroMusterileri] = await Promise.all([
     leagueProvider.listPeriods(),
     leagueProvider.listScores(),
-    leagueProvider.listReviewCredits(),
     leagueProvider.listActivityTypes(),
+    leagueProvider.listCiroMusterileri(),
   ])
-  return { periods, scores, reviewCredits, activityTypes }
+  return { periods, scores, activityTypes, ciroMusterileri }
 }
 
 export default function Lig() {
@@ -36,6 +36,11 @@ export default function Lig() {
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showActivityModal, setShowActivityModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  // ReviewCreditsPanel'in kendi state'i değil, burada tutuluyor — isim
+  // ekleme/silme/işaretleme her seferinde reload() tetikleyip paneli kısa
+  // süreliğine unmount ediyor (loading=true olunca), state panelde olsaydı
+  // her tıklamada açık satır kapanırdı.
+  const [expandedCiroUserId, setExpandedCiroUserId] = useState(null)
   const category = LEAGUE_CATEGORIES.find((c) => c.key === tab)
   const userName = useCallback((id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const isManager = canManageScores(role)
@@ -64,14 +69,26 @@ export default function Lig() {
   const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
   const activityTypes = data?.activityTypes ?? []
 
+  // Ciro'ya dönen müşteriler isim isim burada — yorum hakkı (kaç isim
+  // girildi) ve alınan yorum sayısı (kaçının alindiMi'si işaretli) artık
+  // bu listeden hesaplanıyor, review_credits'ten okunmuyor. Filtre yok:
+  // hiç ismi olmayan danışman da görünsün ki broker ilk ismi buradan
+  // ekleyebilsin.
   const reviewCreditRows = useMemo(() => {
-    const credits = (data?.reviewCredits ?? []).filter((r) => r.periodId === periodId)
+    const musteriler = (data?.ciroMusterileri ?? []).filter((m) => m.periodId === periodId)
     return danismanOptions
       .map((u) => {
-        const credit = credits.find((r) => r.userId === u.id)
-        return { userId: u.id, name: u.name, hakSayisi: credit?.hakSayisi ?? 0, alinanSayisi: credit?.alinanSayisi ?? 0 }
+        const kendi = musteriler
+          .filter((m) => m.userId === u.id)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        return {
+          userId: u.id,
+          name: u.name,
+          hakSayisi: kendi.length,
+          alinanSayisi: kendi.filter((m) => m.alindiMi).length,
+          musteriler: kendi,
+        }
       })
-      .filter((r) => r.hakSayisi > 0 || r.alinanSayisi > 0)
       .sort((a, b) => b.hakSayisi - a.hakSayisi)
   }, [data, periodId, danismanOptions])
 
@@ -128,11 +145,31 @@ export default function Lig() {
     }
   }
 
-  async function handleUpdateReceived(userId, alinanSayisi) {
+  async function handleAddCiroMusteri(userId, adSoyad) {
     if (!periodId) return
     try {
-      await leagueProvider.setReceivedReviews(userId, periodId, alinanSayisi)
-      showToast('Yorum sayısı güncellendi.', 'success')
+      await leagueProvider.addCiroMusteri({ userId, periodId, adSoyad }, user.id)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Müşteri eklenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleRemoveCiroMusteri(id) {
+    try {
+      await leagueProvider.removeCiroMusteri(id)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Müşteri silinemedi, tekrar dene.', 'error')
+    }
+  }
+
+  // "Müşteri Memnuniyeti": broker/ofis hangi müşteriden gerçekten yorum
+  // alındığını isim isim işaretler — açıkta kalanlar (işaretsiz olanlar)
+  // danışmanın da görebildiği bir eksik listesi haline gelir.
+  async function handleToggleAlindi(id, alindiMi) {
+    try {
+      await leagueProvider.setCiroMusteriAlindi(id, alindiMi)
       reload()
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
@@ -214,7 +251,15 @@ export default function Lig() {
       )}
 
       {!loading && !error && period && (
-        <ReviewCreditsPanel rows={reviewCreditRows} isManager={isManager} onUpdateReceived={handleUpdateReceived} />
+        <ReviewCreditsPanel
+          rows={reviewCreditRows}
+          isManager={isManager}
+          onAddMusteri={handleAddCiroMusteri}
+          onRemoveMusteri={handleRemoveCiroMusteri}
+          onToggleAlindi={handleToggleAlindi}
+          expandedId={expandedCiroUserId}
+          onToggleExpand={setExpandedCiroUserId}
+        />
       )}
 
       {!loading && !error && period && tab === 'sosyal_medya' && isBroker && (

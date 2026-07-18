@@ -568,33 +568,6 @@ async function resolvePeriodByDate(tarih) {
   return periods[0]
 }
 
-// Her ciro girişi 2 yorum hakkı getirir (broker onaylı kural) — var olan
-// dönem/danışman satırı varsa üstüne eklenir, yoksa oluşturulur.
-async function incrementReviewCredits(userId, periodId, amount) {
-  const existing = await run(
-    client()
-      .from('review_credits')
-      .select('id, hak_sayisi')
-      .eq('user_id', userId)
-      .eq('period_id', periodId)
-      .maybeSingle(),
-  )
-  if (existing) {
-    await run(
-      client()
-        .from('review_credits')
-        .update({ hak_sayisi: existing.hak_sayisi + amount, updated_at: new Date().toISOString() })
-        .eq('id', existing.id),
-    )
-  } else {
-    await run(
-      client()
-        .from('review_credits')
-        .insert({ user_id: userId, period_id: periodId, hak_sayisi: amount }),
-    )
-  }
-}
-
 export const league = {
   async getPeriod() {
     const data = await run(client().from('periods').select('*').order('baslangic', { ascending: false }).limit(1).single())
@@ -639,47 +612,38 @@ export const league = {
           .insert({ user_id: userId, period_id: period.id, type, value, entered_by: enteredBy }),
       )
     }
-    // Sadece ciro girişleri yorum hakkı getirir — her girişte (yeni ya da
-    // güncelleme) +2, spesifikasyon gereği.
-    if (type === 'ciro') {
-      await incrementReviewCredits(userId, period.id, 2)
-    }
     return { userId, periodId: period.id, type, value: Number(value) }
   },
-  // --- Yorum hakkı (Ciro'ya bağlı) -----------------------------------------
-  async listReviewCredits() {
-    const data = await run(client().from('review_credits').select('*'))
+  // --- Ciro müşterileri (yorum hakkı VE "yorum alındı" durumu bunlardan
+  // hesaplanır — review_credits artık kullanılmıyor) --------------------------
+  async listCiroMusterileri() {
+    const data = await run(
+      client().from('ciro_musterileri').select('*').order('created_at', { ascending: false }),
+    )
     return data.map((r) => ({
+      id: r.id,
       userId: r.user_id,
       periodId: r.period_id,
-      hakSayisi: r.hak_sayisi,
-      alinanSayisi: r.alinan_sayisi,
+      adSoyad: r.ad_soyad,
+      alindiMi: r.alindi_mi,
+      createdAt: r.created_at,
     }))
   },
-  async setReceivedReviews(userId, periodId, alinanSayisi) {
-    const existing = await run(
+  async addCiroMusteri({ userId, periodId, adSoyad }, enteredBy) {
+    await run(
       client()
-        .from('review_credits')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('period_id', periodId)
-        .maybeSingle(),
+        .from('ciro_musterileri')
+        .insert({ user_id: userId, period_id: periodId, ad_soyad: adSoyad, entered_by: enteredBy }),
     )
-    if (existing) {
-      await run(
-        client()
-          .from('review_credits')
-          .update({ alinan_sayisi: alinanSayisi, updated_at: new Date().toISOString() })
-          .eq('id', existing.id),
-      )
-    } else {
-      await run(
-        client()
-          .from('review_credits')
-          .insert({ user_id: userId, period_id: periodId, hak_sayisi: 0, alinan_sayisi: alinanSayisi }),
-      )
-    }
-    return { userId, periodId, alinanSayisi }
+    return { userId, periodId }
+  },
+  async removeCiroMusteri(id) {
+    await run(client().from('ciro_musterileri').delete().eq('id', id))
+    return { id }
+  },
+  async setCiroMusteriAlindi(id, alindiMi) {
+    await run(client().from('ciro_musterileri').update({ alindi_mi: alindiMi }).eq('id', id))
+    return { id, alindiMi }
   },
   // --- Sosyal medya aktivite puanlaması -------------------------------------
   async listActivityTypes() {

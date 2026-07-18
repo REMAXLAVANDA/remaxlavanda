@@ -20,9 +20,9 @@ import { MOCK_PORTAL_USAGE, MOCK_CUSTOMER_REVIEW, MOCK_BROKER_NOTES } from '../.
 import {
   MOCK_PERIODS,
   MOCK_SCORES,
-  MOCK_REVIEW_CREDITS,
   MOCK_ACTIVITY_TYPES,
   MOCK_ACTIVITY_LOG,
+  MOCK_CIRO_MUSTERILERI,
 } from '../../data/mockLeague'
 import { MOCK_USERS } from '../../context/AuthContext'
 import { OTHER_USERS } from '../../data/mockOpportunities'
@@ -394,21 +394,25 @@ export const league = {
     } else {
       MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, updatedAt: now })
     }
-    if (type === 'ciro') {
-      const credit = MOCK_REVIEW_CREDITS.find((r) => r.userId === userId && r.periodId === period.id)
-      if (credit) credit.hakSayisi += 2
-      else MOCK_REVIEW_CREDITS.push({ userId, periodId: period.id, hakSayisi: 2, alinanSayisi: 0 })
-    }
     return delay({ userId, periodId: period.id, type, value: numValue })
   },
-  async listReviewCredits() {
-    return delay([...MOCK_REVIEW_CREDITS])
+  async listCiroMusterileri() {
+    return delay([...MOCK_CIRO_MUSTERILERI])
   },
-  async setReceivedReviews(userId, periodId, alinanSayisi) {
-    const credit = MOCK_REVIEW_CREDITS.find((r) => r.userId === userId && r.periodId === periodId)
-    if (credit) credit.alinanSayisi = alinanSayisi
-    else MOCK_REVIEW_CREDITS.push({ userId, periodId, hakSayisi: 0, alinanSayisi })
-    return delay({ userId, periodId, alinanSayisi })
+  async addCiroMusteri({ userId, periodId, adSoyad }) {
+    const row = { id: `ciro-musteri-${Date.now()}`, userId, periodId, adSoyad, alindiMi: false, createdAt: new Date().toISOString() }
+    MOCK_CIRO_MUSTERILERI.unshift(row)
+    return delay(row)
+  },
+  async removeCiroMusteri(id) {
+    const idx = MOCK_CIRO_MUSTERILERI.findIndex((r) => r.id === id)
+    if (idx !== -1) MOCK_CIRO_MUSTERILERI.splice(idx, 1)
+    return delay({ id })
+  },
+  async setCiroMusteriAlindi(id, alindiMi) {
+    const row = MOCK_CIRO_MUSTERILERI.find((r) => r.id === id)
+    if (row) row.alindiMi = alindiMi
+    return delay({ id, alindiMi })
   },
   async listActivityTypes() {
     return delay([...MOCK_ACTIVITY_TYPES].sort((a, b) => a.sortOrder - b.sortOrder))

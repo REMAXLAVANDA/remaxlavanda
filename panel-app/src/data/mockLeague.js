@@ -34,11 +34,21 @@ export const MOCK_SCORES = [
   { userId: 'ext-danisman-3', periodId: 'period-1', type: 'sosyal_medya', value: 30, updatedAt: daysAgo(4) },
 ]
 
-// Her ciro girişi 2 yorum hakkı getirir — user_id/period_id bazında hak ve
-// gerçekten alınan yorum sayısı ayrı tutulur.
-export const MOCK_REVIEW_CREDITS = [
-  { userId: 'u-danisman', periodId: 'period-1', hakSayisi: 4, alinanSayisi: 3 },
-  { userId: 'ext-danisman-2', periodId: 'period-1', hakSayisi: 6, alinanSayisi: 2 },
+// user_id, period_id, ad_soyad, alindiMi — ciro'ya dönen her müşteri isim
+// isim kaydedilir; yorum hakkı bu listenin uzunluğundan, "alındı" sayısı da
+// alindiMi=true olanların sayısından hesaplanır (review_credits tablosu
+// artık kullanılmıyor).
+export const MOCK_CIRO_MUSTERILERI = [
+  { id: 'cm-1', userId: 'u-danisman', periodId: 'period-1', adSoyad: 'Ayşe Yıldırım', alindiMi: true, createdAt: daysAgo(20) },
+  { id: 'cm-2', userId: 'u-danisman', periodId: 'period-1', adSoyad: 'Mehmet Kaya', alindiMi: true, createdAt: daysAgo(18) },
+  { id: 'cm-3', userId: 'u-danisman', periodId: 'period-1', adSoyad: 'Fatma Şahin', alindiMi: true, createdAt: daysAgo(10) },
+  { id: 'cm-4', userId: 'u-danisman', periodId: 'period-1', adSoyad: 'Ali Demir', alindiMi: false, createdAt: daysAgo(1) },
+  { id: 'cm-5', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Zeynep Arslan', alindiMi: true, createdAt: daysAgo(25) },
+  { id: 'cm-6', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Emre Öztürk', alindiMi: true, createdAt: daysAgo(19) },
+  { id: 'cm-7', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Selin Çelik', alindiMi: false, createdAt: daysAgo(14) },
+  { id: 'cm-8', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Burak Aydın', alindiMi: false, createdAt: daysAgo(9) },
+  { id: 'cm-9', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Deniz Koç', alindiMi: false, createdAt: daysAgo(4) },
+  { id: 'cm-10', userId: 'ext-danisman-2', periodId: 'period-1', adSoyad: 'Merve Şen', alindiMi: false, createdAt: daysAgo(2) },
 ]
 
 export const MOCK_ACTIVITY_TYPES = [
