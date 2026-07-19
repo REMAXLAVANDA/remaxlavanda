@@ -569,3 +569,16 @@ export const users = {
     return delay({ userId, ...MOCK_PRIVATE_INFO[userId] })
   },
 }
+
+// --- Audit Log (Ayarlar > Log) -----------------------------------------------
+const MOCK_AUDIT_LOG = [
+  { id: 'al-1', actorId: 'u-broker', action: 'UPDATE', tableName: 'users', recordId: 'ext-danisman-2', detay: { rol: 'danisman' }, createdAt: usersDaysAgo(1) },
+  { id: 'al-2', actorId: 'u-ofis', action: 'INSERT', tableName: 'opportunities', recordId: 'opp-12', detay: { type: 'satici' }, createdAt: usersDaysAgo(2) },
+  { id: 'al-3', actorId: 'u-broker', action: 'UPDATE', tableName: 'score_entries', recordId: 'se-4', detay: { type: 'ciro', value: 2530000 }, createdAt: usersDaysAgo(3) },
+]
+
+export const auditLog = {
+  async list() {
+    return delay([...MOCK_AUDIT_LOG])
+  },
+}

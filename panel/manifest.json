@@ -1,0 +1,13 @@
+{
+  "name": "RE/MAX Lavanda Portal",
+  "short_name": "Lavanda",
+  "start_url": "/panel/",
+  "scope": "/panel/",
+  "display": "standalone",
+  "background_color": "#f5f6f8",
+  "theme_color": "#dc1c2e",
+  "icons": [
+    { "src": "/panel/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/panel/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

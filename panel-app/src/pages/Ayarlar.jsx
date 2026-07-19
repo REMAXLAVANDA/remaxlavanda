@@ -2,15 +2,22 @@ import { useState } from 'react'
 import { Users, Shield, Tag, ScrollText, Plus, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { users as usersProvider, categories as categoriesProvider, calendarEvents as calendarProvider } from '../lib/dataProvider'
+import {
+  users as usersProvider,
+  categories as categoriesProvider,
+  calendarEvents as calendarProvider,
+  auditLog as auditLogProvider,
+} from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
-import ModulePlaceholder from '../components/common/ModulePlaceholder'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import CategoryManager from '../components/settings/CategoryManager'
+import PermissionMatrix from '../components/settings/PermissionMatrix'
+import AuditLogTable from '../components/settings/AuditLogTable'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const TABS = [
@@ -23,9 +30,10 @@ const TABS = [
 export default function Ayarlar() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
+  const { knownUsers } = useKnownUsers()
   const [tab, setTab] = useState(TABS[0].key)
-  const active = TABS.find((t) => t.key === tab)
   const canManage = canManageUsers(role)
+  const resolveName = (id) => knownUsers[id]?.name ?? '—'
 
   const { data: allUsers, setData: setAllUsers, loading, error, reload } = useAsyncList(
     () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
@@ -38,6 +46,12 @@ export default function Ayarlar() {
     error: categoriesError,
     reload: reloadCategories,
   } = useAsyncList(() => (canManage ? categoriesProvider.list('docs') : Promise.resolve([])), [canManage])
+  const {
+    data: auditRows,
+    loading: loadingAudit,
+    error: auditError,
+    reload: reloadAudit,
+  } = useAsyncList(() => (canManage && tab === 'log' ? auditLogProvider.list() : Promise.resolve([])), [canManage, tab])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -239,13 +253,17 @@ export default function Ayarlar() {
         </>
       )}
 
-      {(tab === 'yetki' || tab === 'log') && (
-        <ModulePlaceholder
-          icon={active.icon}
-          title={active.label}
-          description="Yetki ve log yönetimi burada toplanacak."
-          note="İlgili modüllerle birlikte doldurulacak"
-        />
+      {tab === 'yetki' && <PermissionMatrix />}
+
+      {tab === 'log' && (
+        <>
+          <p className="mb-4 text-xs text-ink-400">
+            Kullanıcı, fırsat ve skor değişiklikleri — en son 200 kayıt.
+          </p>
+          {loadingAudit && <LoadingState />}
+          {!loadingAudit && auditError && <ErrorState error={auditError} onRetry={reloadAudit} />}
+          {!loadingAudit && !auditError && <AuditLogTable rows={auditRows ?? []} resolveName={resolveName} />}
+        </>
       )}
 
       {showCreateModal && (

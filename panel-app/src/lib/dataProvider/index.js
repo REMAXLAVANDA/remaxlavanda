@@ -18,6 +18,7 @@ export const categories = provider.categories
 export const takip = provider.takip
 export const league = provider.league
 export const users = provider.users
+export const auditLog = provider.auditLog
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

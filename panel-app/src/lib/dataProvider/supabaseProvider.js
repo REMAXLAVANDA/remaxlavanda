@@ -849,3 +849,24 @@ export const users = {
     )
   },
 }
+
+// --- Audit Log (Ayarlar > Log) -----------------------------------------------
+// audit_log_select RLS'i sadece broker/owner'a okuma izni veriyor —
+// trigger'lar (bkz. 20260719070000 migration) kullanıcı/fırsat/skor
+// değişikliklerini otomatik buraya yazıyor.
+export const auditLog = {
+  async list() {
+    const data = await run(
+      client().from('audit_log').select('*').order('created_at', { ascending: false }).limit(200),
+    )
+    return data.map((r) => ({
+      id: r.id,
+      actorId: r.actor_id,
+      action: r.action,
+      tableName: r.table_name,
+      recordId: r.record_id,
+      detay: r.detay,
+      createdAt: r.created_at,
+    }))
+  },
+}
