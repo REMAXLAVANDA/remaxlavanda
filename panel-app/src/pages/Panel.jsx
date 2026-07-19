@@ -644,6 +644,247 @@ export default function Panel() {
     ? 'Henüz bir danışmana atanmamış, dağıtım bekleyen çağrılar'
     : 'Ofisten yönlendirilen, dönüş yapman gerekenler'
 
+  // Danışman panelinde sıralama açıkça istendi: Lig Durumu, Açık Fırsatlar,
+  // Sana Atanan Çağrılar, Yaklaşan Etkinlikler, Eğitim/Checklist Durumun —
+  // bu yüzden bu widget'lar tek sütunlu, sabit sırayla render edilebilsin
+  // diye (md:grid-flow-row-dense'in sırayı karıştırmaması için) değişkene
+  // ayrıldı. Ofis aynı widget'ları eski (2 sütunlu) düzende görmeye devam
+  // ediyor, sadece danışman için sıra değişti.
+  const callsWidget = (
+    <Widget
+      icon={PhoneCall}
+      title={callTitle}
+      count={pendingCalls.length}
+      description={callDescription}
+      to="/operasyon"
+      linkLabel="Operasyon'a git"
+    >
+      {pendingCalls.length === 0 ? (
+        <EmptyRow text="Bekleyen çağrı yok, harika!" />
+      ) : (
+        <div className="space-y-2">
+          {pendingCalls.slice(0, 5).map((call) => (
+            <div key={call.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+              <div>
+                <p className="text-sm font-medium text-ink-900">{call.arayanAd}</p>
+                <p className="text-xs text-ink-400">
+                  {call.kaynak} · {maskPhone(call.arayanTelefon)}
+                </p>
+              </div>
+              <span className="text-xs text-ink-400">{relativeTime(call.createdAt)}</span>
+            </div>
+          ))}
+          {pendingCalls.length > 5 && (
+            <p className="pt-1 text-center text-xs text-ink-400">+{pendingCalls.length - 5} tane daha</p>
+          )}
+        </div>
+      )}
+    </Widget>
+  )
+
+  const opportunitiesWidgetDanisman = (
+    <Widget
+      icon={Target}
+      title="Açık Fırsatlar"
+      count={openOpportunities.length}
+      description="Havuzda henüz kimsenin almadığı fırsatlar"
+      to="/firsatlar"
+      linkLabel="Fırsatlar'a git"
+      className="md:col-span-2"
+    >
+      {openOpportunities.length === 0 ? (
+        <EmptyRow text="Havuzda bekleyen fırsat yok." />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
+          <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
+        </div>
+      )}
+    </Widget>
+  )
+
+  const opportunitiesWidgetOfis = (
+    <Widget
+      icon={Target}
+      title="Açık Fırsatlar"
+      count={openOpportunities.length}
+      description="Havuzda henüz kimsenin almadığı fırsatlar"
+      to="/firsatlar"
+      linkLabel="Fırsatlar'a git"
+    >
+      {openOpportunities.length === 0 ? (
+        <EmptyRow text="Havuzda bekleyen fırsat yok." />
+      ) : (
+        <div className="space-y-2">
+          {openOpportunities.slice(0, 5).map((o) => (
+            <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+              <div>
+                <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
+                <p className="text-xs text-ink-400">
+                  {categoryLabel(o.category)} · {o.konum}
+                  {(o.fiyatMin != null || o.fiyatMax != null) &&
+                    ` · ${formatPrice(o.type === 'alici' ? o.fiyatMin : o.fiyat ?? o.fiyatMin)}`}
+                </p>
+              </div>
+              <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
+            </div>
+          ))}
+          {openOpportunities.length > 5 && (
+            <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
+          )}
+        </div>
+      )}
+    </Widget>
+  )
+
+  const eventsWidget = (
+    <Widget
+      icon={CalendarDays}
+      title="Yaklaşan Etkinlikler"
+      count={upcomingEvents.length}
+      description={upcomingLabel}
+      to="/takvim"
+      linkLabel="Takvim'e git"
+    >
+      {upcomingEvents.length === 0 ? (
+        <EmptyRow text="Bu aralıkta etkinlik yok." />
+      ) : (
+        <div className="space-y-2">
+          {upcomingEvents.slice(0, 5).map((e) => {
+            const myAttendance = myAttendanceFor(e.id)
+            const needsResponse = myAttendance?.status === 'davetli'
+            const busy = rsvpBusyEventId === e.id
+            return (
+              <div key={e.id} className="rounded-xl border border-ink-100 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-ink-900">{e.title}</p>
+                    <p className="text-xs text-ink-400">
+                      {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
+                    </p>
+                  </div>
+                  {myAttendance && !needsResponse && myAttendance.status !== 'mazeretli' && (
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[myAttendance.status]}`}
+                    >
+                      {ATTENDANCE_STATUS_LABELS[myAttendance.status]}
+                    </span>
+                  )}
+                  {myAttendance?.status === 'mazeretli' && (
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${MAZERET_STATUS_STYLES[myAttendance.mazeretStatus]}`}
+                    >
+                      Mazeret: {MAZERET_STATUS_LABELS[myAttendance.mazeretStatus]}
+                    </span>
+                  )}
+                </div>
+
+                {needsResponse && (
+                  <div className="mt-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        disabled={busy}
+                        onClick={() => submitRsvp(e.id, 'onayladi')}
+                        className="rounded-full bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                      >
+                        Katılacağım
+                      </button>
+                      <button
+                        disabled={busy}
+                        onClick={() => setMazeretOpenEventId((v) => (v === e.id ? null : e.id))}
+                        className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
+                      >
+                        Mazeretim Var, Katılamayacağım
+                      </button>
+                    </div>
+                    {mazeretOpenEventId === e.id && (
+                      <div className="mt-2 space-y-1.5">
+                        <textarea
+                          value={mazeretDraft}
+                          onChange={(ev) => setMazeretDraft(ev.target.value)}
+                          placeholder="Neden katılamıyorsun?"
+                          rows={2}
+                          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                        />
+                        <button
+                          disabled={busy || !mazeretDraft.trim()}
+                          onClick={() => submitRsvp(e.id, 'mazeretli', { mazeretText: mazeretDraft.trim() })}
+                          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                        >
+                          Gönder
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </Widget>
+  )
+
+  const educationWidget = (
+    <Widget
+      icon={GraduationCap}
+      title={isEducationManager ? 'Eksik Eğitim / Checklist' : 'Eğitim / Checklist Durumun'}
+      count={isEducationManager ? educationGaps.length : 0}
+      description={
+        isEducationManager
+          ? 'Modül veya checklist tamamlama %100 altında olanlar'
+          : 'Modül ve checklist tamamlama oranın'
+      }
+      to="/egitim"
+      linkLabel="Eğitim'e git"
+    >
+      {educationGaps.length === 0 ? (
+        <EmptyRow text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'} />
+      ) : (
+        <div className="space-y-2">
+          {educationGaps.slice(0, 5).map((r) => (
+            <div key={r.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+              <p className="text-sm font-medium text-ink-900">{r.name}</p>
+              <span className="text-xs text-ink-400">
+                Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
+              </span>
+            </div>
+          ))}
+          {educationGaps.length > 5 && (
+            <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
+          )}
+        </div>
+      )}
+    </Widget>
+  )
+
+  // Lig Durumu: Lig sayfasındaki podyum (PeriodSummaryBoard) ile BİREBİR
+  // aynı — herkese açık (danışman dahil, Lig sayfasında zaten aynı podyumu
+  // görüyor). Kriter/"Nasıl Hesaplanır?" panelleri kasıtlı olarak burada
+  // YOK, sadece Lig menüsüne girince gösteriliyor.
+  const ligDurumuBlock = (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+          <Trophy size={16} className="text-brand-600" /> Lig Durumu
+        </h2>
+        <Link to="/lig" className="text-xs font-medium text-brand-600 hover:text-brand-700">
+          Lig'e git →
+        </Link>
+      </div>
+      {!activePeriod ? (
+        <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
+      ) : (
+        <>
+          <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
+          <p className="-mt-3 text-xs text-ink-400">
+            {lastLeagueUpdate ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}` : 'Bu dönemde henüz veri girilmedi.'}
+          </p>
+        </>
+      )}
+    </div>
+  )
+
   return (
     <div>
       <div className="mb-5">
@@ -716,90 +957,33 @@ export default function Panel() {
         </div>
       )}
 
+      {/* Danışman: açıkça istenen sabit sıra — Lig Durumu, Açık Fırsatlar,
+          Sana Atanan Çağrılar, Yaklaşan Etkinlikler, Eğitim/Checklist
+          Durumun. Tek sütun kullanılıyor ki md:grid-flow-row-dense sırayı
+          karıştırmasın. */}
+      {!loading && !error && isDanisman && (
+        <div className="flex flex-col gap-4">
+          {ligDurumuBlock}
+          {opportunitiesWidgetDanisman}
+          {callsWidget}
+          {eventsWidget}
+          {educationWidget}
+        </div>
+      )}
+
+      {/* Ofis: eski (2 sütunlu, sıkı paketlenmiş) düzen aynen korunuyor —
+          sadece danışman için sıralama değişti. */}
+      {!loading && !error && !isBrokerOrOwner && !isDanisman && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:grid-flow-row-dense">
+          {callsWidget}
+          {opportunitiesWidgetOfis}
+          {eventsWidget}
+          {educationWidget}
+        </div>
+      )}
+
       {!loading && !error && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:grid-flow-row-dense">
-          {!isBrokerOrOwner && (
-            <Widget
-              icon={PhoneCall}
-              title={callTitle}
-              count={pendingCalls.length}
-              description={callDescription}
-              to="/operasyon"
-              linkLabel="Operasyon'a git"
-            >
-              {pendingCalls.length === 0 ? (
-                <EmptyRow text="Bekleyen çağrı yok, harika!" />
-              ) : (
-                <div className="space-y-2">
-                  {pendingCalls.slice(0, 5).map((call) => (
-                    <div key={call.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium text-ink-900">{call.arayanAd}</p>
-                        <p className="text-xs text-ink-400">
-                          {call.kaynak} · {maskPhone(call.arayanTelefon)}
-                        </p>
-                      </div>
-                      <span className="text-xs text-ink-400">{relativeTime(call.createdAt)}</span>
-                    </div>
-                  ))}
-                  {pendingCalls.length > 5 && (
-                    <p className="pt-1 text-center text-xs text-ink-400">+{pendingCalls.length - 5} tane daha</p>
-                  )}
-                </div>
-              )}
-            </Widget>
-          )}
-
-          {!isBrokerOrOwner &&
-            (isDanisman ? (
-              <Widget
-                icon={Target}
-                title="Açık Fırsatlar"
-                count={openOpportunities.length}
-                description="Havuzda henüz kimsenin almadığı fırsatlar"
-                to="/firsatlar"
-                linkLabel="Fırsatlar'a git"
-                className="md:col-span-2"
-              >
-                {openOpportunities.length === 0 ? (
-                  <EmptyRow text="Havuzda bekleyen fırsat yok." />
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
-                    <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
-                  </div>
-                )}
-              </Widget>
-            ) : (
-              <Widget
-                icon={Target}
-                title="Açık Fırsatlar"
-                count={openOpportunities.length}
-                description="Havuzda henüz kimsenin almadığı fırsatlar"
-                to="/firsatlar"
-                linkLabel="Fırsatlar'a git"
-              >
-                {openOpportunities.length === 0 ? (
-                  <EmptyRow text="Havuzda bekleyen fırsat yok." />
-                ) : (
-                  <div className="space-y-2">
-                    {openOpportunities.slice(0, 5).map((o) => (
-                      <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                        <div>
-                          <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
-                          <p className="text-xs text-ink-400">{o.konum ?? '—'}</p>
-                        </div>
-                        <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
-                      </div>
-                    ))}
-                    {openOpportunities.length > 5 && (
-                      <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
-                    )}
-                  </div>
-                )}
-              </Widget>
-            ))}
-
           {isBrokerOrOwner && (
             <Widget
               icon={UsersIcon}
@@ -890,127 +1074,6 @@ export default function Panel() {
             </Widget>
           )}
 
-          {!isBrokerOrOwner && (
-            <Widget
-              icon={CalendarDays}
-              title="Yaklaşan Etkinlikler"
-              count={upcomingEvents.length}
-              description={upcomingLabel}
-              to="/takvim"
-              linkLabel="Takvim'e git"
-            >
-              {upcomingEvents.length === 0 ? (
-                <EmptyRow text="Bu aralıkta etkinlik yok." />
-              ) : (
-                <div className="space-y-2">
-                  {upcomingEvents.slice(0, 5).map((e) => {
-                    const myAttendance = myAttendanceFor(e.id)
-                    const needsResponse = myAttendance?.status === 'davetli'
-                    const busy = rsvpBusyEventId === e.id
-                    return (
-                      <div key={e.id} className="rounded-xl border border-ink-100 px-3 py-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-ink-900">{e.title}</p>
-                            <p className="text-xs text-ink-400">
-                              {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
-                            </p>
-                          </div>
-                          {myAttendance && !needsResponse && myAttendance.status !== 'mazeretli' && (
-                            <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[myAttendance.status]}`}
-                            >
-                              {ATTENDANCE_STATUS_LABELS[myAttendance.status]}
-                            </span>
-                          )}
-                          {myAttendance?.status === 'mazeretli' && (
-                            <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${MAZERET_STATUS_STYLES[myAttendance.mazeretStatus]}`}
-                            >
-                              Mazeret: {MAZERET_STATUS_LABELS[myAttendance.mazeretStatus]}
-                            </span>
-                          )}
-                        </div>
-
-                        {needsResponse && (
-                          <div className="mt-2">
-                            <div className="flex flex-wrap gap-1.5">
-                              <button
-                                disabled={busy}
-                                onClick={() => submitRsvp(e.id, 'onayladi')}
-                                className="rounded-full bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-                              >
-                                Katılacağım
-                              </button>
-                              <button
-                                disabled={busy}
-                                onClick={() => setMazeretOpenEventId((v) => (v === e.id ? null : e.id))}
-                                className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
-                              >
-                                Mazeretim Var, Katılamayacağım
-                              </button>
-                            </div>
-                            {mazeretOpenEventId === e.id && (
-                              <div className="mt-2 space-y-1.5">
-                                <textarea
-                                  value={mazeretDraft}
-                                  onChange={(ev) => setMazeretDraft(ev.target.value)}
-                                  placeholder="Neden katılamıyorsun?"
-                                  rows={2}
-                                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-                                />
-                                <button
-                                  disabled={busy || !mazeretDraft.trim()}
-                                  onClick={() => submitRsvp(e.id, 'mazeretli', { mazeretText: mazeretDraft.trim() })}
-                                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-                                >
-                                  Gönder
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </Widget>
-          )}
-
-          {!isBrokerOrOwner && (
-            <Widget
-              icon={GraduationCap}
-              title={isEducationManager ? 'Eksik Eğitim / Checklist' : 'Eğitim / Checklist Durumun'}
-              count={isEducationManager ? educationGaps.length : 0}
-              description={
-                isEducationManager
-                  ? 'Modül veya checklist tamamlama %100 altında olanlar'
-                  : 'Modül ve checklist tamamlama oranın'
-              }
-              to="/egitim"
-              linkLabel="Eğitim'e git"
-            >
-              {educationGaps.length === 0 ? (
-                <EmptyRow text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'} />
-              ) : (
-                <div className="space-y-2">
-                  {educationGaps.slice(0, 5).map((r) => (
-                    <div key={r.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                      <p className="text-sm font-medium text-ink-900">{r.name}</p>
-                      <span className="text-xs text-ink-400">
-                        Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
-                      </span>
-                    </div>
-                  ))}
-                  {educationGaps.length > 5 && (
-                    <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
-                  )}
-                </div>
-              )}
-            </Widget>
-          )}
-
           {isBrokerOrOwner && (
             <Widget
               icon={GraduationCap}
@@ -1050,34 +1113,10 @@ export default function Panel() {
         </div>
       )}
 
-      {/* Lig Durumu: Lig sayfasındaki podyum (PeriodSummaryBoard) ile BİREBİR
-          aynı — herkese açık (danışman dahil, Lig sayfasında zaten aynı
-          podyumu görüyor). Kriter/"Nasıl Hesaplanır?" panelleri kasıtlı
-          olarak burada YOK, sadece Lig menüsüne girince gösteriliyor. */}
-      {!loading && !error && (
-        <div className="mt-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
-              <Trophy size={16} className="text-brand-600" /> Lig Durumu
-            </h2>
-            <Link to="/lig" className="text-xs font-medium text-brand-600 hover:text-brand-700">
-              Lig'e git →
-            </Link>
-          </div>
-          {!activePeriod ? (
-            <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
-          ) : (
-            <>
-              <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
-              <p className="-mt-3 text-xs text-ink-400">
-                {lastLeagueUpdate
-                  ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}`
-                  : 'Bu dönemde henüz veri girilmedi.'}
-              </p>
-            </>
-          )}
-        </div>
-      )}
+      {/* Lig Durumu: danışman için zaten en üstte (ligDurumuBlock, yukarıdaki
+          isDanisman bloğunda) gösterildi — broker/owner/ofis için burada,
+          eski yerinde kalıyor. */}
+      {!loading && !error && !isDanisman && <div className="mt-4">{ligDurumuBlock}</div>}
 
       {/* Danışman Sağlık Skoru: broker/owner'ın gördüğü büyük yönetim panosundan
           (isBrokerOrOwner) AYRI tutuluyor — ofis de bu widget'ı görmeli ama
