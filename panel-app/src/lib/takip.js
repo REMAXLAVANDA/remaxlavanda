@@ -27,6 +27,9 @@ export const YILLIK_CIRO_HEDEFI = 2304000
 // (onaylandi) satırlar nötr sayılır — sağlık skorunu hiç etkilemez, ne artı
 // ne eksi (bkz. event_attendance_update_self RLS + migration notu).
 // Reddedilen mazeret "katılmadı" ile aynı muameleyi görür.
+// NOT: Hiç veri yoksa (henüz hiç çözümlenmiş toplantı/atanmış lead/müşteri
+// yoksa) bileşen "veri yok" değil, gerçek %0 sayılır — broker skorun neyi
+// yansıttığını görsün diye hiçbir bileşen gizlenmiyor/nötrlenmiyor.
 export function meetingAttendPercent(userId, events, attendance) {
   const resolved = attendance.filter((a) => {
     if (a.userId !== userId) return false
@@ -36,26 +39,24 @@ export function meetingAttendPercent(userId, events, attendance) {
     if (a.status === 'mazeretli' && a.mazeretStatus === 'reddedildi') return true
     return false
   })
-  if (resolved.length === 0) return null
+  if (resolved.length === 0) return 0
   const attended = resolved.filter((a) => a.status === 'katildi').length
   return Math.round((attended / resolved.length) * 100)
 }
 
 export function leadResponsePercent(userId, calls) {
   const assigned = calls.filter((c) => c.assignedTo === userId)
-  if (assigned.length === 0) return null
+  if (assigned.length === 0) return 0
   const responded = assigned.filter((c) => c.donusYapildiMi).length
   return Math.round((responded / assigned.length) * 100)
 }
 
-// Portal kullanımı artık gerçek son giriş zamanından (auth.users ->
-// list_user_activity RPC) hesaplanır — sabit mock değer değil. Bugün giriş
-// 100, her geçen gün -10 puan, hiç giriş yapmamışsa 0 (bu "veri yok"
-// sayılmaz, gerçek ve olumsuz bir sinyaldir).
+// Portal kullanımı gerçek son giriş zamanından (auth.users -> list_user_activity
+// RPC) hesaplanır. Bugün giriş 100, her geçen gün -10 puan, hiç giriş
+// yapmamışsa (ya da hiç aktivite kaydı yoksa) %0.
 export function portalUsagePercent(userId, activity) {
   const row = activity.find((a) => a.userId === userId)
-  if (!row) return null
-  if (!row.lastSignInAt) return 0
+  if (!row || !row.lastSignInAt) return 0
   const diffDays = Math.floor((Date.now() - new Date(row.lastSignInAt).getTime()) / (24 * 60 * 60 * 1000))
   return Math.max(0, 100 - diffDays * 10)
 }
@@ -65,7 +66,7 @@ export function portalUsagePercent(userId, activity) {
 // geçmişi) — ayrı, hiç dolmayan bir mock sayı değil.
 export function customerReviewPercent(userId, ciroMusterileri) {
   const mine = ciroMusterileri.filter((c) => c.userId === userId)
-  if (mine.length === 0) return null
+  if (mine.length === 0) return 0
   const alinan = mine.filter((c) => c.alindiMi).length
   return Math.round((alinan / mine.length) * 100)
 }
@@ -78,12 +79,14 @@ export function customerReviewPercent(userId, ciroMusterileri) {
 // gerçekleşen ciro karşılaştırılarak günlük çözünürlükte cevaplanır — bu,
 // ay ay bakmaktan daha hassas ama aynı "yolda mısın" sorusunu cevaplıyor.
 // NOT: ciro rakamı asla ham olarak dışarı verilmez (bkz. data/mockLeague.js
-// notu) — sadece 0-100 arası bir sağlık yüzdesi döner.
+// notu) — sadece 0-100 arası bir sağlık yüzdesi döner. Hedef henüz
+// başlamamışsa (örn. işe başladığı gün) ya da veri eksikse %0 döner —
+// diğer bileşenlerle aynı "veri yok = %0" mantığı.
 export function ciroHedefPercent(userId, users, ciroGirisleri, referenceDate = new Date()) {
   const person = users.find((u) => u.id === userId)
-  if (!person?.createdAt) return null
+  if (!person?.createdAt) return 0
   const startDate = new Date(person.createdAt)
-  if (Number.isNaN(startDate.getTime())) return null
+  if (Number.isNaN(startDate.getTime())) return 0
 
   const today = new Date(referenceDate)
   today.setHours(0, 0, 0, 0)
@@ -92,13 +95,13 @@ export function ciroHedefPercent(userId, users, ciroGirisleri, referenceDate = n
   const startMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
   const yearStart = startDate.getFullYear() === currentYear ? startMidnight : new Date(currentYear, 0, 1)
   const yearEnd = new Date(currentYear, 11, 31)
-  if (yearStart > yearEnd) return null
+  if (yearStart > yearEnd) return 0
 
   const dailyHedef = YILLIK_CIRO_HEDEFI / 365
   const totalDays = Math.floor((yearEnd - yearStart) / MS_PER_DAY) + 1
   const elapsedDays = Math.min(totalDays, Math.max(0, Math.floor((today - yearStart) / MS_PER_DAY) + 1))
   const expectedToDate = dailyHedef * elapsedDays
-  if (expectedToDate <= 0) return null
+  if (expectedToDate <= 0) return 0
 
   const actualCiro = ciroGirisleri
     .filter((g) => g.userId === userId && new Date(g.tarih) >= yearStart && new Date(g.tarih) <= today)
@@ -110,16 +113,17 @@ export function ciroHedefPercent(userId, users, ciroGirisleri, referenceDate = n
 // Sosyal medya "kullanım oranı" ofis ortalamasına göre görecelidir: bu
 // dönem ofis danışmanlarının ortalama sosyal medya puanına eşit ya da
 // üzeri %100 sayılır, altındaysa oranla düşer. Sabit bir hedef yok —
-// ofis genelinde canlılık ne kadarsa ona göre değerlendiriliyor.
+// ofis genelinde canlılık ne kadarsa ona göre değerlendiriliyor. Ofis
+// genelinde hiç aktivite yoksa (ortalama 0) bu bileşen de %0'dır.
 export function socialUsagePercent(userId, users, scores, periods) {
   const activePeriod = periods?.[0]
-  if (!activePeriod) return null
+  if (!activePeriod) return 0
   const teamIds = users.filter((u) => !u.role || u.role === 'danisman').map((u) => u.id)
-  if (teamIds.length === 0) return null
+  if (teamIds.length === 0) return 0
   const valueFor = (id) =>
     scores.find((s) => s.userId === id && s.periodId === activePeriod.id && s.type === 'sosyal_medya')?.value ?? 0
   const officeAverage = teamIds.reduce((sum, id) => sum + valueFor(id), 0) / teamIds.length
-  if (officeAverage <= 0) return null
+  if (officeAverage <= 0) return 0
   return Math.round(Math.min(100, (valueFor(userId) / officeAverage) * 100))
 }
 
@@ -135,18 +139,17 @@ export function computeHealthScore(
   const ciroPercent = ciroHedefPercent(userId, users ?? [], ciroGirisleri ?? [])
   const socialPercent = socialUsagePercent(userId, users ?? [], scores ?? [], periods ?? [])
 
-  // Veri yoksa o bileşen için nötr (100) varsayılır — yeni katılan birini
-  // haksız yere düşük skorla cezalandırmamak için. Portal kullanımı bunun
-  // istisnası: satır varsa ama hiç giriş yoksa bu "veri yok" değil, gerçek
-  // 0 kullanım demektir (bkz. portalUsagePercent).
+  // Her bileşen her zaman 0-100 arası gerçek bir sayıdır — veri yoksa (hiç
+  // toplantı/lead/müşteri/aktivite olmamışsa) %0 sayılır, "veri yok"
+  // gerekçesiyle gizlenmez veya nötrlenmez.
   const metrics = {
-    ciro: ciroPercent ?? 100,
+    ciro: ciroPercent,
     education: educationPercent,
-    meetingAttend: meetingPercent ?? 100,
-    leadResponse: leadPercent ?? 100,
-    portalUsage: portalPercent ?? 100,
-    customerReview: reviewPercent ?? 100,
-    socialUsage: socialPercent ?? 100,
+    meetingAttend: meetingPercent,
+    leadResponse: leadPercent,
+    portalUsage: portalPercent,
+    customerReview: reviewPercent,
+    socialUsage: socialPercent,
   }
 
   const score = Math.round(
@@ -155,19 +158,7 @@ export function computeHealthScore(
 
   const status = score >= 80 ? 'good' : score >= 60 ? 'warn' : 'critical'
 
-  return {
-    score,
-    status,
-    metrics: {
-      ciro: ciroPercent,
-      education: educationPercent,
-      meetingAttend: meetingPercent,
-      leadResponse: leadPercent,
-      portalUsage: portalPercent,
-      customerReview: reviewPercent,
-      socialUsage: socialPercent,
-    },
-  }
+  return { score, status, metrics }
 }
 
 export const STATUS_LABELS = { good: 'İyi', warn: 'Dikkat', critical: 'Kritik' }

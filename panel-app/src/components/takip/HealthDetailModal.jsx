@@ -16,10 +16,10 @@ export default function HealthDetailModal({ user, score, status, metrics, notes,
             <div key={key}>
               <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="text-ink-500">{label}</span>
-                <span className="font-medium text-ink-700">{value == null ? 'Veri yok' : `${value}%`}</span>
+                <span className="font-medium text-ink-700">{value}%</span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-ink-100">
-                <div className="h-full rounded-full bg-brand-600" style={{ width: `${value ?? 0}%` }} />
+                <div className="h-full rounded-full bg-brand-600" style={{ width: `${value}%` }} />
               </div>
             </div>
           )
