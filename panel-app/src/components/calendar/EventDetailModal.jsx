@@ -12,6 +12,39 @@ import {
   formatEventTime,
 } from '../../lib/calendar'
 
+// Yönetim etkinliğe tıkladığında tek bakışta kaç kişinin katılacağını,
+// katılmayacağını ve mazeretli olduğunu görsün diye (bkz. broker isteği:
+// "kaç kişi katılacak, katılmayacak mazeretli görelim").
+function AttendanceSummary({ attendees }) {
+  const katilacak = attendees.filter((a) => a.status === 'onayladi' || a.status === 'katildi').length
+  const katilmayacak = attendees.filter(
+    (a) => a.status === 'katilmadi' || (a.status === 'mazeretli' && a.mazeretStatus === 'reddedildi'),
+  ).length
+  const mazeretli = attendees.filter((a) => a.status === 'mazeretli' && a.mazeretStatus !== 'reddedildi').length
+  const davetli = attendees.filter((a) => a.status === 'davetli').length
+
+  return (
+    <div className="mb-3 grid grid-cols-4 gap-1.5">
+      <div className="rounded-lg bg-emerald-50 px-2 py-1.5 text-center">
+        <p className="text-sm font-semibold text-emerald-700">{katilacak}</p>
+        <p className="text-[10px] text-emerald-600">Katılacak</p>
+      </div>
+      <div className="rounded-lg bg-red-50 px-2 py-1.5 text-center">
+        <p className="text-sm font-semibold text-red-600">{katilmayacak}</p>
+        <p className="text-[10px] text-red-500">Katılmayacak</p>
+      </div>
+      <div className="rounded-lg bg-sky-50 px-2 py-1.5 text-center">
+        <p className="text-sm font-semibold text-sky-700">{mazeretli}</p>
+        <p className="text-[10px] text-sky-600">Mazeretli</p>
+      </div>
+      <div className="rounded-lg bg-ink-100 px-2 py-1.5 text-center">
+        <p className="text-sm font-semibold text-ink-600">{davetli}</p>
+        <p className="text-[10px] text-ink-500">Davetli</p>
+      </div>
+    </div>
+  )
+}
+
 export default function EventDetailModal({
   event,
   attendees,
@@ -139,6 +172,7 @@ export default function EventDetailModal({
       {attendees.length > 0 && (
         <div className="mt-4 border-t border-ink-50 pt-3">
           <p className="mb-2 text-xs font-medium text-ink-400">Katılımcılar ({attendees.length})</p>
+          {isManager && <AttendanceSummary attendees={attendees} />}
           <div className="space-y-2">
             {attendees.map((a) => (
               <div key={a.userId} className="text-sm">

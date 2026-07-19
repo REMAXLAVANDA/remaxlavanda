@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
+import { useToast } from '../context/ToastContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import {
   callLogs as callLogsProvider,
@@ -28,12 +29,22 @@ import {
 } from '../lib/dataProvider'
 import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callLogs'
 import { ROLES } from '../lib/roles'
-import { canViewEvent, formatEventDate, formatEventTime, EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from '../lib/calendar'
+import {
+  canViewEvent,
+  formatEventDate,
+  formatEventTime,
+  EVENT_TYPE_LABELS,
+  EVENT_TYPE_COLORS,
+  ATTENDANCE_STATUS_LABELS,
+  ATTENDANCE_STATUS_STYLES,
+  MAZERET_STATUS_LABELS,
+  MAZERET_STATUS_STYLES,
+} from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
-import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor } from '../lib/league'
+import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
 import { relativeTime, isToday } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -264,7 +275,11 @@ function OpportunityMiniBlock({ dotColor, label, items }) {
 export default function Panel() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
-  const { data, loading, error, reload } = useAsyncList(loadAll, [])
+  const { showToast } = useToast()
+  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  const [mazeretOpenEventId, setMazeretOpenEventId] = useState(null)
+  const [mazeretDraft, setMazeretDraft] = useState('')
+  const [rsvpBusyEventId, setRsvpBusyEventId] = useState(null)
   const isManager = canManageCalls(role)
   const isDanisman = role === ROLES.DANISMAN
   // Broker ve owner ikisi de "rapor odaklı" paneli görür — owner sadece
@@ -331,6 +346,34 @@ export default function Panel() {
       })
       .sort((a, b) => new Date(a.startAt) - new Date(b.startAt))
   }, [data, user, filters, selectedRange])
+
+  // --- Takvim: Panel'den, Takvim'e girmeden hızlı RSVP — "gd paneline
+  // düşsün" isteği: davetli olduğun ama henüz cevap vermediğin etkinlikler
+  // için Katılacağım/Mazeret Bildir doğrudan burada (bkz. EventDetailModal
+  // aynı akışın Takvim tarafı).
+  function myAttendanceFor(eventId) {
+    return data?.attendance.find((a) => a.eventId === eventId && a.userId === user.id) ?? null
+  }
+
+  async function submitRsvp(eventId, status, extra) {
+    setRsvpBusyEventId(eventId)
+    try {
+      const updated = await calendarProvider.updateAttendance(eventId, user.id, status, extra)
+      setData((prev) => ({
+        ...prev,
+        attendance: prev.attendance.map((a) =>
+          a.eventId === updated.eventId && a.userId === updated.userId ? updated : a,
+        ),
+      }))
+      showToast(status === 'mazeretli' ? 'Mazeretin gönderildi, yönetim inceleyecek.' : 'Katılım durumun güncellendi.', 'success')
+      setMazeretOpenEventId(null)
+      setMazeretDraft('')
+    } catch (err) {
+      showToast(err.message ?? 'Katılım durumu güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setRsvpBusyEventId(null)
+    }
+  }
 
   // --- Eğitim/Checklist: eksik olanlar (yönetim: ekip, danışman: kendisi) ---
   const educationGaps = useMemo(() => {
@@ -534,11 +577,28 @@ export default function Panel() {
     () => (data?.scores ?? []).filter((s) => s.periodId === activePeriod?.id),
     [data, activePeriod],
   )
+  // Memnuniyet score_entries'e HİÇ yazılmaz (bkz. Lig.jsx) — Wilson skoru
+  // her render'da ciro_musterileri'nden canlı hesaplanır. Panel eskiden bu
+  // kategori için de periodScores'a bakıyordu, orada hiçbir zaman satır
+  // olmadığı için Memnuniyet lideri hep "—" görünüyordu — Lig sayfasıyla
+  // aynı hesaba geçildi.
+  const memnuniyetScores = useMemo(() => {
+    if (!activePeriod) return []
+    const musteriler = (data?.ciroMusterileri ?? []).filter((m) => m.periodId === activePeriod.id)
+    return teamMembers.map((u) => {
+      const kendi = musteriler.filter((m) => m.userId === u.id)
+      const hakSayisi = kendi.length
+      const alinanSayisi = kendi.filter((m) => m.alindiMi).length
+      return { userId: u.id, type: 'memnuniyet', value: Math.round(wilsonScoreLowerBound(alinanSayisi, hakSayisi) * 100) }
+    })
+  }, [data, activePeriod, teamMembers])
   const rankingsByCategory = useMemo(() => {
     const map = {}
-    for (const c of LEAGUE_CATEGORIES) map[c.key] = rankingsFor(c.key, periodScores, resolveUserName)
+    for (const c of LEAGUE_CATEGORIES) {
+      map[c.key] = c.key === 'memnuniyet' ? rankingsFor(c.key, memnuniyetScores, resolveUserName) : rankingsFor(c.key, periodScores, resolveUserName)
+    }
     return map
-  }, [periodScores, resolveUserName])
+  }, [periodScores, memnuniyetScores, resolveUserName])
   const lastLeagueUpdate = useMemo(() => latestUpdate(periodScores), [periodScores])
   const leagueLeaderRows = useMemo(
     () =>
@@ -826,16 +886,76 @@ export default function Panel() {
                 <EmptyRow text="Bu aralıkta etkinlik yok." />
               ) : (
                 <div className="space-y-2">
-                  {upcomingEvents.slice(0, 5).map((e) => (
-                    <div key={e.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium text-ink-900">{e.title}</p>
-                        <p className="text-xs text-ink-400">
-                          {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
-                        </p>
+                  {upcomingEvents.slice(0, 5).map((e) => {
+                    const myAttendance = myAttendanceFor(e.id)
+                    const needsResponse = myAttendance?.status === 'davetli'
+                    const busy = rsvpBusyEventId === e.id
+                    return (
+                      <div key={e.id} className="rounded-xl border border-ink-100 px-3 py-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-ink-900">{e.title}</p>
+                            <p className="text-xs text-ink-400">
+                              {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
+                            </p>
+                          </div>
+                          {myAttendance && !needsResponse && myAttendance.status !== 'mazeretli' && (
+                            <span
+                              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[myAttendance.status]}`}
+                            >
+                              {ATTENDANCE_STATUS_LABELS[myAttendance.status]}
+                            </span>
+                          )}
+                          {myAttendance?.status === 'mazeretli' && (
+                            <span
+                              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${MAZERET_STATUS_STYLES[myAttendance.mazeretStatus]}`}
+                            >
+                              Mazeret: {MAZERET_STATUS_LABELS[myAttendance.mazeretStatus]}
+                            </span>
+                          )}
+                        </div>
+
+                        {needsResponse && (
+                          <div className="mt-2">
+                            <div className="flex flex-wrap gap-1.5">
+                              <button
+                                disabled={busy}
+                                onClick={() => submitRsvp(e.id, 'onayladi')}
+                                className="rounded-full bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                              >
+                                Katılacağım
+                              </button>
+                              <button
+                                disabled={busy}
+                                onClick={() => setMazeretOpenEventId((v) => (v === e.id ? null : e.id))}
+                                className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
+                              >
+                                Mazeretim Var, Katılamayacağım
+                              </button>
+                            </div>
+                            {mazeretOpenEventId === e.id && (
+                              <div className="mt-2 space-y-1.5">
+                                <textarea
+                                  value={mazeretDraft}
+                                  onChange={(ev) => setMazeretDraft(ev.target.value)}
+                                  placeholder="Neden katılamıyorsun?"
+                                  rows={2}
+                                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                                />
+                                <button
+                                  disabled={busy || !mazeretDraft.trim()}
+                                  onClick={() => submitRsvp(e.id, 'mazeretli', { mazeretText: mazeretDraft.trim() })}
+                                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                >
+                                  Gönder
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </Widget>
