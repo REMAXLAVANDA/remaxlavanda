@@ -9,9 +9,6 @@ import {
   Trophy,
   Users as UsersIcon,
   AlertTriangle,
-  TrendingUp,
-  Smile,
-  Share2,
   Megaphone,
   HeartPulse,
 } from 'lucide-react'
@@ -50,9 +47,7 @@ import { relativeTime, isToday } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
 import SourceConversionBoard from '../components/operasyon/SourceConversionBoard'
-
-const LEAGUE_CATEGORY_ICONS = { ciro: TrendingUp, memnuniyet: Smile, sosyal_medya: Share2 }
-const LEAGUE_CATEGORY_COLORS = { ciro: '#003da5', memnuniyet: '#7c3aed', sosyal_medya: '#16a34a' }
+import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
@@ -600,15 +595,6 @@ export default function Panel() {
     return map
   }, [periodScores, memnuniyetScores, resolveUserName])
   const lastLeagueUpdate = useMemo(() => latestUpdate(periodScores), [periodScores])
-  const leagueLeaderRows = useMemo(
-    () =>
-      LEAGUE_CATEGORIES.map((c) => ({
-        key: c.key,
-        label: c.label,
-        leaderName: rankingsByCategory[c.key]?.find((r) => r.isLeader)?.name ?? null,
-      })),
-    [rankingsByCategory],
-  )
 
   // --- Takip: en iyi/en kötü 360° sağlık skoru — Takip'e girmeden Panel'de
   // tek bakışta görülsün diye (bkz. lib/takip.js computeHealthScore).
@@ -1030,45 +1016,35 @@ export default function Panel() {
             </Widget>
           )}
 
-          <Widget
-            icon={Trophy}
-            title="Lig Durumu"
-            description={activePeriod ? activePeriod.ad : 'Henüz bir dönem oluşturulmamış'}
-            to="/lig"
-            linkLabel="Lig'e git"
-            className="md:col-span-2"
-          >
-            {!activePeriod ? (
-              <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
-            ) : (
-              <>
-                <div className="mb-3 space-y-1.5">
-                  {leagueLeaderRows.map((row) => {
-                    const Icon = LEAGUE_CATEGORY_ICONS[row.key]
-                    const color = LEAGUE_CATEGORY_COLORS[row.key]
-                    return (
-                      <div key={row.key} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
-                        <div
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                          style={{ backgroundColor: `${color}1a`, color }}
-                        >
-                          <Icon size={15} />
-                        </div>
-                        <span className="min-w-0 flex-1 text-sm text-ink-700">{row.label}</span>
-                        <span className="shrink-0 text-sm font-medium text-ink-900">{row.leaderName ?? '—'}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-                <p className="text-xs text-ink-400">
-                  {lastLeagueUpdate
-                    ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}`
-                    : 'Bu dönemde henüz veri girilmedi.'}
-                </p>
-              </>
-            )}
-          </Widget>
+        </div>
+      )}
 
+      {/* Lig Durumu: Lig sayfasındaki podyum (PeriodSummaryBoard) ile BİREBİR
+          aynı — herkese açık (danışman dahil, Lig sayfasında zaten aynı
+          podyumu görüyor). Kriter/"Nasıl Hesaplanır?" panelleri kasıtlı
+          olarak burada YOK, sadece Lig menüsüne girince gösteriliyor. */}
+      {!loading && !error && (
+        <div className="mt-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+              <Trophy size={16} className="text-brand-600" /> Lig Durumu
+            </h2>
+            <Link to="/lig" className="text-xs font-medium text-brand-600 hover:text-brand-700">
+              Lig'e git →
+            </Link>
+          </div>
+          {!activePeriod ? (
+            <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
+          ) : (
+            <>
+              <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
+              <p className="-mt-3 text-xs text-ink-400">
+                {lastLeagueUpdate
+                  ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}`
+                  : 'Bu dönemde henüz veri girilmedi.'}
+              </p>
+            </>
+          )}
         </div>
       )}
 
