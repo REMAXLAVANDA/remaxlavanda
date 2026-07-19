@@ -78,7 +78,7 @@ async function loadAll() {
 
 function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', children }) {
   return (
-    <div className={`rounded-2xl border border-ink-100 bg-white p-5 ${className}`}>
+    <div className={`min-w-0 rounded-2xl border border-ink-100 bg-white p-5 ${className}`}>
       <div className="mb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={16} className="text-brand-600" />
@@ -700,7 +700,7 @@ export default function Panel() {
       )}
 
       {!loading && !error && (
-        <div className="grid gap-4 md:grid-cols-2 md:grid-flow-row-dense">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:grid-flow-row-dense">
           {!isBrokerOrOwner && (
             <Widget
               icon={PhoneCall}

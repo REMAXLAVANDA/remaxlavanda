@@ -261,7 +261,7 @@ export default function Lig() {
         ) : (
           <p className="text-xs text-ink-400">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!loading && !error && period && (
             <button
               onClick={() => setShowShareModal(true)}

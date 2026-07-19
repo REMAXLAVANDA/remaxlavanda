@@ -189,7 +189,7 @@ export default function Rehber() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && (
-        <div className="grid gap-5 md:grid-cols-[200px_1fr]">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-[200px_1fr]">
           <FolderList categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
 
           <div className="space-y-3">

@@ -43,8 +43,8 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
 
       <div className="space-y-2">
         {sorted.map((u) => (
-          <div key={u.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-ink-100 bg-white p-3.5">
-            <div className="min-w-0 flex-1">
+          <div key={u.id} className="flex flex-col gap-3 rounded-xl border border-ink-100 bg-white p-3.5 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="min-w-0 sm:flex-1">
               <p className="text-sm font-medium text-ink-900">{u.name}</p>
               <p className="text-xs text-ink-400">
                 {u.email ?? '—'}
@@ -52,52 +52,54 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
               </p>
             </div>
 
-            {canManage ? (
-              <select
-                value={u.role}
-                onChange={(e) => onChangeRole(u.id, e.target.value)}
-                className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+            <div className="flex flex-wrap items-center gap-3">
+              {canManage ? (
+                <select
+                  value={u.role}
+                  onChange={(e) => onChangeRole(u.id, e.target.value)}
+                  className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+                >
+                  {ASSIGNABLE_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {ROLE_LABELS[r]}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600">
+                  {ROLE_LABELS[u.role] ?? u.role}
+                </span>
+              )}
+
+              <button
+                disabled={!canManage}
+                onClick={() => onToggleDurum(u.id, u.durum === 'aktif' ? 'pasif' : 'aktif')}
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  u.durum === 'aktif' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                } ${canManage ? 'hover:opacity-80' : ''}`}
               >
-                {ASSIGNABLE_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABELS[r]}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600">
-                {ROLE_LABELS[u.role] ?? u.role}
-              </span>
-            )}
+                {u.durum === 'aktif' ? 'Aktif' : 'Pasif'}
+              </button>
 
-            <button
-              disabled={!canManage}
-              onClick={() => onToggleDurum(u.id, u.durum === 'aktif' ? 'pasif' : 'aktif')}
-              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                u.durum === 'aktif' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
-              } ${canManage ? 'hover:opacity-80' : ''}`}
-            >
-              {u.durum === 'aktif' ? 'Aktif' : 'Pasif'}
-            </button>
-
-            {canManage && (
-              <div className="flex items-center gap-0.5">
-                <button
-                  onClick={() => onEdit(u)}
-                  title="Düzenle"
-                  className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
-                >
-                  <Pencil size={15} />
-                </button>
-                <button
-                  onClick={() => onDeleteRequest(u)}
-                  title="Sil"
-                  className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            )}
+              {canManage && (
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => onEdit(u)}
+                    title="Düzenle"
+                    className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    onClick={() => onDeleteRequest(u)}
+                    title="Sil"
+                    className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>

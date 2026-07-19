@@ -234,13 +234,13 @@ export default function Ayarlar() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between gap-2 border-b border-ink-100">
-        <div className="flex gap-1">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-ink-100">
+        <div className="flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                 tab === t.key
                   ? 'border-brand-600 text-brand-700'
                   : 'border-transparent text-ink-500 hover:text-ink-800'
