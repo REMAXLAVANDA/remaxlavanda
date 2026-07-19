@@ -26,14 +26,17 @@ begin
 end;
 $$;
 
+drop trigger if exists trg_audit_users on public.users;
 create trigger trg_audit_users
   after insert or update or delete on public.users
   for each row execute function public.log_audit_event();
 
+drop trigger if exists trg_audit_opportunities on public.opportunities;
 create trigger trg_audit_opportunities
   after insert or update or delete on public.opportunities
   for each row execute function public.log_audit_event();
 
+drop trigger if exists trg_audit_score_entries on public.score_entries;
 create trigger trg_audit_score_entries
   after insert or update or delete on public.score_entries
   for each row execute function public.log_audit_event();
