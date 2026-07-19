@@ -90,6 +90,15 @@ export function formatLeadMargin(diff, unit) {
   return `+${amount} önde`
 }
 
+// Podyum panosunda (PeriodSummaryBoard) ardışık iki sıra arasındaki farkı
+// göstermek için — "1. ile 2. arasında ne kadar fark var" (broker'ın
+// istediği "waterfall" görünüm: her satırın altında bir sonrakine göre
+// farkı gösteren ok).
+export function formatGap(gap, unit) {
+  const amount = unit === 'tl' ? `${gap.toLocaleString('tr-TR')} TL` : `${gap} puan`
+  return `${amount} FARK`
+}
+
 // Ofiste tek tıkla paylaşılabilecek düz metin özeti — panoya kopyalanır.
 export function buildShareText(periodLabel, categorySummaries) {
   const lines = [`RE/MAX Lavanda — ${periodLabel}`, '']
