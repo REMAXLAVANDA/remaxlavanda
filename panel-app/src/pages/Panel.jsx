@@ -1069,38 +1069,44 @@ export default function Panel() {
             )}
           </Widget>
 
-          <Widget
-            icon={HeartPulse}
-            title="Danışman Sağlık Skoru"
-            description="360° skor — en iyi ve en dikkat gereken"
-            to="/takip"
-            linkLabel="Takip'e git"
-            className="md:col-span-2"
-          >
-            {!bestHealth ? (
-              <EmptyRow text="Henüz danışman yok." />
-            ) : (
-              <div className="space-y-1.5">
+        </div>
+      )}
+
+      {/* Danışman Sağlık Skoru: broker/owner'ın gördüğü büyük yönetim panosundan
+          (isBrokerOrOwner) AYRI tutuluyor — ofis de bu widget'ı görmeli ama
+          çağrı/fırsat/eğitim istatistiklerinin tamamını görmemeli. */}
+      {!loading && !error && (isBrokerOrOwner || role === ROLES.OFIS) && (
+        <Widget
+          icon={HeartPulse}
+          title="Danışman Sağlık Skoru"
+          description="360° skor — en iyi ve en dikkat gereken"
+          to="/takip"
+          linkLabel="Takip'e git"
+          className="mt-4"
+        >
+          {!bestHealth ? (
+            <EmptyRow text="Henüz danışman yok." />
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                <span className="shrink-0 text-lg">🏆</span>
+                <span className="min-w-0 flex-1 text-sm text-ink-700">{bestHealth.user.name}</span>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[bestHealth.status]}`}>
+                  {bestHealth.score} · {STATUS_LABELS[bestHealth.status]}
+                </span>
+              </div>
+              {worstHealth && (
                 <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
-                  <span className="shrink-0 text-lg">🏆</span>
-                  <span className="min-w-0 flex-1 text-sm text-ink-700">{bestHealth.user.name}</span>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[bestHealth.status]}`}>
-                    {bestHealth.score} · {STATUS_LABELS[bestHealth.status]}
+                  <span className="shrink-0 text-lg">⚠️</span>
+                  <span className="min-w-0 flex-1 text-sm text-ink-700">{worstHealth.user.name}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[worstHealth.status]}`}>
+                    {worstHealth.score} · {STATUS_LABELS[worstHealth.status]}
                   </span>
                 </div>
-                {worstHealth && (
-                  <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
-                    <span className="shrink-0 text-lg">⚠️</span>
-                    <span className="min-w-0 flex-1 text-sm text-ink-700">{worstHealth.user.name}</span>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[worstHealth.status]}`}>
-                      {worstHealth.score} · {STATUS_LABELS[worstHealth.status]}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </Widget>
-        </div>
+              )}
+            </div>
+          )}
+        </Widget>
       )}
     </div>
   )

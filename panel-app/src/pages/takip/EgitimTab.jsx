@@ -82,6 +82,15 @@ export default function EgitimTab() {
     () => checklistFor(checklistUserId, checklistTip, checklistItems, checklistStatus),
     [checklistUserId, checklistTip, checklistItems, checklistStatus],
   )
+  // Danışman Ayrılış checklist'ini hiç görmemeli (kendisiyle ilgisi yok,
+  // aktif çalışırken görmesi kafa karıştırıcı) — ve Süreç checklist'i de
+  // sadece EKSİĞİ varsa görsün, tamamlanmış bir listeyi göstermeye gerek
+  // yok (bkz. broker isteği: "sadece eksiği varsa göster").
+  const myBaslangicProgress = useMemo(
+    () => checklistProgress(user.id, 'baslangic', checklistItems, checklistStatus),
+    [user.id, checklistItems, checklistStatus],
+  )
+  const showChecklistSection = isManager || myBaslangicProgress.completed < myBaslangicProgress.total
 
   const teamRows = useMemo(() => {
     if (!isManager) return []
@@ -242,59 +251,65 @@ export default function EgitimTab() {
             <BadgeGrid badges={myBadges} />
           </section>
 
-          <section>
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-ink-900">Süreç / Ayrılış Checklist</h2>
-              <div className="flex items-center gap-2">
-                {isManager && (
-                  <select
-                    value={checklistUserId}
-                    onChange={(e) => setChecklistUserId(e.target.value)}
-                    className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
-                  >
-                    {teamMembers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <div className="flex gap-1">
-                  {CHECKLIST_TABS.map((t) => (
-                    <button
-                      key={t.key}
-                      onClick={() => setChecklistTip(t.key)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                        checklistTip === t.key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-                      }`}
+          {showChecklistSection && (
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-ink-900">
+                  {isManager ? 'Süreç / Ayrılış Checklist' : 'Süreç Checklist — Eksiklerin'}
+                </h2>
+                <div className="flex items-center gap-2">
+                  {isManager && (
+                    <select
+                      value={checklistUserId}
+                      onChange={(e) => setChecklistUserId(e.target.value)}
+                      className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
                     >
-                      {t.label}
+                      {teamMembers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {isManager && (
+                    <div className="flex gap-1">
+                      {CHECKLIST_TABS.map((t) => (
+                        <button
+                          key={t.key}
+                          onClick={() => setChecklistTip(t.key)}
+                          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                            checklistTip === t.key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {isManager && (
+                    <button
+                      onClick={() => setShowAddItemModal(true)}
+                      className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+                    >
+                      <Plus size={14} /> Madde Ekle
                     </button>
-                  ))}
+                  )}
                 </div>
-                {isManager && (
-                  <button
-                    onClick={() => setShowAddItemModal(true)}
-                    className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
-                  >
-                    <Plus size={14} /> Madde Ekle
-                  </button>
-                )}
               </div>
-            </div>
-            {!isManager && (
-              <p className="mb-2 text-xs text-ink-400">
-                Bu liste yönetim tarafından işaretlenir, kendin değiştiremezsin.
-              </p>
-            )}
-            <ChecklistPanel
-              entries={checklistEntries}
-              isManager={isManager}
-              onToggle={toggleChecklistItem}
-              onMove={isManager ? moveChecklistItem : undefined}
-              resolveName={userName}
-            />
-          </section>
+              {!isManager && (
+                <p className="mb-2 text-xs text-ink-400">
+                  Bu liste yönetim tarafından işaretlenir, kendin değiştiremezsin.
+                </p>
+              )}
+              <ChecklistPanel
+                entries={checklistEntries}
+                isManager={isManager}
+                onToggle={toggleChecklistItem}
+                onMove={isManager ? moveChecklistItem : undefined}
+                resolveName={userName}
+              />
+            </section>
+          )}
 
           {isManager && (
             <section>
