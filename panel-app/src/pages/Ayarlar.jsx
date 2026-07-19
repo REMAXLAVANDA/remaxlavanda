@@ -15,9 +15,11 @@ import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
+import EditUserModal from '../components/settings/EditUserModal'
 import CategoryManager from '../components/settings/CategoryManager'
 import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const TABS = [
@@ -39,6 +41,10 @@ export default function Ayarlar() {
     () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
     [canManage],
   )
+  const { data: privateInfoList, setData: setPrivateInfoList } = useAsyncList(
+    () => (canManage ? usersProvider.listAllPrivateInfo() : Promise.resolve([])),
+    [canManage],
+  )
   const {
     data: docCategories,
     setData: setDocCategories,
@@ -54,6 +60,9 @@ export default function Ayarlar() {
   } = useAsyncList(() => (canManage && tab === 'log' ? auditLogProvider.list() : Promise.resolve([])), [canManage, tab])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   async function handleChangeRole(id, role) {
     try {
@@ -111,6 +120,41 @@ export default function Ayarlar() {
       showToast(err.message ?? 'Kullanıcı oluşturulamadı, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleEditUser(patch) {
+    if (!editingUser) return
+    setSubmitting(true)
+    try {
+      await usersProvider.updateUser(editingUser.id, { name: patch.ad })
+      setAllUsers((prev) => prev.map((u) => (u.id === editingUser.id ? { ...u, name: patch.ad } : u)))
+      await usersProvider.upsertPrivateInfo(editingUser.id, { dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo })
+      setPrivateInfoList((prev) => [
+        ...(prev ?? []).filter((p) => p.userId !== editingUser.id),
+        { userId: editingUser.id, dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo },
+      ])
+      setEditingUser(null)
+      showToast('Kullanıcı güncellendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleDeleteUser() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await usersProvider.deleteUser(deleteTarget.id)
+      setAllUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
+      setDeleteTarget(null)
+      showToast('Kullanıcı silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Kullanıcı silinemedi, tekrar dene.', 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -227,6 +271,8 @@ export default function Ayarlar() {
               canManage={canManage}
               onChangeRole={handleChangeRole}
               onToggleDurum={handleToggleDurum}
+              onEdit={setEditingUser}
+              onDeleteRequest={setDeleteTarget}
             />
           )}
         </>
@@ -268,6 +314,28 @@ export default function Ayarlar() {
 
       {showCreateModal && (
         <CreateUserModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateUser} submitting={submitting} />
+      )}
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          privateInfo={(privateInfoList ?? []).find((p) => p.userId === editingUser.id)}
+          onClose={() => setEditingUser(null)}
+          onSubmit={handleEditUser}
+          submitting={submitting}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Kullanıcıyı sil"
+          message={`${deleteTarget.name} kalıcı olarak silinecek — hesabı, TC no/doğum tarihi kaydı VE bu kullanıcıya bağlı tüm geçmiş (ciro müşterileri, katılım kayıtları, skor girişleri) birlikte silinir. Bu işlem geri alınamaz. Ayrılan bir danışman için "Pasif" yapmak daha güvenli bir alternatif.`}
+          confirmLabel="Kalıcı Olarak Sil"
+          tone="danger"
+          onConfirm={handleDeleteUser}
+          onCancel={() => setDeleteTarget(null)}
+          confirming={deleting}
+        />
       )}
     </div>
   )

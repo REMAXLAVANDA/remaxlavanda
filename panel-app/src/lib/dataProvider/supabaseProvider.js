@@ -848,6 +848,22 @@ export const users = {
         .upsert({ user_id: userId, dogum_tarihi: dogumTarihi ?? null, tc_no: tcNo ?? null }),
     )
   },
+  // Ayarlar > Kullanıcılar'da Düzenle formunu mevcut değerlerle doldurmak
+  // için — tek tek değil, hepsini bir kerede çekip client'ta userId'ye göre
+  // eşleştiriyoruz (aynı RLS: broker/owner/ofis herkesinkini görebilir).
+  async listAllPrivateInfo() {
+    const data = await run(client().from('user_private_info').select('*'))
+    return data.map((r) => ({ userId: r.user_id, dogumTarihi: r.dogum_tarihi, tcNo: r.tc_no }))
+  },
+  // Gerçek auth hesabını silmek service_role gerektirir — delete-user Edge
+  // Function'ı üzerinden gidiyor (create-user ile aynı kalıp). Fonksiyon
+  // henüz deploy edilmediyse (supabase functions deploy delete-user) bu
+  // çağrı hata fırlatır — kasıtlı, sessizce "silinmiş gibi" davranmıyoruz.
+  async deleteUser(id) {
+    const { data, error } = await client().functions.invoke('delete-user', { body: { id } })
+    if (error) throw new Error('Kullanıcı silinemedi — delete-user fonksiyonu deploy edilmemiş olabilir.')
+    if (!data?.ok) throw new Error(data?.error ?? 'Kullanıcı silinemedi.')
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------

@@ -568,6 +568,17 @@ export const users = {
     MOCK_PRIVATE_INFO[userId] = { dogumTarihi: dogumTarihi ?? null, tcNo: tcNo ?? null }
     return delay({ userId, ...MOCK_PRIVATE_INFO[userId] })
   },
+  async listAllPrivateInfo() {
+    return delay(Object.entries(MOCK_PRIVATE_INFO).map(([userId, v]) => ({ userId, ...v })))
+  },
+  async deleteUser(id) {
+    const idx = MOCK_EXTRA_USERS.findIndex((u) => u.id === id)
+    if (idx !== -1) {
+      MOCK_EXTRA_USERS.splice(idx, 1)
+      return delay(null)
+    }
+    throw new Error('Mock modda sadece bu oturumda eklenen kullanıcılar silinebilir (dev sabit hesapları silinemez).')
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------
