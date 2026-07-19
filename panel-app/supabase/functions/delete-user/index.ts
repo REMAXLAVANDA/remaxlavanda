@@ -5,8 +5,9 @@
 // service_role gerektirir (create-user ile aynı kalıp). DİKKAT: auth.users
 // silinince public.users (ve ona "on delete cascade" ile bağlı ciro_
 // musterileri, event_attendance, score_entries, user_private_info vb.
-// TÜM geçmiş) de silinir — geri alınamaz. Bu yüzden broker kendi kendini
-// silemez (yanlışlıkla kilitlenmesin diye).
+// TÜM geçmiş) de silinir — geri alınamaz. Fırsatlar (opportunities) ayrıca,
+// aşağıda elle temizleniyor (bkz. handler içi not). Bu yüzden broker kendi
+// kendini silemez (yanlışlıkla kilitlenmesin diye).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SB_URL = Deno.env.get('SUPABASE_URL') ?? ''
@@ -56,6 +57,23 @@ Deno.serve(async (req) => {
   }
   if (id === callerAuth.user.id) {
     return Response.json({ ok: false, error: 'Kendi hesabını silemezsin.' }, { status: 400, headers: CORS })
+  }
+
+  // opportunities.owner_id/claimer_id "on delete no action" (bilerek —
+  // diğer tablolardan farklı olarak fırsat geçmişi normalde korunur), bu
+  // yüzden auth.users silinmeden ÖNCE bu danışmanın girdiği/üzerine aldığı
+  // TÜM fırsatları (açık + kapanmış/iptal, broker onaylı: "hepsi silinsin")
+  // biz temizliyoruz — yoksa FK ihlaliyle kullanıcı silme tamamen başarısız
+  // olurdu. call_logs.opportunity_id de aynı sebeple önce null'lanıyor
+  // (arama kaydı kalsın, sadece fırsat bağlantısı kopsun).
+  const { data: ownedOpps } = await admin
+    .from('opportunities')
+    .select('id')
+    .or(`owner_id.eq.${id},claimer_id.eq.${id}`)
+  const oppIds = (ownedOpps ?? []).map((o) => o.id)
+  if (oppIds.length > 0) {
+    await admin.from('call_logs').update({ opportunity_id: null }).in('opportunity_id', oppIds)
+    await admin.from('opportunities').delete().in('id', oppIds)
   }
 
   const { error: deleteErr } = await admin.auth.admin.deleteUser(id)

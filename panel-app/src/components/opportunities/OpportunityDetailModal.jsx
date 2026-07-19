@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Lock, MapPin, Pencil, Phone, Trash2, User, Users } from 'lucide-react'
+import { CheckCircle2, Lock, MapPin, Pencil, Phone, Trash2, User, Users, XCircle } from 'lucide-react'
 import Modal from '../common/Modal'
 import { useToast } from '../../context/ToastContext'
 import { categoryLabel } from '../../lib/categories'
@@ -33,13 +33,16 @@ export default function OpportunityDetailModal({
   alreadyInterested,
   canDelete,
   canEdit,
+  canClose,
   fetchContact,
   fetchInterestList,
   onClose,
   onExpressInterest,
   onDeleteRequest,
   onEditRequest,
+  onCloseRequest,
   expressing,
+  closing,
 }) {
   const { showToast } = useToast()
   const [contact, setContact] = useState(null)
@@ -213,6 +216,30 @@ export default function OpportunityDetailModal({
           >
             {expressing ? 'Gönderiliyor...' : 'İlgileniyorum'}
           </button>
+        </div>
+      )}
+
+      {canClose && (
+        <div className="mt-5 rounded-xl border border-ink-100 bg-ink-50/60 p-4">
+          <p className="mb-2 text-xs font-medium text-ink-500">
+            Bu fırsattan müşteri bulundu mu? Havuzun ne kadar işe yaradığını görebilmemiz için gerçek sonucu işaretle.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => onCloseRequest('kapandi')}
+              disabled={closing}
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            >
+              <CheckCircle2 size={14} /> Müşteri Bulundu
+            </button>
+            <button
+              onClick={() => onCloseRequest('iptal')}
+              disabled={closing}
+              className="flex items-center gap-1.5 rounded-lg bg-ink-200 px-3 py-2 text-xs font-medium text-ink-700 hover:bg-ink-300 disabled:opacity-50"
+            >
+              <XCircle size={14} /> Müşteri Bulunamadı
+            </button>
+          </div>
         </div>
       )}
     </Modal>

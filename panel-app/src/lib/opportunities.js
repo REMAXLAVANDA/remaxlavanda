@@ -61,6 +61,18 @@ export function canEditOpportunity(opp, user) {
   return opp.ownerId === user.id
 }
 
+// Fırsatı "Kapandı" (müşteri bulundu) / "İptal" (bulunamadı) yapma —
+// close_opportunity() RPC'siyle birebir aynı kural: broker/owner her
+// fırsatı kapatabilir; danışman SADECE üzerine aldığı (claimer) fırsatı
+// kapatabilir — sahipsiz (claimer_id null) havuz kayıtlarını sadece
+// yönetim kapatır. Zaten kapanmış/iptal olmuş bir kayıt tekrar kapatılamaz.
+export function canCloseOpportunity(opp, user) {
+  if (!user) return false
+  if (opp.status === 'kapandi' || opp.status === 'iptal') return false
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
+  return opp.claimerId === user.id
+}
+
 export function formatPrice(amount) {
   if (amount == null) return '—'
   return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(

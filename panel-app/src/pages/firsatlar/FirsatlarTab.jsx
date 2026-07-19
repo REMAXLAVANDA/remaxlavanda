@@ -6,6 +6,7 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { opportunities as opportunitiesProvider } from '../../lib/dataProvider'
 import {
+  canCloseOpportunity,
   canDeleteOpportunity,
   canEditOpportunity,
   canViewOpportunity,
@@ -47,6 +48,7 @@ export default function FirsatlarTab() {
   const [deleting, setDeleting] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
   const [editingSubmitting, setEditingSubmitting] = useState(false)
+  const [closingId, setClosingId] = useState(null)
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
@@ -163,6 +165,20 @@ export default function FirsatlarTab() {
     }
   }
 
+  async function performClose(id, status) {
+    setClosingId(id)
+    try {
+      const updated = await opportunitiesProvider.close(id, status)
+      setOpportunities((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)))
+      setDetailOpp(null)
+      showToast(status === 'kapandi' ? 'Fırsat kapandı — müşteri bulundu.' : 'Fırsat iptal edildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Fırsat kapatılamadı, tekrar dene.', 'error')
+    } finally {
+      setClosingId(null)
+    }
+  }
+
   const canCreate = CAN_CREATE_ROLES.includes(role)
   const canDelete = canDeleteOpportunity(role)
   const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
@@ -250,13 +266,16 @@ export default function FirsatlarTab() {
           alreadyInterested={interestedIds.has(detailOpp.id)}
           canDelete={canDelete}
           canEdit={canEditOpportunity(detailOpp, user)}
+          canClose={canCloseOpportunity(detailOpp, user)}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
           onExpressInterest={() => setInterestTargetId(detailOpp.id)}
           onDeleteRequest={() => setDeleteTargetId(detailOpp.id)}
           onEditRequest={(contact) => setEditTarget({ opp: detailOpp, contact })}
+          onCloseRequest={(status) => performClose(detailOpp.id, status)}
           expressing={expressingId === detailOpp.id}
+          closing={closingId === detailOpp.id}
         />
       )}
 

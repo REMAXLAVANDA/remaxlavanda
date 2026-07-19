@@ -73,6 +73,18 @@ export const opportunities = {
     const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
     return delay(publicRow)
   },
+  // supabaseProvider.close() ile birebir aynı davranış — yetki kontrolü
+  // (canCloseOpportunity) UI tarafında zaten yapıldığı için burada tekrar
+  // edilmiyor (update() ile aynı yaklaşım, bkz. yukarısı).
+  async close(id, status) {
+    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
+    if (!row) throw new Error('Fırsat bulunamadı.')
+    if (row.status === 'kapandi' || row.status === 'iptal') throw new Error('Bu fırsat zaten kapatılmış.')
+    row.status = status
+    row.closedAt = new Date().toISOString()
+    row.closedBy = 'mock-current-user'
+    return delay({ id: row.id, status: row.status, closedAt: row.closedAt, closedBy: row.closedBy })
+  },
   // "İlgileniyorum" artık exclusive claim değil — müşteri bilgisini AÇMAZ,
   // sadece kim ilgilendiğini kaydeder (fırsatı giren kişi bunu görüp arar).
   async expressInterest(opportunityId, userId) {

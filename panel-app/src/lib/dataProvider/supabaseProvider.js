@@ -103,6 +103,17 @@ export const opportunities = {
     )
     return mapOpportunity(data)
   },
+  // close_opportunity() RPC'si — durum değişikliğini SECURITY DEFINER
+  // içinde kontrol eder (broker/owner ya da claimer). RPC ham
+  // public.opportunities satırı döner (categories join'i YOK), bu yüzden
+  // sadece gerçekten değişen alanları (status/closedAt/closedBy) döndürüp
+  // çağıran tarafta mevcut satıra spread ile birleştiriyoruz — category
+  // gibi diğer alanları yanlışlıkla ham uuid'yle ezmemek için.
+  async close(id, status) {
+    const data = await run(client().rpc('close_opportunity', { p_opportunity_id: id, p_status: status }))
+    const row = Array.isArray(data) ? data[0] : data
+    return { id: row.id, status: row.status, closedAt: row.closed_at, closedBy: row.closed_by }
+  },
   // "İlgileniyorum" artık exclusive claim değil — opportunity_interest'e
   // kayıt ekler, müşteri bilgisini AÇMAZ. Fırsatı giren kişi kimin
   // ilgilendiğini görüp kendisi arar (bkz. listInterest).
