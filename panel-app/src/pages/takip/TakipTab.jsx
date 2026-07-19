@@ -23,17 +23,22 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // gerçek verilerden (son giriş zamanı, ciro_musterileri) hesaplanıyor —
 // bkz. lib/takip.js.
 async function loadAll() {
-  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes] = await Promise.all([
-    educationProvider.listModules(),
-    educationProvider.listProgress(),
-    calendarProvider.list(),
-    calendarProvider.listAttendance(),
-    callLogsProvider.list(),
-    usersProvider.listActivity(),
-    leagueProvider.listCiroMusterileri(),
-    takipProvider.listBrokerNotes(),
-  ])
-  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes }
+  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods] =
+    await Promise.all([
+      educationProvider.listModules(),
+      educationProvider.listProgress(),
+      calendarProvider.list(),
+      calendarProvider.listAttendance(),
+      callLogsProvider.list(),
+      usersProvider.listActivity(),
+      leagueProvider.listCiroMusterileri(),
+      takipProvider.listBrokerNotes(),
+      usersProvider.listAll(),
+      leagueProvider.listCiroGirisleri(),
+      leagueProvider.listScores(),
+      leagueProvider.listPeriods(),
+    ])
+  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods }
 }
 
 export default function TakipTab() {

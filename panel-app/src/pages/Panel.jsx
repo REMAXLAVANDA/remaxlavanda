@@ -53,22 +53,53 @@ const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
 
 async function loadAll() {
-  const [calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity, ciroMusterileri] =
-    await Promise.all([
-      callLogsProvider.list(),
-      opportunitiesProvider.list(),
-      calendarProvider.list(),
-      calendarProvider.listAttendance(),
-      educationProvider.listModules(),
-      educationProvider.listProgress(),
-      educationProvider.listChecklistItems(),
-      educationProvider.listChecklistStatus(),
-      leagueProvider.listPeriods(),
-      leagueProvider.listScores(),
-      usersProvider.listActivity(),
-      leagueProvider.listCiroMusterileri(),
-    ])
-  return { calls, opps, events, attendance, modules, progress, checklistItems, checklistStatus, periods, scores, activity, ciroMusterileri }
+  const [
+    calls,
+    opps,
+    events,
+    attendance,
+    modules,
+    progress,
+    checklistItems,
+    checklistStatus,
+    periods,
+    scores,
+    activity,
+    ciroMusterileri,
+    users,
+    ciroGirisleri,
+  ] = await Promise.all([
+    callLogsProvider.list(),
+    opportunitiesProvider.list(),
+    calendarProvider.list(),
+    calendarProvider.listAttendance(),
+    educationProvider.listModules(),
+    educationProvider.listProgress(),
+    educationProvider.listChecklistItems(),
+    educationProvider.listChecklistStatus(),
+    leagueProvider.listPeriods(),
+    leagueProvider.listScores(),
+    usersProvider.listActivity(),
+    leagueProvider.listCiroMusterileri(),
+    usersProvider.listAll(),
+    leagueProvider.listCiroGirisleri(),
+  ])
+  return {
+    calls,
+    opps,
+    events,
+    attendance,
+    modules,
+    progress,
+    checklistItems,
+    checklistStatus,
+    periods,
+    scores,
+    activity,
+    ciroMusterileri,
+    users,
+    ciroGirisleri,
+  }
 }
 
 function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', children }) {
