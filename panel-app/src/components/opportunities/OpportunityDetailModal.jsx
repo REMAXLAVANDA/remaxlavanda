@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Lock, MapPin, Pencil, Phone, Trash2, User, Users } from 'lucide-react'
 import Modal from '../common/Modal'
+import { useToast } from '../../context/ToastContext'
 import { categoryLabel } from '../../lib/categories'
 import {
   OPPORTUNITY_STATUS_LABELS,
@@ -40,6 +41,7 @@ export default function OpportunityDetailModal({
   onEditRequest,
   expressing,
 }) {
+  const { showToast } = useToast()
   const [contact, setContact] = useState(null)
   const [loadingContact, setLoadingContact] = useState(true)
   const [interestList, setInterestList] = useState(null)
@@ -60,7 +62,13 @@ export default function OpportunityDetailModal({
         if (!cancelled) setContact(result)
       })
       .catch(() => {
-        if (!cancelled) setContact({ leadAd: null, leadTelefon: null })
+        // Yetkisiz erişimde sunucu zaten null/boş döner (bkz. yukarıdaki
+        // GÜVENLİK NOTU) — burası GERÇEK bir hata (ağ/RLS sorunu). Sessizce
+        // "bilgi yok" göstermek yanıltıcı olabileceği için ayrıca uyarıyoruz.
+        if (!cancelled) {
+          setContact({ leadAd: null, leadTelefon: null })
+          showToast('İletişim bilgisi yüklenemedi, tekrar dene.', 'error')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoadingContact(false)
@@ -81,7 +89,12 @@ export default function OpportunityDetailModal({
         if (!cancelled) setInterestList(rows)
       })
       .catch(() => {
-        if (!cancelled) setInterestList([])
+        // Boş listeyle "kimse ilgilenmemiş" izlenimi vermemek için — bu
+        // gerçek bir yükleme hatası, veri eksikliği değil.
+        if (!cancelled) {
+          setInterestList([])
+          showToast('İlgilenen listesi yüklenemedi, tekrar dene.', 'error')
+        }
       })
 
     return () => {
