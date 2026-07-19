@@ -3,8 +3,9 @@ import { Users, Shield, Tag, ScrollText, Plus, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { users as usersProvider, categories as categoriesProvider } from '../lib/dataProvider'
+import { users as usersProvider, categories as categoriesProvider, calendarEvents as calendarProvider } from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
+import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import ModulePlaceholder from '../components/common/ModulePlaceholder'
 import UsersTable from '../components/settings/UsersTable'
@@ -20,7 +21,7 @@ const TABS = [
 ]
 
 export default function Ayarlar() {
-  const { role } = useAuth()
+  const { role, user } = useAuth()
   const { showToast } = useToast()
   const [tab, setTab] = useState(TABS[0].key)
   const active = TABS.find((t) => t.key === tab)
@@ -72,6 +73,24 @@ export default function Ayarlar() {
           await usersProvider.upsertPrivateInfo(created.id, { dogumTarihi: form.dogumTarihi || null, tcNo: form.tcNo || null })
         } catch {
           showToast('Kullanıcı oluşturuldu ama doğum tarihi/TC no kaydedilemedi.', 'error')
+        }
+      }
+      if (form.dogumTarihi) {
+        try {
+          await calendarProvider.create(
+            {
+              type: 'etkinlik',
+              title: `🎂 ${created.name} — Doğum Günü`,
+              date: nextBirthdayDate(form.dogumTarihi),
+              startTime: '09:00',
+              endTime: '',
+              inviteeIds: [created.id],
+            },
+            user.id,
+          )
+        } catch {
+          // İkincil bir aksiyon — takvime eklenemese de kullanıcı oluşturma
+          // akışını bloke etmiyoruz, sessizce vazgeçiyoruz.
         }
       }
     } catch (err) {

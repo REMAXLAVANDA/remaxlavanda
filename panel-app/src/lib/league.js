@@ -73,8 +73,11 @@ export function latestUpdate(scores) {
   return dates.reduce((max, d) => (d > max ? d : max))
 }
 
+// diff===0 lider dışı bir sırada da mümkün (Wilson skoru yuvarlanınca iki
+// kişi eşitlenebilir) — eskiden bu durumda hiçbir şey basılmıyordu (boş
+// görünüyordu, "bir şey takılmış" gibi algılanıyordu), artık "Eşit" yazıyor.
 export function formatDiff(diff, unit) {
-  if (diff === 0) return null
+  if (diff === 0) return 'Eşit'
   if (unit === 'tl') return `-${diff.toLocaleString('tr-TR')} TL`
   return `-${diff} puan`
 }

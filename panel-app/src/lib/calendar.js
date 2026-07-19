@@ -83,3 +83,16 @@ export function formatEventTime(iso) {
 export function isPastEvent(event) {
   return new Date(event.endAt ?? event.startAt).getTime() < Date.now()
 }
+
+// Bir doğum tarihinden (YYYY-MM-DD), bugünden itibaren gelecek İLK yıl
+// dönümünü "YYYY-MM-DD" olarak döner — danışman kaydedilirken Takvim'e
+// otomatik doğum günü etkinliği eklenirken kullanılır (bkz. Ayarlar.jsx).
+export function nextBirthdayDate(dogumTarihi) {
+  const birth = new Date(dogumTarihi)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  let next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate())
+  if (next < today) next = new Date(today.getFullYear() + 1, birth.getMonth(), birth.getDate())
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`
+}
