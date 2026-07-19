@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
-import { capitalizeWords, formatThousands } from '../../lib/format'
+import { capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 
 const EMPTY_FORM = {
   type: 'satici',
@@ -29,9 +29,12 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
   const [form, setForm] = useState(EMPTY_FORM)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
-  const canSubmit = form.leadAd.trim().length > 0 && form.konum.trim().length > 0
   const isAlici = form.type === 'alici'
   const isKonut = form.category === 'konut'
+  const minVal = parseThousands(form.fiyatMin)
+  const maxVal = parseThousands(form.fiyatMax)
+  const budgetRangeInvalid = isAlici && minVal !== null && maxVal !== null && minVal > maxVal
+  const canSubmit = form.leadAd.trim().length > 0 && form.konum.trim().length > 0 && !budgetRangeInvalid
 
   return (
     <Modal title="Yeni Fırsat" onClose={onClose}>
@@ -107,21 +110,24 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         />
 
         {isAlici ? (
-          <div className="flex gap-2">
-            <input
-              inputMode="numeric"
-              value={form.fiyatMin}
-              onChange={(e) => set({ fiyatMin: formatThousands(e.target.value) })}
-              placeholder="Bütçe min (₺)"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-            <input
-              inputMode="numeric"
-              value={form.fiyatMax}
-              onChange={(e) => set({ fiyatMax: formatThousands(e.target.value) })}
-              placeholder="Bütçe max (₺)"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
+          <div>
+            <div className="flex gap-2">
+              <input
+                inputMode="numeric"
+                value={form.fiyatMin}
+                onChange={(e) => set({ fiyatMin: formatThousands(e.target.value) })}
+                placeholder="Bütçe min (₺)"
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              />
+              <input
+                inputMode="numeric"
+                value={form.fiyatMax}
+                onChange={(e) => set({ fiyatMax: formatThousands(e.target.value) })}
+                placeholder="Bütçe max (₺)"
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              />
+            </div>
+            {budgetRangeInvalid && <p className="mt-1 text-xs text-red-600">Bütçe min, max'tan büyük olamaz.</p>}
           </div>
         ) : (
           <input

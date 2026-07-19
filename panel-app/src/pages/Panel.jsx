@@ -225,7 +225,7 @@ function AttentionRow({ icon: Icon, text, to }) {
 // mahalle ve oda sayısı/m² gibi detaylar çok daha anlamlı.
 function OpportunityMiniRow({ o }) {
   const priceLabel =
-    o.type === 'alici' && (o.fiyatMin || o.fiyatMax)
+    o.type === 'alici' && (o.fiyatMin != null || o.fiyatMax != null)
       ? `${formatPrice(o.fiyatMin)} – ${formatPrice(o.fiyatMax)}`
       : formatPrice(o.fiyat)
   const detailBits = [o.odaSayisi, o.m2 ? `${o.m2} m²` : null].filter(Boolean)

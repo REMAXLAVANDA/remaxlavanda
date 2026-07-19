@@ -24,7 +24,7 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
   // number input'lar Türkçe binlik ayracını (nokta) geçersiz sayıp değeri
   // sessizce boşaltıyor, bu da Kaydet'i hiç açılmayan gri bir düğmeye
   // çeviriyordu.
-  const canSubmit = form.userId && parsedValue !== null && form.tarih
+  const canSubmit = form.userId && parsedValue !== null && parsedValue > 0 && form.tarih
 
   function addName() {
     const trimmed = nameDraft.trim()
