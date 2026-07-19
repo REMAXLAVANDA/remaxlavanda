@@ -591,6 +591,11 @@ export const users = {
     }
     throw new Error('Mock modda sadece bu oturumda eklenen kullanıcılar silinebilir (dev sabit hesapları silinemez).')
   },
+  // Mock modda gerçek auth yok — sadece akışın hata vermeden çalıştığını
+  // doğrulamak için no-op.
+  async resetPassword(_id, _password) {
+    return delay(null)
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------

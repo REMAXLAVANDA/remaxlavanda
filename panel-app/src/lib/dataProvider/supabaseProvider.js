@@ -875,6 +875,14 @@ export const users = {
     if (error) throw new Error('Kullanıcı silinemedi — delete-user fonksiyonu deploy edilmemiş olabilir.')
     if (!data?.ok) throw new Error(data?.error ?? 'Kullanıcı silinemedi.')
   },
+  // Unutulan şifre için broker/owner yeni bir geçici şifre atar —
+  // reset-user-password Edge Function'ı üzerinden (service_role gerektirir).
+  // must_change_password otomatik true olur (bkz. fonksiyon içi).
+  async resetPassword(id, password) {
+    const { data, error } = await client().functions.invoke('reset-user-password', { body: { id, password } })
+    if (error) throw new Error('Şifre sıfırlanamadı — reset-user-password fonksiyonu deploy edilmemiş olabilir.')
+    if (!data?.ok) throw new Error(data?.error ?? 'Şifre sıfırlanamadı.')
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------

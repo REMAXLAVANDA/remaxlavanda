@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
   // 5) public.users profilini oluştur.
   const { data: profile, error: profileInsertErr } = await admin
     .from('users')
-    .insert({ id: created.user.id, ad, email, rol, durum: 'aktif' })
+    .insert({ id: created.user.id, ad, email, rol, durum: 'aktif', must_change_password: true })
     .select()
     .single()
   if (profileInsertErr) {

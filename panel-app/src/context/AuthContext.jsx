@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ROLES } from '../lib/roles'
 import { USE_SUPABASE } from '../lib/env'
 import { getSupabaseClient } from '../lib/supabaseClient'
@@ -59,7 +59,7 @@ function RealAuthProvider({ children }) {
     const client = getSupabaseClient()
     const { data, error: profileError } = await client
       .from('users')
-      .select('id, ad, email, rol, durum')
+      .select('id, ad, email, rol, durum, must_change_password')
       .eq('id', userId)
       .single()
 
@@ -74,7 +74,7 @@ function RealAuthProvider({ children }) {
       throw new Error('Hesabın pasif durumda. Erişim için ofis yöneticinle iletişime geç.')
     }
 
-    return { id: data.id, name: data.ad, email: data.email, role: data.rol }
+    return { id: data.id, name: data.ad, email: data.email, role: data.rol, mustChangePassword: data.must_change_password }
   }
 
   // Girişten hemen sonra (özellikle sign-in akışında) auth.uid() bağlamının
@@ -160,6 +160,19 @@ function RealAuthProvider({ children }) {
     setSession(null)
   }
 
+  // İlk giriş / şifre sıfırlama sonrası zorunlu şifre değiştirme akışı
+  // (bkz. ProtectedRoute + ForceChangePasswordScreen) tamamlanınca çağrılır
+  // — auth.updateUser({password}) zaten çağrıldıktan SONRA burası sadece
+  // profildeki must_change_password bayrağını kapatır (kendi satırı,
+  // users_update_self_or_broker RLS'i buna izin veriyor).
+  const markPasswordChanged = useCallback(async () => {
+    const client = getSupabaseClient()
+    if (!profile) return
+    const { error: updateErr } = await client.from('users').update({ must_change_password: false }).eq('id', profile.id)
+    if (updateErr) throw mapSupabaseError(updateErr)
+    setProfile((prev) => (prev ? { ...prev, mustChangePassword: false } : prev))
+  }, [profile])
+
   const value = useMemo(
     () => ({
       user: profile,
@@ -170,8 +183,9 @@ function RealAuthProvider({ children }) {
       isMock: false,
       signIn,
       signOut,
+      markPasswordChanged,
     }),
-    [profile, session, loading, error],
+    [profile, session, loading, error, markPasswordChanged],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

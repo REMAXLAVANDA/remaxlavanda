@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { KeyRound, Pencil, Trash2 } from 'lucide-react'
 import { ROLES, ROLE_LABELS } from '../../lib/roles'
 import { relativeTime } from '../../lib/format'
 
@@ -17,7 +17,7 @@ function sortRows(rows, sortKey) {
   return list.sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 }
 
-export default function UsersTable({ rows, canManage, onChangeRole, onToggleDurum, onEdit, onDeleteRequest }) {
+export default function UsersTable({ rows, canManage, onChangeRole, onToggleDurum, onEdit, onDeleteRequest, onResetPasswordRequest }) {
   const [sortKey, setSortKey] = useState('ad')
   const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
 
@@ -89,6 +89,13 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
                     className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
                   >
                     <Pencil size={15} />
+                  </button>
+                  <button
+                    onClick={() => onResetPasswordRequest(u)}
+                    title="Şifre Sıfırla"
+                    className="rounded-lg p-1.5 text-ink-400 hover:bg-amber-50 hover:text-amber-600"
+                  >
+                    <KeyRound size={15} />
                   </button>
                   <button
                     onClick={() => onDeleteRequest(u)}

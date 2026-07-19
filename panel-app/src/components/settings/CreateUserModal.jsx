@@ -2,19 +2,16 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { ROLES, ROLE_LABELS } from '../../lib/roles'
 import { capitalizeWords } from '../../lib/format'
+import { generateSecurePassword } from '../../lib/password'
 
 const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
 const TC_NO_PATTERN = /^\d{11}$/
-
-function randomPassword() {
-  return Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-2).toUpperCase()
-}
 
 export default function CreateUserModal({ onClose, onSubmit, submitting }) {
   const [form, setForm] = useState({
     ad: '',
     email: '',
-    password: randomPassword(),
+    password: generateSecurePassword(),
     rol: ROLES.DANISMAN,
     dogumTarihi: '',
     tcNo: '',
@@ -94,7 +91,7 @@ export default function CreateUserModal({ onClose, onSubmit, submitting }) {
             />
             <button
               type="button"
-              onClick={() => set({ password: randomPassword() })}
+              onClick={() => set({ password: generateSecurePassword() })}
               className="shrink-0 rounded-lg bg-ink-50 px-3 py-2 text-xs font-medium text-ink-600 hover:bg-ink-100"
             >
               Yeniden Üret

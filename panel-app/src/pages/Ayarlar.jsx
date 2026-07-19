@@ -16,6 +16,7 @@ import { slugify } from '../lib/categories'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import EditUserModal from '../components/settings/EditUserModal'
+import ResetPasswordModal from '../components/settings/ResetPasswordModal'
 import CategoryManager from '../components/settings/CategoryManager'
 import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
@@ -63,6 +64,8 @@ export default function Ayarlar() {
   const [editingUser, setEditingUser] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [resetTarget, setResetTarget] = useState(null)
+  const [resetting, setResetting] = useState(false)
 
   async function handleChangeRole(id, role) {
     try {
@@ -155,6 +158,20 @@ export default function Ayarlar() {
       showToast(err.message ?? 'Kullanıcı silinemedi, tekrar dene.', 'error')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  async function handleResetPassword(password) {
+    if (!resetTarget) return
+    setResetting(true)
+    try {
+      await usersProvider.resetPassword(resetTarget.id, password)
+      showToast('Şifre sıfırlandı — yeni şifreyi kullanıcıya ilet, ilk girişte değiştirmesi zorunlu.', 'success')
+      setResetTarget(null)
+    } catch (err) {
+      showToast(err.message ?? 'Şifre sıfırlanamadı, tekrar dene.', 'error')
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -273,6 +290,7 @@ export default function Ayarlar() {
               onToggleDurum={handleToggleDurum}
               onEdit={setEditingUser}
               onDeleteRequest={setDeleteTarget}
+              onResetPasswordRequest={setResetTarget}
             />
           )}
         </>
@@ -323,6 +341,15 @@ export default function Ayarlar() {
           onClose={() => setEditingUser(null)}
           onSubmit={handleEditUser}
           submitting={submitting}
+        />
+      )}
+
+      {resetTarget && (
+        <ResetPasswordModal
+          user={resetTarget}
+          onClose={() => setResetTarget(null)}
+          onSubmit={handleResetPassword}
+          submitting={resetting}
         />
       )}
 
