@@ -13,9 +13,7 @@ export default function Sidebar({ open, onNavigate }) {
         ${open ? 'translate-x-0' : '-translate-x-full'}`}
     >
       <div className="flex h-16 items-center gap-2 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-semibold text-white">
-          RL
-        </div>
+        <img src="/panel/remax-balloon.png" alt="RE/MAX Lavanda" className="h-9 w-9 shrink-0 object-contain" />
         <div className="leading-tight">
           <p className="text-sm font-semibold text-ink-900">RE/MAX Lavanda</p>
           <p className="text-xs text-ink-400">Portal</p>

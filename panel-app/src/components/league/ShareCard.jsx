@@ -36,9 +36,7 @@ const ShareCard = forwardRef(function ShareCard({ category, rankings, periodLabe
       <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-black/10 blur-2xl" />
 
       <div className="relative flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-bold text-brand-700">
-          RL
-        </div>
+        <img src="/panel/remax-balloon.png" alt="RE/MAX Lavanda" className="h-9 w-9 shrink-0 object-contain" />
         <div>
           <p className="text-sm font-semibold leading-tight">RE/MAX Lavanda</p>
           <p className="text-[11px] leading-tight text-white/70">{periodLabel}</p>

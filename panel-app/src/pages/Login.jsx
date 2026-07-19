@@ -39,6 +39,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-ink-50 px-4">
       <div className="w-full max-w-sm rounded-2xl border border-ink-100 bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
+          <img src="/panel/remax-balloon.png" alt="RE/MAX Lavanda" className="mx-auto mb-3 h-14 w-14 object-contain" />
           <h1 className="text-lg font-semibold text-ink-900">RE/MAX Lavanda</h1>
           <p className="mt-1 text-sm text-ink-400">Ofis Yönetim Sistemi</p>
         </div>
