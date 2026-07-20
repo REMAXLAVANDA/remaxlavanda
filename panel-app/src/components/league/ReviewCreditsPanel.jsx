@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MessageSquareText, ChevronDown, ChevronRight, X, Plus } from 'lucide-react'
+import { capitalizeWords } from '../../lib/format'
 
 // Ciro'ya dönen her müşteri isim isim kaydedilir — yorum hakkı sabit "her
 // girişte +2" değil, o dönem o danışman için kaç isim girilmişse o kadar.
@@ -24,7 +25,7 @@ export default function ReviewCreditsPanel({
   }
 
   function submitName(userId) {
-    const trimmed = nameDraft.trim()
+    const trimmed = capitalizeWords(nameDraft.trim())
     if (!trimmed) return
     onAddMusteri(userId, trimmed)
     setNameDraft('')

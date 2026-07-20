@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
 import Modal from '../common/Modal'
-import { formatThousands, parseThousands } from '../../lib/format'
+import { capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -27,7 +27,7 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
   const canSubmit = form.userId && parsedValue !== null && parsedValue > 0 && form.tarih
 
   function addName() {
-    const trimmed = nameDraft.trim()
+    const trimmed = capitalizeWords(nameDraft.trim())
     if (!trimmed) return
     setMusteriler((m) => [...m, trimmed])
     setNameDraft('')

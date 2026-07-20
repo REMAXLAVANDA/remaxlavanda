@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Upload } from 'lucide-react'
 import Modal from '../common/Modal'
 import { validateFile } from '../../lib/storage'
+import { capitalizeFirst, capitalizeWords } from '../../lib/format'
 
 const NEW_DOC = '__new__'
 
@@ -64,13 +65,25 @@ export default function UploadDocModal({
     e.preventDefault()
     if (!canSubmit) return
     if (isEditingFile) {
-      onSubmit({ mode: 'rename', docId: editingDoc.id, baslik: baslik.trim() })
+      onSubmit({ mode: 'rename', docId: editingDoc.id, baslik: capitalizeWords(baslik.trim()) })
     } else if (isEditingText) {
-      onSubmit({ mode: 'text', categoryKey: editingDoc.categoryKey, docId: editingDoc.id, baslik: baslik.trim(), contentText: contentText.trim() })
+      onSubmit({
+        mode: 'text',
+        categoryKey: editingDoc.categoryKey,
+        docId: editingDoc.id,
+        baslik: capitalizeWords(baslik.trim()),
+        contentText: capitalizeFirst(contentText.trim()),
+      })
     } else if (mode === 'file') {
-      onSubmit({ mode: 'file', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? baslik : null, file })
+      onSubmit({ mode: 'file', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? capitalizeWords(baslik) : null, file })
     } else {
-      onSubmit({ mode: 'text', categoryKey, docId: isNewDoc ? null : docId, baslik: isNewDoc ? baslik : null, contentText: contentText.trim() })
+      onSubmit({
+        mode: 'text',
+        categoryKey,
+        docId: isNewDoc ? null : docId,
+        baslik: isNewDoc ? capitalizeWords(baslik) : null,
+        contentText: capitalizeFirst(contentText.trim()),
+      })
     }
   }
 
@@ -139,6 +152,7 @@ export default function UploadDocModal({
             required
             value={baslik}
             onChange={(e) => setBaslik(e.target.value)}
+            onBlur={(e) => setBaslik(capitalizeWords(e.target.value))}
             placeholder="Doküman başlığı"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
@@ -158,6 +172,7 @@ export default function UploadDocModal({
             required
             value={contentText}
             onChange={(e) => setContentText(e.target.value)}
+            onBlur={(e) => setContentText(capitalizeFirst(e.target.value))}
             placeholder="Metni buraya yaz..."
             rows={8}
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"

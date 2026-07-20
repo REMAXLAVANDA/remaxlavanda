@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
+import { capitalizeFirst } from '../../lib/format'
 
 export default function NewPeriodModal({ onClose, onSubmit, submitting }) {
   const [form, setForm] = useState({ ad: '', baslangic: '', bitis: '' })
@@ -12,7 +13,7 @@ export default function NewPeriodModal({ onClose, onSubmit, submitting }) {
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit(form)
+          onSubmit({ ...form, ad: capitalizeFirst(form.ad.trim()) })
         }}
         className="space-y-3"
       >
@@ -20,6 +21,7 @@ export default function NewPeriodModal({ onClose, onSubmit, submitting }) {
           required
           value={form.ad}
           onChange={(e) => set({ ad: e.target.value })}
+          onBlur={(e) => set({ ad: capitalizeFirst(e.target.value) })}
           placeholder="Dönem adı (ör. 2026 - Dönem 3, Eylül-Aralık)"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

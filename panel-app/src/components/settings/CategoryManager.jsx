@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2, Plus } from 'lucide-react'
+import { capitalizeWords } from '../../lib/format'
 
 // Rehber klasörlerini (categories, module='docs') yönetmek için — admin/
 // owner ekleyip/silip/yeniden adlandırıp sırasını değiştirebilir.
@@ -14,7 +15,7 @@ export default function CategoryManager({ categories, onAdd, onRename, onDelete,
         onSubmit={(e) => {
           e.preventDefault()
           if (!newLabel.trim()) return
-          onAdd(newLabel.trim())
+          onAdd(capitalizeWords(newLabel.trim()))
           setNewLabel('')
         }}
         className="flex gap-2"
@@ -22,6 +23,7 @@ export default function CategoryManager({ categories, onAdd, onRename, onDelete,
         <input
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
+          onBlur={(e) => setNewLabel(capitalizeWords(e.target.value))}
           placeholder="Yeni kategori adı (ör. Şirket Bilgileri)"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
@@ -65,7 +67,7 @@ export default function CategoryManager({ categories, onAdd, onRename, onDelete,
                   value={editingLabel}
                   onChange={(e) => setEditingLabel(e.target.value)}
                   onBlur={() => {
-                    const trimmed = editingLabel.trim()
+                    const trimmed = capitalizeWords(editingLabel.trim())
                     if (trimmed && trimmed !== c.label) onRename(c.id, trimmed)
                     setEditingId(null)
                   }}

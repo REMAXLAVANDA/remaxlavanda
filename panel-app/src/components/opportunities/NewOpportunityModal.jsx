@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
-import { capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
+import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 
 const EMPTY_FORM = {
   type: 'satici',
@@ -42,7 +42,12 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ ...form, leadAd: capitalizeWords(form.leadAd.trim()) })
+          onSubmit({
+            ...form,
+            leadAd: capitalizeWords(form.leadAd.trim()),
+            konum: capitalizeWords(form.konum.trim()),
+            ozet: capitalizeFirst(form.ozet.trim()),
+          })
         }}
         className="space-y-3"
       >
@@ -105,6 +110,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
           required
           value={form.konum}
           onChange={(e) => set({ konum: e.target.value })}
+          onBlur={(e) => set({ konum: capitalizeWords(e.target.value) })}
           placeholder="Mahalle (ör. Hürriyet Mahallesi) — zorunlu"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
@@ -167,6 +173,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         <textarea
           value={form.ozet}
           onChange={(e) => set({ ozet: e.target.value })}
+          onBlur={(e) => set({ ozet: capitalizeFirst(e.target.value) })}
           placeholder="Ek notlar (konum yukarıdaki Mahalle alanına yazılmalı, buraya değil)"
           rows={3}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"

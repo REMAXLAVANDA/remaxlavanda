@@ -11,6 +11,7 @@ import {
   formatEventDate,
   formatEventTime,
 } from '../../lib/calendar'
+import { capitalizeFirst } from '../../lib/format'
 
 // Yönetim etkinliğe tıkladığında tek bakışta kaç kişinin katılacağını,
 // katılmayacağını ve mazeretli olduğunu görsün diye (bkz. broker isteği:
@@ -64,7 +65,7 @@ export default function EventDetailModal({
 
   function submitMazeret() {
     if (!mazeretDraft.trim()) return
-    onSubmitMazeret(mazeretDraft.trim())
+    onSubmitMazeret(capitalizeFirst(mazeretDraft.trim()))
     setShowMazeretForm(false)
     setMazeretDraft('')
   }
@@ -151,6 +152,7 @@ export default function EventDetailModal({
                   <textarea
                     value={mazeretDraft}
                     onChange={(e) => setMazeretDraft(e.target.value)}
+                    onBlur={(e) => setMazeretDraft(capitalizeFirst(e.target.value))}
                     placeholder="Neden katılamıyorsun?"
                     rows={2}
                     className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"

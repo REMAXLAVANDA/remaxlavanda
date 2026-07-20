@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
+import { capitalizeFirst } from '../../lib/format'
 
 const CHECKLIST_TYPES = [
   { key: 'baslangic', label: 'Süreç' },
@@ -17,7 +18,7 @@ export default function AddChecklistItemModal({ onClose, onSubmit, submitting, d
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ tip, baslik: baslik.trim() })
+          onSubmit({ tip, baslik: capitalizeFirst(baslik.trim()) })
         }}
         className="space-y-3"
       >
@@ -37,6 +38,7 @@ export default function AddChecklistItemModal({ onClose, onSubmit, submitting, d
           required
           value={baslik}
           onChange={(e) => setBaslik(e.target.value)}
+          onBlur={(e) => setBaslik(capitalizeFirst(e.target.value))}
           placeholder="Madde başlığı"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

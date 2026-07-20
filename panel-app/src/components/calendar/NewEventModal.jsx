@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 import { EVENT_TYPE_LABELS } from '../../lib/calendar'
+import { capitalizeFirst, capitalizeWords } from '../../lib/format'
 
 const EMPTY_FORM = {
   type: 'toplanti',
@@ -33,7 +34,12 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit(form)
+          onSubmit({
+            ...form,
+            title: capitalizeFirst(form.title.trim()),
+            location: capitalizeWords(form.location.trim()),
+            description: capitalizeFirst(form.description.trim()),
+          })
         }}
         className="space-y-3"
       >
@@ -53,6 +59,7 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
           required
           value={form.title}
           onChange={(e) => set({ title: e.target.value })}
+          onBlur={(e) => set({ title: capitalizeFirst(e.target.value) })}
           placeholder="Başlık"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
@@ -82,6 +89,7 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
         <input
           value={form.location}
           onChange={(e) => set({ location: e.target.value })}
+          onBlur={(e) => set({ location: capitalizeWords(e.target.value) })}
           placeholder="Konum"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
@@ -89,6 +97,7 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
         <textarea
           value={form.description}
           onChange={(e) => set({ description: e.target.value })}
+          onBlur={(e) => set({ description: capitalizeFirst(e.target.value) })}
           placeholder="Açıklama"
           rows={2}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"

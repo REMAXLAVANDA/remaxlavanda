@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capitalizeWords, formatThousands, parseThousands } from './format'
+import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from './format'
 
 describe('capitalizeWords', () => {
   it('küçük harfle yazılanı baş harfleri büyük yapar', () => {
@@ -13,6 +13,17 @@ describe('capitalizeWords', () => {
   it('boş string/undefined ile hata vermez', () => {
     expect(capitalizeWords('')).toBe('')
     expect(capitalizeWords(undefined)).toBe(undefined)
+  })
+})
+
+describe('capitalizeFirst', () => {
+  it('sadece ilk harfi büyütür, gerisine dokunmaz', () => {
+    expect(capitalizeFirst('neden katılamıyorsun')).toBe('Neden katılamıyorsun')
+  })
+
+  it('boş string/undefined ile hata vermez', () => {
+    expect(capitalizeFirst('')).toBe('')
+    expect(capitalizeFirst(undefined)).toBe(undefined)
   })
 })
 

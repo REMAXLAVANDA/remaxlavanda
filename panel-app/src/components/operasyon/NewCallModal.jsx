@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
+import { capitalizeWords } from '../../lib/format'
 
 const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '' }
 
@@ -15,7 +16,7 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ ...form, assignedTo: form.assignedTo || null })
+          onSubmit({ ...form, arayanAd: capitalizeWords(form.arayanAd.trim()), assignedTo: form.assignedTo || null })
         }}
         className="space-y-3"
       >
@@ -35,6 +36,7 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
           required
           value={form.arayanAd}
           onChange={(e) => set({ arayanAd: e.target.value })}
+          onBlur={(e) => set({ arayanAd: capitalizeWords(e.target.value) })}
           placeholder="Arayan adı"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

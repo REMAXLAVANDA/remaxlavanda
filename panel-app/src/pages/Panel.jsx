@@ -43,7 +43,7 @@ import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
-import { relativeTime, isToday } from '../lib/format'
+import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
 import SourceConversionBoard from '../components/operasyon/SourceConversionBoard'
@@ -802,13 +802,14 @@ export default function Panel() {
                         <textarea
                           value={mazeretDraft}
                           onChange={(ev) => setMazeretDraft(ev.target.value)}
+                          onBlur={(ev) => setMazeretDraft(capitalizeFirst(ev.target.value))}
                           placeholder="Neden katılamıyorsun?"
                           rows={2}
                           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
                         />
                         <button
                           disabled={busy || !mazeretDraft.trim()}
-                          onClick={() => submitRsvp(e.id, 'mazeretli', { mazeretText: mazeretDraft.trim() })}
+                          onClick={() => submitRsvp(e.id, 'mazeretli', { mazeretText: capitalizeFirst(mazeretDraft.trim()) })}
                           className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
                         >
                           Gönder

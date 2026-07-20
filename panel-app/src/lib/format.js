@@ -22,6 +22,15 @@ export function capitalizeWords(text) {
     .join(' ')
 }
 
+// Not/açıklama/başlık gibi tek cümle veya birkaç cümlelik serbest metin
+// alanları için — capitalizeWords'ün aksine SADECE metnin ilk harfini
+// büyütür, geri kalanına dokunmaz (her kelimeyi büyütmek cümle içinde
+// yanlış görünür, ör. "Neden Katılamıyorsun" gibi).
+export function capitalizeFirst(text) {
+  if (!text) return text
+  return text.charAt(0).toLocaleUpperCase('tr-TR') + text.slice(1)
+}
+
 // Kullanıcının yazdığı ham rakamları binlik ayraçlı gösterime çevirir —
 // "4750000" -> "4.750.000". Kaç sıfır girildiği tek bakışta belli olsun
 // diye fiyat alanlarında her tuşta yeniden formatlanıyor.

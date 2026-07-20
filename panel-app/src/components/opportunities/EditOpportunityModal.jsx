@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { categoryLabel } from '../../lib/categories'
-import { capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
+import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 
 const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+2', '6+1 ve üzeri']
 
@@ -38,11 +38,11 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
           onSubmit({
             leadAd: capitalizeWords(form.leadAd.trim()),
             leadTelefon: form.leadTelefon.trim(),
-            konum: form.konum.trim(),
+            konum: capitalizeWords(form.konum.trim()),
             fiyat: form.fiyat,
             fiyatMin: form.fiyatMin,
             fiyatMax: form.fiyatMax,
-            ozet: form.ozet.trim(),
+            ozet: capitalizeFirst(form.ozet.trim()),
             m2: form.m2,
             odaSayisi: form.odaSayisi,
           })
@@ -76,6 +76,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
           required
           value={form.konum}
           onChange={(e) => set({ konum: e.target.value })}
+          onBlur={(e) => set({ konum: capitalizeWords(e.target.value) })}
           placeholder="Mahalle (ör. Hürriyet Mahallesi) — zorunlu"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
@@ -138,6 +139,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
         <textarea
           value={form.ozet}
           onChange={(e) => set({ ozet: e.target.value })}
+          onBlur={(e) => set({ ozet: capitalizeFirst(e.target.value) })}
           placeholder="Ek notlar (konum yukarıdaki Mahalle alanına yazılmalı, buraya değil)"
           rows={3}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
