@@ -13,8 +13,27 @@ export function UsersProvider({ children }) {
 
   useEffect(() => {
     let cancelled = false
-    usersProvider
-      .listKnown()
+
+    // Girişten hemen sonra (özellikle sayfa ilk yüklendiğinde) auth.uid()
+    // bağlamının PostgREST tarafında oturmasıyla bu sorgu arasında kısa bir
+    // gecikme yaşanabiliyor — AuthContext'teki profil yüklemesiyle AYNI
+    // yarış durumu (bkz. loadProfile'daki not_found retry'ı), ama burada
+    // hata FIRLAMIYOR, sadece users_select_all RLS'i auth.uid() henüz
+    // oturmadığı için sessizce boş satır döndürüyor. Sonuç: sayılar
+    // (score_entries'ten gelen) doğru görünürken isimler '—' kalıyor
+    // (bkz. Panel > Lig Durumu — gerçek üretimde gözlemlendi). Bu yüzden
+    // boş bir map dönerse (ki normal koşulda asla olmaz, en az kendi
+    // satırın görünür) bir kez daha deniyoruz.
+    async function load() {
+      const map = await usersProvider.listKnown()
+      if (Object.keys(map).length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 700))
+        return usersProvider.listKnown()
+      }
+      return map
+    }
+
+    load()
       .then((map) => {
         if (!cancelled) setKnownUsers(map)
       })
