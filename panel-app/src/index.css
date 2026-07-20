@@ -2,55 +2,44 @@
 
 /* RE/MAX resmi marka renkleri — ham değişkenler (istenen isimlerle) */
 :root {
-  --red: #aa1120;
-  --blue: #007dc3;
+  --red: #dc1c2e;
+  --blue: #003da5;
   --navy: #0c2749;
-  --lg: #f7f7f8;
-  --bd: #eaebec;
+  --lg: #f4f6f9;
+  --bd: #e2e8f0;
 }
 
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 
-  /* RE/MAX "Darker Red" (#AA1120, resmi marka paleti) taban alınarak
-     üretilmiş 50-900 skala — mevcut bileşenlerdeki bg-brand-600/
-     hover:bg-brand-700 vb. kullanım kalıbı korunuyor, sadece renk resmi
-     kimlik dokümanındaki tam tona göre güncellendi (önceki #dc1c2e daha
-     açık, marka onaylı olmayan bir tondu). */
-  --color-brand-50: #fde8ea;
-  --color-brand-100: #fad1d5;
-  --color-brand-200: #f6a2ab;
-  --color-brand-300: #f06b78;
-  --color-brand-400: #eb3345;
-  --color-brand-500: #d51528;
-  --color-brand-600: #aa1120;
-  --color-brand-700: #870d19;
-  --color-brand-800: #660a13;
-  --color-brand-900: #46070d;
+  /* RE/MAX kırmızısı (#DC1C2E) taban alınarak üretilmiş 50-900 skala —
+     mevcut bileşenlerdeki bg-brand-600/hover:bg-brand-700 vb. kullanım
+     kalıbı korunuyor, sadece renk RE/MAX kimliğine göre değişti. */
+  --color-brand-50: #fdecee;
+  --color-brand-100: #fbd6da;
+  --color-brand-200: #f5aeb6;
+  --color-brand-300: #ed7e8c;
+  --color-brand-400: #e44f63;
+  --color-brand-500: #e2394c;
+  --color-brand-600: #dc1c2e;
+  --color-brand-700: #b01522;
+  --color-brand-800: #8a1019;
+  --color-brand-900: #5c0a11;
 
-  /* RE/MAX mavisi — ikincil aksan (Takvim'de "Toplantı" rengi vb.) —
-     resmi palet, önceki #003da5 yerine. Lacivert zaten resmi "RE/MAX
-     Darker Blue" ile birebir aynıydı, değişmedi. */
-  --color-remax-blue: #007dc3;
+  /* RE/MAX mavisi — ikincil aksan (Takvim'de "Toplantı" rengi vb.) */
+  --color-remax-blue: #003da5;
   --color-remax-navy: #0c2749;
-  --color-remax-blue-02: #2e3f5a;
 
-  /* Nötr gri skala — resmi paletteki Light Gray (#C4C6C8), Gray (#949CA1)
-     ve Dark Gray (#404041) tam olarak 300/400/900 noktalarına oturuyor;
-     aradaki tonlar aynı ton üzerinden interpolasyonla üretildi. Önceki
-     skala en koyu uçta (900) markalı lacivert (#0c2749) kullanıyordu —
-     artık nötr resmi Dark Gray'e geçildi (başlık/metin rengi bu yüzden
-     hafifçe değişti, artık lacivert değil nötr gri).  */
-  --color-ink-50: #f7f7f8;
-  --color-ink-100: #eaebec;
-  --color-ink-200: #dadbdd;
-  --color-ink-300: #c4c6c8;
-  --color-ink-400: #949ca1;
-  --color-ink-500: #7a8085;
-  --color-ink-600: #676b6f;
-  --color-ink-700: #53575a;
-  --color-ink-800: #45474a;
-  --color-ink-900: #404041;
+  --color-ink-50: #f4f6f9;
+  --color-ink-100: #e2e8f0;
+  --color-ink-200: #dde0e5;
+  --color-ink-300: #c2c7cf;
+  --color-ink-400: #9aa1ad;
+  --color-ink-500: #6b7280;
+  --color-ink-600: #4c5361;
+  --color-ink-700: #363c48;
+  --color-ink-800: #232730;
+  --color-ink-900: #0c2749;
 }
 
 * {
