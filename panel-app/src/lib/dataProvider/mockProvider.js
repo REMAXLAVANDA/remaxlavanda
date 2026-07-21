@@ -596,6 +596,14 @@ export const users = {
   async resetPassword(_id, _password) {
     return delay(null)
   },
+  // Push bildirimi aboneliği — mock modda gerçek bir Service Worker/PushManager
+  // akışı test edilebilir olsun diye state'i in-memory tutuyoruz.
+  async savePushSubscription(_subscription) {
+    return delay(null)
+  },
+  async removePushSubscription(_endpoint) {
+    return delay(null)
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------

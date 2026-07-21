@@ -883,6 +883,21 @@ export const users = {
     if (error) throw new Error('Şifre sıfırlanamadı — reset-user-password fonksiyonu deploy edilmemiş olabilir.')
     if (!data?.ok) throw new Error(data?.error ?? 'Şifre sıfırlanamadı.')
   },
+  // endpoint unique olduğu için aynı cihaz/tarayıcı tekrar abone olursa
+  // upsert ile üstüne yazılır, ikinci bir satır oluşmaz.
+  async savePushSubscription(subscription, userId) {
+    await run(
+      client()
+        .from('push_subscriptions')
+        .upsert(
+          { user_id: userId, endpoint: subscription.endpoint, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+          { onConflict: 'endpoint' },
+        ),
+    )
+  },
+  async removePushSubscription(endpoint) {
+    await run(client().from('push_subscriptions').delete().eq('endpoint', endpoint))
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------
