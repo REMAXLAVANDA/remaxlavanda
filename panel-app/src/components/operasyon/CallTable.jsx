@@ -171,7 +171,18 @@ export default function CallTable({
                   {isManager ? (
                     <select
                       value={call.assignedTo ?? ''}
-                      onChange={(e) => onAssign(call.id, e.target.value || null)}
+                      onChange={(e) => {
+                        const newId = e.target.value || null
+                        const newName = newId ? inviteeOptions.find((u) => u.id === newId)?.name : 'Atanmadı'
+                        // Tek satırlık native select, yanlışlıkla (fare
+                        // tekerleği/yanlış tık) farklı bir kişiye atamayı çok
+                        // kolaylaştırıyor — onay olmadan doğrudan kaydediyordu.
+                        if (!window.confirm(`Bu çağrı "${newName}" olarak atansın mı?`)) {
+                          e.target.value = call.assignedTo ?? ''
+                          return
+                        }
+                        onAssign(call.id, newId)
+                      }}
                       className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
                     >
                       <option value="">Atanmadı</option>
