@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { users as usersProvider } from '../lib/dataProvider'
+import { useAuth } from './AuthContext'
 
 // "Kim kimdir" (isim/rol çözümleme) artık mock'a özel bir sabit değil —
 // dataProvider.users.listKnown() üzerinden hem mock hem gerçek Supabase
@@ -8,32 +9,32 @@ import { users as usersProvider } from '../lib/dataProvider'
 const UsersContext = createContext(null)
 
 export function UsersProvider({ children }) {
+  // ÖNEMLİ: Bu effect AuthContext'teki isAuthenticated'a bağlı — App.jsx'te
+  // UsersProvider, AuthProvider'ın İÇİNDE ama bağımsız bir bileşen, yani
+  // kendi effect'i sayfa her açıldığında AuthProvider'ın oturum/profil
+  // yüklemesini BEKLEMEDEN hemen ateşleniyordu. auth.uid() PostgREST
+  // tarafında henüz oturmamışken atılan sorguda users_select_all RLS'i hata
+  // FIRLATMIYOR, sessizce boş satır döndürüyor — sonuç: sayılar
+  // (score_entries'ten gelen, farklı bir RLS yolu) doğru görünürken
+  // isimler '—' kalıyor, hatta bazı listeler tamamen boş görünüyor (bkz.
+  // Panel > Lig Durumu / Danışman Sağlık Skoru — gerçek üretimde
+  // gözlemlendi). Sabit bir gecikmeyle "bir kez daha dene" denendi ama bu
+  // bir yarış PENCERESİ değil, sıralama sorunuydu — bu yüzden isAuthenticated
+  // true olana kadar (yani profil sorgusu RLS'ten BAŞARIYLA geçene kadar,
+  // ki bu auth.uid()'in kesin oturduğunun kanıtı) hiç sorgu atmıyoruz.
+  const { isAuthenticated } = useAuth()
   const [knownUsers, setKnownUsers] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false
-
-    // Girişten hemen sonra (özellikle sayfa ilk yüklendiğinde) auth.uid()
-    // bağlamının PostgREST tarafında oturmasıyla bu sorgu arasında kısa bir
-    // gecikme yaşanabiliyor — AuthContext'teki profil yüklemesiyle AYNI
-    // yarış durumu (bkz. loadProfile'daki not_found retry'ı), ama burada
-    // hata FIRLAMIYOR, sadece users_select_all RLS'i auth.uid() henüz
-    // oturmadığı için sessizce boş satır döndürüyor. Sonuç: sayılar
-    // (score_entries'ten gelen) doğru görünürken isimler '—' kalıyor
-    // (bkz. Panel > Lig Durumu — gerçek üretimde gözlemlendi). Bu yüzden
-    // boş bir map dönerse (ki normal koşulda asla olmaz, en az kendi
-    // satırın görünür) bir kez daha deniyoruz.
-    async function load() {
-      const map = await usersProvider.listKnown()
-      if (Object.keys(map).length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 700))
-        return usersProvider.listKnown()
-      }
-      return map
+    if (!isAuthenticated) {
+      setLoading(true)
+      return
     }
-
-    load()
+    let cancelled = false
+    setLoading(true)
+    usersProvider
+      .listKnown()
       .then((map) => {
         if (!cancelled) setKnownUsers(map)
       })
@@ -50,7 +51,7 @@ export function UsersProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAuthenticated])
 
   return <UsersContext.Provider value={{ knownUsers, loading }}>{children}</UsersContext.Provider>
 }
