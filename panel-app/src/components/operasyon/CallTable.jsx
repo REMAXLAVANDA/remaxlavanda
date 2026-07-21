@@ -64,7 +64,13 @@ export default function CallTable({
         </thead>
         <tbody>
           {calls.map((call) => {
-            const canEditResult = isManager || call.assignedTo === currentUserId
+            // Sonuç/Portföy/Dönüş alanları BİLEREK yönetime değil, sadece
+            // atanan kişiye açık — "portföy alındı" fiilen sahada işi
+            // üstlenen kişi tarafından işaretlensin istendi (broker dahil
+            // yönetim artık bir çağrı atanmadan bu alanları değiştiremiyor).
+            // Atama (kime verileceği) ayrı bir yetki (bkz. "Atanan" sütunu,
+            // isManager) — bu kısıt sadece SONUÇ girişini etkiliyor.
+            const canEditResult = call.assignedTo === currentUserId
             return (
               <tr key={call.id} className="border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50">
                 {isManager && (
