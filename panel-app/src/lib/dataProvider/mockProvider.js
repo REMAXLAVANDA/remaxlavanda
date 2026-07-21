@@ -85,6 +85,17 @@ export const opportunities = {
     row.closedBy = 'mock-current-user'
     return delay({ id: row.id, status: row.status, closedAt: row.closedAt, closedBy: row.closedBy })
   },
+  // supabaseProvider.assignTo() ile birebir aynı davranış — yetki kontrolü
+  // (isManager) UI tarafında zaten yapıldığı için burada tekrar edilmiyor.
+  async assignTo(id, userId) {
+    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
+    if (!row) throw new Error('Fırsat bulunamadı.')
+    if (row.claimerId || row.status !== 'acik') throw new Error('Bu fırsat artık uygun değil (zaten alınmış olabilir).')
+    row.claimerId = userId
+    row.claimedAt = new Date().toISOString()
+    row.status = 'claimed'
+    return delay({ id: row.id, status: row.status, claimerId: row.claimerId, claimedAt: row.claimedAt })
+  },
   // "İlgileniyorum" artık exclusive claim değil — müşteri bilgisini AÇMAZ,
   // sadece kim ilgilendiğini kaydeder (fırsatı giren kişi bunu görüp arar).
   async expressInterest(opportunityId, userId) {

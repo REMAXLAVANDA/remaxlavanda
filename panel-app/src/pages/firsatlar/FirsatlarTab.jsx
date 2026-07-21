@@ -49,6 +49,7 @@ export default function FirsatlarTab() {
   const [editTarget, setEditTarget] = useState(null)
   const [editingSubmitting, setEditingSubmitting] = useState(false)
   const [closingId, setClosingId] = useState(null)
+  const [assigningId, setAssigningId] = useState(null)
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
@@ -179,12 +180,29 @@ export default function FirsatlarTab() {
     }
   }
 
+  async function performAssign(id, userId) {
+    setAssigningId(id)
+    try {
+      const updated = await opportunitiesProvider.assignTo(id, userId)
+      setOpportunities((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)))
+      setDetailOpp(null)
+      showToast('Fırsat atandı.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Fırsat atanamadı, tekrar dene.', 'error')
+    } finally {
+      setAssigningId(null)
+    }
+  }
+
   const canCreate = CAN_CREATE_ROLES.includes(role)
   const canDelete = canDeleteOpportunity(role)
   const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
   const deleteOpp = deleteTargetId ? (opportunities ?? []).find((o) => o.id === deleteTargetId) : null
   const isManager = role === ROLES.BROKER || role === ROLES.OWNER
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
+  // Broker de fiilen danışmanlık yapabiliyor (bkz. handleCreate) — atama
+  // listesi de aynı kapsamda: danışmanlar + broker.
+  const assignableOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker')
 
   return (
     <div>
@@ -267,6 +285,8 @@ export default function FirsatlarTab() {
           canDelete={canDelete}
           canEdit={canEditOpportunity(detailOpp, user)}
           canClose={canCloseOpportunity(detailOpp, user)}
+          canAssign={isManager && detailOpp.status === 'acik' && !detailOpp.claimerId}
+          assignableOptions={assignableOptions}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
@@ -274,8 +294,10 @@ export default function FirsatlarTab() {
           onDeleteRequest={() => setDeleteTargetId(detailOpp.id)}
           onEditRequest={(contact) => setEditTarget({ opp: detailOpp, contact })}
           onCloseRequest={(status) => performClose(detailOpp.id, status)}
+          onAssignRequest={(userId) => performAssign(detailOpp.id, userId)}
           expressing={expressingId === detailOpp.id}
           closing={closingId === detailOpp.id}
+          assigning={assigningId === detailOpp.id}
         />
       )}
 

@@ -34,6 +34,8 @@ export default function OpportunityDetailModal({
   canDelete,
   canEdit,
   canClose,
+  canAssign,
+  assignableOptions,
   fetchContact,
   fetchInterestList,
   onClose,
@@ -41,13 +43,16 @@ export default function OpportunityDetailModal({
   onDeleteRequest,
   onEditRequest,
   onCloseRequest,
+  onAssignRequest,
   expressing,
   closing,
+  assigning,
 }) {
   const { showToast } = useToast()
   const [contact, setContact] = useState(null)
   const [loadingContact, setLoadingContact] = useState(true)
   const [interestList, setInterestList] = useState(null)
+  const [assignDraft, setAssignDraft] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -182,6 +187,38 @@ export default function OpportunityDetailModal({
               ))}
             </ul>
           )}
+        </div>
+      )}
+
+      {canAssign && (
+        <div className="mt-4 rounded-xl border border-ink-100 p-4">
+          <p className="mb-2 text-xs font-medium text-ink-500">Bir danışmana ata</p>
+          <div className="flex gap-2">
+            <select
+              value={assignDraft}
+              onChange={(e) => setAssignDraft(e.target.value)}
+              className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-sm text-ink-700"
+            >
+              <option value="">Danışman seç</option>
+              {assignableOptions.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => {
+                if (!assignDraft) return
+                const name = assignableOptions.find((u) => u.id === assignDraft)?.name
+                if (!window.confirm(`Bu fırsat "${name}" kişisine atansın mı?`)) return
+                onAssignRequest(assignDraft)
+              }}
+              disabled={!assignDraft || assigning}
+              className="shrink-0 rounded-lg bg-brand-600 px-3 py-2 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              {assigning ? 'Atanıyor...' : 'Ata'}
+            </button>
+          </div>
         </div>
       )}
 

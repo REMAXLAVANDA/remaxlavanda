@@ -114,6 +114,15 @@ export const opportunities = {
     const row = Array.isArray(data) ? data[0] : data
     return { id: row.id, status: row.status, closedAt: row.closed_at, closedBy: row.closed_by }
   },
+  // assign_opportunity_to() RPC'si — sadece broker/owner çağırabilir (bkz.
+  // migration is_manager() kontrolü). close() ile aynı sebepten sadece
+  // gerçekten değişen alanları döndürüp çağıran tarafta spread ile
+  // birleştiriyoruz.
+  async assignTo(id, userId) {
+    const data = await run(client().rpc('assign_opportunity_to', { p_opportunity_id: id, p_user_id: userId }))
+    const row = Array.isArray(data) ? data[0] : data
+    return { id: row.id, status: row.status, claimerId: row.claimer_id, claimedAt: row.claimed_at }
+  },
   // "İlgileniyorum" artık exclusive claim değil — opportunity_interest'e
   // kayıt ekler, müşteri bilgisini AÇMAZ. Fırsatı giren kişi kimin
   // ilgilendiğini görüp kendisi arar (bkz. listInterest).
