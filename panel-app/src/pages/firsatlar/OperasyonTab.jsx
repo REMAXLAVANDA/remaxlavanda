@@ -45,7 +45,11 @@ export default function OperasyonTab() {
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
 
-  const inviteeOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
+  // Broker de kendi portföy/çağrılarını takip edip veri girebilmek için
+  // atama listesinde görünür — ama Lig sıralamaları/Sağlık Skoru gibi
+  // yerlerdeki "danışman listesi" filtreleri bilerek AYRI tutuluyor (bkz.
+  // Lig.jsx/Panel.jsx/TakipTab.jsx), broker orada YAYINLANMAK istemiyor.
+  const inviteeOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker')
 
   async function updateCall(id, patch) {
     try {
