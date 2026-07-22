@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -13,14 +14,17 @@ import {
   computeBoxCounts,
   isWithinRange,
 } from '../../lib/opportunities'
+import { isStaleOpp } from '../../lib/attention'
 import { parseThousands } from '../../lib/format'
 import { ROLES } from '../../lib/roles'
 import OpportunitySection from '../../components/opportunities/OpportunitySection'
+import OpportunityTable from '../../components/opportunities/OpportunityTable'
 import OpportunityDetailModal from '../../components/opportunities/OpportunityDetailModal'
 import OpportunityFilters from '../../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
 import EditOpportunityModal from '../../components/opportunities/EditOpportunityModal'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
+import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 const INITIAL_FILTERS = { search: '', dateRange: '7g', customFrom: '', customTo: '' }
@@ -55,10 +59,20 @@ export default function FirsatlarTab() {
   const [interestedIds, setInterestedIds] = useState(() => new Set())
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const roleVisible = useMemo(
     () => (opportunities ?? []).filter((o) => canViewOpportunity(o, user)),
     [opportunities, user],
+  )
+
+  // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, normal
+  // kategori-kutusu gezinmesi yerine SADECE 3 günden uzun süredir havuzda
+  // bekleyen fırsatları düz bir liste olarak gösteriyoruz.
+  const odakActive = searchParams.get('odak') === 'firsat'
+  const odakRows = useMemo(
+    () => (odakActive ? roleVisible.filter((o) => isStaleOpp(o)) : []),
+    [roleVisible, odakActive],
   )
 
   const filtered = useMemo(() => {
@@ -221,7 +235,24 @@ export default function FirsatlarTab() {
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      {!loading && !error && (
+      {!loading && !error && odakActive && (
+        <>
+          <FocusBanner
+            text={`${odakRows.length} fırsat 3 günden uzun süredir havuzda bekliyor — sadece bunlar gösteriliyor.`}
+            onClear={() => setSearchParams({})}
+          />
+          <OpportunityTable
+            opportunities={odakRows}
+            onRowClick={setDetailOpp}
+            onExpressInterest={(opp) => setInterestTargetId(opp.id)}
+            expressingId={expressingId}
+            user={user}
+            interestedIds={interestedIds}
+          />
+        </>
+      )}
+
+      {!loading && !error && !odakActive && (
         <>
           <div className="mb-5">
             <OpportunityFilters filters={filters} onChange={setFilters} />

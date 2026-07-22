@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Award, Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -7,6 +8,7 @@ import { useAsyncList } from '../../hooks/useAsyncList'
 import { education as educationProvider } from '../../lib/dataProvider'
 import { badgesFor, checklistFor, checklistProgress, isModuleDone, moduleProgressFor } from '../../lib/education'
 import { isWithinRange } from '../../lib/dateRange'
+import { isBehindEducation } from '../../lib/attention'
 import ModuleProgressList from '../../components/education/ModuleProgressList'
 import BadgeGrid from '../../components/education/BadgeGrid'
 import AwardBadgeModal from '../../components/education/AwardBadgeModal'
@@ -14,6 +16,7 @@ import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../../components/education/TeamProgressTable'
 import DateRangeFilter from '../../components/common/DateRangeFilter'
+import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 // badges_manage / onboarding_status_manage / onboarding_items_manage RLS'te
@@ -52,8 +55,17 @@ export default function EgitimTab() {
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [moduleFilters, setModuleFilters] = useState({ dateRange: 'tumu', customFrom: '', customTo: '' })
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
+  // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, "Ekip
+  // İlerlemesi" tablosunu SADECE modül/checklist oranı %50'nin altında
+  // olanlara daraltıyoruz ve o bölüme otomatik kaydırıyoruz.
+  const odakActive = searchParams.get('odak') === 'egitim'
+
+  useEffect(() => {
+    if (odakActive) document.getElementById('ekip-ilerlemesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [odakActive])
 
   const modules = data?.modules ?? EMPTY
   const progress = data?.progress ?? EMPTY
@@ -94,7 +106,7 @@ export default function EgitimTab() {
 
   const teamRows = useMemo(() => {
     if (!isManager) return []
-    return teamMembers.map((u) => {
+    const rows = teamMembers.map((u) => {
       const mp = moduleProgressFor(u.id, filteredModules, progress)
       const cp = checklistProgress(u.id, 'baslangic', checklistItems, checklistStatus)
       return {
@@ -105,8 +117,9 @@ export default function EgitimTab() {
         badgeCount: badgesFor(u.id, userBadges, badges).length,
       }
     })
+    return odakActive ? rows.filter(isBehindEducation) : rows
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isManager, filteredModules, progress, checklistItems, checklistStatus, userBadges, badges])
+  }, [isManager, filteredModules, progress, checklistItems, checklistStatus, userBadges, badges, odakActive])
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
@@ -312,8 +325,14 @@ export default function EgitimTab() {
           )}
 
           {isManager && (
-            <section>
+            <section id="ekip-ilerlemesi" className="scroll-mt-6">
               <h2 className="mb-3 text-sm font-semibold text-ink-900">Ekip İlerlemesi</h2>
+              {odakActive && (
+                <FocusBanner
+                  text={`${teamRows.length} danışmanın eğitim/checklist oranı %50'nin altında — sadece bunlar gösteriliyor.`}
+                  onClear={() => setSearchParams({})}
+                />
+              )}
               <TeamProgressTable rows={teamRows} />
             </section>
           )}

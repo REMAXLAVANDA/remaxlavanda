@@ -42,7 +42,8 @@ import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
-import { DATE_RANGES, isWithinRange, isLegacyRecord } from '../lib/dateRange'
+import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
+import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation } from '../lib/attention'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
@@ -547,56 +548,47 @@ export default function Panel() {
     const now = Date.now()
     const items = []
 
-    // isLegacyRecord: 15 günden eski kayıtların created_at'i toplu olarak
-    // 01.01.2025'e çekildiği için (bkz. lib/dateRange.js), bu sentinel
-    // tarihli kayıtlar hariç tutulmazsa bu uyarılar sonsuza dek "bekliyor"
-    // sayardı — veri hâlâ duruyor, sadece bu iki gecikme uyarısına girmiyor.
-    const staleReturns = data.calls.filter(
-      (c) =>
-        c.assignedTo &&
-        !c.donusYapildiMi &&
-        !isLegacyRecord(c.createdAt) &&
-        now - new Date(c.createdAt).getTime() > 2 * 24 * 60 * 60 * 1000,
-    )
+    // Kriterler lib/attention.js'te paylaşılıyor — "İncele" linki gittiği
+    // sayfada da AYNI fonksiyonlarla filtreliyor, iki yerde ayrı ayrı yazılıp
+    // birbirinden sapmasınlar diye (bkz. geçmişte 528 fırsat kafa karışıklığı).
+    // Link'lere eklenen ?odak=1, hedef sayfada "sadece bunları göster" moduna
+    // geçiriyor.
+    const staleReturns = data.calls.filter((c) => isStaleReturn(c, now))
     if (staleReturns.length > 0) {
       items.push({
         id: 'stale-returns',
         icon: PhoneCall,
-        to: '/operasyon',
+        to: '/operasyon?odak=cagri',
         text: `${staleReturns.length} çağrıda 2 günden uzun süredir dönüş yapılmadı`,
       })
     }
 
-    const staleOpps = data.opps.filter(
-      (o) => o.status === 'acik' && !isLegacyRecord(o.createdAt) && now - new Date(o.createdAt).getTime() > 3 * 24 * 60 * 60 * 1000,
-    )
+    const staleOpps = data.opps.filter((o) => isStaleOpp(o, now))
     if (staleOpps.length > 0) {
       items.push({
         id: 'stale-opps',
         icon: Target,
-        to: '/firsatlar',
+        to: '/firsatlar?odak=firsat',
         text: `${staleOpps.length} fırsat 3 günden uzun süredir havuzda bekliyor`,
       })
     }
 
-    const inactiveAgents = activityRanking.filter(
-      (r) => !r.lastSignInAt || now - new Date(r.lastSignInAt).getTime() > 7 * 24 * 60 * 60 * 1000,
-    )
+    const inactiveAgents = activityRanking.filter((r) => isInactiveAgent(r.lastSignInAt, now))
     if (inactiveAgents.length > 0) {
       items.push({
         id: 'inactive-agents',
         icon: UsersIcon,
-        to: '/takip',
+        to: '/takip?odak=danisman',
         text: `${inactiveAgents.length} danışman 7 günden uzun süredir portala girmedi`,
       })
     }
 
-    const behindEducation = educationGaps.filter((r) => r.modulePercent < 50 || r.checklistPercent < 50)
+    const behindEducation = educationGaps.filter(isBehindEducation)
     if (behindEducation.length > 0) {
       items.push({
         id: 'behind-education',
         icon: GraduationCap,
-        to: '/egitim',
+        to: '/egitim?odak=egitim',
         text: `${behindEducation.length} danışmanın eğitim/checklist tamamlama oranı %50'nin altında`,
       })
     }

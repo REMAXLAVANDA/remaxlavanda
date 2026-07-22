@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -7,6 +8,8 @@ import { useAsyncList } from '../../hooks/useAsyncList'
 import { callLogs as callLogsProvider } from '../../lib/dataProvider'
 import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
+import { isStaleReturn } from '../../lib/attention'
+import FocusBanner from '../../components/common/FocusBanner'
 import CallTable from '../../components/operasyon/CallTable'
 import CallFilters from '../../components/operasyon/CallFilters'
 import StatsCards from '../../components/operasyon/StatsCards'
@@ -28,20 +31,30 @@ export default function OperasyonTab() {
   const [showModal, setShowModal] = useState(false)
   const [editingCall, setEditingCall] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const isManager = canManageCalls(role)
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
+  // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, normal
+  // kaynak/tarih filtrelerini görmezden gelip SADECE gecikmiş kayıtları
+  // gösteriyoruz — aksi halde kullanıcı "İncele"ye basıp genel listede
+  // gecikmiş kaydı aramak zorunda kalıyordu.
+  const odakActive = searchParams.get('odak') === 'cagri'
+
   const visible = useMemo(() => {
-    return (calls ?? [])
-      .filter((c) => canViewCall(c, user))
+    const roleFiltered = (calls ?? []).filter((c) => canViewCall(c, user))
+    if (odakActive) {
+      return roleFiltered.filter((c) => isStaleReturn(c)).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    }
+    return roleFiltered
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
       .sort((a, b) => {
         if (a.donusYapildiMi !== b.donusYapildiMi) return a.donusYapildiMi ? 1 : -1
         return new Date(b.createdAt) - new Date(a.createdAt)
       })
-  }, [calls, user, filters])
+  }, [calls, user, filters, odakActive])
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
 
@@ -131,22 +144,31 @@ export default function OperasyonTab() {
 
       {!loading && !error && (
         <>
-          <div className="mb-5">
-            <StatsCards stats={stats} />
-          </div>
+          {odakActive ? (
+            <FocusBanner
+              text={`${visible.length} çağrıda 2 günden uzun süredir dönüş yapılmadı — sadece bunlar gösteriliyor.`}
+              onClear={() => setSearchParams({})}
+            />
+          ) : (
+            <>
+              <div className="mb-5">
+                <StatsCards stats={stats} />
+              </div>
 
-          <div className="mb-5">
-            <CallFilters filters={filters} onChange={setFilters} showKaynak={isManager} />
-          </div>
+              <div className="mb-5">
+                <CallFilters filters={filters} onChange={setFilters} showKaynak={isManager} />
+              </div>
 
-          {isManager && (
-            <p className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-400">
-              {Object.entries(CALL_SOURCE_CODES).map(([name, { code }]) => (
-                <span key={name}>
-                  <strong className="text-ink-500">{code}</strong>: {name}
-                </span>
-              ))}
-            </p>
+              {isManager && (
+                <p className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-400">
+                  {Object.entries(CALL_SOURCE_CODES).map(([name, { code }]) => (
+                    <span key={name}>
+                      <strong className="text-ink-500">{code}</strong>: {name}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </>
           )}
 
           <CallTable
