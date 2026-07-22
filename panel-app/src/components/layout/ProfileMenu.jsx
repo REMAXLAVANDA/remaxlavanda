@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings, LogOut, ChevronDown, Check } from 'lucide-react'
+import { Settings, LogOut, ChevronDown, Check, CreditCard } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { ROLE_LABELS, ROLE_ORDER, canManageUsers } from '../../lib/roles'
+import { hasKartvizit } from '../../lib/kartvizit'
 
 export default function ProfileMenu() {
   const { user, role, setRole, isMock, signOut } = useAuth()
@@ -86,6 +87,18 @@ export default function ProfileMenu() {
           )}
 
           <div className="p-2">
+            {hasKartvizit(role) && (
+              <button
+                onClick={() => {
+                  setOpen(false)
+                  navigate('/kartvizitim')
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50"
+              >
+                <CreditCard size={16} />
+                Kartvizitim
+              </button>
+            )}
             {canManageUsers(role) && (
               <button
                 onClick={() => {

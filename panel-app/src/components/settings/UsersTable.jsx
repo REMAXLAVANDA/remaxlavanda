@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
-import { KeyRound, Pencil, Trash2 } from 'lucide-react'
+import { KeyRound, Pencil, Trash2, CreditCard } from 'lucide-react'
 import { ROLES, ROLE_LABELS } from '../../lib/roles'
 import { relativeTime } from '../../lib/format'
+import { hasKartvizit, kartvizitUrl } from '../../lib/kartvizit'
 
 const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
 const SORT_OPTIONS = [
@@ -83,6 +84,15 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
 
               {canManage && (
                 <div className="flex items-center gap-0.5">
+                  {hasKartvizit(u.role) && (
+                    <button
+                      onClick={() => window.open(kartvizitUrl(u.id), '_blank', 'noopener')}
+                      title="Kartvizitini görüntüle"
+                      className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                    >
+                      <CreditCard size={15} />
+                    </button>
+                  )}
                   <button
                     onClick={() => onEdit(u)}
                     title="Düzenle"

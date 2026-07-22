@@ -550,6 +550,31 @@ const MOCK_USER_ACTIVITY = {
   'ext-danisman-3': null,
 }
 
+// Dijital kartvizit — telefon/avatar/sosyal medya/aktiflik, userId'ye göre
+// in-memory. u-broker ve u-danisman için örnek dolu veriyle başlıyor ki
+// mock modda kartvizit sayfası boş görünmesin.
+const MOCK_KARTVIZIT = {
+  'u-broker': {
+    telefon: '0532 000 00 00',
+    avatarUrl: null,
+    sosyalMedya: { instagram: 'https://instagram.com/remaxlavanda', linkedin: '', whatsapp: '05320000000', web: 'https://remax.com.tr' },
+    kartvizitAktif: true,
+  },
+  'u-danisman': {
+    telefon: '0533 111 11 11',
+    avatarUrl: null,
+    sosyalMedya: { instagram: '', linkedin: '', whatsapp: '05331111111', web: '' },
+    kartvizitAktif: true,
+  },
+}
+
+function kartvizitFor(userId) {
+  if (!MOCK_KARTVIZIT[userId]) {
+    MOCK_KARTVIZIT[userId] = { telefon: null, avatarUrl: null, sosyalMedya: {}, kartvizitAktif: true }
+  }
+  return MOCK_KARTVIZIT[userId]
+}
+
 export const users = {
   // supabaseProvider.users.listKnown() sadece durum='aktif' kullanıcıları
   // döner — mock tarafında da aynı davranışı simüle ediyoruz (MOCK_USERS +
@@ -615,6 +640,27 @@ export const users = {
   },
   async removePushSubscription(_endpoint) {
     return delay(null)
+  },
+  async getMyProfile(userId) {
+    const row = allMockUserRows().find((u) => u.id === userId)
+    if (!row) throw new Error('Kullanıcı bulunamadı.')
+    const kv = kartvizitFor(userId)
+    return delay({ id: row.id, name: row.name, email: row.email, role: row.role, ...kv })
+  },
+  async updateProfile(userId, patch) {
+    const kv = kartvizitFor(userId)
+    if ('telefon' in patch) kv.telefon = patch.telefon || null
+    if ('avatarUrl' in patch) kv.avatarUrl = patch.avatarUrl || null
+    if ('sosyalMedya' in patch) kv.sosyalMedya = patch.sosyalMedya ?? {}
+    if ('kartvizitAktif' in patch) kv.kartvizitAktif = patch.kartvizitAktif
+    return delay({ id: userId, ...patch })
+  },
+  async getPublicCard(userId) {
+    const row = allMockUserRows().find((u) => u.id === userId)
+    if (!row || row.durum !== 'aktif') return delay(null)
+    const kv = kartvizitFor(userId)
+    if (!kv.kartvizitAktif) return delay(null)
+    return delay({ name: row.name, telefon: kv.telefon, email: row.email, avatarUrl: kv.avatarUrl, role: row.role, sosyalMedya: kv.sosyalMedya })
   },
 }
 

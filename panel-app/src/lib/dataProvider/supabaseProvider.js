@@ -909,6 +909,49 @@ export const users = {
   async removePushSubscription(endpoint) {
     await run(client().from('push_subscriptions').delete().eq('endpoint', endpoint))
   },
+  // Dijital kartvizit: kendi profilini düzenlerken mevcut değerleri
+  // doldurmak için — users_select_all zaten kendi satırını görmesine izin
+  // veriyor, ayrı bir RPC gerekmiyor (get_kartvizit sadece BAŞKALARININ
+  // kartını anonim/herkese açık okumak için var, bkz. migration).
+  async getMyProfile(userId) {
+    const data = await run(
+      client().from('users').select('id, ad, telefon, email, avatar_url, rol, sosyal_medya, kartvizit_aktif').eq('id', userId).single(),
+    )
+    return {
+      id: data.id,
+      name: data.ad,
+      telefon: data.telefon,
+      email: data.email,
+      avatarUrl: data.avatar_url,
+      role: data.rol,
+      sosyalMedya: data.sosyal_medya ?? {},
+      kartvizitAktif: data.kartvizit_aktif,
+    }
+  },
+  async updateProfile(userId, patch) {
+    const dbPatch = {}
+    if ('telefon' in patch) dbPatch.telefon = patch.telefon || null
+    if ('avatarUrl' in patch) dbPatch.avatar_url = patch.avatarUrl || null
+    if ('sosyalMedya' in patch) dbPatch.sosyal_medya = patch.sosyalMedya ?? {}
+    if ('kartvizitAktif' in patch) dbPatch.kartvizit_aktif = patch.kartvizitAktif
+    await run(client().from('users').update(dbPatch).eq('id', userId))
+    return { id: userId, ...patch }
+  },
+  // Herkese açık kartvizit sayfası (/k/:userId) — giriş yapmamış (anon)
+  // ziyaretçi için, sadece kartvizit_aktif=true VE durum='aktif' olan
+  // kullanıcıların GÜVENLİ bir alt kümesini döner (bkz. get_kartvizit RPC).
+  async getPublicCard(userId) {
+    const data = await run(client().rpc('get_kartvizit', { p_user_id: userId }).maybeSingle())
+    if (!data) return null
+    return {
+      name: data.ad,
+      telefon: data.telefon,
+      email: data.email,
+      avatarUrl: data.avatar_url,
+      role: data.rol,
+      sosyalMedya: data.sosyal_medya ?? {},
+    }
+  },
 }
 
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------

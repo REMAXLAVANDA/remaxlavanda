@@ -16,6 +16,8 @@ import Lig from './pages/Lig'
 import Rehber from './pages/Rehber'
 import Ayarlar from './pages/Ayarlar'
 import Login from './pages/Login'
+import Kartvizitim from './pages/Kartvizitim'
+import KartvizitPublic from './pages/KartvizitPublic'
 
 // Takvim, FullCalendar gibi ağır bir kütüphane taşıdığı için ana paketi
 // şişirmemesi adına lazy-load ediliyor — sadece Takvim'e girilince indirilir.
@@ -56,6 +58,7 @@ export default function App() {
           <HashRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/k/:userId" element={<KartvizitPublic />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route index element={<Navigate to="/panel" replace />} />
@@ -74,6 +77,7 @@ export default function App() {
                   <Route path="/egitim" element={<Takip />} />
                   <Route path="/lig" element={<Lig />} />
                   <Route path="/rehber" element={<Rehber />} />
+                  <Route path="/kartvizitim" element={<Kartvizitim />} />
                   <Route path="/ayarlar" element={<Ayarlar />} />
                   <Route path="*" element={<Navigate to="/panel" replace />} />
                 </Route>
