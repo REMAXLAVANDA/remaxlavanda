@@ -303,6 +303,7 @@ export const callLogs = {
       arayanAd: form.arayanAd,
       arayanTelefon: form.arayanTelefon || null,
       assignedTo: form.assignedTo || null,
+      notlar: form.notlar || null,
       sonuc: null,
       portfoyAlindiMi: false,
       portfoyNo: null,

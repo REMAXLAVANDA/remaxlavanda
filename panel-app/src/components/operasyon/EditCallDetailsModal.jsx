@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
-import { capitalizeWords } from '../../lib/format'
+import { capitalizeFirst, capitalizeWords } from '../../lib/format'
 
 export default function EditCallDetailsModal({ call, onClose, onSubmit, submitting }) {
   const [form, setForm] = useState({
@@ -10,6 +10,7 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
     kaynak: call.kaynak,
     portfoyNo: call.portfoyNo ?? '',
     satildiMi: call.satildiMi ?? false,
+    notlar: call.notlar ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.arayanAd.trim().length > 0
@@ -20,7 +21,7 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ ...form, arayanAd: capitalizeWords(form.arayanAd.trim()) })
+          onSubmit({ ...form, arayanAd: capitalizeWords(form.arayanAd.trim()), notlar: capitalizeFirst(form.notlar.trim()) })
         }}
         className="space-y-3"
       >
@@ -73,6 +74,15 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
             </label>
           </div>
         )}
+
+        <textarea
+          value={form.notlar}
+          onChange={(e) => set({ notlar: e.target.value })}
+          onBlur={(e) => set({ notlar: capitalizeFirst(e.target.value) })}
+          placeholder="Açıklama — ne için aranacak? (danışman bunu görecek)"
+          rows={2}
+          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+        />
 
         <div className="flex justify-end gap-2 pt-2">
           <button

@@ -414,6 +414,7 @@ export const callLogs = {
           arayan_ad: form.arayanAd,
           arayan_telefon: form.arayanTelefon || null,
           assigned_to: form.assignedTo || null,
+          notlar: form.notlar || null,
         })
         .select()
         .single(),
@@ -435,6 +436,7 @@ export const callLogs = {
     if ('arayanAd' in patch) dbPatch.arayan_ad = patch.arayanAd
     if ('arayanTelefon' in patch) dbPatch.arayan_telefon = patch.arayanTelefon || null
     if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
+    if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
     const data = await run(client().from('call_logs').update(dbPatch).eq('id', id).select().single())
     return mapCallLog(data)
   },

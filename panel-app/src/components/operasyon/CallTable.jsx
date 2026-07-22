@@ -1,11 +1,23 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Target, StickyNote, Pencil } from 'lucide-react'
 import { CALL_RESULT_LABELS, CALL_RESULT_STYLES, canEditCallDetails, maskPhone } from '../../lib/callLogs'
-import { relativeTime } from '../../lib/format'
-
 function satisTarihiLabel(satisTarihi) {
   if (!satisTarihi) return 'Satış tarihi'
   return `Satış: ${new Date(satisTarihi).toLocaleDateString('tr-TR')}`
+}
+
+// "bugün/dün" gibi göreceli değil, gerçek tarih+saat — "hangi çağrı ne
+// zaman girilmiş" net görülsün diye (bkz. "tarih kısmında bugün yazıyor,
+// orada tarih yazmalı" isteği).
+function callDateLabel(createdAt) {
+  if (!createdAt) return '—'
+  return new Date(createdAt).toLocaleString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 function PhoneCell({ phone }) {
@@ -84,8 +96,16 @@ export default function CallTable({
                   <span className="flex items-center gap-1.5">
                     {call.arayanAd}
                     {call.opportunityId && <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />}
-                    {call.notlar && <StickyNote size={13} className="shrink-0 text-ink-400" title={call.notlar} />}
                   </span>
+                  {/* Tooltip yerine doğrudan metin — telefonda hover olmadığı
+                      için danışman notu göremiyordu (bkz. "ne için aradığını
+                      da yazmamız lazım" isteği). */}
+                  {call.notlar && (
+                    <span className="mt-0.5 flex items-start gap-1 text-xs font-normal text-ink-500">
+                      <StickyNote size={12} className="mt-0.5 shrink-0 text-ink-400" />
+                      {call.notlar}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-ink-600">
                   <PhoneCell phone={call.arayanTelefon} />
@@ -198,7 +218,7 @@ export default function CallTable({
                     </span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-ink-400">{relativeTime(call.createdAt)}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-ink-400">{callDateLabel(call.createdAt)}</td>
                 <td className="px-4 py-3 text-right">
                   {canEditCallDetails(currentRole, call.createdAt) && (
                     <button
