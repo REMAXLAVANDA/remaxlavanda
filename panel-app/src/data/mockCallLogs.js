@@ -1,5 +1,11 @@
 // Operasyon modülü mock verisi — supabase şemasındaki call_logs tablosunun
 // karşılığı (camelCase alan adlarıyla).
+//
+// donusYapildiMi / portfoyAlindiMi artık üç durumlu: null=Bekliyor,
+// donusYapildiMi için false=Ulaşılamadı/true=Görüşüldü, portfoyAlindiMi
+// için true=Alındı/false=Almadık (bkz. lib/callLogs.js GORUSULDU_CYCLE/
+// PORTFOY_CYCLE). "sonuc" kolonu artık UI'da kullanılmıyor ama geçmiş veri
+// kaybolmasın diye burada da (gerçek DB'deki gibi) duruyor.
 
 const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
@@ -7,33 +13,35 @@ const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
 export const MOCK_CALLS = [
   {
     id: 'call-1',
-    kaynak: 'Facebook Reklam',
+    kaynak: 'Reklam',
     arayanAd: 'Fatma Yıldız',
     arayanTelefon: '0555 444 55 66',
     assignedTo: 'ext-danisman-2',
     sonuc: 'ulasildi',
-    portfoyAlindiMi: false,
+    portfoyAlindiMi: null,
     donusYapildiMi: true,
     donusAt: daysAgo(1),
     opportunityId: null,
+    notlar: null,
     createdAt: daysAgo(2),
   },
   {
     id: 'call-2',
-    kaynak: 'Google Ads',
+    kaynak: 'Reklam',
     arayanAd: 'Kemal Aydın',
     arayanTelefon: '0555 555 66 77',
     assignedTo: null,
     sonuc: null,
-    portfoyAlindiMi: false,
-    donusYapildiMi: false,
+    portfoyAlindiMi: null,
+    donusYapildiMi: null,
     donusAt: null,
     opportunityId: null,
+    notlar: null,
     createdAt: daysAgo(0),
   },
   {
     id: 'call-3',
-    kaynak: 'Instagram',
+    kaynak: 'Reklam',
     arayanAd: 'Baran Ceylan',
     arayanTelefon: '0555 123 45 67',
     assignedTo: 'u-danisman',
@@ -42,6 +50,7 @@ export const MOCK_CALLS = [
     donusYapildiMi: true,
     donusAt: daysAgo(4),
     opportunityId: 'opp-1',
+    notlar: null,
     createdAt: daysAgo(6),
   },
   {
@@ -51,15 +60,16 @@ export const MOCK_CALLS = [
     arayanTelefon: '0555 234 56 78',
     assignedTo: 'u-danisman',
     sonuc: 'ulasilamadi',
-    portfoyAlindiMi: false,
+    portfoyAlindiMi: null,
     donusYapildiMi: false,
     donusAt: null,
     opportunityId: null,
+    notlar: '3 gündür ulaşılamıyor, tekrar denenecek',
     createdAt: daysAgo(1),
   },
   {
     id: 'call-5',
-    kaynak: 'Facebook Reklam',
+    kaynak: 'Reklam',
     arayanAd: 'Cem Türkmen',
     arayanTelefon: '0555 345 67 89',
     assignedTo: 'ext-danisman-2',
@@ -68,19 +78,21 @@ export const MOCK_CALLS = [
     donusYapildiMi: true,
     donusAt: daysAgo(10),
     opportunityId: null,
+    notlar: 'Bütçesi düşük, çalıştığımız bölge dışında',
     createdAt: daysAgo(12),
   },
   {
     id: 'call-6',
-    kaynak: 'Google Ads',
+    kaynak: 'Reklam',
     arayanAd: 'Selin Arslan',
     arayanTelefon: '0555 456 78 90',
     assignedTo: null,
     sonuc: null,
-    portfoyAlindiMi: false,
-    donusYapildiMi: false,
+    portfoyAlindiMi: null,
+    donusYapildiMi: null,
     donusAt: null,
     opportunityId: null,
+    notlar: null,
     createdAt: daysAgo(3),
   },
   {
@@ -94,19 +106,21 @@ export const MOCK_CALLS = [
     donusYapildiMi: true,
     donusAt: daysAgo(35),
     opportunityId: null,
+    notlar: null,
     createdAt: daysAgo(38),
   },
   {
     id: 'call-8',
-    kaynak: 'Instagram',
+    kaynak: 'Reklam',
     arayanAd: 'Pınar Demirtaş',
     arayanTelefon: '0555 678 90 12',
     assignedTo: 'ext-danisman-2',
     sonuc: 'ulasildi',
-    portfoyAlindiMi: false,
-    donusYapildiMi: false,
-    donusAt: null,
+    portfoyAlindiMi: null,
+    donusYapildiMi: true,
+    donusAt: daysAgo(2),
     opportunityId: null,
+    notlar: null,
     createdAt: daysAgo(2),
   },
 ]

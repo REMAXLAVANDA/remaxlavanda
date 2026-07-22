@@ -1,19 +1,38 @@
 import { ROLES } from './roles'
 
-export const CALL_SOURCES = ['Santral', 'Sponsorlu', 'Facebook Reklam', 'Google Ads', 'Instagram', 'Web Sitesi', 'Diğer']
+// "Sponsorlu/Facebook Reklam/Google Ads/Instagram" tek "Reklam" altında
+// birleştirildi — kaynak ayrımı danışman/yönetim için pratikte gereksiz
+// detaydı (bkz. "gereksiz olanları çıkartalım" isteği).
+export const CALL_SOURCES = ['Santral', 'Reklam', 'Web Sitesi', 'Diğer']
 
-export const CALL_RESULT_LABELS = {
-  ulasildi: 'Ulaşıldı',
-  ulasilamadi: 'Ulaşılamadı',
-  ilgilenmiyor: 'İlgilenmiyor',
-  portfoy_alindi: 'Portföy Alındı',
+// Operasyon tablosunda "Kaynak" sütunu artık uzun metin rozeti değil, kısa
+// harf kodu — satır daha az yer kaplasın, tablo tek bakışta taranabilsin
+// diye (bkz. "S işareti santrali ifade etsin" isteği). Tam ad title/tooltip
+// olarak kalıyor, ayrıca filtre barının üstünde bir kere açıklanıyor.
+export const CALL_SOURCE_CODES = {
+  Santral: { code: 'S', style: 'bg-ink-100 text-ink-600' },
+  Reklam: { code: 'R', style: 'bg-amber-50 text-amber-700' },
+  'Web Sitesi': { code: 'WS', style: 'bg-emerald-50 text-emerald-700' },
+  Diğer: { code: 'D', style: 'bg-ink-50 text-ink-400' },
 }
 
-export const CALL_RESULT_STYLES = {
-  ulasildi: 'bg-emerald-50 text-emerald-700',
-  ulasilamadi: 'bg-amber-50 text-amber-700',
-  ilgilenmiyor: 'bg-ink-100 text-ink-500',
-  portfoy_alindi: 'bg-brand-50 text-brand-700',
+// RE/MAX'ın kendi CRM'indeki durum akışından (Lead Görüldü → Görüşme
+// Yapıldı → Satıcıya Ulaşılamadı → Portföy Görüldü → Sözleşme İmzalandı →
+// Portföye Dönüştü/İptal) esinlenildi ama sadeleştirildi — bizim ölçeğimizde
+// gereksiz kalan ara aşamalar (Lead Görüldü, Portföy Görüldü, Sözleşme
+// İmzalandı) çıkarıldı. Geriye iki bağımsız, üç durumlu alan kaldı:
+//   - Görüşüldü (donusYapildiMi): null=Bekliyor, false=Ulaşılamadı, true=Görüşüldü
+//   - Portföy (portfoyAlindiMi): null=Bekliyor, true=Alındı, false=Almadık
+// Eski "Sonuç" (tek seçimli dropdown) kaldırıldı — aynı bilgiyi bu ikisiyle
+// çakışarak tekrarlıyordu. call_logs.sonuc kolonu DB'de duruyor (geçmiş veri
+// kaybolmuyor), sadece artık UI'da gösterilmiyor/düzenlenmiyor.
+export const GORUSULDU_CYCLE = [null, false, true]
+export const PORTFOY_CYCLE = [null, true, false]
+
+// Tek tıkla bir sonraki duruma geçer, sonuncudan sonra başa döner.
+export function cycleValue(current, order) {
+  const idx = order.indexOf(current ?? null)
+  return order[(idx + 1) % order.length]
 }
 
 // call_logs_select RLS kuralının mock karşılığı: broker/owner/ofis tüm

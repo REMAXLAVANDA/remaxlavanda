@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { callLogs as callLogsProvider } from '../../lib/dataProvider'
-import { canManageCalls, canViewCall, computeCallStats } from '../../lib/callLogs'
+import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import CallTable from '../../components/operasyon/CallTable'
 import CallFilters from '../../components/operasyon/CallFilters'
@@ -64,19 +64,13 @@ export default function OperasyonTab() {
     updateCall(id, { assignedTo })
   }
 
-  // "Portföy Alındı" sonucu seçilince ayrı Portföy sütunundaki Alındı/
-  // Alınmadı bayrağı da otomatik "Alındı" olsun — ikisi aynı gerçeği
-  // ayrı yerlerde tutuyor, elle iki kez işaretlemeye gerek kalmasın.
-  function handleSetResult(id, sonuc) {
-    const patch = { sonuc }
-    if (sonuc === 'portfoy_alindi') patch.portfoyAlindiMi = true
-    updateCall(id, patch)
-  }
-
-  function handleToggle(id, field) {
-    const call = (calls ?? []).find((c) => c.id === id)
-    const patch = { [field]: !call[field] }
-    if (field === 'donusYapildiMi') patch.donusAt = patch.donusYapildiMi ? new Date().toISOString() : null
+  // CallTable zaten bir sonraki durumu (3'lü döngü) hesaplayıp gönderiyor —
+  // burada sadece kaydediyoruz. "Görüşüldü"ye geçince donusAt otomatik
+  // dolsun, diğer durumlarda (Bekliyor/Ulaşılamadı) boşalsın — "satisTarihi"
+  // ile aynı desen (bkz. handleEditDetails).
+  function handleToggle(id, field, nextValue) {
+    const patch = { [field]: nextValue }
+    if (field === 'donusYapildiMi') patch.donusAt = nextValue === true ? new Date().toISOString() : null
     updateCall(id, patch)
   }
 
@@ -120,7 +114,7 @@ export default function OperasyonTab() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <p className="text-sm text-ink-500">
-          {isManager ? 'Sponsorlu reklam ve çağrı kayıtları' : 'Ofisten yönlendirilenler'}
+          {isManager ? 'Reklam ve çağrı kayıtları' : 'Ofisten yönlendirilenler'}
         </p>
         {isManager && (
           <button
@@ -145,6 +139,16 @@ export default function OperasyonTab() {
             <CallFilters filters={filters} onChange={setFilters} showKaynak={isManager} />
           </div>
 
+          {isManager && (
+            <p className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-400">
+              {Object.entries(CALL_SOURCE_CODES).map(([name, { code }]) => (
+                <span key={name}>
+                  <strong className="text-ink-500">{code}</strong>: {name}
+                </span>
+              ))}
+            </p>
+          )}
+
           <CallTable
             calls={visible}
             currentUserId={user.id}
@@ -153,7 +157,6 @@ export default function OperasyonTab() {
             inviteeOptions={inviteeOptions}
             resolveName={userName}
             onAssign={handleAssign}
-            onSetResult={handleSetResult}
             onToggle={handleToggle}
             onEditDetails={setEditingCall}
           />
