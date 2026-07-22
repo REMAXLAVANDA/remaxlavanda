@@ -7,6 +7,7 @@ import { users as usersProvider } from '../lib/dataProvider'
 import { uploadAvatarFile } from '../lib/storage'
 import { SOSYAL_MEDYA_FIELDS, kartvizitUrl } from '../lib/kartvizit'
 import KartvizitCard from '../components/kartvizit/KartvizitCard'
+import AvatarCropModal from '../components/kartvizit/AvatarCropModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 export default function Kartvizitim() {
@@ -16,6 +17,7 @@ export default function Kartvizitim() {
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [cropSource, setCropSource] = useState(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -30,13 +32,25 @@ export default function Kartvizitim() {
     setForm((f) => ({ ...f, sosyalMedya: { ...f.sosyalMedya, [key]: value } }))
   }
 
-  async function handleFileChange(e) {
+  function handleFileChange(e) {
     const file = e.target.files?.[0]
     e.target.value = '' // aynı dosyayı üst üste seçebilsin diye
     if (!file) return
+    // Doğrudan yüklemek yerine önce kırpma adımı açılıyor — kullanıcı
+    // dairesel alanı sürükleyip/yakınlaştırıp onaylayınca gerçek yükleme
+    // handleCropped()'ta yapılıyor.
+    // Kırpma sonucu her zaman JPEG olduğu için sabit bir isim/uzantı
+    // kullanılıyor — kaynak dosya .heic/.png da olsa sorun olmaz.
+    setCropSource({ imageSrc: URL.createObjectURL(file), fileName: 'avatar.jpg' })
+  }
+
+  async function handleCropped(croppedFile) {
+    const source = cropSource
+    setCropSource(null)
+    if (source) URL.revokeObjectURL(source.imageSrc)
     setUploading(true)
     try {
-      const url = await uploadAvatarFile(file, user.id)
+      const url = await uploadAvatarFile(croppedFile, user.id)
       setField('avatarUrl', url)
       showToast('Fotoğraf yüklendi — kaydetmeyi unutma.', 'success')
     } catch (err) {
@@ -44,6 +58,11 @@ export default function Kartvizitim() {
     } finally {
       setUploading(false)
     }
+  }
+
+  function handleCropCancel() {
+    if (cropSource) URL.revokeObjectURL(cropSource.imageSrc)
+    setCropSource(null)
   }
 
   async function handleSave() {
@@ -179,6 +198,15 @@ export default function Kartvizitim() {
             <KartvizitCard card={{ name: user.name, telefon: form.telefon, email: profile.email, avatarUrl: form.avatarUrl, role: profile.role, sosyalMedya: form.sosyalMedya }} userId={user.id} />
           </div>
         </div>
+      )}
+
+      {cropSource && (
+        <AvatarCropModal
+          imageSrc={cropSource.imageSrc}
+          fileName={cropSource.fileName}
+          onCancel={handleCropCancel}
+          onCropped={handleCropped}
+        />
       )}
     </div>
   )
