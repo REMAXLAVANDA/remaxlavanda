@@ -129,9 +129,13 @@ export async function uploadAvatarFile(file, userId) {
   const ext = file.name.split('.').pop().toLowerCase()
   const path = `${userId}/${Date.now()}.${ext}`
 
+  // upsert:false — path her yüklemede Date.now() ile zaten benzersiz,
+  // upsert'e hiç gerek yok. Ayrıca upsert:true Storage API'de bazı
+  // sürümlerde ekstra bir varlık kontrolü tetikleyip RLS'i beklenmedik
+  // şekilde reddedebiliyor (yaşanan 403 sorunu) — sade insert'e geçildi.
   const { error } = await client.storage.from(AVATAR_BUCKET).upload(path, file, {
     contentType: file.type,
-    upsert: true,
+    upsert: false,
   })
   if (error) throw mapSupabaseError(error)
 
