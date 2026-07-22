@@ -76,18 +76,31 @@ export default function KartvizitCard({ card, userId }) {
 
   return (
     <div className="mx-auto w-full max-w-sm overflow-hidden rounded-[32px] border border-ink-100 bg-white shadow-xl">
-      <div className="relative overflow-hidden bg-gradient-to-br from-remax-navy via-remax-navy to-brand-700 px-6 pb-6 pt-8 text-white">
-        <img
-          src="/panel/remax-balloon.png"
-          alt=""
-          className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rotate-12 opacity-10"
-        />
+      {/* RE/MAX'ın asıl kimliği kırmızı-beyaz-mavi balon — bu üçlü şerit
+          kartın en üstünde, dünyanın her yerindeki RE/MAX tabelalarındaki
+          gibi anında tanınsın diye. */}
+      <div className="flex h-1.5 w-full">
+        <div className="flex-1 bg-brand-600" />
+        <div className="flex-1 bg-white" />
+        <div className="flex-1 bg-remax-blue" />
+      </div>
+
+      <div className="relative overflow-hidden bg-gradient-to-b from-remax-navy to-[#0a1f38] px-6 pb-6 pt-7 text-white">
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ backgroundImage: 'radial-gradient(circle at 88% -6%, rgba(220,28,46,0.55), transparent 50%)' }}
+          style={{ backgroundImage: 'radial-gradient(circle at 88% -6%, rgba(220,28,46,0.45), transparent 50%)' }}
         />
 
-        <div className="relative flex justify-center">
+        <div className="relative flex flex-col items-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
+            <img src="/panel/remax-balloon.png" alt="RE/MAX" className="h-12 w-12 object-contain" />
+          </div>
+          <span className="mt-2 text-sm font-extrabold tracking-wide text-white">
+            RE/MAX <span className="text-brand-400">LAVANDA</span>
+          </span>
+        </div>
+
+        <div className="relative mt-5 flex justify-center">
           {card.avatarUrl ? (
             <img
               src={card.avatarUrl}
@@ -106,11 +119,6 @@ export default function KartvizitCard({ card, userId }) {
           <p className="mt-2 inline-block rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wide">
             {unvanFor(card.role)}
           </p>
-        </div>
-
-        <div className="relative mt-3 flex items-center justify-center gap-2">
-          <img src="/panel/remax-balloon.png" alt="" className="h-6 w-6 object-contain" />
-          <span className="text-xs font-bold tracking-wide text-white/90">RE/MAX LAVANDA</span>
         </div>
 
         <div className="relative mt-5 flex justify-center gap-3.5">

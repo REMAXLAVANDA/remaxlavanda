@@ -52,13 +52,21 @@ function vcardEscape(value) {
   return String(value ?? '').replace(/([,;])/g, '\\$1')
 }
 
+// Rehbere kaydedilen kişi telefonun kişi aramasında "remax" yazınca da
+// çıksın istendiği için (broker/danışman fark etmeden) — sadece ORG alanına
+// güvenmiyoruz, çünkü bazı telefon rehberi uygulamaları aramada sadece
+// isim (FN) alanını tarıyor. Bu yüzden marka adı hem isme hem ORG/NOTE'a
+// ekleniyor, hangisini tararsa tarasın bulunsun diye.
 export function buildVCard({ name, telefon, email, role }) {
   const lines = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `FN:${vcardEscape(name)}`,
+    `N:;${vcardEscape(name)};;;`,
+    `FN:${vcardEscape(name)} - RE/MAX Lavanda`,
+    `NICKNAME:${vcardEscape(name)}`,
     `TITLE:${vcardEscape(unvanFor(role))}`,
-    'ORG:RE/MAX Lavanda',
+    'ORG:RE/MAX Lavanda;Gayrimenkul Danışmanlığı',
+    'NOTE:RE/MAX Lavanda Gayrimenkul Danışmanlığı',
     telefon ? `TEL;TYPE=CELL:${vcardEscape(telefon)}` : null,
     email ? `EMAIL:${vcardEscape(email)}` : null,
     'END:VCARD',
