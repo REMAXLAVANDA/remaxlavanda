@@ -42,7 +42,7 @@ import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
-import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
+import { DATE_RANGES, isWithinRange, isLegacyRecord } from '../lib/dateRange'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
@@ -547,8 +547,16 @@ export default function Panel() {
     const now = Date.now()
     const items = []
 
+    // isLegacyRecord: 15 günden eski kayıtların created_at'i toplu olarak
+    // 01.01.2025'e çekildiği için (bkz. lib/dateRange.js), bu sentinel
+    // tarihli kayıtlar hariç tutulmazsa bu uyarılar sonsuza dek "bekliyor"
+    // sayardı — veri hâlâ duruyor, sadece bu iki gecikme uyarısına girmiyor.
     const staleReturns = data.calls.filter(
-      (c) => c.assignedTo && !c.donusYapildiMi && now - new Date(c.createdAt).getTime() > 2 * 24 * 60 * 60 * 1000,
+      (c) =>
+        c.assignedTo &&
+        !c.donusYapildiMi &&
+        !isLegacyRecord(c.createdAt) &&
+        now - new Date(c.createdAt).getTime() > 2 * 24 * 60 * 60 * 1000,
     )
     if (staleReturns.length > 0) {
       items.push({
@@ -560,7 +568,7 @@ export default function Panel() {
     }
 
     const staleOpps = data.opps.filter(
-      (o) => o.status === 'acik' && now - new Date(o.createdAt).getTime() > 3 * 24 * 60 * 60 * 1000,
+      (o) => o.status === 'acik' && !isLegacyRecord(o.createdAt) && now - new Date(o.createdAt).getTime() > 3 * 24 * 60 * 60 * 1000,
     )
     if (staleOpps.length > 0) {
       items.push({

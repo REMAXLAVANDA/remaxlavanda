@@ -11,6 +11,20 @@ export const DATE_RANGES = [
   { key: 'ozel', label: 'Özel', days: null },
 ]
 
+// 20260717090000 migration'ı 15 günden eski kayıtların created_at'ini
+// 01.01.2025'e çekti (bkz. migration dosyası) — veri silinmedi, sadece
+// tarih-sıralı listelerde eskiler yeninin önüne geçmesin diye. Ama bu
+// yüzden "N gündür bekliyor" gibi createdAt bazlı gecikme uyarıları bu
+// kayıtları sonsuza dek "eski/bekliyor" sayardı. Panel'deki "Dikkat
+// Gerekiyor" uyarıları SADECE gerçekten yeni gelip bekleyen kayıtları
+// göstersin diye bu sentinel tarihli kayıtlar hariç tutuluyor.
+const LEGACY_NORMALIZED_CUTOFF = new Date('2025-01-02T00:00:00Z').getTime()
+
+export function isLegacyRecord(dateIso) {
+  if (!dateIso) return false
+  return new Date(dateIso).getTime() < LEGACY_NORMALIZED_CUTOFF
+}
+
 export function isWithinRange(dateIso, rangeKey, customFrom, customTo) {
   if (rangeKey === 'tumu') return true
   const date = new Date(dateIso)
