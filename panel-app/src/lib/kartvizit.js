@@ -21,7 +21,9 @@ export function hasKartvizit(role) {
 }
 
 export const OFIS_ADRESI = 'Rumeli Mah. Yücetürk Cad. No:20/3 Çorlu/Tekirdağ'
-export const OFIS_MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(OFIS_ADRESI)}`
+// Adresten arattırmak yerine ofisin gerçek, pinlenmiş Google Maps linkini
+// kullanıyoruz — arama sonucu bazen yanlış/yakın bir noktaya düşebiliyor.
+export const OFIS_MAPS_URL = 'https://maps.app.goo.gl/v47uV4R2iUhPNbG6A'
 
 export const SOSYAL_MEDYA_FIELDS = [
   { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/kullaniciadi' },

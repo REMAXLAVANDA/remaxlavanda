@@ -96,3 +96,45 @@ export async function deleteDocFile(path) {
   const { error } = await client.storage.from(BUCKET).remove([path])
   if (error) throw mapSupabaseError(error)
 }
+
+// --- Kartvizit profil fotoğrafı ----------------------------------------------
+// "docs" bucket'ının aksine PUBLIC — kartvizit sayfası girişsiz (anon)
+// açıldığı için signed URL değil, doğrudan kalıcı bir public URL gerekiyor.
+const AVATAR_BUCKET = 'avatars'
+const AVATAR_MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB — bucket policy ile aynı
+const AVATAR_ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp']
+
+export function validateAvatarFile(file) {
+  if (!file) return { ok: false, reason: 'Dosya seçilmedi.' }
+  if (file.size > AVATAR_MAX_SIZE_BYTES) return { ok: false, reason: 'Fotoğraf 5 MB sınırını aşıyor.' }
+  const ext = file.name.split('.').pop()?.toLowerCase()
+  if (!ext || !AVATAR_ALLOWED_EXTENSIONS.includes(ext)) {
+    return { ok: false, reason: 'Sadece PNG, JPG veya WEBP yükleyebilirsin.' }
+  }
+  return { ok: true }
+}
+
+// Yükler ve kalıcı public URL'i döner (avatar_url kolonuna bu yazılır).
+// Mock modda gerçek Storage yok — dosyayı tarayıcı belleğinde bir blob
+// URL'e çevirip önizlemenin dev ortamında da çalışmasını sağlıyoruz.
+export async function uploadAvatarFile(file, userId) {
+  const check = validateAvatarFile(file)
+  if (!check.ok) throw new Error(check.reason)
+
+  if (!USE_SUPABASE) {
+    return URL.createObjectURL(file)
+  }
+
+  const client = getSupabaseClient()
+  const ext = file.name.split('.').pop().toLowerCase()
+  const path = `${userId}/${Date.now()}.${ext}`
+
+  const { error } = await client.storage.from(AVATAR_BUCKET).upload(path, file, {
+    contentType: file.type,
+    upsert: true,
+  })
+  if (error) throw mapSupabaseError(error)
+
+  const { data } = client.storage.from(AVATAR_BUCKET).getPublicUrl(path)
+  return data.publicUrl
+}

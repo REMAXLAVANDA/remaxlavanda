@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { Phone, MessageSquare, Mail, MapPin, Camera, Briefcase, Globe, Share2, UserPlus } from 'lucide-react'
+import { Phone, MessageSquare, Mail, MapPin, Globe, Share2, UserPlus } from 'lucide-react'
 import { useToast } from '../../context/ToastContext'
 import { unvanFor, OFIS_MAPS_URL, whatsappLink, kartvizitUrl, downloadVCard } from '../../lib/kartvizit'
+import { InstagramIcon, LinkedinIcon, WhatsappIcon } from './BrandIcons'
 
 function initialsFor(name) {
   return (name ?? '?')
@@ -144,9 +145,9 @@ export default function KartvizitCard({ card, userId }) {
         {(social.instagram || social.linkedin || wa || social.web) && (
           <>
             <p className="mb-2.5 px-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-400">İletişim &amp; Sosyal</p>
-            <LinkRow icon={Camera} iconClass="bg-gradient-to-br from-amber-500 via-pink-600 to-purple-600" label="Instagram" value={social.instagram} href={social.instagram} />
-            <LinkRow icon={Briefcase} iconClass="bg-[#0a66c2]" label="LinkedIn" value={social.linkedin} href={social.linkedin} />
-            <LinkRow icon={MessageSquare} iconClass="bg-emerald-500" label="WhatsApp" value={social.whatsapp} href={wa} />
+            <LinkRow icon={InstagramIcon} iconClass="bg-gradient-to-br from-amber-500 via-pink-600 to-purple-600" label="Instagram" value={social.instagram} href={social.instagram} />
+            <LinkRow icon={LinkedinIcon} iconClass="bg-[#0a66c2]" label="LinkedIn" value={social.linkedin} href={social.linkedin} />
+            <LinkRow icon={WhatsappIcon} iconClass="bg-emerald-500" label="WhatsApp" value={social.whatsapp} href={wa} />
             <LinkRow icon={Globe} iconClass="bg-remax-blue" label="Web / İlanlarım" value={social.web} href={social.web} />
           </>
         )}
