@@ -95,7 +95,7 @@ export default function KartvizitCard({ card, userId }) {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
             <img src="/panel/remax-balloon.png" alt="RE/MAX" className="h-12 w-12 object-contain" />
           </div>
-          <span className="mt-2 text-sm font-extrabold tracking-wide text-white">
+          <span className="mt-2 text-xl font-extrabold tracking-wide text-white">
             RE/MAX <span className="text-brand-400">LAVANDA</span>
           </span>
         </div>
