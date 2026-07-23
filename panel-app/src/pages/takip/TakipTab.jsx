@@ -61,7 +61,9 @@ export default function TakipTab() {
   const people = useMemo(() => {
     if (!data) return []
     const list = seeTeam ? Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman') : [user]
-    const rows = list.map((u) => ({ user: u, ...computeHealthScore(u.id, data) }))
+    // İsim sırası yerine en yüksek sağlık skoru en üstte — broker/owner'ın
+    // ilk bakışta kimin dikkat gerektirdiğini/öne çıktığını görmesi için.
+    const rows = list.map((u) => ({ user: u, ...computeHealthScore(u.id, data) })).sort((a, b) => b.score - a.score)
     if (!odakActive) return rows
     const lastSignInById = {}
     for (const a of data.activity) lastSignInById[a.userId] = a.lastSignInAt
