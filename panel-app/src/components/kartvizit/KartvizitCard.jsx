@@ -51,7 +51,10 @@ export default function KartvizitCard({ card, userId }) {
       return
     }
     let cancelled = false
-    QRCode.toDataURL(url, { width: 160, margin: 1, color: { dark: '#0c2749', light: '#ffffff' } })
+    // width yüksek üretilip küçük gösterilirse net kalır — kamerayla
+    // taranabilirlik için margin (sessiz kenar boşluğu) da standart QR
+    // önerisine (>=4 modül) yakın tutuluyor.
+    QRCode.toDataURL(url, { width: 320, margin: 3, color: { dark: '#0c2749', light: '#ffffff' } })
       .then((dataUrl) => { if (!cancelled) setQrDataUrl(dataUrl) })
       .catch(() => { if (!cancelled) setQrDataUrl(null) })
     return () => { cancelled = true }
@@ -161,9 +164,11 @@ export default function KartvizitCard({ card, userId }) {
         )}
 
         {qrDataUrl && (
-          <div className="mt-3 flex items-center gap-3 rounded-2xl bg-ink-50 px-3.5 py-3">
-            <img src={qrDataUrl} alt="Kartvizit QR kodu" className="h-14 w-14 rounded-md" />
-            <span className="text-xs text-ink-500">Bu kartı QR ile paylaş</span>
+          <div className="mt-3 flex flex-col items-center gap-2 rounded-2xl bg-ink-50 px-3.5 py-4">
+            <div className="rounded-xl bg-white p-2.5 shadow-sm">
+              <img src={qrDataUrl} alt="Kartvizit QR kodu" className="h-40 w-40" />
+            </div>
+            <span className="text-xs text-ink-500">Kameranla okutarak kartı aç</span>
           </div>
         )}
 
