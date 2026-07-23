@@ -72,6 +72,14 @@ export default function App() {
                       </Suspense>
                     }
                   />
+                  <Route
+                    path="/gorevler"
+                    element={
+                      <Suspense fallback={<PageLoading />}>
+                        <Takvim />
+                      </Suspense>
+                    }
+                  />
                   <Route path="/operasyon" element={<Firsatlar />} />
                   <Route path="/takip" element={<Takip />} />
                   <Route path="/egitim" element={<Takip />} />

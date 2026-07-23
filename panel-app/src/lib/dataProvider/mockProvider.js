@@ -14,6 +14,7 @@ import {
   MOCK_CHECKLIST_STATUS,
 } from '../../data/mockEducation'
 import { MOCK_CALLS } from '../../data/mockCallLogs'
+import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
 import { MOCK_BROKER_NOTES } from '../../data/mockTakip'
@@ -674,5 +675,45 @@ const MOCK_AUDIT_LOG = [
 export const auditLog = {
   async list() {
     return delay([...MOCK_AUDIT_LOG])
+  },
+}
+
+// --- Görevler (Planlama > Görevler) ------------------------------------------
+export const tasks = {
+  async list() {
+    return delay([...MOCK_TASKS])
+  },
+  async create(form, createdBy) {
+    const row = {
+      id: `task-${Date.now()}`,
+      title: form.title,
+      description: form.description || null,
+      assigneeId: form.assigneeId,
+      createdBy,
+      dueDate: form.dueDate || null,
+      status: 'bekliyor',
+      completedAt: null,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_TASKS.unshift(row)
+    return delay({ ...row })
+  },
+  async update(id, patch) {
+    const task = MOCK_TASKS.find((t) => t.id === id)
+    if (!task) throw new Error('Görev bulunamadı.')
+    if ('title' in patch) task.title = patch.title
+    if ('description' in patch) task.description = patch.description || null
+    if ('assigneeId' in patch) task.assigneeId = patch.assigneeId
+    if ('dueDate' in patch) task.dueDate = patch.dueDate || null
+    if ('status' in patch) {
+      task.status = patch.status
+      task.completedAt = patch.status === 'tamamlandi' ? new Date().toISOString() : null
+    }
+    return delay({ ...task })
+  },
+  async remove(id) {
+    const idx = MOCK_TASKS.findIndex((t) => t.id === id)
+    if (idx !== -1) MOCK_TASKS.splice(idx, 1)
+    return delay(null)
   },
 }

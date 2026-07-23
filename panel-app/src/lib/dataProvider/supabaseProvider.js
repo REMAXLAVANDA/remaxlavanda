@@ -974,3 +974,59 @@ export const auditLog = {
     }))
   },
 }
+
+// --- Görevler (Planlama > Görevler) -------------------------------------------
+function mapTask(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    assigneeId: row.assignee_id,
+    createdBy: row.created_by,
+    dueDate: row.due_date,
+    status: row.status,
+    completedAt: row.completed_at,
+    createdAt: row.created_at,
+  }
+}
+
+export const tasks = {
+  // tasks_select RLS'i zaten görebileceklerini filtreliyor — burada ek bir
+  // client-side rol kontrolüne gerek yok (diğer list()'lerle aynı desen).
+  async list() {
+    const data = await run(client().from('tasks').select('*').order('created_at', { ascending: false }))
+    return data.map(mapTask)
+  },
+  async create(form, createdBy) {
+    const row = await run(
+      client()
+        .from('tasks')
+        .insert({
+          title: form.title,
+          description: form.description || null,
+          assignee_id: form.assigneeId,
+          created_by: createdBy,
+          due_date: form.dueDate || null,
+        })
+        .select()
+        .single(),
+    )
+    return mapTask(row)
+  },
+  async update(id, patch) {
+    const dbPatch = {}
+    if ('title' in patch) dbPatch.title = patch.title
+    if ('description' in patch) dbPatch.description = patch.description || null
+    if ('assigneeId' in patch) dbPatch.assignee_id = patch.assigneeId
+    if ('dueDate' in patch) dbPatch.due_date = patch.dueDate || null
+    if ('status' in patch) {
+      dbPatch.status = patch.status
+      dbPatch.completed_at = patch.status === 'tamamlandi' ? new Date().toISOString() : null
+    }
+    const row = await run(client().from('tasks').update(dbPatch).eq('id', id).select().single())
+    return mapTask(row)
+  },
+  async remove(id) {
+    await run(client().from('tasks').delete().eq('id', id))
+  },
+}

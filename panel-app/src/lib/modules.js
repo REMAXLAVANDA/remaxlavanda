@@ -34,9 +34,11 @@ export const MODULES = [
   {
     key: 'takvim',
     path: '/takvim',
-    label: 'Takvim',
-    description: 'Toplantı · Eğitim · Etkinlik · Broker/Koçluk Görüşmesi',
+    label: 'Planlama',
+    description: 'Takvim (Toplantı/Eğitim/Etkinlik) ve görevler',
     icon: CalendarDays,
+    // Görevler artık ayrı bir menü değil, bu sayfanın alt bölümü (bkz.
+    // pages/Takvim.jsx) — /gorevler linki hâlâ çalışır.
     roles: ALL_ROLES,
   },
   {
