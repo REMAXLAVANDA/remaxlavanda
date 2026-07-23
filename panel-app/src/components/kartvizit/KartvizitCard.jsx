@@ -40,7 +40,7 @@ function LinkRow({ icon: Icon, iconClass, label, value, href }) {
 // (Kartvizitim) kullanılır. `card`: { name, telefon, email, avatarUrl, role,
 // sosyalMedya }. `userId` yoksa (henüz kaydedilmemiş taslak) QR/link/Rehbere
 // Ekle aksiyonları devre dışı kalır.
-export default function KartvizitCard({ card, userId }) {
+export default function KartvizitCard({ card, userId, fullscreen = false }) {
   const { showToast } = useToast()
   const [qrDataUrl, setQrDataUrl] = useState(null)
   const url = userId ? kartvizitUrl(userId) : null
@@ -78,7 +78,13 @@ export default function KartvizitCard({ card, userId }) {
   const wa = whatsappLink(social.whatsapp)
 
   return (
-    <div className="mx-auto w-full max-w-sm overflow-hidden rounded-[32px] border border-ink-100 bg-white shadow-xl">
+    <div
+      className={
+        fullscreen
+          ? 'mx-auto min-h-screen w-full max-w-lg bg-white'
+          : 'mx-auto w-full max-w-sm overflow-hidden rounded-[32px] border border-ink-100 bg-white shadow-xl'
+      }
+    >
       {/* RE/MAX'ın asıl kimliği kırmızı-beyaz-mavi balon — bu üçlü şerit
           kartın en üstünde, dünyanın her yerindeki RE/MAX tabelalarındaki
           gibi anında tanınsın diye. */}

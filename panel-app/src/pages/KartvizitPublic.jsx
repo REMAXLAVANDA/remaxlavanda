@@ -23,17 +23,21 @@ export default function KartvizitPublic() {
   }, [userId])
 
   return (
-    <div className="min-h-screen bg-ink-50 px-4 py-10">
-      {state.loading && <p className="text-center text-sm text-ink-400">Yükleniyor...</p>}
+    <div className="min-h-screen bg-white">
+      {state.loading && (
+        <p className="flex min-h-screen items-center justify-center text-sm text-ink-400">Yükleniyor...</p>
+      )}
 
       {!state.loading && (state.error || !state.card) && (
-        <div className="mx-auto max-w-sm rounded-2xl border border-ink-100 bg-white p-8 text-center">
-          <p className="text-sm font-medium text-ink-700">Bu kartvizit bulunamadı.</p>
-          <p className="mt-1 text-xs text-ink-400">Link geçersiz olabilir veya kartvizit kapatılmış olabilir.</p>
+        <div className="flex min-h-screen items-center justify-center bg-ink-50 px-4">
+          <div className="mx-auto max-w-sm rounded-2xl border border-ink-100 bg-white p-8 text-center">
+            <p className="text-sm font-medium text-ink-700">Bu kartvizit bulunamadı.</p>
+            <p className="mt-1 text-xs text-ink-400">Link geçersiz olabilir veya kartvizit kapatılmış olabilir.</p>
+          </div>
         </div>
       )}
 
-      {!state.loading && state.card && <KartvizitCard card={state.card} userId={userId} />}
+      {!state.loading && state.card && <KartvizitCard card={state.card} userId={userId} fullscreen />}
     </div>
   )
 }
