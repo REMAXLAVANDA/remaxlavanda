@@ -21,10 +21,11 @@ export function hasKartvizit(role) {
 }
 
 export const OFIS_ADRESI = 'Rumeli Mah. Yücetürk Cad. No:20/3 Çorlu/Tekirdağ'
-// Adresten arattırmak yerine ofisin Google'da "RE/MAX Lavanda" adıyla
-// kayıtlı gerçek işletme linkini kullanıyoruz — arama sonucu bazen
-// yanlış/yakın bir noktaya düşebiliyor.
-export const OFIS_MAPS_URL = 'https://maps.app.goo.gl/DJtUKkWcLDcxeWMg7?g_st=ic'
+// Paylaşılan pin linkleri (maps.app.goo.gl / share.google) sadece konumu
+// gösterip bir dokunuş daha istiyor — bunun yerine Google'ın resmi
+// "directions" API'si kullanılıyor, tıklayınca doğrudan kullanıcının
+// bulunduğu yerden ofise rota/yol tarifi başlatır.
+export const OFIS_MAPS_URL = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(OFIS_ADRESI)}`
 
 export const SOSYAL_MEDYA_FIELDS = [
   { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/kullaniciadi' },
