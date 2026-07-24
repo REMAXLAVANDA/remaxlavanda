@@ -10,7 +10,22 @@
 }
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Poppins", "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Okunaklılık için taban yazı boyutu skalası bir kademe büyütüldü,
+     satır aralıkları gevşetildi — text-xs/sm/base/lg/xl class'larını
+     kullanan HER yer (menü, tablo, form vb.) buradan otomatik etkileniyor,
+     dosya dosya elle büyütmeye gerek yok (bkz. marka standardı isteği). */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.3125rem;
+  --text-xl--line-height: 1.5;
 
   /* RE/MAX kırmızısı (#DC1C2E) taban alınarak üretilmiş 50-900 skala —
      mevcut bileşenlerdeki bg-brand-600/hover:bg-brand-700 vb. kullanım
@@ -38,7 +53,7 @@
   --color-ink-500: #6b7280;
   --color-ink-600: #4c5361;
   --color-ink-700: #363c48;
-  --color-ink-800: #232730;
+  --color-ink-800: #404041;
   --color-ink-900: #0c2749;
 }
 
