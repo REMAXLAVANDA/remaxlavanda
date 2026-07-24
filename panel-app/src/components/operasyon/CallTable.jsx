@@ -148,11 +148,6 @@ function CallProgressSteps({ call, canEdit, onToggle }) {
           )}
         </>
       )}
-      {call.portfoyNo && (
-        <span className="whitespace-nowrap text-xs text-ink-400" title="Talep no">
-          {call.portfoyNo}
-        </span>
-      )}
     </div>
   )
 }
@@ -227,7 +222,7 @@ export default function CallTable({
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
-              {isManager && <th className="px-3 py-2.5">Kynk</th>}
+              <th className="px-3 py-2.5">{isManager ? 'Kynk' : 'Talep No'}</th>
               <th className="max-w-[140px] px-3 py-2.5">Arayan</th>
               <th className="px-3 py-2.5">Telefon</th>
               <th className="px-3 py-2.5">Süreç</th>
@@ -246,11 +241,16 @@ export default function CallTable({
               const canEditResult = call.assignedTo === currentUserId
               return (
                 <tr key={call.id} className="border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50">
-                  {isManager && (
-                    <td className="px-3 py-3">
-                      <KaynakBadge kaynak={call.kaynak} />
-                    </td>
-                  )}
+                  <td className="px-3 py-3">
+                    <div className="flex flex-col items-start gap-0.5">
+                      {isManager && <KaynakBadge kaynak={call.kaynak} />}
+                      {call.portfoyNo && (
+                        <span className="whitespace-nowrap text-[11px] text-ink-400" title="Talep no">
+                          {call.portfoyNo}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="max-w-[140px] px-3 py-3 font-medium text-ink-900">
                     <span className="flex items-center gap-1.5 truncate">
                       <span className="truncate">{call.arayanAd}</span>
@@ -309,6 +309,11 @@ export default function CallTable({
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     {isManager && <KaynakBadge kaynak={call.kaynak} />}
+                    {call.portfoyNo && (
+                      <span className="whitespace-nowrap text-[11px] text-ink-400" title="Talep no">
+                        {call.portfoyNo}
+                      </span>
+                    )}
                     <span className="truncate font-medium text-ink-900">{call.arayanAd}</span>
                     {call.opportunityId && <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />}
                   </div>
