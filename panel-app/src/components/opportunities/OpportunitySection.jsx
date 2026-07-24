@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Plus } from 'lucide-react'
 import OpportunityTable from './OpportunityTable'
 
 // Bir "Satıcılar" veya "Alıcılar" akordeon bölümü: başlık (renk noktası +
@@ -19,20 +19,31 @@ export default function OpportunitySection({
   expressingId,
   user,
   interestedIds,
+  onCreateClick,
 }) {
   return (
     <div className="rounded-2xl border border-ink-100 bg-white">
-      <button
-        onClick={onToggleExpanded}
-        className="flex w-full items-center justify-between px-5 py-4 text-left"
-      >
-        <div className="flex items-center gap-2.5">
+      <div className="flex w-full items-center justify-between px-5 py-4">
+        <button onClick={onToggleExpanded} className="flex flex-1 items-center gap-2.5 text-left">
           <span className={`h-2.5 w-2.5 rounded-full ${dotColor}`} />
           <h2 className="text-sm font-semibold text-ink-900">{label}</h2>
           <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-500">{total}</span>
+        </button>
+        <div className="flex items-center gap-1">
+          {onCreateClick && (
+            <button
+              onClick={onCreateClick}
+              title="Yeni Fırsat"
+              className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+            >
+              <Plus size={18} />
+            </button>
+          )}
+          <button onClick={onToggleExpanded}>
+            <ChevronDown size={18} className={`text-ink-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+          </button>
         </div>
-        <ChevronDown size={18} className={`text-ink-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
 
       {expanded && (
         <div className="border-t border-ink-50 p-5 pt-4">

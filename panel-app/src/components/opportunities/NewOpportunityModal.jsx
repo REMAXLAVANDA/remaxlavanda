@@ -4,19 +4,21 @@ import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 
-const EMPTY_FORM = {
-  type: 'satici',
-  category: OPPORTUNITY_CATEGORIES[0].key,
-  leadAd: '',
-  leadTelefon: '',
-  konum: '',
-  fiyat: '',
-  fiyatMin: '',
-  fiyatMax: '',
-  ozet: '',
-  m2: '',
-  odaSayisi: '',
-  havuzaAt: false,
+function emptyForm(defaultType) {
+  return {
+    type: defaultType,
+    category: OPPORTUNITY_CATEGORIES[0].key,
+    leadAd: '',
+    leadTelefon: '',
+    konum: '',
+    fiyat: '',
+    fiyatMin: '',
+    fiyatMax: '',
+    ozet: '',
+    m2: '',
+    odaSayisi: '',
+    havuzaAt: false,
+  }
 }
 
 // Konut için standart oda sayısı seçenekleri — serbest metin yerine
@@ -25,8 +27,9 @@ const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+
 
 // showPoolToggle: sadece danışman rolünde gösterilir — diğer roller zaten
 // her zaman havuza ekliyor (bkz. Firsatlar.jsx CAN_CREATE_ROLES/handleCreate).
-export default function NewOpportunityModal({ onClose, onSubmit, submitting, showPoolToggle = false }) {
-  const [form, setForm] = useState(EMPTY_FORM)
+// defaultType: hangi bölümün "+" butonundan açıldığına göre (Satıcılar/Alıcılar).
+export default function NewOpportunityModal({ onClose, onSubmit, submitting, showPoolToggle = false, defaultType = 'satici' }) {
+  const [form, setForm] = useState(() => emptyForm(defaultType))
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
   const isAlici = form.type === 'alici'

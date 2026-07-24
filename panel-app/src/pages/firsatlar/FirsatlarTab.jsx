@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -19,14 +18,11 @@ import { ROLES } from '../../lib/roles'
 import OpportunitySection from '../../components/opportunities/OpportunitySection'
 import OpportunityTable from '../../components/opportunities/OpportunityTable'
 import OpportunityDetailModal from '../../components/opportunities/OpportunityDetailModal'
-import OpportunityFilters from '../../components/opportunities/OpportunityFilters'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
 import EditOpportunityModal from '../../components/opportunities/EditOpportunityModal'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
-
-const INITIAL_FILTERS = { search: '' }
 
 // RLS'teki opportunities_insert kuralıyla birebir aynı: broker/owner/ofis
 // serbestçe ekler (açık havuza düşer); danışman da ekleyebilir ama kendi
@@ -41,7 +37,6 @@ export default function FirsatlarTab() {
     () => opportunitiesProvider.list(),
     [],
   )
-  const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [expanded, setExpanded] = useState({ satici: true, alici: true })
   const [activeCategory, setActiveCategory] = useState({ satici: null, alici: null })
   const [detailOpp, setDetailOpp] = useState(null)
@@ -56,7 +51,10 @@ export default function FirsatlarTab() {
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
-  const [showModal, setShowModal] = useState(false)
+  // "Yeni Fırsat" artık kendi üst satırı yerine Satıcılar/Alıcılar
+  // bölümlerinin başlığında bir "+" butonu — hangisine basıldığına göre
+  // modal doğru tip (satıcı/alıcı) ile önceden dolu açılır.
+  const [createType, setCreateType] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -74,22 +72,14 @@ export default function FirsatlarTab() {
     [roleVisible, odakActive],
   )
 
-  const filtered = useMemo(() => {
-    return roleVisible.filter((o) => {
-      if (!filters.search.trim()) return true
-      const q = filters.search.trim().toLowerCase()
-      return (o.konum ?? '').toLowerCase().includes(q)
-    })
-  }, [roleVisible, filters])
-
-  const boxes = useMemo(() => computeBoxCounts(filtered), [filtered])
+  const boxes = useMemo(() => computeBoxCounts(roleVisible), [roleVisible])
 
   function sectionData(type) {
     const typeBoxes = boxes.filter((b) => b.type === type)
-    const total = filtered.filter((o) => o.type === type).length
+    const total = roleVisible.filter((o) => o.type === type).length
     const category = activeCategory[type]
     const rows = category
-      ? filtered
+      ? roleVisible
           .filter((o) => o.type === type && o.category === category)
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       : []
@@ -130,7 +120,7 @@ export default function FirsatlarTab() {
       const selfClaim = (role === ROLES.DANISMAN || role === ROLES.BROKER) && !form.havuzaAt
       const created = await opportunitiesProvider.create(payload, user.id, selfClaim)
       setOpportunities((prev) => [created, ...prev])
-      setShowModal(false)
+      setCreateType(null)
       showToast('Fırsat eklendi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Fırsat kaydedilemedi, tekrar dene.', 'error')
@@ -217,18 +207,6 @@ export default function FirsatlarTab() {
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
-        <p className="text-sm text-ink-500">{loading ? 'Yükleniyor...' : `${filtered.length} kayıt görünüyor`}</p>
-        {canCreate && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
-            <Plus size={16} /> Yeni Fırsat
-          </button>
-        )}
-      </div>
-
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
@@ -250,52 +228,49 @@ export default function FirsatlarTab() {
       )}
 
       {!loading && !error && !odakActive && (
-        <>
-          <div className="mb-5">
-            <OpportunityFilters filters={filters} onChange={setFilters} />
-          </div>
+        <div className="space-y-4">
+          <OpportunitySection
+            dotColor="bg-emerald-500"
+            label="🟢 Satıcılar"
+            total={satici.total}
+            expanded={expanded.satici}
+            onToggleExpanded={() => setExpanded((f) => ({ ...f, satici: !f.satici }))}
+            boxes={satici.typeBoxes}
+            activeCategory={satici.category}
+            onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, satici: category }))}
+            tableRows={satici.rows}
+            onRowClick={setDetailOpp}
+            onExpressInterest={(opp) => setInterestTargetId(opp.id)}
+            expressingId={expressingId}
+            user={user}
+            interestedIds={interestedIds}
+            onCreateClick={canCreate ? () => setCreateType('satici') : undefined}
+          />
 
-          <div className="space-y-4">
-            <OpportunitySection
-              dotColor="bg-emerald-500"
-              label="🟢 Satıcılar"
-              total={satici.total}
-              expanded={expanded.satici}
-              onToggleExpanded={() => setExpanded((f) => ({ ...f, satici: !f.satici }))}
-              boxes={satici.typeBoxes}
-              activeCategory={satici.category}
-              onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, satici: category }))}
-              tableRows={satici.rows}
-              onRowClick={setDetailOpp}
-              onExpressInterest={(opp) => setInterestTargetId(opp.id)}
-              expressingId={expressingId}
-              user={user}
-              interestedIds={interestedIds}
-            />
-
-            <OpportunitySection
-              dotColor="bg-blue-500"
-              label="🔵 Alıcılar"
-              total={alici.total}
-              expanded={expanded.alici}
-              onToggleExpanded={() => setExpanded((f) => ({ ...f, alici: !f.alici }))}
-              boxes={alici.typeBoxes}
-              activeCategory={alici.category}
-              onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, alici: category }))}
-              tableRows={alici.rows}
-              onRowClick={setDetailOpp}
-              onExpressInterest={(opp) => setInterestTargetId(opp.id)}
-              expressingId={expressingId}
-              user={user}
-              interestedIds={interestedIds}
-            />
-          </div>
-        </>
+          <OpportunitySection
+            dotColor="bg-blue-500"
+            label="🔵 Alıcılar"
+            total={alici.total}
+            expanded={expanded.alici}
+            onToggleExpanded={() => setExpanded((f) => ({ ...f, alici: !f.alici }))}
+            boxes={alici.typeBoxes}
+            activeCategory={alici.category}
+            onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, alici: category }))}
+            tableRows={alici.rows}
+            onRowClick={setDetailOpp}
+            onExpressInterest={(opp) => setInterestTargetId(opp.id)}
+            expressingId={expressingId}
+            user={user}
+            interestedIds={interestedIds}
+            onCreateClick={canCreate ? () => setCreateType('alici') : undefined}
+          />
+        </div>
       )}
 
-      {showModal && (
+      {createType && (
         <NewOpportunityModal
-          onClose={() => setShowModal(false)}
+          defaultType={createType}
+          onClose={() => setCreateType(null)}
           onSubmit={handleCreate}
           submitting={submitting}
           showPoolToggle={role === ROLES.DANISMAN || role === ROLES.BROKER}
