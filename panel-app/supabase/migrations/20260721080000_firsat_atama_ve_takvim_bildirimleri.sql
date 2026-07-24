@@ -44,6 +44,8 @@ $$;
 
 grant execute on function public.assign_opportunity_to(uuid, uuid) to authenticated;
 
+-- NOT: <WEBHOOK_SECRET> aşağıda gerçek değerle değiştirilmeden bu SQL
+-- çalıştırılmamalı — Edge Function secret'ıyla (WEBHOOK_SECRET) aynı olmalı.
 create trigger trg_notify_opportunity_assigned
   after update of claimer_id on public.opportunities
   for each row
@@ -51,7 +53,7 @@ create trigger trg_notify_opportunity_assigned
   execute function supabase_functions.http_request(
     'https://vfqkmluqjaihpgxhqlqt.supabase.co/functions/v1/notify-opportunity-assigned',
     'POST',
-    '{"Content-type":"application/json","x-webhook-secret":"_tlLc1-vmG_Ni1dRrqrO20bRRZLWEqek"}',
+    '{"Content-type":"application/json","x-webhook-secret":"<WEBHOOK_SECRET>"}',
     '{}',
     '5000'
   );
@@ -62,7 +64,7 @@ create trigger trg_notify_event_invite
   execute function supabase_functions.http_request(
     'https://vfqkmluqjaihpgxhqlqt.supabase.co/functions/v1/notify-event-invite',
     'POST',
-    '{"Content-type":"application/json","x-webhook-secret":"_tlLc1-vmG_Ni1dRrqrO20bRRZLWEqek"}',
+    '{"Content-type":"application/json","x-webhook-secret":"<WEBHOOK_SECRET>"}',
     '{}',
     '5000'
   );

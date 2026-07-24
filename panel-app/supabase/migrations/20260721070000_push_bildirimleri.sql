@@ -42,6 +42,8 @@ create policy push_subscriptions_delete_own on public.push_subscriptions
 
 -- ----------------------------------------------------------------------------
 -- Trigger 1: yeni havuz fırsatı -> notify-new-opportunity
+-- NOT: <WEBHOOK_SECRET> aşağıda gerçek değerle değiştirilmeden bu SQL
+-- çalıştırılmamalı — Edge Function secret'ıyla (WEBHOOK_SECRET) aynı olmalı.
 -- ----------------------------------------------------------------------------
 create trigger trg_notify_new_pool_opportunity
   after insert on public.opportunities
@@ -50,7 +52,7 @@ create trigger trg_notify_new_pool_opportunity
   execute function supabase_functions.http_request(
     'https://vfqkmluqjaihpgxhqlqt.supabase.co/functions/v1/notify-new-opportunity',
     'POST',
-    '{"Content-type":"application/json","x-webhook-secret":"_tlLc1-vmG_Ni1dRrqrO20bRRZLWEqek"}',
+    '{"Content-type":"application/json","x-webhook-secret":"<WEBHOOK_SECRET>"}',
     '{}',
     '5000'
   );
@@ -65,7 +67,7 @@ create trigger trg_notify_call_assigned
   execute function supabase_functions.http_request(
     'https://vfqkmluqjaihpgxhqlqt.supabase.co/functions/v1/notify-call-assigned',
     'POST',
-    '{"Content-type":"application/json","x-webhook-secret":"_tlLc1-vmG_Ni1dRrqrO20bRRZLWEqek"}',
+    '{"Content-type":"application/json","x-webhook-secret":"<WEBHOOK_SECRET>"}',
     '{}',
     '5000'
   );
