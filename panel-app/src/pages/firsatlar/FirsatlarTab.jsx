@@ -12,7 +12,6 @@ import {
   canEditOpportunity,
   canViewOpportunity,
   computeBoxCounts,
-  isWithinRange,
 } from '../../lib/opportunities'
 import { isStaleOpp } from '../../lib/attention'
 import { parseThousands } from '../../lib/format'
@@ -27,7 +26,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
-const INITIAL_FILTERS = { search: '', dateRange: '7g', customFrom: '', customTo: '' }
+const INITIAL_FILTERS = { search: '' }
 
 // RLS'teki opportunities_insert kuralıyla birebir aynı: broker/owner/ofis
 // serbestçe ekler (açık havuza düşer); danışman da ekleyebilir ama kendi
@@ -76,13 +75,11 @@ export default function FirsatlarTab() {
   )
 
   const filtered = useMemo(() => {
-    return roleVisible
-      .filter((o) => isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
-      .filter((o) => {
-        if (!filters.search.trim()) return true
-        const q = filters.search.trim().toLowerCase()
-        return (o.konum ?? '').toLowerCase().includes(q)
-      })
+    return roleVisible.filter((o) => {
+      if (!filters.search.trim()) return true
+      const q = filters.search.trim().toLowerCase()
+      return (o.konum ?? '').toLowerCase().includes(q)
+    })
   }, [roleVisible, filters])
 
   const boxes = useMemo(() => computeBoxCounts(filtered), [filtered])
