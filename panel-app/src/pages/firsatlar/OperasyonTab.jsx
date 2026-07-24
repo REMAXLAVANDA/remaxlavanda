@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -125,20 +124,6 @@ export default function OperasyonTab() {
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
-        <p className="text-sm text-ink-500">
-          {isManager ? 'Reklam ve çağrı kayıtları' : 'Ofisten yönlendirilenler'}
-        </p>
-        {isManager && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
-            <Plus size={16} /> Yeni Çağrı
-          </button>
-        )}
-      </div>
-
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
@@ -156,7 +141,12 @@ export default function OperasyonTab() {
               </div>
 
               <div className="mb-5">
-                <CallFilters filters={filters} onChange={setFilters} showKaynak={isManager} />
+                <CallFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  showKaynak={isManager}
+                  onNewCallClick={isManager ? () => setShowModal(true) : undefined}
+                />
               </div>
 
               {isManager && (

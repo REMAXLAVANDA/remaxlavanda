@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import DateRangeFilter from '../common/DateRangeFilter'
 
@@ -16,7 +17,9 @@ function Chip({ active, children, ...props }) {
 
 // showKaynak: danışman rolü için gizlenir — kaynak (Santral/Sponsorlu/
 // Google Ads vb.) ofis/yönetim işi, danışmanın filtrelemesine gerek yok.
-export default function CallFilters({ filters, onChange, showKaynak = true }) {
+// onNewCallClick: sadece yönetim rollerinde verilir — "Yeni Çağrı" artık
+// kendi üst satırı yerine burada, gün filtrelerinin yanında duruyor.
+export default function CallFilters({ filters, onChange, showKaynak = true, onNewCallClick }) {
   const set = (patch) => onChange({ ...filters, ...patch })
 
   return (
@@ -34,7 +37,17 @@ export default function CallFilters({ filters, onChange, showKaynak = true }) {
         </div>
       )}
 
-      <DateRangeFilter value={filters} onChange={onChange} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <DateRangeFilter value={filters} onChange={onChange} />
+        {onNewCallClick && (
+          <button
+            onClick={onNewCallClick}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+          >
+            <Plus size={14} /> Yeni Çağrı
+          </button>
+        )}
+      </div>
     </div>
   )
 }

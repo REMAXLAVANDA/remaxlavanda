@@ -34,7 +34,7 @@ export default function OpportunitySection({
             <button
               onClick={onCreateClick}
               title="Yeni Fırsat"
-              className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+              className="rounded-lg p-1.5 text-brand-600 hover:bg-brand-50"
             >
               <Plus size={18} />
             </button>
