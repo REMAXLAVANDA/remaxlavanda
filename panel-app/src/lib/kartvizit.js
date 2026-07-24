@@ -2,6 +2,7 @@
 // linki. Hem herkese açık kart sayfası (pages/KartvizitPublic.jsx) hem de
 // kendi kartvizitini düzenleme ekranı (pages/Kartvizitim.jsx) bunu kullanır.
 import { ROLES } from './roles'
+import { whatsappHref } from './phone'
 
 export const KARTVIZIT_UNVAN = {
   [ROLES.BROKER]: 'Broker Owner',
@@ -34,12 +35,9 @@ export const SOSYAL_MEDYA_FIELDS = [
   { key: 'web', label: 'Web / İlanlarım', placeholder: 'https://...' },
 ]
 
-export function whatsappLink(rawPhone) {
-  const digits = (rawPhone ?? '').replace(/\D/g, '')
-  if (!digits) return null
-  const withCountry = digits.startsWith('90') ? digits : `90${digits.replace(/^0/, '')}`
-  return `https://wa.me/${withCountry}`
-}
+// lib/phone.js'teki whatsappHref ile aynı mantık — burada tek yerden
+// (o dosyadan) kullanılsın diye yeniden dışa veriliyor, tekrar yazılmıyor.
+export const whatsappLink = whatsappHref
 
 export function kartvizitPath(userId) {
   return `/k/${userId}`

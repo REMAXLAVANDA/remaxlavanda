@@ -3,6 +3,7 @@ import Modal from '../common/Modal'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { categoryLabel } from '../../lib/categories'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
+import { formatPhoneInput } from '../../lib/phone'
 
 const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+2', '6+1 ve üzeri']
 
@@ -14,7 +15,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
   const isKonut = opp.category === 'konut'
   const [form, setForm] = useState({
     leadAd: contact?.leadAd ?? '',
-    leadTelefon: contact?.leadTelefon ?? '',
+    leadTelefon: formatPhoneInput(contact?.leadTelefon ?? ''),
     konum: opp.konum ?? '',
     fiyat: opp.fiyat != null ? formatThousands(String(opp.fiyat)) : '',
     fiyatMin: opp.fiyatMin != null ? formatThousands(String(opp.fiyatMin)) : '',
@@ -67,8 +68,9 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
         <input
+          type="tel"
           value={form.leadTelefon}
-          onChange={(e) => set({ leadTelefon: e.target.value })}
+          onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}
           placeholder="Telefon"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

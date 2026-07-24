@@ -3,6 +3,7 @@ import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
+import { formatPhoneInput } from '../../lib/phone'
 
 function emptyForm(defaultType) {
   return {
@@ -104,8 +105,9 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
         <input
+          type="tel"
           value={form.leadTelefon}
-          onChange={(e) => set({ leadTelefon: e.target.value })}
+          onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}
           placeholder="Telefon"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

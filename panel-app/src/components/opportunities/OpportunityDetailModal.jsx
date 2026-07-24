@@ -3,6 +3,8 @@ import { CheckCircle2, Lock, MapPin, Pencil, Phone, Trash2, User, Users, XCircle
 import Modal from '../common/Modal'
 import { useToast } from '../../context/ToastContext'
 import { categoryLabel } from '../../lib/categories'
+import { telHref, whatsappHref } from '../../lib/phone'
+import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
@@ -156,9 +158,20 @@ export default function OpportunityDetailModal({
               <User size={14} className="text-ink-400" /> {contact.leadAd}
             </p>
             {contact.leadTelefon && (
-              <a href={`tel:${contact.leadTelefon}`} className="flex items-center gap-2 text-brand-700 hover:underline">
-                <Phone size={14} /> {contact.leadTelefon}
-              </a>
+              <div className="flex items-center gap-3">
+                <a href={telHref(contact.leadTelefon)} className="flex items-center gap-2 text-brand-700 hover:underline">
+                  <Phone size={14} /> {contact.leadTelefon}
+                </a>
+                <a
+                  href={whatsappHref(contact.leadTelefon)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="WhatsApp'ta aç"
+                  className="text-emerald-600 hover:text-emerald-700"
+                >
+                  <WhatsappIcon size={15} />
+                </a>
+              </div>
             )}
           </div>
         ) : (

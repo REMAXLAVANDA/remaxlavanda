@@ -6,6 +6,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { users as usersProvider } from '../lib/dataProvider'
 import { uploadAvatarFile } from '../lib/storage'
 import { SOSYAL_MEDYA_FIELDS, kartvizitUrl } from '../lib/kartvizit'
+import { formatPhoneInput } from '../lib/phone'
 import KartvizitCard from '../components/kartvizit/KartvizitCard'
 import AvatarCropModal from '../components/kartvizit/AvatarCropModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -21,7 +22,7 @@ export default function Kartvizitim() {
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    if (profile) setForm({ telefon: profile.telefon ?? '', avatarUrl: profile.avatarUrl ?? '', sosyalMedya: profile.sosyalMedya ?? {}, kartvizitAktif: profile.kartvizitAktif })
+    if (profile) setForm({ telefon: formatPhoneInput(profile.telefon ?? ''), avatarUrl: profile.avatarUrl ?? '', sosyalMedya: profile.sosyalMedya ?? {}, kartvizitAktif: profile.kartvizitAktif })
   }, [profile])
 
   function setField(key, value) {
@@ -97,8 +98,9 @@ export default function Kartvizitim() {
             <div>
               <label className="mb-1 block text-xs font-medium text-ink-600">Telefon</label>
               <input
+                type="tel"
                 value={form.telefon}
-                onChange={(e) => setField('telefon', e.target.value)}
+                onChange={(e) => setField('telefon', formatPhoneInput(e.target.value))}
                 placeholder="05xx xxx xx xx"
                 className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
               />

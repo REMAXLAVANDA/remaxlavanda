@@ -2,11 +2,12 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
+import { formatPhoneInput } from '../../lib/phone'
 
 export default function EditCallDetailsModal({ call, onClose, onSubmit, submitting }) {
   const [form, setForm] = useState({
     arayanAd: call.arayanAd ?? '',
-    arayanTelefon: call.arayanTelefon ?? '',
+    arayanTelefon: formatPhoneInput(call.arayanTelefon ?? ''),
     kaynak: call.kaynak,
     portfoyNo: call.portfoyNo ?? '',
     satildiMi: call.satildiMi ?? false,
@@ -46,8 +47,9 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
         <input
+          type="tel"
           value={form.arayanTelefon}
-          onChange={(e) => set({ arayanTelefon: e.target.value })}
+          onChange={(e) => set({ arayanTelefon: formatPhoneInput(e.target.value) })}
           placeholder="Telefon"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

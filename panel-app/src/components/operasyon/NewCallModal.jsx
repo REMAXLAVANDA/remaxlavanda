@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
+import { formatPhoneInput } from '../../lib/phone'
 
 const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '', notlar: '' }
 
@@ -46,8 +47,9 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
         <input
+          type="tel"
           value={form.arayanTelefon}
-          onChange={(e) => set({ arayanTelefon: e.target.value })}
+          onChange={(e) => set({ arayanTelefon: formatPhoneInput(e.target.value) })}
           placeholder="Telefon"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />

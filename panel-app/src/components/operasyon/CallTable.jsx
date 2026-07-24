@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Target, StickyNote, Pencil, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
+import { telHref, whatsappHref } from '../../lib/phone'
+import { WhatsappIcon } from '../kartvizit/BrandIcons'
 
 function satisTarihiLabel(satisTarihi) {
   if (!satisTarihi) return 'Satış tarihi'
@@ -37,7 +39,18 @@ function PhoneCell({ phone }) {
   const [revealed, setRevealed] = useState(false)
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-      {revealed ? phone : maskPhone(phone)}
+      {revealed ? (
+        <>
+          <a href={telHref(phone)} className="text-brand-700 hover:underline">
+            {phone}
+          </a>
+          <a href={whatsappHref(phone)} target="_blank" rel="noreferrer" title="WhatsApp'ta aç" className="text-emerald-600 hover:text-emerald-700">
+            <WhatsappIcon size={13} />
+          </a>
+        </>
+      ) : (
+        maskPhone(phone)
+      )}
       <button
         onClick={() => setRevealed((v) => !v)}
         className="text-ink-400 hover:text-brand-700"
