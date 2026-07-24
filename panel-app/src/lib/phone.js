@@ -12,6 +12,13 @@ export function formatPhoneInput(raw) {
   return [digits.slice(0, 4), digits.slice(4, 7), digits.slice(7, 9), digits.slice(9, 11)].filter(Boolean).join(' ')
 }
 
+// Yarım/eksik bir numarayla kaydedilmesin diye — boşsa (henüz hiç
+// girilmemişse) sorun değil, ama bir şey girilmişse tam 11 hane olmalı.
+export function isPhoneComplete(formatted) {
+  const digits = (formatted ?? '').replace(/\D/g, '')
+  return digits.length === 0 || digits.length === 11
+}
+
 export function telHref(phone) {
   const digits = (phone ?? '').replace(/\D/g, '')
   return digits ? `tel:${digits}` : null

@@ -6,7 +6,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { users as usersProvider } from '../lib/dataProvider'
 import { uploadAvatarFile } from '../lib/storage'
 import { SOSYAL_MEDYA_FIELDS, kartvizitUrl } from '../lib/kartvizit'
-import { formatPhoneInput } from '../lib/phone'
+import { formatPhoneInput, isPhoneComplete } from '../lib/phone'
 import KartvizitCard from '../components/kartvizit/KartvizitCard'
 import AvatarCropModal from '../components/kartvizit/AvatarCropModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -104,6 +104,9 @@ export default function Kartvizitim() {
                 placeholder="05xx xxx xx xx"
                 className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
               />
+              {!isPhoneComplete(form.telefon) && (
+                <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı (05XX XXX XX XX)</p>
+              )}
             </div>
 
             <div>
@@ -181,7 +184,7 @@ export default function Kartvizitim() {
             <div className="flex items-center gap-2 border-t border-ink-100 pt-4">
               <button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || !isPhoneComplete(form.telefon)}
                 className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 {saving ? 'Kaydediliyor...' : 'Kaydet'}

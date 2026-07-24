@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
-import { formatPhoneInput } from '../../lib/phone'
+import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
 export default function EditCallDetailsModal({ call, onClose, onSubmit, submitting }) {
   const [form, setForm] = useState({
@@ -14,7 +14,7 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
     notlar: call.notlar ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const canSubmit = form.arayanAd.trim().length > 0
+  const canSubmit = form.arayanAd.trim().length > 0 && isPhoneComplete(form.arayanTelefon)
 
   return (
     <Modal title="Çağrı Bilgilerini Düzenle" onClose={onClose}>
@@ -46,13 +46,18 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
           placeholder="Arayan adı"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
-        <input
-          type="tel"
-          value={form.arayanTelefon}
-          onChange={(e) => set({ arayanTelefon: formatPhoneInput(e.target.value) })}
-          placeholder="Telefon"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+        <div>
+          <input
+            type="tel"
+            value={form.arayanTelefon}
+            onChange={(e) => set({ arayanTelefon: formatPhoneInput(e.target.value) })}
+            placeholder="Telefon"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          {!isPhoneComplete(form.arayanTelefon) && (
+            <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı (05XX XXX XX XX)</p>
+          )}
+        </div>
 
         {call.portfoyAlindiMi && (
           <div className="space-y-2 rounded-lg bg-ink-50 p-3">

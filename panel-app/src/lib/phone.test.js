@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPhoneInput, telHref, whatsappHref } from './phone'
+import { formatPhoneInput, isPhoneComplete, telHref, whatsappHref } from './phone'
 
 describe('formatPhoneInput', () => {
   it('başında sıfır yoksa ekler', () => {
@@ -30,6 +30,21 @@ describe('formatPhoneInput', () => {
   it('boşsa boş döner', () => {
     expect(formatPhoneInput('')).toBe('')
     expect(formatPhoneInput(undefined)).toBe('')
+  })
+})
+
+describe('isPhoneComplete', () => {
+  it('boşsa geçerli sayılır (telefon zorunlu değil)', () => {
+    expect(isPhoneComplete('')).toBe(true)
+    expect(isPhoneComplete(undefined)).toBe(true)
+  })
+
+  it('tam 11 hane doluysa geçerli', () => {
+    expect(isPhoneComplete('0532 123 45 67')).toBe(true)
+  })
+
+  it('eksik haneliyse geçersiz', () => {
+    expect(isPhoneComplete('0532 123')).toBe(false)
   })
 })
 

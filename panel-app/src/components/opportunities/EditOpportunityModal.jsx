@@ -3,7 +3,7 @@ import Modal from '../common/Modal'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { categoryLabel } from '../../lib/categories'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
-import { formatPhoneInput } from '../../lib/phone'
+import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
 const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+2', '6+1 ve üzeri']
 
@@ -28,7 +28,11 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
   const minVal = parseThousands(form.fiyatMin)
   const maxVal = parseThousands(form.fiyatMax)
   const budgetRangeInvalid = isAlici && minVal !== null && maxVal !== null && minVal > maxVal
-  const canSubmit = form.leadAd.trim().length > 0 && form.konum.trim().length > 0 && !budgetRangeInvalid
+  const canSubmit =
+    form.leadAd.trim().length > 0 &&
+    form.konum.trim().length > 0 &&
+    !budgetRangeInvalid &&
+    isPhoneComplete(form.leadTelefon)
 
   return (
     <Modal title="Fırsatı Düzenle" onClose={onClose}>
@@ -67,13 +71,18 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
           placeholder="Ad Soyad"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
-        <input
-          type="tel"
-          value={form.leadTelefon}
-          onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}
-          placeholder="Telefon"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+        <div>
+          <input
+            type="tel"
+            value={form.leadTelefon}
+            onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}
+            placeholder="Telefon"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          {!isPhoneComplete(form.leadTelefon) && (
+            <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı (05XX XXX XX XX)</p>
+          )}
+        </div>
         <input
           required
           value={form.konum}
