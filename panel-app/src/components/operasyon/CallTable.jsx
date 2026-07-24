@@ -149,7 +149,7 @@ function CallProgressSteps({ call, canEdit, onToggle }) {
         </>
       )}
       {call.portfoyNo && (
-        <span className="whitespace-nowrap text-xs text-ink-400" title="Portföy no">
+        <span className="whitespace-nowrap text-xs text-ink-400" title="Talep no">
           {call.portfoyNo}
         </span>
       )}

@@ -417,6 +417,7 @@ export const callLogs = {
           assigned_to: form.assignedTo || null,
           notlar: form.notlar || null,
           reklam_kodu: form.reklamKodu || null,
+          portfoy_no: form.portfoyNo || null,
         })
         .select()
         .single(),

@@ -308,7 +308,7 @@ export const callLogs = {
       reklamKodu: form.reklamKodu || null,
       sonuc: null,
       portfoyAlindiMi: null,
-      portfoyNo: null,
+      portfoyNo: form.portfoyNo || null,
       satildiMi: false,
       satisTarihi: null,
       donusYapildiMi: null,

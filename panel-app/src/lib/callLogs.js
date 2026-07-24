@@ -35,15 +35,19 @@ export function cycleValue(current, order) {
   return order[(idx + 1) % order.length]
 }
 
-// Portföy "Alındı" işaretlenince otomatik verilen kod — eski sistemdeki
-// "LVD-XXXXX" biçimiyle aynı (bkz. "her eklenen portföye bir kod
-// veriyorduk, tapu vs. o kodla gönderiliyordu" isteği). Elle karışıklık
-// olmasın diye artık otomatik üretiliyor (bkz. OperasyonTab handleToggle).
-const PORTFOY_KODU_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-export function generatePortfoyKodu() {
+// Her yeni çağrı oluşturulduğunda (portföy alınmasını beklemeden) otomatik
+// verilen talep numarası — müşteriden gelen tapu vs. belgeleri danışmana
+// yönlendirirken "şu numaralı talep" diye referans verilebilsin diye
+// (bkz. "danışmana yönlendirirken ... bu başvuru numarasıyla ilgili
+// belgelenmiş diye anlaması için" isteği). Önek çağrının kaynağını
+// gösterir (S/R/WS/D — bkz. CALL_SOURCE_CODES), "hangi Sponsorlu
+// reklamdan geldi" isteğinden ayrı, kaynak türünü hızlıca ayırt etsin diye.
+const TALEP_KODU_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+export function generateTalepKodu(kaynak) {
+  const prefix = CALL_SOURCE_CODES[kaynak]?.code ?? 'D'
   let suffix = ''
-  for (let i = 0; i < 5; i++) suffix += PORTFOY_KODU_CHARS[Math.floor(Math.random() * PORTFOY_KODU_CHARS.length)]
-  return `LVD-${suffix}`
+  for (let i = 0; i < 5; i++) suffix += TALEP_KODU_CHARS[Math.floor(Math.random() * TALEP_KODU_CHARS.length)]
+  return `${prefix}-${suffix}`
 }
 
 // call_logs_select RLS kuralının mock karşılığı: broker/owner/ofis tüm
