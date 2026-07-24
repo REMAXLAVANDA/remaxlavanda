@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Target, StickyNote, Pencil, Circle, Check, X, AlertTriangle } from 'lucide-react'
+import { ChevronRight, Eye, EyeOff, Target, StickyNote, Pencil, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
@@ -62,18 +62,18 @@ function PhoneCell({ phone }) {
   )
 }
 
-// Görüşüldü/Portföy — ikisi de üç durumlu, tek tıkla döngülenen bir ikon.
-// Görüşüldü: Bekliyor (nokta) -> Ulaşılamadı (turuncu !) -> Görüşüldü (yeşil tik)
-// Portföy:   Bekliyor (nokta) -> Alındı (yeşil tik) -> Almadık (kırmızı çarpı)
+// Görüşüldü/Portföy/Satıldı — sürecin üç aşaması, aralarında ok ile
+// bağlanan bir zincir olarak gösterilir (bkz. "aşama aşama takip
+// etmeliyiz" isteği). İlk ikisi tek tıkla döngülenen üç durumlu rozet,
+// üçüncüsü (Satıldı) sadece portföy alındıktan sonra anlamlı olduğu için
+// ancak o zaman zincire eklenir.
 const STATUS_VARIANTS = {
-  pending: { icon: Circle, className: 'border-dashed border-ink-300 text-ink-400', iconProps: { size: 9, fill: 'currentColor' } },
-  warn: { icon: AlertTriangle, className: 'border-amber-500 bg-amber-500 text-white', iconProps: { size: 12 } },
-  yes: { icon: Check, className: 'border-emerald-600 bg-emerald-600 text-white', iconProps: { size: 14, strokeWidth: 3 } },
-  no: { icon: X, className: 'border-red-600 bg-red-600 text-white', iconProps: { size: 12, strokeWidth: 3 } },
+  pending: { icon: Circle, iconProps: { size: 9, fill: 'currentColor' } },
+  warn: { icon: AlertTriangle, iconProps: { size: 12 } },
+  yes: { icon: Check, iconProps: { size: 12, strokeWidth: 3 } },
+  no: { icon: X, iconProps: { size: 12, strokeWidth: 3 } },
 }
 
-// StatusPill'in ikon rengi/arka planı STATUS_VARIANTS ile aynı anlamı
-// taşır ama daha soluk (badge gibi) — metinle yan yana okunsun diye.
 const PILL_VARIANTS = {
   pending: 'border border-dashed border-ink-300 bg-white text-ink-500',
   warn: 'border border-amber-300 bg-amber-50 text-amber-700',
@@ -81,35 +81,26 @@ const PILL_VARIANTS = {
   no: 'border border-red-300 bg-red-50 text-red-700',
 }
 
-function StatusIcon({ variant, title, onClick }) {
-  const { icon: Icon, className, iconProps } = STATUS_VARIANTS[variant]
-  const Tag = onClick ? 'button' : 'span'
-  return (
-    <Tag
-      onClick={onClick}
-      title={title}
-      className={`inline-flex h-[26px] w-[26px] items-center justify-center rounded-full border-[1.5px] ${className}`}
-    >
-      <Icon {...iconProps} />
-    </Tag>
-  )
-}
-
 // Mobilde hover/tooltip çalışmadığı için ikon tek başına yetmiyordu
-// ("süreci takip edemiyoruz" geri bildirimi) — burada durumun adı da
-// yazıyla görünüyor, dokunmadan/açıklama beklemeden okunabiliyor.
-function StatusPill({ variant, label, onClick }) {
+// ("süreci takip edemiyoruz" geri bildirimi) — durumun adı da yazıyla
+// görünüyor, dokunmadan/açıklama beklemeden okunabiliyor.
+function StatusPill({ variant, label, title, onClick }) {
   const { icon: Icon, iconProps } = STATUS_VARIANTS[variant]
   const Tag = onClick ? 'button' : 'span'
   return (
     <Tag
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${PILL_VARIANTS[variant]}`}
+      title={title}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${PILL_VARIANTS[variant]}`}
     >
       <Icon {...iconProps} />
       {label}
     </Tag>
   )
+}
+
+function Arrow() {
+  return <ChevronRight size={14} className="shrink-0 text-ink-300" />
 }
 
 function gorusuldeVariant(value) {
@@ -122,6 +113,48 @@ function portfoyVariant(value) {
   if (value === true) return { variant: 'yes', label: 'Alındı', title: 'Alındı — tıklayınca Almadık olur' }
   if (value === false) return { variant: 'no', label: 'Almadık', title: "Almadık — tıklayınca Bekliyor'a döner" }
   return { variant: 'pending', label: 'Bekliyor', title: 'Bekliyor — tıklayınca Alındı olur' }
+}
+
+// Süreci baştan sona TEK bir zincir olarak gösterir: Arandı -> Portföy ->
+// (varsa) Satış. İki tıklanabilir aşama (Görüşüldü/Portföy) mevcut
+// üç-durumlu döngü mantığını aynen kullanır, Satış sadece portföy
+// alındıktan sonra zincire eklenen bilgi amaçlı bir adımdır (kendi
+// düzenleme akışı zaten EditCallDetailsModal'da).
+function CallProgressSteps({ call, canEdit, onToggle }) {
+  const gorusuldu = gorusuldeVariant(call.donusYapildiMi)
+  const portfoy = portfoyVariant(call.portfoyAlindiMi)
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <StatusPill
+        variant={gorusuldu.variant}
+        label={gorusuldu.label}
+        title={gorusuldu.title}
+        onClick={canEdit ? () => onToggle(call.id, 'donusYapildiMi', cycleValue(call.donusYapildiMi, GORUSULDU_CYCLE)) : undefined}
+      />
+      <Arrow />
+      <StatusPill
+        variant={portfoy.variant}
+        label={portfoy.label}
+        title={portfoy.title}
+        onClick={canEdit ? () => onToggle(call.id, 'portfoyAlindiMi', cycleValue(call.portfoyAlindiMi, PORTFOY_CYCLE)) : undefined}
+      />
+      {call.portfoyAlindiMi && (
+        <>
+          <Arrow />
+          {call.satildiMi ? (
+            <StatusPill variant="yes" label="Satıldı" title={satisTarihiLabel(call.satisTarihi)} />
+          ) : (
+            <StatusPill variant="pending" label="Satış bekliyor" title="Portföy satılınca Bilgileri Düzenle'den işaretlenir" />
+          )}
+        </>
+      )}
+      {call.portfoyNo && (
+        <span className="whitespace-nowrap text-xs text-ink-400" title="Portföy no">
+          {call.portfoyNo}
+        </span>
+      )}
+    </div>
+  )
 }
 
 function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }) {
@@ -160,12 +193,15 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
 // Süreç takibi TEK amaç: danışman müşteriyle görüştü mü (gecikme var mı),
 // portföy aldı mı — bu yüzden "Sonuç" diye ayrı bir serbest seçim YOK,
 // sadece bu iki net üç-durumlu ikon (bkz. "iki tane seçim olsun" isteği).
+// Görüşüldü/Portföy/Satış artık ayrı sütunlar değil, tek bir "Süreç"
+// zinciri (CallProgressSteps) — aşama aşama ilerleme tek bakışta,
+// danışman dahil herkes için aynı şekilde görünsün diye (bkz. "aşama
+// aşama takip etmeliyiz danışmana" isteği).
 //
 // Masaüstünde tablo, mobilde etiketli kart listesi — tablo mobilde yatay
-// kaydırma gerektiriyordu ve Görüşüldü/Portföy ikonları hover olmadan
-// (dokunmatik ekranda) ne anlama geldiği belli olmuyordu (bkz. "süreci
-// düzgün takip edemiyoruz" geri bildirimi). Kartlarda aynı durumlar artık
-// yazılı etiketle (StatusPill) gösteriliyor.
+// kaydırma gerektiriyordu ve ikonlar hover olmadan (dokunmatik ekranda) ne
+// anlama geldiği belli olmuyordu (bkz. "süreci düzgün takip edemiyoruz"
+// geri bildirimi).
 export default function CallTable({
   calls,
   currentUserId,
@@ -188,14 +224,13 @@ export default function CallTable({
   return (
     <>
       <div className="hidden overflow-x-auto rounded-2xl border border-ink-100 bg-white sm:block">
-        <table className="w-full min-w-[680px] text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
               {isManager && <th className="px-3 py-2.5">Kynk</th>}
               <th className="max-w-[140px] px-3 py-2.5">Arayan</th>
               <th className="px-3 py-2.5">Telefon</th>
-              <th className="px-3 py-2.5">Görüşüldü</th>
-              <th className="px-3 py-2.5">Portföy</th>
+              <th className="px-3 py-2.5">Süreç</th>
               <th className="px-3 py-2.5">Atanan</th>
               <th className="px-3 py-2.5">Tarih</th>
               <th className="px-3 py-2.5" />
@@ -203,14 +238,12 @@ export default function CallTable({
           </thead>
           <tbody>
             {calls.map((call) => {
-              // Görüşüldü/Portföy alanları BİLEREK yönetime değil, sadece
-              // atanan kişiye açık — bu bilgiyi fiilen sahada işi üstlenen
-              // kişi işaretlesin istendi (broker dahil yönetim bir çağrı
-              // atanmadan bu alanları değiştiremiyor). Atama (kime verileceği)
-              // ayrı bir yetki (bkz. "Atanan" sütunu, isManager).
+              // Süreç alanları BİLEREK yönetime değil, sadece atanan
+              // kişiye açık — bu bilgiyi fiilen sahada işi üstlenen kişi
+              // işaretlesin istendi (broker dahil yönetim bir çağrı
+              // atanmadan bu alanları değiştiremiyor). Atama (kime
+              // verileceği) ayrı bir yetki (bkz. "Atanan" sütunu, isManager).
               const canEditResult = call.assignedTo === currentUserId
-              const gorusuldu = gorusuldeVariant(call.donusYapildiMi)
-              const portfoy = portfoyVariant(call.portfoyAlindiMi)
               return (
                 <tr key={call.id} className="border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50">
                   {isManager && (
@@ -237,38 +270,7 @@ export default function CallTable({
                     <PhoneCell phone={call.arayanTelefon} />
                   </td>
                   <td className="px-3 py-3">
-                    <StatusIcon
-                      variant={gorusuldu.variant}
-                      title={gorusuldu.title}
-                      onClick={
-                        canEditResult
-                          ? () => onToggle(call.id, 'donusYapildiMi', cycleValue(call.donusYapildiMi, GORUSULDU_CYCLE))
-                          : undefined
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <StatusIcon
-                        variant={portfoy.variant}
-                        title={portfoy.title}
-                        onClick={
-                          canEditResult
-                            ? () => onToggle(call.id, 'portfoyAlindiMi', cycleValue(call.portfoyAlindiMi, PORTFOY_CYCLE))
-                            : undefined
-                        }
-                      />
-                      {call.satildiMi && (
-                        <span className="whitespace-nowrap text-xs font-medium text-brand-700" title={satisTarihiLabel(call.satisTarihi)}>
-                          Satıldı
-                        </span>
-                      )}
-                      {call.portfoyNo && (
-                        <span className="whitespace-nowrap text-xs text-ink-400" title="Portföy no">
-                          {call.portfoyNo}
-                        </span>
-                      )}
-                    </div>
+                    <CallProgressSteps call={call} canEdit={canEditResult} onToggle={onToggle} />
                   </td>
                   <td className="px-3 py-3">
                     <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} resolveName={resolveName} onAssign={onAssign} />
@@ -295,8 +297,6 @@ export default function CallTable({
       <div className="space-y-2 sm:hidden">
         {calls.map((call) => {
           const canEditResult = call.assignedTo === currentUserId
-          const gorusuldu = gorusuldeVariant(call.donusYapildiMi)
-          const portfoy = portfoyVariant(call.portfoyAlindiMi)
           return (
             <div key={call.id} className="rounded-xl border border-ink-100 bg-white p-3.5">
               <div className="flex items-start justify-between gap-2">
@@ -327,27 +327,8 @@ export default function CallTable({
                 )}
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                <StatusPill
-                  variant={gorusuldu.variant}
-                  label={gorusuldu.label}
-                  onClick={
-                    canEditResult
-                      ? () => onToggle(call.id, 'donusYapildiMi', cycleValue(call.donusYapildiMi, GORUSULDU_CYCLE))
-                      : undefined
-                  }
-                />
-                <StatusPill
-                  variant={portfoy.variant}
-                  label={portfoy.label}
-                  onClick={
-                    canEditResult
-                      ? () => onToggle(call.id, 'portfoyAlindiMi', cycleValue(call.portfoyAlindiMi, PORTFOY_CYCLE))
-                      : undefined
-                  }
-                />
-                {call.satildiMi && <span className="text-xs font-medium text-brand-700">Satıldı</span>}
-                {call.portfoyNo && <span className="text-xs text-ink-400">{call.portfoyNo}</span>}
+              <div className="mt-3">
+                <CallProgressSteps call={call} canEdit={canEditResult} onToggle={onToggle} />
               </div>
 
               <div className="mt-3 flex items-center justify-between border-t border-ink-50 pt-2">
