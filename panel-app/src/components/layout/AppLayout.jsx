@@ -22,7 +22,7 @@ export default function AppLayout() {
   const title = useCurrentTitle()
 
   return (
-    <div className="h-screen overflow-hidden bg-ink-50 lg:flex">
+    <div className="h-screen overflow-hidden bg-canvas lg:flex">
       <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
       {sidebarOpen && (
