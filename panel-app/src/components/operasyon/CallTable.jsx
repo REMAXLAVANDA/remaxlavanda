@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, Eye, EyeOff, Target, StickyNote, Pencil, Circle, Check, X, AlertTriangle } from 'lucide-react'
+import { ChevronRight, Eye, EyeOff, Target, StickyNote, Tag, Pencil, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
@@ -265,6 +265,12 @@ export default function CallTable({
                         <span className="line-clamp-2">{call.notlar}</span>
                       </span>
                     )}
+                    {call.reklamKodu && (
+                      <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-ink-500" title="Reklam kodu">
+                        <Tag size={12} className="shrink-0 text-ink-400" />
+                        {call.reklamKodu}
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-ink-600">
                     <PhoneCell phone={call.arayanTelefon} />
@@ -313,6 +319,12 @@ export default function CallTable({
                     <div className="mt-1 flex items-start gap-1 text-xs text-ink-500">
                       <StickyNote size={12} className="mt-0.5 shrink-0 text-ink-400" />
                       <span>{call.notlar}</span>
+                    </div>
+                  )}
+                  {call.reklamKodu && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-ink-500">
+                      <Tag size={12} className="shrink-0 text-ink-400" />
+                      <span>{call.reklamKodu}</span>
                     </div>
                   )}
                 </div>

@@ -396,6 +396,7 @@ function mapCallLog(row) {
     donusAt: row.donus_at,
     opportunityId: row.opportunity_id,
     notlar: row.notlar,
+    reklamKodu: row.reklam_kodu,
     createdAt: row.created_at,
   }
 }
@@ -415,6 +416,7 @@ export const callLogs = {
           arayan_telefon: form.arayanTelefon || null,
           assigned_to: form.assignedTo || null,
           notlar: form.notlar || null,
+          reklam_kodu: form.reklamKodu || null,
         })
         .select()
         .single(),
@@ -437,6 +439,7 @@ export const callLogs = {
     if ('arayanTelefon' in patch) dbPatch.arayan_telefon = patch.arayanTelefon || null
     if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
     if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
+    if ('reklamKodu' in patch) dbPatch.reklam_kodu = patch.reklamKodu || null
     const data = await run(client().from('call_logs').update(dbPatch).eq('id', id).select().single())
     return mapCallLog(data)
   },

@@ -4,7 +4,7 @@ import { CALL_SOURCES } from '../../lib/callLogs'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
-const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '', notlar: '' }
+const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '', notlar: '', reklamKodu: '' }
 
 export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOptions }) {
   const [form, setForm] = useState(EMPTY_FORM)
@@ -22,6 +22,7 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
             arayanAd: capitalizeWords(form.arayanAd.trim()),
             assignedTo: form.assignedTo || null,
             notlar: capitalizeFirst(form.notlar.trim()),
+            reklamKodu: form.reklamKodu.trim(),
           })
         }}
         className="space-y-3"
@@ -37,6 +38,18 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
             </option>
           ))}
         </select>
+
+        {/* Sadece Reklam kaynağında görünür — hangi Sponsorlu reklamdan
+            geldiğini işaretleyip performansı ölçebilelim diye (bkz.
+            "hangi Sponsorlu reklamdan geldiğini işlemimiz lazım" isteği). */}
+        {form.kaynak === 'Reklam' && (
+          <input
+            value={form.reklamKodu}
+            onChange={(e) => set({ reklamKodu: e.target.value })}
+            placeholder="Reklam kodu (hangi Sponsorlu reklamdan geldi)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        )}
 
         <input
           required

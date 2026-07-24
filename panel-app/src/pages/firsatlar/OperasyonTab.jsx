@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { callLogs as callLogsProvider } from '../../lib/dataProvider'
-import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats } from '../../lib/callLogs'
+import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats, generatePortfoyKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
 import FocusBanner from '../../components/common/FocusBanner'
@@ -83,6 +83,14 @@ export default function OperasyonTab() {
   function handleToggle(id, field, nextValue) {
     const patch = { [field]: nextValue }
     if (field === 'donusYapildiMi') patch.donusAt = nextValue === true ? new Date().toISOString() : null
+    // Portföy "Alındı" işaretlenince kod otomatik verilsin — elle
+    // unutulup karışıklık olmasın (bkz. "her eklenen portföye bir kod
+    // veriyorduk" isteği). Zaten bir kodu varsa (örn. eskiden elle
+    // girilmişse) üstüne yazmıyoruz.
+    if (field === 'portfoyAlindiMi' && nextValue === true) {
+      const call = (calls ?? []).find((c) => c.id === id)
+      if (!call?.portfoyNo) patch.portfoyNo = generatePortfoyKodu()
+    }
     updateCall(id, patch)
   }
 

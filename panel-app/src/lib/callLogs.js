@@ -35,6 +35,17 @@ export function cycleValue(current, order) {
   return order[(idx + 1) % order.length]
 }
 
+// Portföy "Alındı" işaretlenince otomatik verilen kod — eski sistemdeki
+// "LVD-XXXXX" biçimiyle aynı (bkz. "her eklenen portföye bir kod
+// veriyorduk, tapu vs. o kodla gönderiliyordu" isteği). Elle karışıklık
+// olmasın diye artık otomatik üretiliyor (bkz. OperasyonTab handleToggle).
+const PORTFOY_KODU_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+export function generatePortfoyKodu() {
+  let suffix = ''
+  for (let i = 0; i < 5; i++) suffix += PORTFOY_KODU_CHARS[Math.floor(Math.random() * PORTFOY_KODU_CHARS.length)]
+  return `LVD-${suffix}`
+}
+
 // call_logs_select RLS kuralının mock karşılığı: broker/owner/ofis tüm
 // çağrıları görür, danışman sadece kendine atanan çağrıları görür.
 export function canViewCall(call, user) {

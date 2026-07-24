@@ -12,6 +12,7 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
     portfoyNo: call.portfoyNo ?? '',
     satildiMi: call.satildiMi ?? false,
     notlar: call.notlar ?? '',
+    reklamKodu: call.reklamKodu ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.arayanAd.trim().length > 0 && isPhoneComplete(form.arayanTelefon)
@@ -22,7 +23,12 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ ...form, arayanAd: capitalizeWords(form.arayanAd.trim()), notlar: capitalizeFirst(form.notlar.trim()) })
+          onSubmit({
+            ...form,
+            arayanAd: capitalizeWords(form.arayanAd.trim()),
+            notlar: capitalizeFirst(form.notlar.trim()),
+            reklamKodu: form.reklamKodu.trim(),
+          })
         }}
         className="space-y-3"
       >
@@ -37,6 +43,15 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
             </option>
           ))}
         </select>
+
+        {form.kaynak === 'Reklam' && (
+          <input
+            value={form.reklamKodu}
+            onChange={(e) => set({ reklamKodu: e.target.value })}
+            placeholder="Reklam kodu (hangi Sponsorlu reklamdan geldi)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        )}
 
         <input
           required
