@@ -49,10 +49,10 @@ export default function OperasyonTab() {
     return roleFiltered
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
-      .sort((a, b) => {
-        if (a.donusYapildiMi !== b.donusYapildiMi) return a.donusYapildiMi ? 1 : -1
-        return new Date(b.createdAt) - new Date(a.createdAt)
-      })
+      // Sadece tarihe göre, en yeni üstte — bir durumu (Görüşüldü/Portföy)
+      // işaretlemek satırı listede yukarı/aşağı sıçratmasın istendi (bkz.
+      // "seçince en üste çıkıyor, tarih sıralaması bozulmasın" isteği).
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [calls, user, filters, odakActive])
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
