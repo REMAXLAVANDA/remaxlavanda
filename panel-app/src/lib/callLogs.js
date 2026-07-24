@@ -107,3 +107,26 @@ export function computeSourceConversion(calls) {
     .map(([kaynak, v]) => ({ kaynak, ...v }))
     .sort((a, b) => b.converted - a.converted)
 }
+
+// Sponsorlu reklam performansı — "hangi reklamdan geldiğini ölçmeliyiz,
+// portföyün alınıp alınmadığı kontrol edilmeli" isteği. reklamKodu elle
+// girilen bir isim/kod (Meta'daki kampanya adıyla aynı tutuluyor) — burada
+// sadece o isme göre gruplanıp dönüşüm sayılıyor, ayrı bir kampanya
+// yönetimi/listesi YOK.
+export function computeReklamKoduConversion(calls) {
+  const byKod = {}
+  for (const c of calls) {
+    if (c.kaynak !== 'Reklam' || !c.reklamKodu) continue
+    if (!byKod[c.reklamKodu]) byKod[c.reklamKodu] = { total: 0, converted: 0, sold: 0 }
+    byKod[c.reklamKodu].total += 1
+    if (c.portfoyAlindiMi) byKod[c.reklamKodu].converted += 1
+    if (c.satildiMi) byKod[c.reklamKodu].sold += 1
+  }
+  return Object.entries(byKod)
+    .map(([reklamKodu, v]) => ({
+      reklamKodu,
+      ...v,
+      rate: v.total === 0 ? 0 : Math.round((v.converted / v.total) * 100),
+    }))
+    .sort((a, b) => b.converted - a.converted)
+}

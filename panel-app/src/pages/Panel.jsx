@@ -24,7 +24,7 @@ import {
   league as leagueProvider,
   users as usersProvider,
 } from '../lib/dataProvider'
-import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callLogs'
+import { canManageCalls, computeReklamKoduConversion, computeSourceConversion, maskPhone } from '../lib/callLogs'
 import { ROLES } from '../lib/roles'
 import {
   canViewEvent,
@@ -48,6 +48,7 @@ import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
 import SourceConversionBoard from '../components/operasyon/SourceConversionBoard'
+import ReklamKoduConversionBoard from '../components/operasyon/ReklamKoduConversionBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
@@ -440,6 +441,17 @@ export default function Panel() {
       isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
     )
     return computeSourceConversion(inRange)
+  }, [data, filters])
+
+  // --- Broker raporu: "hangi Sponsorlu reklamdan geldi" — reklamKodu
+  // bazında çağrı/yetki/satış dökümü (bkz. "hangi reklamdan geldiğini
+  // ölçmeliyiz, portföyün alınıp alınmadığı kontrol edilmeli" isteği).
+  const reklamKoduStats = useMemo(() => {
+    if (!data) return []
+    const inRange = data.calls.filter((c) =>
+      isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
+    )
+    return computeReklamKoduConversion(inRange)
   }, [data, filters])
 
   const opportunityStats = useMemo(() => {
@@ -1028,6 +1040,19 @@ export default function Panel() {
               className="md:col-span-2"
             >
               <SourceConversionBoard rows={sourceStats} />
+            </Widget>
+          )}
+
+          {isBrokerOrOwner && reklamKoduStats.length > 0 && (
+            <Widget
+              icon={Megaphone}
+              title="Sponsorlu Reklam Performansı"
+              description="Çağrı girilirken işaretlenen reklam adına göre yetki/satış dönüşümü"
+              to="/operasyon"
+              linkLabel="Operasyon'a git"
+              className="md:col-span-2"
+            >
+              <ReklamKoduConversionBoard rows={reklamKoduStats} />
             </Widget>
           )}
 
