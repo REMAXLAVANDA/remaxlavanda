@@ -3,28 +3,28 @@ import { formatPhoneInput, isPhoneComplete, telHref, whatsappHref } from './phon
 
 describe('formatPhoneInput', () => {
   it('başında sıfır yoksa ekler', () => {
-    expect(formatPhoneInput('5321234567')).toBe('0532 123 45 67')
+    expect(formatPhoneInput('5321234567')).toBe('0 (532) 123 45 67')
   })
 
   it('zaten sıfırla başlıyorsa aynı formata girer', () => {
-    expect(formatPhoneInput('05321234567')).toBe('0532 123 45 67')
+    expect(formatPhoneInput('05321234567')).toBe('0 (532) 123 45 67')
   })
 
   it('+90 ile yazılsa da tek formata çevirir', () => {
-    expect(formatPhoneInput('+90 532 123 45 67')).toBe('0532 123 45 67')
+    expect(formatPhoneInput('+90 532 123 45 67')).toBe('0 (532) 123 45 67')
   })
 
   it('0090 ile yazılsa da tek formata çevirir', () => {
-    expect(formatPhoneInput('00905321234567')).toBe('0532 123 45 67')
+    expect(formatPhoneInput('00905321234567')).toBe('0 (532) 123 45 67')
   })
 
   it('yazarken (eksik haneyle) hata vermez', () => {
-    expect(formatPhoneInput('053')).toBe('053')
-    expect(formatPhoneInput('5')).toBe('05')
+    expect(formatPhoneInput('053')).toBe('0 (53')
+    expect(formatPhoneInput('5')).toBe('0 (5')
   })
 
   it('11 haneden fazlasını keser', () => {
-    expect(formatPhoneInput('053212345678999')).toBe('0532 123 45 67')
+    expect(formatPhoneInput('053212345678999')).toBe('0 (532) 123 45 67')
   })
 
   it('boşsa boş döner', () => {
@@ -40,17 +40,17 @@ describe('isPhoneComplete', () => {
   })
 
   it('tam 11 hane doluysa geçerli', () => {
-    expect(isPhoneComplete('0532 123 45 67')).toBe(true)
+    expect(isPhoneComplete('0 (532) 123 45 67')).toBe(true)
   })
 
   it('eksik haneliyse geçersiz', () => {
-    expect(isPhoneComplete('0532 123')).toBe(false)
+    expect(isPhoneComplete('0 (532) 123')).toBe(false)
   })
 })
 
 describe('telHref', () => {
-  it('tel: linki üretir, boşlukları temizler', () => {
-    expect(telHref('0532 123 45 67')).toBe('tel:05321234567')
+  it('tel: linki üretir, boşlukları/parantezleri temizler', () => {
+    expect(telHref('0 (532) 123 45 67')).toBe('tel:05321234567')
   })
 
   it('boşsa null döner', () => {
@@ -60,7 +60,7 @@ describe('telHref', () => {
 
 describe('whatsappHref', () => {
   it('başındaki sıfırı 90 ile değiştirip wa.me linki üretir', () => {
-    expect(whatsappHref('0532 123 45 67')).toBe('https://wa.me/905321234567')
+    expect(whatsappHref('0 (532) 123 45 67')).toBe('https://wa.me/905321234567')
   })
 
   it('zaten 90 ile başlıyorsa tekrar eklemez', () => {

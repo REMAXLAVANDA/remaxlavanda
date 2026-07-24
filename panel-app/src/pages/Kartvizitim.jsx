@@ -101,11 +101,11 @@ export default function Kartvizitim() {
                 type="tel"
                 value={form.telefon}
                 onChange={(e) => setField('telefon', formatPhoneInput(e.target.value))}
-                placeholder="05xx xxx xx xx"
+                placeholder="0 (5xx) xxx xx xx"
                 className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
               />
               {!isPhoneComplete(form.telefon) && (
-                <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı (05XX XXX XX XX)</p>
+                <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı — 0 (5XX) XXX XX XX</p>
               )}
             </div>
 
