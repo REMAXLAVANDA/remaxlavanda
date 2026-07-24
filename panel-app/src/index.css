@@ -55,6 +55,16 @@
   --color-ink-700: #363c48;
   --color-ink-800: #404041;
   --color-ink-900: #0c2749;
+
+  /* Modül bazlı, çok açık sayfa zemin tonları — Panel ve sidebar hariç,
+     her modül kendi zeminiyle "hangi bölümdeyim" hissini versin diye
+     (bkz. "her yer bembeyaz ... çok açık renklerde farklılaştıralım"
+     isteği). Kartlar yine beyaz kalıyor, sadece arkaları renkleniyor. */
+  --color-page-firsatlar: #e5ecf5;
+  --color-page-planlama: #ddeff8;
+  --color-page-takip: #f3eee7;
+  --color-page-lig: #f8e7e9;
+  --color-page-rehber: #edf0f2;
 }
 
 * {

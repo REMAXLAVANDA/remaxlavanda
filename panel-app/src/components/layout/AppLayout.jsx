@@ -17,12 +17,35 @@ function useCurrentTitle() {
   return active?.label ?? 'RE/MAX Lavanda'
 }
 
+// Panel (ve eşleşmeyen her şey — Ayarlar/Kartvizitim dahil) varsayılan
+// nötr zeminde (ink-50) kalıyor; Panel'e kasıtlı olarak dokunulmuyor.
+// Diğer 5 modül kendi çok açık zeminini alıyor (bkz. index.css'teki
+// --color-page-* tanımları) — /operasyon, /egitim, /gorevler eski
+// linkleri de aynı mantıkla asıl sayfalarının zeminini paylaşıyor.
+const PAGE_BG_BY_PREFIX = {
+  '/firsatlar': 'bg-page-firsatlar',
+  '/operasyon': 'bg-page-firsatlar',
+  '/takvim': 'bg-page-planlama',
+  '/gorevler': 'bg-page-planlama',
+  '/takip': 'bg-page-takip',
+  '/egitim': 'bg-page-takip',
+  '/lig': 'bg-page-lig',
+  '/rehber': 'bg-page-rehber',
+}
+
+function useCurrentPageBg() {
+  const { pathname } = useLocation()
+  const prefix = Object.keys(PAGE_BG_BY_PREFIX).find((p) => pathname.startsWith(p))
+  return prefix ? PAGE_BG_BY_PREFIX[prefix] : 'bg-ink-50'
+}
+
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const title = useCurrentTitle()
+  const pageBg = useCurrentPageBg()
 
   return (
-    <div className="h-screen overflow-hidden bg-ink-50 lg:flex">
+    <div className={`h-screen overflow-hidden ${pageBg} lg:flex`}>
       <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
       {sidebarOpen && (
