@@ -28,6 +28,12 @@ export const OFIS_ADRESI = 'Rumeli Mah. Yücetürk Cad. No:20/3 Çorlu/Tekirdağ
 // bulunduğu yerden ofise rota/yol tarifi başlatır.
 export const OFIS_MAPS_URL = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(OFIS_ADRESI)}`
 
+// Google İşletme Profili'nden ("Yorum al") alınan resmi kısa link —
+// tıklayınca doğrudan yorum yazma ekranını açar (bkz. "yoruma girmesi
+// lazım" isteği). Ofis değişirse Business Profile panelinden yenisi
+// alınıp burada güncellenmeli.
+export const GOOGLE_REVIEW_URL = 'https://g.page/r/CYUrvJDVP6tpEBM/review'
+
 export const SOSYAL_MEDYA_FIELDS = [
   { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/kullaniciadi' },
   { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/kullaniciadi' },

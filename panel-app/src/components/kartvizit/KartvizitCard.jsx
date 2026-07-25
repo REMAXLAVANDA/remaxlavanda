@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { Phone, MessageSquare, Mail, MapPin, Globe, Share2, UserPlus } from 'lucide-react'
+import { Phone, MessageSquare, Mail, MapPin, Globe, Share2, Star, UserPlus } from 'lucide-react'
 import { useToast } from '../../context/ToastContext'
-import { unvanFor, OFIS_MAPS_URL, whatsappLink, kartvizitUrl, downloadVCard } from '../../lib/kartvizit'
+import { unvanFor, OFIS_MAPS_URL, GOOGLE_REVIEW_URL, whatsappLink, kartvizitUrl, downloadVCard } from '../../lib/kartvizit'
 import { InstagramIcon, LinkedinIcon, WhatsappIcon } from './BrandIcons'
 
 function initialsFor(name) {
@@ -168,6 +168,18 @@ export default function KartvizitCard({ card, userId, fullscreen = false }) {
             <LinkRow icon={Globe} iconClass="bg-remax-blue" label="Web / İlanlarım" value={social.web} href={social.web} />
           </>
         )}
+
+        {/* Google İşletme Profili'nin resmi "yorum al" linki — tıklayınca
+            doğrudan yorum yazma ekranı açılır, sadece profil sayfası değil
+            (bkz. "yoruma girmesi lazım" isteği). */}
+        <a
+          href={GOOGLE_REVIEW_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 hover:bg-amber-100"
+        >
+          <Star size={16} fill="currentColor" /> Google'da Değerlendir
+        </a>
 
         {qrDataUrl && (
           <div className="mt-3 flex flex-col items-center gap-2 rounded-2xl bg-ink-50 px-3.5 py-4">
