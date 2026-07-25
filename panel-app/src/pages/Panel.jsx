@@ -284,18 +284,21 @@ function StatCard({ icon: Icon, to, label, percent, ratioLabel, segments, note }
 
 // "Dikkat Gerekiyor" satırı — broker/owner'ın sabah ilk açtığında görmesi
 // gereken, müdahale gerektirebilecek istisnalar. Bilerek müşteri ismi/
-// telefonu YOK — sadece sayı + genel özet, detay ilgili sayfada.
+// telefonu YOK — sadece sayı + genel özet, detay ilgili sayfada. Tek sakin
+// beyaz kart içinde ince satırlar — art arda gelen dolu sarı kutular "uyarı
+// duvarı" gibi durup itici geldiği için (bkz. "çok itici" geri bildirimi),
+// renk artık sadece ikon + ince sol şerit olarak kalıyor.
 function AttentionRow({ icon: Icon, text, to }) {
   return (
     <Link
       to={to}
-      className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 transition-colors hover:bg-amber-100"
+      className="group flex items-center justify-between gap-3 border-l-2 border-amber-400 bg-white px-4 py-3 transition-colors hover:bg-ink-50"
     >
       <div className="flex items-center gap-2.5">
-        <Icon size={16} className="shrink-0 text-amber-600" />
-        <span className="text-sm font-medium text-ink-900">{text}</span>
+        <Icon size={15} className="shrink-0 text-amber-500" />
+        <span className="text-sm text-ink-700">{text}</span>
       </div>
-      <span className="shrink-0 text-xs font-medium text-amber-700">İncele →</span>
+      <span className="shrink-0 text-xs text-ink-400 transition-colors group-hover:text-brand-700">İncele →</span>
     </Link>
   )
 }
@@ -973,13 +976,15 @@ export default function Panel() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && isBrokerOrOwner && attentionItems.length > 0 && (
-        <div className="mb-5 space-y-1.5">
-          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-700">
-            <AlertTriangle size={14} /> Dikkat Gerekiyor
+        <div className="mb-5">
+          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-400">
+            <AlertTriangle size={14} className="text-amber-500" /> Dikkat Gerekiyor
           </h2>
-          {attentionItems.map((item) => (
-            <AttentionRow key={item.id} icon={item.icon} text={item.text} to={item.to} />
-          ))}
+          <div className="divide-y divide-ink-50 overflow-hidden rounded-2xl border border-ink-100 bg-white">
+            {attentionItems.map((item) => (
+              <AttentionRow key={item.id} icon={item.icon} text={item.text} to={item.to} />
+            ))}
+          </div>
         </div>
       )}
 
