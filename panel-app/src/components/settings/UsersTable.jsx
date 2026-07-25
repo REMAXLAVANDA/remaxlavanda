@@ -18,7 +18,7 @@ function sortRows(rows, sortKey) {
   return list.sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 }
 
-export default function UsersTable({ rows, canManage, onChangeRole, onToggleDurum, onEdit, onDeleteRequest, onResetPasswordRequest }) {
+export default function UsersTable({ rows, canManage, onChangeRole, onToggleDurum, onToggleTestHesabi, onEdit, onDeleteRequest, onResetPasswordRequest }) {
   const [sortKey, setSortKey] = useState('ad')
   const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
 
@@ -81,6 +81,22 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
               >
                 {u.durum === 'aktif' ? 'Aktif' : 'Pasif'}
               </button>
+
+              {/* Broker'ın kendi inceleme/test amaçlı açtığı hesaplar için
+                  — Lig/Takip/Panel gibi ekip performans listelerinden
+                  hariç tutulmasını sağlar (bkz. "test hesabı açtım,
+                  tablolarda görünmesin" isteği). */}
+              {canManage && (
+                <button
+                  onClick={() => onToggleTestHesabi(u.id, !u.testHesabi)}
+                  title="Test hesabı — Lig/Takip/Panel listelerinde görünmez"
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium hover:opacity-80 ${
+                    u.testHesabi ? 'bg-amber-50 text-amber-700' : 'bg-ink-100 text-ink-500'
+                  }`}
+                >
+                  Test hesabı
+                </button>
+              )}
 
               {canManage && (
                 <div className="flex items-center gap-0.5">

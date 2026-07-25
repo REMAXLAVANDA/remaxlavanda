@@ -74,7 +74,9 @@ export default function EgitimTab() {
   const checklistItems = data?.checklistItems ?? EMPTY
   const checklistStatus = data?.checklistStatus ?? EMPTY
 
-  const teamMembers = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
+  // Test hesabı ekip listelerine karışmasın diye hariç tutuluyor (bkz.
+  // Panel.jsx'teki aynı filtre).
+  const teamMembers = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
 
   // Eğitim modülleri eklendikleri tarihe göre filtrelenebilir (ör. "sadece bu
   // dönem eklenen eğitimler"). Varsayılan "tümü" — hiçbir modül sessizce

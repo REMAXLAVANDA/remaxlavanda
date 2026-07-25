@@ -53,7 +53,17 @@ export function UsersProvider({ children }) {
     }
   }, [isAuthenticated])
 
-  return <UsersContext.Provider value={{ knownUsers, loading }}>{children}</UsersContext.Provider>
+  // Ayarlar > Kullanıcılar'da rol/test hesabı gibi bir alan değiştiğinde,
+  // bu context yeniden fetch edilmeden (sayfa boyunca bir kez yüklenip
+  // önbelleklendiği için) Panel/Takip/Lig gibi başka sayfalar hâlâ eski
+  // veriyle çalışmaya devam ediyordu — bkz. "test hesabı işaretledim ama
+  // hâlâ listede görünüyor" sorunu. Ayarlar buradaki map'i de anında
+  // güncelleyebilsin diye.
+  function patchKnownUser(id, patch) {
+    setKnownUsers((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], ...patch } } : prev))
+  }
+
+  return <UsersContext.Provider value={{ knownUsers, loading, patchKnownUser }}>{children}</UsersContext.Provider>
 }
 
 export function useKnownUsers() {

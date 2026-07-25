@@ -56,12 +56,16 @@ export default function Lig() {
   }, [data, periodId])
 
   const period = data?.periods?.find((p) => p.id === periodId)
+  // Test hesabının ciro/sosyal medya skoru olsa bile sıralamada
+  // görünmesin diye (bkz. "test hesabı ... tablolarda görünmesin" isteği).
   const periodScores = useMemo(
-    () => (data?.scores ?? []).filter((s) => s.periodId === periodId),
-    [data, periodId],
+    () => (data?.scores ?? []).filter((s) => s.periodId === periodId && !knownUsers[s.userId]?.testHesabi),
+    [data, periodId, knownUsers],
   )
 
-  const danismanOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
+  // Test hesabı Lig sıralamalarına/Yorum Hakkı listesine karışmasın diye
+  // hariç tutuluyor (bkz. Panel.jsx'teki aynı filtre).
+  const danismanOptions = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
   const activityTypes = data?.activityTypes ?? []
 
   // Ciro'ya dönen müşteriler isim isim burada — yorum hakkı (kaç isim

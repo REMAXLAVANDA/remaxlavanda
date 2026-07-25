@@ -822,17 +822,25 @@ export const league = {
 // --- Users -----------------------------------------------------------------
 export const users = {
   async listKnown() {
-    const data = await run(client().from('users').select('id, ad, rol, durum').eq('durum', 'aktif'))
+    const data = await run(client().from('users').select('id, ad, rol, durum, test_hesabi').eq('durum', 'aktif'))
     const map = {}
-    for (const u of data) map[u.id] = { id: u.id, name: u.ad, role: u.rol }
+    for (const u of data) map[u.id] = { id: u.id, name: u.ad, role: u.rol, testHesabi: u.test_hesabi }
     return map
   },
   // Ayarlar > Kullanıcılar: pasif olanlar dahil HERKESİ listeler (yönetim
   // amaçlı) — users_select_all RLS'i is_active() ile sadece çağıranın
   // kendisinin aktif olmasını şart koşuyor, hedef satırın durumunu değil.
   async listAll() {
-    const data = await run(client().from('users').select('id, ad, email, rol, durum, created_at').order('ad'))
-    return data.map((u) => ({ id: u.id, name: u.ad, email: u.email, role: u.rol, durum: u.durum, createdAt: u.created_at }))
+    const data = await run(client().from('users').select('id, ad, email, rol, durum, test_hesabi, created_at').order('ad'))
+    return data.map((u) => ({
+      id: u.id,
+      name: u.ad,
+      email: u.email,
+      role: u.rol,
+      durum: u.durum,
+      testHesabi: u.test_hesabi,
+      createdAt: u.created_at,
+    }))
   },
   // users_update_self_or_broker RLS'i sadece broker/owner'a (veya kendi
   // satırına) izin veriyor.
@@ -841,6 +849,7 @@ export const users = {
     if ('name' in patch) dbPatch.ad = patch.name
     if ('role' in patch) dbPatch.rol = patch.role
     if ('durum' in patch) dbPatch.durum = patch.durum
+    if ('testHesabi' in patch) dbPatch.test_hesabi = patch.testHesabi
     await run(client().from('users').update(dbPatch).eq('id', id))
     return { id, ...patch }
   },

@@ -318,7 +318,11 @@ export default function Panel() {
   // (Operasyon/Fırsatlar/Ayarlar vb.) kendi RLS'lerinde uygulanıyor.
   const isBrokerOrOwner = role === ROLES.BROKER || role === ROLES.OWNER
   const isEducationManager = EDUCATION_MANAGE_ROLES.includes(role)
-  const teamMembers = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman')
+  // Test hesabı (broker'ın kendi inceleme/deneme amaçlı açtığı hesap)
+  // Lig/Takip/Portal Kullanımı gibi ekip performans listelerine hiç
+  // karışmasın diye burada da hariç tutuluyor (bkz. "test hesabı açtım,
+  // tablolarda görünmesin" isteği).
+  const teamMembers = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
   // Panel'in üstündeki tek tarih filtresi — dört rol için de aynı, varsayılan
   // her zaman "7 gün" (bkz. INITIAL_FILTERS). Operasyon/Fırsatlar listeleri
   // ve broker'ın özet kartları buna göre daralıyor.
@@ -611,9 +615,11 @@ export default function Panel() {
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const activePeriod = data?.periods?.[0] ?? null
+  // Test hesabının skoru sıralamada görünmesin diye (bkz. Lig.jsx'teki
+  // aynı filtre).
   const periodScores = useMemo(
-    () => (data?.scores ?? []).filter((s) => s.periodId === activePeriod?.id),
-    [data, activePeriod],
+    () => (data?.scores ?? []).filter((s) => s.periodId === activePeriod?.id && !knownUsers[s.userId]?.testHesabi),
+    [data, activePeriod, knownUsers],
   )
   // Memnuniyet score_entries'e HİÇ yazılmaz (bkz. Lig.jsx) — Wilson skoru
   // her render'da ciro_musterileri'nden canlı hesaplanır. Panel eskiden bu

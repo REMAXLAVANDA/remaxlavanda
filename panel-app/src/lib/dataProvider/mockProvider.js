@@ -584,7 +584,7 @@ export const users = {
   async listKnown() {
     const map = {}
     for (const u of allMockUserRows()) {
-      if (u.durum === 'aktif') map[u.id] = { id: u.id, name: u.name, role: u.role }
+      if (u.durum === 'aktif') map[u.id] = { id: u.id, name: u.name, role: u.role, testHesabi: u.testHesabi ?? false }
     }
     return delay(map)
   },
@@ -600,6 +600,7 @@ export const users = {
       if ('name' in patch) target.name = patch.name
       if ('role' in patch) target.role = patch.role
       if ('durum' in patch) target.durum = patch.durum
+      if ('testHesabi' in patch) target.testHesabi = patch.testHesabi
     }
     return delay({ id, ...patch })
   },

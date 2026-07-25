@@ -33,7 +33,7 @@ const TABS = [
 export default function Ayarlar() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
-  const { knownUsers } = useKnownUsers()
+  const { knownUsers, patchKnownUser } = useKnownUsers()
   const [tab, setTab] = useState(TABS[0].key)
   const canManage = canManageUsers(role)
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
@@ -71,6 +71,7 @@ export default function Ayarlar() {
     try {
       await usersProvider.updateUser(id, { role })
       setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role } : u)))
+      patchKnownUser(id, { role })
       showToast('Rol güncellendi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Rol güncellenemedi, tekrar dene.', 'error')
@@ -82,6 +83,20 @@ export default function Ayarlar() {
       await usersProvider.updateUser(id, { durum })
       setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, durum } : u)))
       showToast(durum === 'aktif' ? 'Kullanıcı aktifleştirildi.' : 'Kullanıcı pasifleştirildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  // Broker'ın kendi inceleme/test amaçlı açtığı hesapları Lig/Takip/Panel
+  // gibi ekip performans listelerinden hariç tutmak için (bkz. "test hesabı
+  // açtım, tablolarda görünmesin" isteği).
+  async function handleToggleTestHesabi(id, testHesabi) {
+    try {
+      await usersProvider.updateUser(id, { testHesabi })
+      setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, testHesabi } : u)))
+      patchKnownUser(id, { testHesabi })
+      showToast(testHesabi ? 'Test hesabı olarak işaretlendi.' : 'Test hesabı işareti kaldırıldı.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
     }
@@ -288,6 +303,7 @@ export default function Ayarlar() {
               canManage={canManage}
               onChangeRole={handleChangeRole}
               onToggleDurum={handleToggleDurum}
+              onToggleTestHesabi={handleToggleTestHesabi}
               onEdit={setEditingUser}
               onDeleteRequest={setDeleteTarget}
               onResetPasswordRequest={setResetTarget}

@@ -60,7 +60,9 @@ export default function TakipTab() {
 
   const people = useMemo(() => {
     if (!data) return []
-    const list = seeTeam ? Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman') : [user]
+    // Test hesabı sağlık skoru listesine karışmasın diye hariç tutuluyor
+    // (bkz. Panel.jsx'teki aynı filtre).
+    const list = seeTeam ? Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi) : [user]
     // İsim sırası yerine en yüksek sağlık skoru en üstte — broker/owner'ın
     // ilk bakışta kimin dikkat gerektirdiğini/öne çıktığını görmesi için.
     const rows = list.map((u) => ({ user: u, ...computeHealthScore(u.id, data) })).sort((a, b) => b.score - a.score)
