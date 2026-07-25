@@ -31,7 +31,6 @@ import {
   formatEventDate,
   formatEventTime,
   EVENT_TYPE_LABELS,
-  EVENT_TYPE_COLORS,
   ATTENDANCE_STATUS_LABELS,
   ATTENDANCE_STATUS_STYLES,
   MAZERET_STATUS_LABELS,
@@ -171,6 +170,52 @@ function ProgressRing({ percent, size = 88, strokeWidth = 8, color = '#003da5', 
   )
 }
 
+// Çok dilimli halka — StatCard'ların ana göstergesi. Altındaki renkli
+// nokta/lejant listesiyle AYNI segments dizisini kullanır ki halka ile
+// lejant hep birebir eşleşsin (biri değişince öbürü otomatik tutarlı
+// kalsın, iki ayrı yerde elle senkronize edilmesin). Dilimler her zaman
+// TAM bir bölünmedir (toplamları %100'e tamamlanır), farklı eksenden
+// (ör. kişi sayısı gibi) bir değer buraya karıştırılmaz — bkz. StatCard
+// çağrı noktalarındaki "note" alanı, o tür farklı-birimli bilgiler için.
+function SegmentedRing({ segments, size = 88, strokeWidth = 8, centerLabel, fontSize }) {
+  const r = (size - strokeWidth) / 2
+  const c = 2 * Math.PI * r
+  const clean = (segments ?? []).filter((s) => s.value > 0)
+  const total = clean.reduce((sum, s) => sum + s.value, 0)
+  let cumulative = 0
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={strokeWidth} />
+        {total > 0 &&
+          clean.map((s) => {
+            const segLen = (s.value / total) * c
+            const startLen = (cumulative / total) * c
+            cumulative += s.value
+            return (
+              <circle
+                key={s.label}
+                cx={size / 2}
+                cy={size / 2}
+                r={r}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${segLen} ${c - segLen}`}
+                strokeDashoffset={-startLen}
+              />
+            )
+          })}
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-bold text-ink-900" style={{ fontSize: fontSize ?? size * 0.22 }}>
+          {centerLabel}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 // Uygulamada profil fotoğrafı YOK — mevcut kural (bkz. ProfileMenu,
 // HealthScoreRow) daireye baş harf koymak, mockup'taki avatar fotoğrafları
 // yerine bu kullanılıyor.
@@ -201,8 +246,13 @@ function ringColorFor(percent) {
 }
 
 // Broker'ın istediği "rapor odaklı" özet kartları — yüzdelik halka + kısa
-// dağılım, tıklanınca ilgili modüle götürüyor.
-function StatCard({ icon: Icon, to, label, percent, ratioLabel, ringColor, breakdown }) {
+// dağılım, tıklanınca ilgili modüle götürüyor. Halka ve altındaki lejant
+// AYNI segments dizisinden besleniyor (bkz. SegmentedRing notu) — yüzde
+// metni de her zaman bu dilimlerden birinin (asıl "başarı" dilimi) oranı,
+// böylece halka/lejant/yüzde üçü hep birbirini doğruluyor. "note" ise
+// segmentlerle aynı eksende OLMAYAN (ör. kişi sayısı gibi farklı birimden)
+// ek bilgi için — halkaya karıştırılmaz, ayrı bir satır olarak gösterilir.
+function StatCard({ icon: Icon, to, label, percent, ratioLabel, segments, note }) {
   return (
     <Link
       to={to}
@@ -213,18 +263,19 @@ function StatCard({ icon: Icon, to, label, percent, ratioLabel, ringColor, break
         <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
       </div>
       <div className="flex flex-col items-center">
-        <ProgressRing percent={percent} color={ringColor} />
+        <SegmentedRing segments={segments} centerLabel={`%${Math.max(0, Math.min(100, Math.round(percent || 0)))}`} />
         {ratioLabel && <p className="mt-2 text-xs text-ink-400">{ratioLabel}</p>}
       </div>
-      {breakdown?.length > 0 && (
+      {segments?.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-ink-100 pt-3">
-          {breakdown.map((b) => (
-            <div key={b.label} className="flex items-center gap-2 text-xs">
-              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: b.color }} />
-              <span className="text-ink-500">{b.label}</span>
-              <span className="ml-auto font-medium text-ink-800">{b.value}</span>
+          {segments.map((s) => (
+            <div key={s.label} className="flex items-center gap-2 text-xs">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+              <span className="text-ink-500">{s.label}</span>
+              <span className="ml-auto font-medium text-ink-800">{s.value}</span>
             </div>
           ))}
+          {note && <p className="pt-1 text-[11px] text-ink-400">{note}</p>}
         </div>
       )}
     </Link>
@@ -462,20 +513,22 @@ export default function Panel() {
   }, [data, filters])
 
   const opportunityStats = useMemo(() => {
-    if (!data) return { total: 0, satici: 0, alici: 0, kapandi: 0 }
+    if (!data) return { total: 0, acik: 0, claimed: 0, kapandi: 0, iptal: 0 }
     const inRange = data.opps.filter((o) =>
       isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
     )
     const total = inRange.length
-    const satici = inRange.filter((o) => o.type === 'satici').length
-    const alici = inRange.filter((o) => o.type === 'alici').length
+    const acik = inRange.filter((o) => o.status === 'acik').length
+    const claimed = inRange.filter((o) => o.status === 'claimed').length
     const kapandi = inRange.filter((o) => o.status === 'kapandi').length
-    return { total, satici, alici, kapandi }
+    const iptal = inRange.filter((o) => o.status === 'iptal').length
+    return { total, acik, claimed, kapandi, iptal }
   }, [data, filters])
 
   // --- Broker raporu: yaklaşan etkinliklerin ne kadarının katılım listesi
   // netleşmiş olduğu (herkes RSVP vermiş) — StatCard'daki halkanın oranı bu,
-  // alttaki dağılım ise etkinlik türüne göre sayım.
+  // alttaki dağılım da AYNI netleşti/bekliyor ayrımı (etkinlik türü değil —
+  // halka ile lejant farklı eksenlerde olmasın diye, bkz. StatCard notu).
   const eventReadiness = useMemo(() => {
     if (!data) return { ready: 0, total: 0 }
     const total = upcomingEvents.length
@@ -485,12 +538,6 @@ export default function Panel() {
     }).length
     return { ready, total }
   }, [data, upcomingEvents])
-
-  const eventTypeBreakdown = useMemo(() => {
-    const counts = {}
-    for (const e of upcomingEvents) counts[e.type] = (counts[e.type] ?? 0) + 1
-    return Object.entries(counts).map(([type, count]) => ({ type, count }))
-  }, [upcomingEvents])
 
   // --- Broker raporu: ekip genelinde modül + checklist tamamlama oranı,
   // kişi kişi değil "kaç öğeden kaçı bitmiş" olarak toplanıyor.
@@ -943,10 +990,9 @@ export default function Panel() {
             to="/operasyon"
             label="Operasyon"
             percent={callStats.total ? Math.round((callStats.donusYapildi / callStats.total) * 100) : 0}
-            ratioLabel={`${callStats.donusYapildi} / ${callStats.total}`}
-            ringColor="#003da5"
-            breakdown={[
-              { label: 'Atandı', value: callStats.assigned, color: '#003da5' },
+            ratioLabel={`${callStats.donusYapildi} / ${callStats.total} dönüş yapıldı`}
+            segments={[
+              { label: 'Atanmadı', value: callStats.total - callStats.assigned, color: '#9ca3af' },
               { label: 'Dönüş Yapıldı', value: callStats.donusYapildi, color: '#16a34a' },
               { label: 'Bekliyor', value: callStats.donusYapilmadi, color: '#f59e0b' },
             ]}
@@ -957,10 +1003,11 @@ export default function Panel() {
             label="Fırsatlar / Portföy"
             percent={opportunityStats.total ? Math.round((opportunityStats.kapandi / opportunityStats.total) * 100) : 0}
             ratioLabel={`${opportunityStats.kapandi} / ${opportunityStats.total} kapandı`}
-            ringColor="#0369a1"
-            breakdown={[
-              { label: 'Satıcı', value: opportunityStats.satici, color: '#16a34a' },
-              { label: 'Alıcı Adayı', value: opportunityStats.alici, color: '#0369a1' },
+            segments={[
+              { label: 'Açık', value: opportunityStats.acik, color: '#9ca3af' },
+              { label: 'Alındı', value: opportunityStats.claimed, color: '#0369a1' },
+              { label: 'Kapandı', value: opportunityStats.kapandi, color: '#16a34a' },
+              { label: 'İptal', value: opportunityStats.iptal, color: '#dc1c2e' },
             ]}
           />
           <StatCard
@@ -969,21 +1016,22 @@ export default function Panel() {
             label="Yaklaşan Etkinlikler"
             percent={eventReadiness.total ? Math.round((eventReadiness.ready / eventReadiness.total) * 100) : 0}
             ratioLabel={`${eventReadiness.ready} / ${eventReadiness.total} netleşti`}
-            ringColor="#7c3aed"
-            breakdown={eventTypeBreakdown.map((b) => ({
-              label: EVENT_TYPE_LABELS[b.type],
-              value: b.count,
-              color: EVENT_TYPE_COLORS[b.type],
-            }))}
+            segments={[
+              { label: 'Netleşti', value: eventReadiness.ready, color: '#7c3aed' },
+              { label: 'Bekliyor', value: eventReadiness.total - eventReadiness.ready, color: '#9ca3af' },
+            ]}
           />
           <StatCard
             icon={GraduationCap}
             to="/egitim"
             label="Eksik Eğitim / Checklist"
             percent={educationCompletion.total ? Math.round((educationCompletion.completed / educationCompletion.total) * 100) : 0}
-            ratioLabel={`${educationCompletion.completed} / ${educationCompletion.total}`}
-            ringColor="#16a34a"
-            breakdown={[{ label: '%100 altında olan kişi', value: educationGaps.length, color: '#dc1c2e' }]}
+            ratioLabel={`${educationCompletion.completed} / ${educationCompletion.total} madde tamamlandı`}
+            segments={[
+              { label: 'Tamamlanan', value: educationCompletion.completed, color: '#16a34a' },
+              { label: 'Eksik', value: educationCompletion.total - educationCompletion.completed, color: '#dc1c2e' },
+            ]}
+            note={`${educationGaps.length} kişi %100 altında`}
           />
         </div>
       )}
