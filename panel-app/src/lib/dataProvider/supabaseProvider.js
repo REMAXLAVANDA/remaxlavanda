@@ -444,6 +444,12 @@ export const callLogs = {
     const data = await run(client().from('call_logs').update(dbPatch).eq('id', id).select().single())
     return mapCallLog(data)
   },
+  async remove(id) {
+    const data = await run(client().from('call_logs').delete().eq('id', id).select('id'))
+    if (!data || data.length === 0) {
+      throw new Error('Çağrı silinemedi — yetkin olmayabilir, tekrar dene.')
+    }
+  },
 }
 
 // --- Docs (Rehber) ------------------------------------------------------------

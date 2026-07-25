@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, Eye, EyeOff, Target, StickyNote, Tag, Pencil, Circle, Check, X, AlertTriangle } from 'lucide-react'
+import { ChevronRight, Eye, EyeOff, Target, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
@@ -207,6 +207,7 @@ export default function CallTable({
   onAssign,
   onToggle,
   onEditDetails,
+  onDelete,
 }) {
   if (calls.length === 0) {
     return (
@@ -283,15 +284,26 @@ export default function CallTable({
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{callDateLabel(call.createdAt)}</td>
                   <td className="px-3 py-3 text-right">
-                    {canEditCallDetails(currentRole, call.createdAt) && (
-                      <button
-                        onClick={() => onEditDetails(call)}
-                        className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
-                        title="Bilgileri düzenle"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      {canEditCallDetails(currentRole, call.createdAt) && (
+                        <button
+                          onClick={() => onEditDetails(call)}
+                          className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                          title="Bilgileri düzenle"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                      )}
+                      {isManager && (
+                        <button
+                          onClick={() => onDelete(call)}
+                          className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                          title="Çağrıyı sil"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
@@ -333,15 +345,26 @@ export default function CallTable({
                     </div>
                   )}
                 </div>
-                {canEditCallDetails(currentRole, call.createdAt) && (
-                  <button
-                    onClick={() => onEditDetails(call)}
-                    className="shrink-0 rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
-                    title="Bilgileri düzenle"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                )}
+                <div className="flex shrink-0 items-center gap-1">
+                  {canEditCallDetails(currentRole, call.createdAt) && (
+                    <button
+                      onClick={() => onEditDetails(call)}
+                      className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                      title="Bilgileri düzenle"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  )}
+                  {isManager && (
+                    <button
+                      onClick={() => onDelete(call)}
+                      className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                      title="Çağrıyı sil"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="mt-3">

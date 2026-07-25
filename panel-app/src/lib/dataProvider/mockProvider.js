@@ -325,6 +325,11 @@ export const callLogs = {
     Object.assign(row, patch)
     return delay({ ...row })
   },
+  async remove(id) {
+    const idx = MOCK_CALLS.findIndex((c) => c.id === id)
+    if (idx !== -1) MOCK_CALLS.splice(idx, 1)
+    return delay(null)
+  },
 }
 
 // --- Categories (Rehber klasörleri) --------------------------------------

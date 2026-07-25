@@ -76,6 +76,20 @@ export default function OperasyonTab() {
     updateCall(id, { assignedTo })
   }
 
+  // call_logs_manage RLS'i zaten broker/owner/ofis dışını engelliyor —
+  // CallTable buton dahi göstermiyor ama double-check burada da var.
+  async function handleDelete(call) {
+    if (!canManageCalls(role)) return
+    if (!window.confirm(`"${call.arayanAd}" çağrısı kalıcı olarak silinsin mi? Bu işlem geri alınamaz.`)) return
+    try {
+      await callLogsProvider.remove(call.id)
+      setCalls((prev) => prev.filter((c) => c.id !== call.id))
+      showToast('Çağrı silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Çağrı silinemedi, tekrar dene.', 'error')
+    }
+  }
+
   // CallTable zaten bir sonraki durumu (3'lü döngü) hesaplayıp gönderiyor —
   // burada sadece kaydediyoruz. "Görüşüldü"ye geçince donusAt otomatik
   // dolsun, diğer durumlarda (Bekliyor/Ulaşılamadı) boşalsın — "satisTarihi"
@@ -175,6 +189,7 @@ export default function OperasyonTab() {
             onAssign={handleAssign}
             onToggle={handleToggle}
             onEditDetails={setEditingCall}
+            onDelete={handleDelete}
           />
         </>
       )}
