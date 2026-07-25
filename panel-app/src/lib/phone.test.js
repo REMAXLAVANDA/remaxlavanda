@@ -46,6 +46,10 @@ describe('isPhoneComplete', () => {
   it('eksik haneliyse geçersiz', () => {
     expect(isPhoneComplete('0 (532) 123')).toBe(false)
   })
+
+  it('11 hane ama başında sıfır yoksa geçersiz — formatPhoneInput\'u atlayan (ör. tarayıcı otomatik doldurma) bir değer sızarsa yakalasın diye', () => {
+    expect(isPhoneComplete('53212345678')).toBe(false)
+  })
 })
 
 describe('telHref', () => {

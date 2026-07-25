@@ -26,10 +26,14 @@ export function formatPhoneInput(raw) {
 }
 
 // Yarım/eksik bir numarayla kaydedilmesin diye — boşsa (henüz hiç
-// girilmemişse) sorun değil, ama bir şey girilmişse tam 11 hane olmalı.
+// girilmemişse) sorun değil, ama bir şey girilmişse tam 11 hane VE başında
+// sıfır olmalı. formatPhoneInput zaten hep bu şekli üretir — burada ayrıca
+// sıfır kontrolü, tarayıcı otomatik doldurma gibi formatPhoneInput'u
+// atlayabilecek yollara karşı ikinci bir güvenlik katmanı.
 export function isPhoneComplete(formatted) {
   const digits = (formatted ?? '').replace(/\D/g, '')
-  return digits.length === 0 || digits.length === 11
+  if (digits.length === 0) return true
+  return digits.length === 11 && digits.startsWith('0')
 }
 
 export function telHref(phone) {

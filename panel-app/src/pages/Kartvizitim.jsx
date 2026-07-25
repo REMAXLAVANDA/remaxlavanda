@@ -20,6 +20,7 @@ export default function Kartvizitim() {
   const [uploading, setUploading] = useState(false)
   const [cropSource, setCropSource] = useState(null)
   const fileInputRef = useRef(null)
+  const phoneRef = useRef(null)
 
   useEffect(() => {
     if (profile) setForm({ telefon: formatPhoneInput(profile.telefon ?? ''), avatarUrl: profile.avatarUrl ?? '', sosyalMedya: profile.sosyalMedya ?? {}, kartvizitAktif: profile.kartvizitAktif })
@@ -67,9 +68,15 @@ export default function Kartvizitim() {
   }
 
   async function handleSave() {
+    // Tarayıcı otomatik doldurma gibi yollar formatPhoneInput'u atlayıp
+    // React state'ini güncellemeden kutuya değer yazabiliyor — kaydetme
+    // anında kutunun gerçek DOM değerini tekrar okuyup biçimlendiriyoruz,
+    // sadece state'e güvenmiyoruz.
+    const telefon = formatPhoneInput(phoneRef.current?.value ?? form.telefon)
+    if (!isPhoneComplete(telefon)) return
     setSaving(true)
     try {
-      await usersProvider.updateProfile(user.id, form)
+      await usersProvider.updateProfile(user.id, { ...form, telefon })
       showToast('Kartvizitin güncellendi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
@@ -98,6 +105,7 @@ export default function Kartvizitim() {
             <div>
               <label className="mb-1 block text-xs font-medium text-ink-600">Telefon</label>
               <input
+                ref={phoneRef}
                 type="tel"
                 value={form.telefon}
                 onChange={(e) => setField('telefon', formatPhoneInput(e.target.value))}

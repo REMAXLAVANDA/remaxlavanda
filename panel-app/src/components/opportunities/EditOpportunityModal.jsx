@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { categoryLabel } from '../../lib/categories'
@@ -25,6 +25,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
     odaSayisi: opp.odaSayisi ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+  const phoneRef = useRef(null)
   const minVal = parseThousands(form.fiyatMin)
   const maxVal = parseThousands(form.fiyatMax)
   const budgetRangeInvalid = isAlici && minVal !== null && maxVal !== null && minVal > maxVal
@@ -39,10 +40,22 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (!canSubmit) return
+          // Tarayıcı otomatik doldurma gibi yollar formatPhoneInput'u
+          // atlayıp React state'ini güncellemeden kutuya değer yazabiliyor
+          // — kaydetme anında kutunun gerçek DOM değerini tekrar okuyup
+          // biçimlendiriyoruz, sadece state'e güvenmiyoruz.
+          const leadTelefon = formatPhoneInput(phoneRef.current?.value ?? form.leadTelefon)
+          if (
+            form.leadAd.trim().length === 0 ||
+            form.konum.trim().length === 0 ||
+            budgetRangeInvalid ||
+            !isPhoneComplete(leadTelefon)
+          ) {
+            return
+          }
           onSubmit({
             leadAd: capitalizeWords(form.leadAd.trim()),
-            leadTelefon: form.leadTelefon.trim(),
+            leadTelefon,
             konum: capitalizeWords(form.konum.trim()),
             fiyat: form.fiyat,
             fiyatMin: form.fiyatMin,
@@ -73,6 +86,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
         />
         <div>
           <input
+            ref={phoneRef}
             type="tel"
             value={form.leadTelefon}
             onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}

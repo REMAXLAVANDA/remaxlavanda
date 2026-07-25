@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
@@ -32,6 +32,7 @@ const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+
 export default function NewOpportunityModal({ onClose, onSubmit, submitting, showPoolToggle = false, defaultType = 'satici' }) {
   const [form, setForm] = useState(() => emptyForm(defaultType))
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+  const phoneRef = useRef(null)
 
   const isAlici = form.type === 'alici'
   const isKonut = form.category === 'konut'
@@ -49,10 +50,23 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (!canSubmit) return
+          // Tarayıcı otomatik doldurma gibi yollar formatPhoneInput'u
+          // atlayıp React state'ini güncellemeden kutuya değer yazabiliyor
+          // — kaydetme anında kutunun gerçek DOM değerini tekrar okuyup
+          // biçimlendiriyoruz, sadece state'e güvenmiyoruz.
+          const leadTelefon = formatPhoneInput(phoneRef.current?.value ?? form.leadTelefon)
+          if (
+            form.leadAd.trim().length === 0 ||
+            form.konum.trim().length === 0 ||
+            budgetRangeInvalid ||
+            !isPhoneComplete(leadTelefon)
+          ) {
+            return
+          }
           onSubmit({
             ...form,
             leadAd: capitalizeWords(form.leadAd.trim()),
+            leadTelefon,
             konum: capitalizeWords(form.konum.trim()),
             ozet: capitalizeFirst(form.ozet.trim()),
           })
@@ -110,6 +124,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
         />
         <div>
           <input
+            ref={phoneRef}
             type="tel"
             value={form.leadTelefon}
             onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}

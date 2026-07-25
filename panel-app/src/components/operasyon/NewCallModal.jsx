@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
@@ -9,6 +9,7 @@ const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', a
 export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOptions }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+  const phoneRef = useRef(null)
   const canSubmit = form.arayanAd.trim().length > 0 && isPhoneComplete(form.arayanTelefon)
 
   return (
@@ -16,10 +17,16 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (!canSubmit) return
+          // Tarayıcı otomatik doldurma gibi yollar formatPhoneInput'u
+          // atlayıp React state'ini güncellemeden kutuya değer yazabiliyor
+          // — kaydetme anında kutunun gerçek DOM değerini tekrar okuyup
+          // biçimlendiriyoruz, sadece state'e güvenmiyoruz.
+          const arayanTelefon = formatPhoneInput(phoneRef.current?.value ?? form.arayanTelefon)
+          if (form.arayanAd.trim().length === 0 || !isPhoneComplete(arayanTelefon)) return
           onSubmit({
             ...form,
             arayanAd: capitalizeWords(form.arayanAd.trim()),
+            arayanTelefon,
             assignedTo: form.assignedTo || null,
             notlar: capitalizeFirst(form.notlar.trim()),
             reklamKodu: form.reklamKodu.trim(),
@@ -61,6 +68,7 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
         />
         <div>
           <input
+            ref={phoneRef}
             type="tel"
             value={form.arayanTelefon}
             onChange={(e) => set({ arayanTelefon: formatPhoneInput(e.target.value) })}
