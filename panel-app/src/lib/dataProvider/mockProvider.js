@@ -478,6 +478,18 @@ export const league = {
   async listCiroMusterileri() {
     return delay([...MOCK_CIRO_MUSTERILERI])
   },
+  // Mock modda RLS yok — supabaseProvider.listMusteriReviewCounts() ile aynı
+  // şekli döndürmek için burada da aggregate ediyoruz.
+  async listMusteriReviewCounts() {
+    const counts = {}
+    for (const m of MOCK_CIRO_MUSTERILERI) {
+      const key = `${m.userId}|${m.periodId}`
+      if (!counts[key]) counts[key] = { userId: m.userId, periodId: m.periodId, hakSayisi: 0, alinanSayisi: 0 }
+      counts[key].hakSayisi += 1
+      if (m.alindiMi) counts[key].alinanSayisi += 1
+    }
+    return delay(Object.values(counts))
+  },
   async addCiroMusteri({ userId, periodId, adSoyad }) {
     const row = { id: `ciro-musteri-${Date.now()}`, userId, periodId, adSoyad, alindiMi: false, createdAt: new Date().toISOString() }
     MOCK_CIRO_MUSTERILERI.unshift(row)

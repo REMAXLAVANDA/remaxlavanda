@@ -70,6 +70,7 @@ async function loadAll() {
     ciroMusterileri,
     users,
     ciroGirisleri,
+    musteriReviewCounts,
   ] = await Promise.all([
     callLogsProvider.list(),
     opportunitiesProvider.list(),
@@ -85,6 +86,7 @@ async function loadAll() {
     leagueProvider.listCiroMusterileri(),
     usersProvider.listAll(),
     leagueProvider.listCiroGirisleri(),
+    leagueProvider.listMusteriReviewCounts(),
   ])
   return {
     calls,
@@ -101,6 +103,7 @@ async function loadAll() {
     ciroMusterileri,
     users,
     ciroGirisleri,
+    musteriReviewCounts,
   }
 }
 
@@ -626,14 +629,23 @@ export default function Panel() {
   // kategori için de periodScores'a bakıyordu, orada hiçbir zaman satır
   // olmadığı için Memnuniyet lideri hep "—" görünüyordu — Lig sayfasıyla
   // aynı hesaba geçildi.
+  // NOT: data.ciroMusterileri DEĞİL, listMusteriReviewCounts() RPC'si
+  // kullanılıyor — ciro_musterileri_select RLS'i danışmana sadece kendi
+  // müşterilerini gösterdiği için, ham veriden hesaplarsak danışman
+  // girişinde sıralama yanlış çıkıyordu (bkz. migration 20260725110000).
   const memnuniyetScores = useMemo(() => {
     if (!activePeriod) return []
-    const musteriler = (data?.ciroMusterileri ?? []).filter((m) => m.periodId === activePeriod.id)
+    const countsByUser = {}
+    for (const c of data?.musteriReviewCounts ?? []) {
+      if (c.periodId === activePeriod.id) countsByUser[c.userId] = c
+    }
     return teamMembers.map((u) => {
-      const kendi = musteriler.filter((m) => m.userId === u.id)
-      const hakSayisi = kendi.length
-      const alinanSayisi = kendi.filter((m) => m.alindiMi).length
-      return { userId: u.id, type: 'memnuniyet', value: Math.round(wilsonScoreLowerBound(alinanSayisi, hakSayisi) * 100) }
+      const c = countsByUser[u.id]
+      return {
+        userId: u.id,
+        type: 'memnuniyet',
+        value: Math.round(wilsonScoreLowerBound(c?.alinanSayisi ?? 0, c?.hakSayisi ?? 0) * 100),
+      }
     })
   }, [data, activePeriod, teamMembers])
   const rankingsByCategory = useMemo(() => {

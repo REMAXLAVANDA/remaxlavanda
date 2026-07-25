@@ -18,14 +18,15 @@ import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 async function loadAll() {
-  const [periods, scores, activityTypes, ciroMusterileri, ciroGirisleri] = await Promise.all([
+  const [periods, scores, activityTypes, ciroMusterileri, ciroGirisleri, musteriReviewCounts] = await Promise.all([
     leagueProvider.listPeriods(),
     leagueProvider.listScores(),
     leagueProvider.listActivityTypes(),
     leagueProvider.listCiroMusterileri(),
     leagueProvider.listCiroGirisleri(),
+    leagueProvider.listMusteriReviewCounts(),
   ])
-  return { periods, scores, activityTypes, ciroMusterileri, ciroGirisleri }
+  return { periods, scores, activityTypes, ciroMusterileri, ciroGirisleri, musteriReviewCounts }
 }
 
 export default function Lig() {
@@ -105,22 +106,35 @@ export default function Lig() {
   // ile hesaplanıyor: hem oran hem işlem hacmi birlikte tartılıyor. Ham
   // yüzdeyle sıralarsak 1 işlemden %100 alan, 17 işlemden %70 alanın önüne
   // geçerdi (az veri = yanıltıcı yüksek yüzde) — Wilson bunu düzeltiyor.
+  // Memnuniyet sıralaması reviewCreditRows'tan DEĞİL, listMusteriReviewCounts()
+  // RPC'sinden besleniyor — reviewCreditRows, ciro_musterileri_select RLS'i
+  // yüzünden bir danışman girişinde sadece kendi verisini içeriyor, bu da
+  // sıralamayı bozuyordu (bkz. migration 20260725110000). RPC herkesin
+  // TOPLAM sayısını (isim vermeden) döndüğü için sıralama artık kim
+  // baktığından bağımsız, her zaman doğru.
   const rankingsByCategory = useMemo(() => {
     const map = {}
-    for (const c of LEAGUE_CATEGORIES) {
-      if (c.key === 'memnuniyet') {
-        const memnuniyetScores = reviewCreditRows.map((r) => ({
-          userId: r.userId,
-          type: 'memnuniyet',
-          value: Math.round(wilsonScoreLowerBound(r.alinanSayisi, r.hakSayisi) * 100),
-        }))
-        map[c.key] = rankingsFor(c.key, memnuniyetScores, userName)
+    const countsByUser = {}
+    for (const c of data?.musteriReviewCounts ?? []) {
+      if (c.periodId === periodId) countsByUser[c.userId] = c
+    }
+    for (const cat of LEAGUE_CATEGORIES) {
+      if (cat.key === 'memnuniyet') {
+        const memnuniyetScores = danismanOptions.map((u) => {
+          const c = countsByUser[u.id]
+          return {
+            userId: u.id,
+            type: 'memnuniyet',
+            value: Math.round(wilsonScoreLowerBound(c?.alinanSayisi ?? 0, c?.hakSayisi ?? 0) * 100),
+          }
+        })
+        map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName)
       } else {
-        map[c.key] = rankingsFor(c.key, periodScores, userName)
+        map[cat.key] = rankingsFor(cat.key, periodScores, userName)
       }
     }
     return map
-  }, [periodScores, userName, reviewCreditRows])
+  }, [periodScores, userName, data, periodId, danismanOptions])
 
   const rankings = rankingsByCategory[tab] ?? []
 

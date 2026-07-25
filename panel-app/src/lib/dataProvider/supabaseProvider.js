@@ -745,6 +745,14 @@ export const league = {
       createdAt: r.created_at,
     }))
   },
+  // ciro_musterileri_select RLS'i danışmana sadece kendi müşterilerini
+  // gösteriyor (mahremiyet) — bu yüzden Memnuniyet sıralaması listCiroMusterileri()
+  // yerine bu RPC'den (herkesin TOPLAM sayısını, isim vermeden döner)
+  // besleniyor (bkz. migration 20260725110000).
+  async listMusteriReviewCounts() {
+    const data = await run(client().rpc('list_musteri_review_counts'))
+    return data.map((r) => ({ userId: r.user_id, periodId: r.period_id, hakSayisi: Number(r.hak_sayisi), alinanSayisi: Number(r.alinan_sayisi) }))
+  },
   async addCiroMusteri({ userId, periodId, adSoyad }, enteredBy) {
     await run(
       client()
