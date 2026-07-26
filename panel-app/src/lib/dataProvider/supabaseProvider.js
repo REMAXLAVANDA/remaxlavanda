@@ -452,6 +452,70 @@ export const callLogs = {
   },
 }
 
+// --- Leads (Lead Havuzu) ------------------------------------------------------
+// leads_manage RLS'i sadece broker/owner/ofis'e izin verir — danışman için
+// ayrı bir select politikası yok, bu yüzden danışman zaten sıfır satır alır.
+function mapLead(row) {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    tip: row.tip,
+    kaynak: row.kaynak,
+    adSoyad: row.ad_soyad,
+    telefon: row.telefon,
+    email: row.email,
+    atananDanismanId: row.atanan_danisman_id,
+    durum: row.durum,
+    ilkTemasAt: row.ilk_temas_at,
+    sonucAt: row.sonuc_at,
+    kayipNedeni: row.kayip_nedeni,
+    aciklama: row.aciklama,
+    metaLeadId: row.meta_lead_id,
+  }
+}
+
+export const leads = {
+  async list() {
+    const data = await run(client().from('leads').select('*').order('created_at', { ascending: false }))
+    return data.map(mapLead)
+  },
+  async create(form) {
+    const data = await run(
+      client()
+        .from('leads')
+        .insert({
+          tip: form.tip,
+          kaynak: form.kaynak,
+          ad_soyad: form.adSoyad,
+          telefon: form.telefon || null,
+          email: form.email || null,
+          atanan_danisman_id: form.atananDanismanId || null,
+          durum: form.durum,
+          aciklama: form.aciklama || null,
+        })
+        .select()
+        .single(),
+    )
+    return mapLead(data)
+  },
+  async update(id, patch) {
+    const dbPatch = {}
+    if ('tip' in patch) dbPatch.tip = patch.tip
+    if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
+    if ('adSoyad' in patch) dbPatch.ad_soyad = patch.adSoyad
+    if ('telefon' in patch) dbPatch.telefon = patch.telefon || null
+    if ('email' in patch) dbPatch.email = patch.email || null
+    if ('atananDanismanId' in patch) dbPatch.atanan_danisman_id = patch.atananDanismanId || null
+    if ('durum' in patch) dbPatch.durum = patch.durum
+    if ('ilkTemasAt' in patch) dbPatch.ilk_temas_at = patch.ilkTemasAt
+    if ('sonucAt' in patch) dbPatch.sonuc_at = patch.sonucAt
+    if ('kayipNedeni' in patch) dbPatch.kayip_nedeni = patch.kayipNedeni || null
+    if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null
+    const data = await run(client().from('leads').update(dbPatch).eq('id', id).select().single())
+    return mapLead(data)
+  },
+}
+
 // --- Docs (Rehber) ------------------------------------------------------------
 function mapDocVersion(v) {
   return {

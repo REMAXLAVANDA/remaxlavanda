@@ -13,6 +13,7 @@ export const opportunities = provider.opportunities
 export const calendarEvents = provider.calendarEvents
 export const education = provider.education
 export const callLogs = provider.callLogs
+export const leads = provider.leads
 export const docs = provider.docs
 export const categories = provider.categories
 export const takip = provider.takip

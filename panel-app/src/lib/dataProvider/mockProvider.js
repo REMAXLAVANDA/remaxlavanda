@@ -14,6 +14,7 @@ import {
   MOCK_CHECKLIST_STATUS,
 } from '../../data/mockEducation'
 import { MOCK_CALLS } from '../../data/mockCallLogs'
+import { MOCK_LEADS } from '../../data/mockLeads'
 import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
@@ -329,6 +330,39 @@ export const callLogs = {
     const idx = MOCK_CALLS.findIndex((c) => c.id === id)
     if (idx !== -1) MOCK_CALLS.splice(idx, 1)
     return delay(null)
+  },
+}
+
+// --- Leads (Lead Havuzu) ------------------------------------------------------
+export const leads = {
+  async list() {
+    return delay([...MOCK_LEADS].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  },
+  async create(form) {
+    const row = {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      tip: form.tip,
+      kaynak: form.kaynak,
+      adSoyad: form.adSoyad,
+      telefon: form.telefon || null,
+      email: form.email || null,
+      atananDanismanId: form.atananDanismanId || null,
+      durum: form.durum,
+      ilkTemasAt: null,
+      sonucAt: null,
+      kayipNedeni: null,
+      aciklama: form.aciklama || null,
+      metaLeadId: null,
+    }
+    MOCK_LEADS.unshift(row)
+    return delay(row)
+  },
+  async update(id, patch) {
+    const row = MOCK_LEADS.find((l) => l.id === id)
+    if (!row) throw new Error('Lead bulunamadı.')
+    Object.assign(row, patch)
+    return delay({ ...row })
   },
 }
 

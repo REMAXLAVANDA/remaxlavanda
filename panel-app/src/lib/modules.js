@@ -9,10 +9,12 @@ import {
   HeartPulse,
   Trophy,
   BookOpen,
+  Inbox,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
 const ALL_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.DANISMAN]
+const MANAGE_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS]
 
 export const MODULES = [
   {
@@ -30,6 +32,16 @@ export const MODULES = [
     description: 'Satıcı / Alıcı adayları ve operasyon çağrıları',
     icon: Target,
     roles: ALL_ROLES,
+  },
+  {
+    key: 'leads',
+    path: '/leads',
+    label: 'Lead Havuzu',
+    description: 'Reklam ve diğer kanallardan gelen lead\'lerin takibi',
+    icon: Inbox,
+    // Sadece yönetim/ofis — danışman ne menüde görür ne route'a girebilir
+    // (bkz. lib/roles.js canManageLeads, pages/Leads.jsx guard).
+    roles: MANAGE_ROLES,
   },
   {
     key: 'takvim',

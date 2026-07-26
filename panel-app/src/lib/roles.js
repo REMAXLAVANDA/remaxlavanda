@@ -24,6 +24,12 @@ export function canManageUsers(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER
 }
 
+// leads_manage RLS kuralıyla aynı: sadece broker/owner/ofis Lead Havuzu'na
+// erişebilir, danışman ne menüde görür ne URL'den girebilir.
+export function canManageLeads(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
+}
+
 // Temel kural: Ofis rolü yalnızca veri girer; broker girmez, owner denetler.
 export const ROLE_RULES = {
   [ROLES.OFIS]: { canEnterData: true, canManage: false },
