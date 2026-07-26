@@ -7,7 +7,8 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { leads as leadsProvider, opportunities as opportunitiesProvider, recruiting as recruitingProvider } from '../lib/dataProvider'
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
-import { LEAD_TO_RECRUITING_KAYNAK } from '../lib/recruiting'
+import { LEAD_TO_RECRUITING_KAYNAK, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES } from '../lib/recruiting'
+import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
 import { parseThousands } from '../lib/format'
 import { formatPhoneInput } from '../lib/phone'
 import LeadTable from '../components/leads/LeadTable'
@@ -17,13 +18,13 @@ import NewOpportunityModal from '../components/opportunities/NewOpportunityModal
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-const INITIAL_FILTERS = { tip: 'tumu', durum: 'tumu', atananId: 'tumu' }
+const INITIAL_FILTERS = { tip: 'tumu', durum: 'tumu' }
 
 // leads + opportunities + recruiting_candidates BİRLİKTE yükleniyor —
-// dönüştürülmüş bir lead'in hangi kayda gittiğini bulmak için (bkz.
-// convertedTarget). TEKNİK BORÇ: bu üç liste her seferinde TAMAMEN
-// client-side yükleniyor, kayıt sayısı arttıkça sunucu taraflı sorguya
-// çevrilmeli (bkz. AI_NOTLARI.md).
+// dönüştürülmüş bir lead'in hangi kayda gittiğini VE o kaydın güncel
+// durumunu (Süreç Durumu kolonu) bulmak için. TEKNİK BORÇ: bu üç liste her
+// seferinde TAMAMEN client-side yükleniyor, kayıt sayısı arttıkça sunucu
+// taraflı sorguya çevrilmeli (bkz. AI_NOTLARI.md).
 async function loadAll() {
   const [leadRows, opportunityRows, candidateRows] = await Promise.all([
     leadsProvider.list(),
@@ -47,10 +48,10 @@ export default function Leads() {
   const [submitting, setSubmitting] = useState(false)
 
   const leads = data?.leads ?? []
-  const resolveName = (id) => knownUsers[id]?.name ?? '—'
-  // Broker de kendi ekibiyle aynı listede atanabilir kişi olarak görünmesin
-  // diye danışman-only tutuluyor (bkz. Panel/Lig/Takip'teki aynı desen);
-  // test hesabı da diğer danışman listeleriyle tutarlı şekilde hariç.
+  // Lead seviyesinde atama YOK (dağıtım noktası — atama hedef modülde
+  // yapılır), ama RecruitingDetailModal'ın KENDİ Atanan alanı için hâlâ
+  // gerekli (bkz. dönüştürme akışı altında). Danışman-only + test hesabı
+  // hariç, Panel/Lig/Takip'teki aynı desen.
   const danismanOptions = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,19 +62,27 @@ export default function Leads() {
     return leads
       .filter((l) => filters.tip === 'tumu' || l.tip === filters.tip)
       .filter((l) => filters.durum === 'tumu' || l.durum === filters.durum)
-      .filter((l) => {
-        if (filters.atananId === 'tumu') return true
-        if (filters.atananId === 'atanmadi') return !l.atananDanismanId
-        return l.atananDanismanId === filters.atananId
-      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, filters, staleFocus])
+
+  // "Süreç Durumu" kolonu — durum='atandi' ise hedef kaydın GÜNCEL
+  // durumunu gösterir (opportunities.status ya da recruiting_candidates.
+  // durum), değilse boş. Ayrı bir sorgu YOK — loadAll zaten üç listeyi
+  // birlikte yüklüyor, burada sadece kaynak_lead_id ile eşleştiriliyor.
+  function resolveProcessStatus(lead) {
+    if (lead.durum !== 'atandi') return null
+    const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === lead.id)
+    if (opp) return { label: OPPORTUNITY_STATUS_LABELS[opp.status], style: OPPORTUNITY_STATUS_STYLES[opp.status] }
+    const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === lead.id)
+    if (candidate) return { label: RECRUITING_DURUM_LABELS[candidate.durum], style: RECRUITING_DURUM_STYLES[candidate.durum] }
+    return null
+  }
 
   // Dönüştürülmüş bir lead'in hangi kayda gittiğini bulur — ayrı bir FK
   // yönü YOK, mevcut kaynak_lead_id yönü (opportunity/candidate -> lead)
   // ters taranıyor (bkz. loadAll notu).
   const convertedTarget = useMemo(() => {
-    if (!editingLead || editingLead.durum !== 'donusturuldu') return null
+    if (!editingLead || editingLead.durum !== 'atandi') return null
     const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === editingLead.id)
     if (opp) return { type: 'opportunity', record: opp }
     const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === editingLead.id)
@@ -128,8 +137,8 @@ export default function Leads() {
       }
       const createdOpportunity = await opportunitiesProvider.create(payload, user.id, false)
       const updatedLead = await leadsProvider.update(lead.id, {
-        durum: 'donusturuldu',
-        ...computeAutoFields(lead, 'donusturuldu'),
+        durum: 'atandi',
+        ...computeAutoFields(lead, 'atandi'),
       })
       setData((prev) => ({
         ...prev,
@@ -151,8 +160,8 @@ export default function Leads() {
     try {
       const createdCandidate = await recruitingProvider.create(form)
       const updatedLead = await leadsProvider.update(lead.id, {
-        durum: 'donusturuldu',
-        ...computeAutoFields(lead, 'donusturuldu'),
+        durum: 'atandi',
+        ...computeAutoFields(lead, 'atandi'),
       })
       setData((prev) => ({
         ...prev,
@@ -195,29 +204,23 @@ export default function Leads() {
               }`}
             >
               <span className="flex items-center gap-2">
-                <AlertTriangle size={16} /> 24 saattir aranmamış: {staleLeads.length} lead
+                <AlertTriangle size={16} /> 24 saattir işlenmemiş: {staleLeads.length} lead
               </span>
               <span className="text-xs font-normal text-white/80">{staleFocus ? 'Filtreyi kaldır' : 'Sadece bunları göster'}</span>
             </button>
           )}
 
           <div className="mb-5">
-            <LeadFilters
-              filters={filters}
-              onChange={setFilters}
-              danismanOptions={danismanOptions}
-              onNewLeadClick={() => setShowModal(true)}
-            />
+            <LeadFilters filters={filters} onChange={setFilters} onNewLeadClick={() => setShowModal(true)} />
           </div>
 
-          <LeadTable leads={visible} resolveName={resolveName} onRowClick={setEditingLead} />
+          <LeadTable leads={visible} resolveProcessStatus={resolveProcessStatus} onRowClick={setEditingLead} />
         </>
       )}
 
       {(showModal || editingLead) && (
         <LeadDetailModal
           lead={editingLead}
-          danismanOptions={danismanOptions}
           convertedTarget={convertedTarget}
           onClose={() => {
             setShowModal(false)
@@ -234,7 +237,7 @@ export default function Leads() {
       {convertTarget?.type === 'opportunity' && (
         <NewOpportunityModal
           initialValues={{
-            type: convertTarget.lead.tip,
+            type: null,
             leadAd: convertTarget.lead.adSoyad,
             leadTelefon: convertTarget.lead.telefon ? formatPhoneInput(convertTarget.lead.telefon) : '',
           }}
@@ -252,7 +255,6 @@ export default function Leads() {
             telefon: convertTarget.lead.telefon,
             email: convertTarget.lead.email,
             kaynak: LEAD_TO_RECRUITING_KAYNAK[convertTarget.lead.kaynak] ?? 'diger',
-            atananDanismanId: convertTarget.lead.atananDanismanId,
             kaynakLeadId: convertTarget.lead.id,
           }}
           danismanOptions={danismanOptions}

@@ -35,7 +35,7 @@ export const MOCK_OPPORTUNITIES = [
     claimerId: null,
     claimedAt: null,
     createdAt: daysAgo(1),
-    // Lead Havuzu'ndan dönüştü — bkz. mockLeads.js id:7 (durum: donusturuldu).
+    // Lead Havuzu'ndan dönüştü — bkz. mockLeads.js id:7 (durum: atandi).
     kaynakLeadId: 7,
   },
   {

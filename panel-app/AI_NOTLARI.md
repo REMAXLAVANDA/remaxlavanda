@@ -3,6 +3,51 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Lead Havuzu radikal sadeleştirme: pipeline değil, dağıtım noktası
+
+Lead Havuzu bir süreç takip aracı DEĞİL — sadece dağıtır, sonucu izler.
+Süreçler hedef modüllerde (Fırsatlar/Recruiting) işlenir.
+
+**`leads.tip`: 4 değerden 2'ye.** `satici`/`alici`/`kiralik` kaldırıldı,
+`portfoy` ile birleşti — bu ayrım artık `NewOpportunityModal`'ın (Fırsat
+formu) işi, lead'in değil. "Fırsata Dönüştür" akışı artık tip'i ÖN
+DOLDURMUYOR — `NewOpportunityModal` boş açılıyor (iki tip chip'i de pasif),
+kullanıcı satıcı/alıcı seçmeden Kaydet aktifleşmiyor.
+
+**`leads.durum`: 8 değerden 3'e** — `yeni | atandi | elendi`.
+`arandi/randevu/gorusuldu/kazanildi` → `yeni`'ye, `gecersiz/kaybedildi` →
+`elendi`'ye, eski `donusturuldu` → `atandi`'ye taşındı (migration
+`20260726170000_lead_havuzu_sadelestirme.sql`). `'atandi'` hâlâ (eskiden
+`donusturuldu` gibi) sadece dönüştürme aksiyonuyla set edilir, dropdown'da
+sunulmaz. Eski "kayıp nedeni zorunlu" mekanizması (durum='kaybedildi' iken)
+KALDIRILDI — `elendi` için ayrı bir zorunlu alan yok, genel Açıklama yeterli
+görüldü. `kayip_nedeni` kolonu DB'de duruyor ama UI artık hiç yazmıyor.
+
+**`atanan_danisman_id` / `ilk_temas_at` lead'den UI seviyesinde kalktı —
+kolonlar SİLİNMEDİ, sadece formdan/tablodan çıkarıldı.** Danışman ataması
+artık hedef modülde yapılıyor (fırsat için Fırsatlar sayfasından
+`assignTo`, recruiting için `RecruitingDetailModal`'ın kendi Atanan alanı
+— o BAĞIMSIZ bir alan, lead'den beslenmiyor). `ilk_temas_at` gereksiz hale
+geldi çünkü artık `sonuc_at` zaten "ne zaman sonuçlandı"yı taşıyor
+(`computeAutoFields()`'ten `ilkTemasAt` mantığı tamamen kaldırıldı).
+
+**Yeni "Süreç Durumu" kolonu** (`LeadTable.jsx`) — `durum==='atandi'` olan
+bir lead için hedef kaydın (opportunity/recruiting_candidate) GÜNCEL
+durumunu gösterir (`Leads.jsx`'in zaten yüklediği `opportunities`/
+`recruitingCandidates` listelerinden `kaynak_lead_id` eşleşmesiyle,
+`resolveProcessStatus()` — ek sorgu yok). Mevcut `OPPORTUNITY_STATUS_LABELS`/
+`RECRUITING_DURUM_LABELS` yeniden kullanıldı, yeni bir etiket seti
+icat edilmedi.
+
+**Tablo kolonları sadeleşti:** Tarih | Ad Soyad | Telefon | Tip | Durum |
+Süreç Durumu. Kaynak ve Atanan kolonları listeden çıktı (kaynak sadece
+detay modalinde, en altta "Kaynak Bilgisi" başlığı altında — kaynak/
+kampanya_kodu/reklam_adi, hepsi opsiyonel). Filtreler de Tip + Durum'a
+indi, Atanan filtresi kaldırıldı.
+
+**Uyarı çubuğu metni** "24 saattir aranmamış" → "24 saattir işlenmemiş"
+(koşul aynı: `durum==='yeni'` + 24 saat).
+
 ## 2026-07-26 — Lead Havuzu modülü
 
 Yeni modül: reklam ve diğer kanallardan gelen lead'lerin tek yerde
@@ -44,12 +89,12 @@ danışman bildirimleri.
 
 ## 2026-07-26 — Lead Havuzu → Fırsatlar / Recruiting dönüşümü + Recruiting modülü
 
-**Teknik borç — Kiralık fırsat desteği eksik.** Gereken: `opportunity_type`
-enum'una `kiralik`, `FirsatlarTab.jsx`'e 3. bölüm, `Panel.jsx`
-`openSatici`/`openAlici` ayrımının üçe çıkarılması, `Panel.jsx` ve
-`Edit`/`NewOpportunityModal`'daki ikili ternary'lerin (satıcı varsayılan)
-düzeltilmesi. Şimdilik `tip: 'kiralik'` lead'ler Lead Havuzu'nda kalıp elle
-takip ediliyor, "Fırsata Dönüştür" butonu bu tip için gösterilmiyor.
+**Teknik borç — Kiralık fırsat desteği eksik (sadece Fırsatlar tarafında,
+bkz. 2026-07-26 radikal sadeleştirme notu — `leads.tip`'ten kiralık zaten
+tamamen kalktı).** Gereken: `opportunity_type` enum'una `kiralik`,
+`FirsatlarTab.jsx`'e 3. bölüm, `Panel.jsx` `openSatici`/`openAlici`
+ayrımının üçe çıkarılması, `Panel.jsx` ve `Edit`/`NewOpportunityModal`'daki
+ikili ternary'lerin (satıcı varsayılan) düzeltilmesi.
 
 **Teknik borç — Leads.jsx üç listeyi tamamen client-side yüklüyor.**
 Dönüşüm hedefini bulmak için `opportunities` ve `recruiting_candidates`

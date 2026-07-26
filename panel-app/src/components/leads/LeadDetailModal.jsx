@@ -16,31 +16,26 @@ import {
 
 // Dönüştürülmüş bir lead artık düzenlenemez — form yerine salt okunur bir
 // özet + hedef kayda giden bir buton gösterilir (bkz. "aksi halde durum
-// 'dönüştürüldü' der ama bağlı kayıt olmaz" gerekçesi). Hedefi bulmak için
-// ayrı bir kolon YOK — Leads.jsx zaten opportunities/recruiting_candidates
+// 'atandı' der ama bağlı kayıt olmaz" gerekçesi). Hedefi bulmak için ayrı
+// bir kolon YOK — Leads.jsx zaten opportunities/recruiting_candidates
 // listelerini yükleyip kaynak_lead_id eşleşmesiyle bu prop'u hesaplıyor.
-function ConvertedView({ lead, danismanOptions, convertedTarget, onClose, onViewTarget }) {
-  const atananAd = danismanOptions.find((u) => u.id === lead.atananDanismanId)?.name ?? 'Atanmadı'
+// Atanan danışman burada YOK — o artık hedef modülün (Fırsatlar/
+// Recruiting) işi, lead seviyesinde tutulmuyor.
+function ConvertedView({ lead, convertedTarget, onClose, onViewTarget }) {
   return (
     <div className="space-y-3">
       <div className="rounded-lg bg-violet-50 px-3 py-2 text-sm text-violet-700">
-        Bu lead dönüştürüldü, artık düzenlenemez.
+        Bu lead atandı, artık düzenlenemez.
       </div>
       <div className="space-y-1.5 text-sm text-ink-700">
         <p>
           <span className="text-ink-400">Tip:</span> {LEAD_TIP_LABELS[lead.tip]}
         </p>
         <p>
-          <span className="text-ink-400">Kaynak:</span> {LEAD_KAYNAK_LABELS[lead.kaynak]}
-        </p>
-        <p>
           <span className="text-ink-400">Telefon:</span> {lead.telefon || '—'}
         </p>
         <p>
           <span className="text-ink-400">E-posta:</span> {lead.email || '—'}
-        </p>
-        <p>
-          <span className="text-ink-400">Atanan:</span> {atananAd}
         </p>
         {(lead.kampanyaKodu || lead.reklamAdi) && (
           <p>
@@ -73,10 +68,11 @@ function ConvertedView({ lead, danismanOptions, convertedTarget, onClose, onView
 
 // Hem "+ Yeni Lead" (lead=null) hem satır tıklaması (lead=mevcut kayıt)
 // AYNI paneli açar (bkz. brief 3.5) — tüm alanlar her zaman düzenlenebilir,
-// TEK istisna: lead zaten dönüştürüldüyse (bkz. ConvertedView).
+// TEK istisna: lead zaten atandıysa (bkz. ConvertedView). Atanan danışman
+// BİLEREK burada YOK — Lead Havuzu dağıtım noktası, atama hedef modülde
+// yapılır (bkz. AI_NOTLARI.md radikal sadeleştirme notu).
 export default function LeadDetailModal({
   lead,
-  danismanOptions,
   convertedTarget,
   onClose,
   onSubmit,
@@ -86,36 +82,31 @@ export default function LeadDetailModal({
   submitting,
 }) {
   const [form, setForm] = useState({
-    tip: lead?.tip ?? 'satici',
+    tip: lead?.tip ?? 'portfoy',
     kaynak: lead?.kaynak ?? 'telefon',
     adSoyad: lead?.adSoyad ?? '',
     telefon: lead?.telefon ?? '',
     email: lead?.email ?? '',
-    atananDanismanId: lead?.atananDanismanId ?? '',
     durum: lead?.durum ?? 'yeni',
-    kayipNedeni: lead?.kayipNedeni ?? '',
     aciklama: lead?.aciklama ?? '',
     kampanyaKodu: lead?.kampanyaKodu ?? '',
     reklamAdi: lead?.reklamAdi ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-
-  const kayipNedeniGerekli = form.durum === 'kaybedildi'
-  const canSubmit = form.adSoyad.trim().length > 0 && (!kayipNedeniGerekli || form.kayipNedeni.trim().length > 0)
+  const canSubmit = form.adSoyad.trim().length > 0
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    // Yeni kayıt için "önceki durum" her zaman 'yeni'/hiç temas yok kabul
-    // edilir — bkz. lib/leads.js computeAutoFields notu.
-    const previous = lead ?? { durum: 'yeni', ilkTemasAt: null }
+    // Yeni kayıt için "önceki durum" her zaman 'yeni' kabul edilir — bkz.
+    // lib/leads.js computeAutoFields notu.
+    const previous = lead ?? { durum: 'yeni' }
     const autoFields = computeAutoFields(previous, form.durum)
     onSubmit({
       ...form,
       adSoyad: capitalizeWords(form.adSoyad.trim()),
       telefon: form.telefon ? formatPhoneInput(form.telefon) : '',
       email: form.email.trim(),
-      kayipNedeni: kayipNedeniGerekli ? form.kayipNedeni.trim() : '',
       aciklama: capitalizeFirst(form.aciklama.trim()),
       kampanyaKodu: form.kampanyaKodu || '',
       reklamAdi: form.reklamAdi.trim(),
@@ -123,60 +114,14 @@ export default function LeadDetailModal({
     })
   }
 
-  const isConverted = lead?.durum === 'donusturuldu'
+  const isConverted = lead?.durum === 'atandi'
 
   return (
     <Modal title={lead ? 'Lead Detayı' : 'Yeni Lead'} onClose={onClose}>
       {isConverted ? (
-        <ConvertedView lead={lead} danismanOptions={danismanOptions} convertedTarget={convertedTarget} onClose={onClose} onViewTarget={onViewTarget} />
+        <ConvertedView lead={lead} convertedTarget={convertedTarget} onClose={onClose} onViewTarget={onViewTarget} />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={form.tip}
-              onChange={(e) => set({ tip: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-            >
-              {LEAD_TIPLERI.map((t) => (
-                <option key={t} value={t}>
-                  {LEAD_TIP_LABELS[t]}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.kaynak}
-              onChange={(e) => set({ kaynak: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-            >
-              {LEAD_KAYNAKLARI.map((k) => (
-                <option key={k} value={k}>
-                  {LEAD_KAYNAK_LABELS[k]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={form.kampanyaKodu}
-              onChange={(e) => set({ kampanyaKodu: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-            >
-              <option value="">Kampanya kodu yok</option>
-              {LEAD_KAMPANYA_KODLARI.map((k) => (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              ))}
-            </select>
-            <input
-              value={form.reklamAdi}
-              onChange={(e) => set({ reklamAdi: e.target.value })}
-              placeholder="Reklam adı"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-          </div>
-
           <input
             required
             value={form.adSoyad}
@@ -186,33 +131,23 @@ export default function LeadDetailModal({
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
 
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="tel"
-              value={form.telefon}
-              onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
-              placeholder="Telefon"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => set({ email: e.target.value })}
-              placeholder="E-posta"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-          </div>
+          <input
+            type="tel"
+            value={form.telefon}
+            onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
+            placeholder="Telefon"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
 
           <div className="grid grid-cols-2 gap-2">
             <select
-              value={form.atananDanismanId}
-              onChange={(e) => set({ atananDanismanId: e.target.value })}
+              value={form.tip}
+              onChange={(e) => set({ tip: e.target.value })}
               className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
             >
-              <option value="">Atanmadı</option>
-              {danismanOptions.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
+              {LEAD_TIPLERI.map((t) => (
+                <option key={t} value={t}>
+                  {LEAD_TIP_LABELS[t]}
                 </option>
               ))}
             </select>
@@ -229,20 +164,6 @@ export default function LeadDetailModal({
             </select>
           </div>
 
-          {kayipNedeniGerekli && (
-            <div>
-              <input
-                value={form.kayipNedeni}
-                onChange={(e) => set({ kayipNedeni: e.target.value })}
-                placeholder="Kayıp nedeni (zorunlu)"
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-              />
-              {form.kayipNedeni.trim().length === 0 && (
-                <p className="mt-1 text-xs text-red-600">Durum "Kaybedildi" seçildiğinde kayıp nedeni zorunlu.</p>
-              )}
-            </div>
-          )}
-
           <textarea
             value={form.aciklama}
             onChange={(e) => set({ aciklama: e.target.value })}
@@ -251,10 +172,47 @@ export default function LeadDetailModal({
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
 
+          {/* Kaynak Bilgisi — hepsi opsiyonel, dönüşüm/ölçüm için ama
+              günlük kullanımda dikkat dağıtmasın diye en altta toplu. */}
+          <div className="space-y-2 border-t border-ink-100 pt-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-400">Kaynak Bilgisi</p>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.kaynak}
+                onChange={(e) => set({ kaynak: e.target.value })}
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              >
+                {LEAD_KAYNAKLARI.map((k) => (
+                  <option key={k} value={k}>
+                    {LEAD_KAYNAK_LABELS[k]}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={form.kampanyaKodu}
+                onChange={(e) => set({ kampanyaKodu: e.target.value })}
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              >
+                <option value="">Kampanya kodu yok</option>
+                {LEAD_KAMPANYA_KODLARI.map((k) => (
+                  <option key={k} value={k}>
+                    {k}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input
+              value={form.reklamAdi}
+              onChange={(e) => set({ reklamAdi: e.target.value })}
+              placeholder="Reklam adı"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </div>
+
           {/* Dönüştürme aksiyonları — SADECE mevcut bir lead düzenlenirken
-              (yeni lead oluştururken değil). Kiralık için buton yok, bkz.
-              lib/leads.js LEAD_TIPLERI notu / kiralık teknik borcu. */}
-          {lead && (form.tip === 'satici' || form.tip === 'alici' || form.tip === 'recruiting') && (
+              (yeni lead oluştururken değil). tip artık sadece 2 değerli,
+              istisna yok. */}
+          {lead && (
             <div className="rounded-lg bg-ink-50 p-3">
               <button
                 type="button"

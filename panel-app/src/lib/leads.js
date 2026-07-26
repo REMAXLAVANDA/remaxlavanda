@@ -1,9 +1,10 @@
-export const LEAD_TIPLERI = ['recruiting', 'satici', 'alici', 'kiralik']
+// Lead Havuzu pipeline DEĞİL, dağıtım noktası — süreçler hedef modüllerde
+// (Fırsatlar/Recruiting) işlenir. tip bu yüzden sadece "nereye gidecek"
+// sorusuna cevap verir, satıcı/alıcı/kiralık ayrımı Fırsat formunun işi.
+export const LEAD_TIPLERI = ['recruiting', 'portfoy']
 export const LEAD_TIP_LABELS = {
   recruiting: 'Recruiting',
-  satici: 'Satıcı',
-  alici: 'Alıcı',
-  kiralik: 'Kiralık',
+  portfoy: 'Portföy',
 }
 
 export const LEAD_KAYNAKLARI = ['meta_recruiting', 'meta_portfoy', 'telefon', 'referans', 'web', 'tabela', 'diger']
@@ -21,29 +22,20 @@ export const LEAD_KAYNAK_LABELS = {
 // — elle de girilebilir (LeadDetailModal'da dropdown), opsiyonel.
 export const LEAD_KAMPANYA_KODLARI = ['RECRUIT', 'SATICI', 'MARKA']
 
-// 'donusturuldu' BİLEREK bu listede değil — dropdown'da hiçbir zaman
-// seçenek olarak sunulmasın diye (bkz. LeadDetailModal). Sadece Fırsata/
-// Recruiting'e dönüştürme aksiyonu bu değeri set edebilir.
-export const LEAD_DURUMLARI = ['yeni', 'arandi', 'randevu', 'gorusuldu', 'kazanildi', 'kaybedildi', 'gecersiz']
+// Sadece 3 durum — 'atandi' BİLEREK bu listede değil, dropdown'da hiçbir
+// zaman seçenek olarak sunulmaz (bkz. LeadDetailModal). Sadece Fırsata/
+// Recruiting'e dönüştürme aksiyonu bu değeri set edebilir; 'elendi' elle
+// seçilebilir (geçersiz numara, ilgisiz, ulaşılamadı vb.).
+export const LEAD_DURUMLARI = ['yeni', 'elendi']
 export const LEAD_DURUM_LABELS = {
   yeni: 'Yeni',
-  arandi: 'Arandı',
-  randevu: 'Randevu',
-  gorusuldu: 'Görüşüldü',
-  kazanildi: 'Kazanıldı',
-  kaybedildi: 'Kaybedildi',
-  gecersiz: 'Geçersiz',
-  donusturuldu: 'Dönüştürüldü',
+  atandi: 'Atandı',
+  elendi: 'Elendi',
 }
 export const LEAD_DURUM_STYLES = {
   yeni: 'bg-ink-100 text-ink-600',
-  arandi: 'bg-amber-50 text-amber-700',
-  randevu: 'bg-brand-50 text-brand-700',
-  gorusuldu: 'bg-sky-50 text-sky-700',
-  kazanildi: 'bg-emerald-50 text-emerald-700',
-  kaybedildi: 'bg-red-50 text-red-600',
-  gecersiz: 'bg-ink-50 text-ink-400',
-  donusturuldu: 'bg-violet-50 text-violet-700',
+  atandi: 'bg-violet-50 text-violet-700',
+  elendi: 'bg-red-50 text-red-600',
 }
 
 // leads_manage RLS kuralıyla aynı: sadece broker/owner/ofis erişebilir —
@@ -51,27 +43,21 @@ export const LEAD_DURUM_STYLES = {
 export { canManageLeads } from './roles'
 
 // Uyarı çubuğu + satır vurgusu için: durum hâlâ 'yeni' ve 24 saatten uzun
-// süredir hiç dokunulmamış lead'ler ("aranmayı bekliyor" anlamında).
+// süredir hiç işlenmemiş lead'ler.
 export function isStaleLead(lead, now = Date.now()) {
   if (lead.durum !== 'yeni') return false
   return now - new Date(lead.createdAt).getTime() > 24 * 60 * 60 * 1000
 }
 
-// Durum değişimindeki otomatik alan davranışı — call_logs'taki donusAt/
-// satisTarihi ile aynı desen (DB trigger değil, client-side patch).
-// ilk_temas_at: 'yeni' dışına HER çıkışta, boşsa doldurulur (sadece 'arandi'
-// değil — broker'ın "randevu/görüşüldü'ye direkt geçilebiliyor, o da ilk
-// temastır" düzeltmesi).
-// sonuc_at: durum GERÇEKTEN kazanildi/kaybedildi'ye DEĞİŞTİĞİNDE doldurulur
-// (zaten o durumdaysa tekrar dokunmaz — call_logs'taki satisTarihi ile aynı
-// "sadece değişimde damgala" kuralı).
+// sonuc_at: durum GERÇEKTEN atandi/elendi'ye DEĞİŞTİĞİNDE doldurulur (zaten
+// o durumdaysa tekrar dokunmaz — call_logs'taki satisTarihi ile aynı
+// "sadece değişimde damgala" kuralı). ilk_temas_at ARTIK client-side hiç
+// set edilmiyor — kolon DB'de duruyor ama sonuc_at zaten "ne zaman
+// sonuçlandı"yı taşıdığı için gereksiz hale geldi (bkz. AI_NOTLARI.md).
 export function computeAutoFields(previousLead, nextDurum) {
   const patch = {}
-  if (nextDurum !== 'yeni' && !previousLead.ilkTemasAt) {
-    patch.ilkTemasAt = new Date().toISOString()
-  }
-  const wasTerminal = previousLead.durum === 'kazanildi' || previousLead.durum === 'kaybedildi'
-  const isTerminal = nextDurum === 'kazanildi' || nextDurum === 'kaybedildi'
+  const wasTerminal = previousLead.durum === 'atandi' || previousLead.durum === 'elendi'
+  const isTerminal = nextDurum === 'atandi' || nextDurum === 'elendi'
   if (isTerminal && (!wasTerminal || previousLead.durum !== nextDurum)) {
     patch.sonucAt = new Date().toISOString()
   }

@@ -1,4 +1,4 @@
-import { LEAD_TIP_LABELS, LEAD_KAYNAK_LABELS, LEAD_DURUM_LABELS, LEAD_DURUM_STYLES, isStaleLead } from '../../lib/leads'
+import { LEAD_TIP_LABELS, LEAD_DURUM_LABELS, LEAD_DURUM_STYLES, isStaleLead } from '../../lib/leads'
 
 function leadDateLabel(createdAt) {
   return new Date(createdAt).toLocaleString('tr-TR', {
@@ -18,11 +18,24 @@ function DurumBadge({ durum }) {
   )
 }
 
-// Kolonlar: Tarih · Ad Soyad · Telefon · Tip · Kaynak · Atanan · Durum
-// (bkz. brief 3.3). 24 saatten uzun süredir 'yeni' kalan satırlar kırmızı
-// sol kenarlıkla işaretlenir — aynı görsel dil Panel'deki gecikme
-// uyarılarıyla tutarlı olsun diye.
-export default function LeadTable({ leads, resolveName, onRowClick }) {
+function ProcessStatusBadge({ process }) {
+  if (!process) return <span className="text-ink-300">—</span>
+  return (
+    <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${process.style}`}>
+      {process.label}
+    </span>
+  )
+}
+
+// Kolonlar: Tarih · Ad Soyad · Telefon · Tip · Durum · Süreç Durumu — Lead
+// Havuzu dağıtım noktası olduğu için Kaynak/Atanan artık listede değil,
+// sadece detay modalinde (bkz. AI_NOTLARI.md radikal sadeleştirme).
+// Süreç Durumu: durum='atandi' ise hedef kaydın (opportunity/recruiting_
+// candidate) GÜNCEL durumunu gösterir — resolveProcessStatus(lead) Leads.jsx
+// tarafından hesaplanıp geçiriliyor, atandi değilse '—' döner.
+// 24 saatten uzun süredir 'yeni' kalan satırlar kırmızı sol kenarlıkla
+// işaretlenir — aynı görsel dil Panel'deki gecikme uyarılarıyla tutarlı.
+export default function LeadTable({ leads, resolveProcessStatus, onRowClick }) {
   if (leads.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
@@ -34,16 +47,15 @@ export default function LeadTable({ leads, resolveName, onRowClick }) {
   return (
     <>
       <div className="hidden overflow-x-auto rounded-2xl border border-ink-100 bg-white sm:block">
-        <table className="w-full min-w-[820px] text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
               <th className="px-3 py-2.5">Tarih</th>
               <th className="px-3 py-2.5">Ad Soyad</th>
               <th className="px-3 py-2.5">Telefon</th>
               <th className="px-3 py-2.5">Tip</th>
-              <th className="px-3 py-2.5">Kaynak</th>
-              <th className="px-3 py-2.5">Atanan</th>
               <th className="px-3 py-2.5">Durum</th>
+              <th className="px-3 py-2.5">Süreç Durumu</th>
             </tr>
           </thead>
           <tbody>
@@ -61,12 +73,11 @@ export default function LeadTable({ leads, resolveName, onRowClick }) {
                   <td className="px-3 py-3 font-medium text-ink-900">{lead.adSoyad}</td>
                   <td className="px-3 py-3 text-ink-600">{lead.telefon ?? '—'}</td>
                   <td className="px-3 py-3 text-ink-600">{LEAD_TIP_LABELS[lead.tip]}</td>
-                  <td className="px-3 py-3 text-ink-600">{LEAD_KAYNAK_LABELS[lead.kaynak]}</td>
-                  <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-500">
-                    {lead.atananDanismanId ? resolveName(lead.atananDanismanId) : 'Atanmadı'}
-                  </td>
                   <td className="px-3 py-3">
                     <DurumBadge durum={lead.durum} />
+                  </td>
+                  <td className="px-3 py-3">
+                    <ProcessStatusBadge process={resolveProcessStatus(lead)} />
                   </td>
                 </tr>
               )
@@ -78,6 +89,7 @@ export default function LeadTable({ leads, resolveName, onRowClick }) {
       <div className="space-y-2 sm:hidden">
         {leads.map((lead) => {
           const stale = isStaleLead(lead)
+          const process = resolveProcessStatus(lead)
           return (
             <div
               key={lead.id}
@@ -88,15 +100,13 @@ export default function LeadTable({ leads, resolveName, onRowClick }) {
                 <div className="min-w-0">
                   <p className="truncate font-medium text-ink-900">{lead.adSoyad}</p>
                   <p className="mt-0.5 text-sm text-ink-600">{lead.telefon ?? '—'}</p>
-                  <p className="mt-1 text-xs text-ink-400">
-                    {LEAD_TIP_LABELS[lead.tip]} · {LEAD_KAYNAK_LABELS[lead.kaynak]}
-                  </p>
+                  <p className="mt-1 text-xs text-ink-400">{LEAD_TIP_LABELS[lead.tip]}</p>
                 </div>
                 <DurumBadge durum={lead.durum} />
               </div>
               <div className="mt-3 flex items-center justify-between border-t border-ink-50 pt-2 text-xs text-ink-400">
-                <span>{lead.atananDanismanId ? resolveName(lead.atananDanismanId) : 'Atanmadı'}</span>
                 <span>{leadDateLabel(lead.createdAt)}</span>
+                {process && <ProcessStatusBadge process={process} />}
               </div>
             </div>
           )

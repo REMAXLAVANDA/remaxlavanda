@@ -53,6 +53,7 @@ export default function NewOpportunityModal({
   const maxVal = parseThousands(form.fiyatMax)
   const budgetRangeInvalid = isAlici && minVal !== null && maxVal !== null && minVal > maxVal
   const canSubmit =
+    Boolean(form.type) &&
     form.leadAd.trim().length > 0 &&
     form.konum.trim().length > 0 &&
     !budgetRangeInvalid &&
@@ -69,6 +70,7 @@ export default function NewOpportunityModal({
           // biçimlendiriyoruz, sadece state'e güvenmiyoruz.
           const leadTelefon = formatPhoneInput(phoneRef.current?.value ?? form.leadTelefon)
           if (
+            !form.type ||
             form.leadAd.trim().length === 0 ||
             form.konum.trim().length === 0 ||
             budgetRangeInvalid ||
