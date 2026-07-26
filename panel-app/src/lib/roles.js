@@ -24,9 +24,17 @@ export function canManageUsers(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER
 }
 
-// leads_manage RLS kuralıyla aynı: sadece broker/owner/ofis Lead Havuzu'na
-// erişebilir, danışman ne menüde görür ne URL'den girebilir.
+// leads_manage RLS kuralıyla aynı: SADECE broker/owner Lead Havuzu'na
+// erişebilir — ofis/danışman ne menüde görür ne URL'den girebilir. (Daha
+// önce ofis de dahildi, sonradan daraltıldı — bkz. AI_NOTLARI.md.)
 export function canManageLeads(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER
+}
+
+// recruiting_manage RLS kuralıyla aynı: broker/owner/ofis. Lead Havuzu
+// daraltılınca canManageLeads'ten BİLEREK ayrıldı (eskiden takma addı) —
+// Recruiting kendi yetki seviyesini koruyor, ikisi artık bağımsız.
+export function canManageRecruiting(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 

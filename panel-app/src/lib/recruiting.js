@@ -1,6 +1,7 @@
-// recruiting_manage RLS kuralıyla aynı: sadece broker/owner/ofis erişebilir
-// — Lead Havuzu ile aynı yetki seviyesi (bkz. lib/roles.js canManageLeads).
-export { canManageLeads as canManageRecruiting } from './roles'
+// recruiting_manage RLS kuralıyla aynı: broker/owner/ofis erişebilir.
+// Lead Havuzu daraltılınca (sadece broker/owner) canManageLeads'ten
+// BİLEREK ayrı bir fonksiyona bölündü — bkz. lib/roles.js.
+export { canManageRecruiting } from './roles'
 
 // 6 aşama + 1 olumsuz dal. Eski (arşivlenmiş) prototipin 8 aşamalı
 // huninisinden 'Başladı'/'İlk 30 Gün' bilerek çıkarıldı — o süreç artık GD

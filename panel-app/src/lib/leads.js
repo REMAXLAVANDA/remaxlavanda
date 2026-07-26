@@ -38,7 +38,7 @@ export const LEAD_DURUM_STYLES = {
   elendi: 'bg-red-50 text-red-600',
 }
 
-// leads_manage RLS kuralıyla aynı: sadece broker/owner/ofis erişebilir —
+// leads_manage RLS kuralıyla aynı: sadece broker/owner erişebilir —
 // bkz. lib/roles.js canManageLeads (aynı fonksiyon, tekrar tanımlamıyoruz).
 export { canManageLeads } from './roles'
 

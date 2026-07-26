@@ -146,7 +146,7 @@ export default function Leads() {
         opportunities: [createdOpportunity, ...prev.opportunities],
       }))
       setConvertTarget(null)
-      showToast('Fırsata dönüştürüldü.', 'success')
+      showToast("Operasyon'a gönderildi.", 'success')
     } catch (err) {
       showToast(err.message ?? 'Dönüştürülemedi, tekrar dene.', 'error')
     } finally {
@@ -169,7 +169,7 @@ export default function Leads() {
         recruitingCandidates: [createdCandidate, ...prev.recruitingCandidates],
       }))
       setConvertTarget(null)
-      showToast("Recruiting'e dönüştürüldü.", 'success')
+      showToast("Recruiting'e gönderildi.", 'success')
     } catch (err) {
       showToast(err.message ?? 'Dönüştürülemedi, tekrar dene.', 'error')
     } finally {
@@ -183,10 +183,10 @@ export default function Leads() {
     navigate(convertedTarget.type === 'opportunity' ? '/firsatlar' : '/recruiting')
   }
 
-  // Danışman ne menüde görür ne URL'den doğrudan girebilir — leads_manage
-  // RLS'i zaten veriyi engelliyor, bu ikinci (UI seviyesi) savunma katmanı
-  // (bkz. lib/roles.js canManageLeads). Hook sırasını bozmamak için tüm
-  // hook'lardan SONRA, en son kontrol edilir.
+  // Ofis/danışman ne menüde görür ne URL'den doğrudan girebilir (sadece
+  // broker/owner) — leads_manage RLS'i zaten veriyi engelliyor, bu ikinci
+  // (UI seviyesi) savunma katmanı (bkz. lib/roles.js canManageLeads).
+  // Hook sırasını bozmamak için tüm hook'lardan SONRA, en son kontrol edilir.
   if (!canManageLeads(role)) return <Navigate to="/panel" replace />
 
   return (

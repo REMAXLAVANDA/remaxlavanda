@@ -3,6 +3,32 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Lead Havuzu yetki daraltma (sadece broker/owner) + "gönder" terminolojisi
+
+Lead Havuzu artık sadece broker/owner erişebiliyor — ofis çıkarıldı (daha
+önce Recruiting ile aynı üç rol grubunu paylaşıyordu). Recruiting'in
+yetkisi DEĞİŞMEDİ (broker/owner/ofis).
+
+**`canManageLeads`/`canManageRecruiting` ayrıştı** (`lib/roles.js`) —
+`canManageRecruiting` artık `canManageLeads`'in takma adı değil, kendi
+bağımsız fonksiyonu (broker/owner/ofis). `lib/recruiting.js`'in re-export'u
+buna göre güncellendi. `lib/modules.js`'te `leads` modülü artık ayrı
+`LEADS_ROLES = [broker, owner]` kullanıyor, `recruiting` hâlâ
+`MANAGE_ROLES` (broker/owner/ofis) — ofis artık menüde Lead Havuzu'nu
+görmüyor, `/leads` route'una da giremiyor.
+
+**RLS** (`20260726180000_lead_havuzu_yetki_daraltma.sql`) — `leads_manage`
+politikası 3 rolden 2'ye indi (`broker, owner`). `recruiting_manage`'e
+DOKUNULMADI.
+
+**Terminoloji: "dönüştür" → "gönder"** — buton etiketleri
+`"Recruiting'e Gönder"` / `"Operasyon'a Gönder"` oldu (işlevsel değişiklik
+yok, sadece "dağıtım noktası" kavramıyla tutarlı framing). Başarı toast'ları
+`"Operasyon'a gönderildi."` / `"Recruiting'e gönderildi."`. Salt-okunur
+görünümdeki banner metni `"Bu lead yönlendirildi, artık düzenlenemez."`
+oldu. "Fırsatlarda Görüntüle"/"Recruiting'de Görüntüle" hedef-görüntüleme
+butonları BİLEREK değiştirilmedi (kapsam dışı).
+
 ## 2026-07-26 — Lead Havuzu radikal sadeleştirme: pipeline değil, dağıtım noktası
 
 Lead Havuzu bir süreç takip aracı DEĞİL — sadece dağıtır, sonucu izler.

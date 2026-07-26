@@ -1,5 +1,5 @@
 // Lead Havuzu mock verisi — supabase şemasındaki leads tablosunun karşılığı
-// (camelCase alan adlarıyla). Sadece broker/owner/ofis görür (bkz.
+// (camelCase alan adlarıyla). Sadece broker/owner görür (bkz.
 // lib/roles.js canManageLeads, pages/Leads.jsx guard).
 //
 // atananDanismanId/ilkTemasAt/kayipNedeni kolonları DB'de duruyor (bkz.

@@ -16,6 +16,10 @@ import { ROLES } from './roles'
 
 const ALL_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.DANISMAN]
 const MANAGE_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS]
+// Lead Havuzu ofis'ten de daraltıldı — sadece broker/owner (bkz.
+// lib/roles.js canManageLeads). Recruiting MANAGE_ROLES'te (broker/owner/
+// ofis) kalıyor, ikisi artık farklı yetki seviyeleri.
+const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 
 export const MODULES = [
   {
@@ -40,9 +44,9 @@ export const MODULES = [
     label: 'Lead Havuzu',
     description: 'Reklam ve diğer kanallardan gelen lead\'lerin takibi',
     icon: Inbox,
-    // Sadece yönetim/ofis — danışman ne menüde görür ne route'a girebilir
-    // (bkz. lib/roles.js canManageLeads, pages/Leads.jsx guard).
-    roles: MANAGE_ROLES,
+    // Sadece broker/owner — ofis/danışman ne menüde görür ne route'a
+    // girebilir (bkz. lib/roles.js canManageLeads, pages/Leads.jsx guard).
+    roles: LEADS_ROLES,
   },
   {
     key: 'recruiting',
@@ -50,8 +54,8 @@ export const MODULES = [
     label: 'Recruiting',
     description: 'Aday takibi — başvurudan evraka huni',
     icon: UserSearch,
-    // Lead Havuzu ile aynı erişim seviyesi (bkz. lib/recruiting.js
-    // canManageRecruiting, pages/Recruiting.jsx guard).
+    // broker/owner/ofis — Lead Havuzu'ndan daha geniş (o sadece broker/
+    // owner'a daraltıldı, bkz. lib/recruiting.js canManageRecruiting).
     roles: MANAGE_ROLES,
   },
   {

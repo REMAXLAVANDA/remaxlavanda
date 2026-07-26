@@ -25,7 +25,7 @@ function ConvertedView({ lead, convertedTarget, onClose, onViewTarget }) {
   return (
     <div className="space-y-3">
       <div className="rounded-lg bg-violet-50 px-3 py-2 text-sm text-violet-700">
-        Bu lead atandı, artık düzenlenemez.
+        Bu lead yönlendirildi, artık düzenlenemez.
       </div>
       <div className="space-y-1.5 text-sm text-ink-700">
         <p>
@@ -219,7 +219,7 @@ export default function LeadDetailModal({
                 onClick={() => (form.tip === 'recruiting' ? onConvertToRecruiting(lead) : onConvertToOpportunity(lead))}
                 className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-brand-700 shadow-sm hover:bg-brand-50"
               >
-                {form.tip === 'recruiting' ? "Recruiting'e Dönüştür" : 'Fırsata Dönüştür'} <ArrowRight size={14} />
+                {form.tip === 'recruiting' ? "Recruiting'e Gönder" : "Operasyon'a Gönder"} <ArrowRight size={14} />
               </button>
             </div>
           )}
