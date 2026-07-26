@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Arşiv taşıması çalıştırıldı: 421 eski aday kaydı public.recruiting_candidates'a taşındı
+
+`20260726160000_recruiting_arsiv_tasima.sql` kullanıcı onayıyla çalıştırıldı
+(Kayıt Tipi filtresi önceden deploy edilip günlük görünüm korunduktan sonra
+— bkz. bir alttaki not). Sonuç: `toplam_tasindi=421`,
+`bilinen_oruntuyle_eslesti=418`, `hic_eslesmeyip_digere_dustu=3`. 3 eşleşmeyen
+değer saat damgalı tarih string'leri (`"2026-03-04 00:00:00"` gibi) —
+regex bare tarih formatını (`YYYY-MM-DD`) bekliyordu, saat kısmı yüzünden
+"bilinen örüntü" olarak işaretlenmedi ama yine de doğru şekilde `diğer`'e
+düştü, veri kaybı/hatası yok. `public.recruiting_candidates`'ta
+`kayit_tipi='gecmis'` olan kayıt sayısı 421 olarak doğrulandı.
+
 ## 2026-07-26 — Recruiting listesi: arşiv kayıtları varsayılan görünümden gizlendi
 
 Arşiv taşıma migration'ı (`20260726160000_recruiting_arsiv_tasima.sql`,
