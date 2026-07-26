@@ -15,6 +15,7 @@ import {
 } from '../../data/mockEducation'
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_LEADS } from '../../data/mockLeads'
+import { MOCK_RECRUITING_CANDIDATES } from '../../data/mockRecruiting'
 import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
@@ -354,6 +355,9 @@ export const leads = {
       kayipNedeni: null,
       aciklama: form.aciklama || null,
       metaLeadId: null,
+      kampanyaKodu: form.kampanyaKodu || null,
+      reklamAdi: form.reklamAdi || null,
+      metaAdId: null,
     }
     MOCK_LEADS.unshift(row)
     return delay(row)
@@ -361,6 +365,37 @@ export const leads = {
   async update(id, patch) {
     const row = MOCK_LEADS.find((l) => l.id === id)
     if (!row) throw new Error('Lead bulunamadı.')
+    Object.assign(row, patch)
+    return delay({ ...row })
+  },
+}
+
+// --- Recruiting (Aday takibi) --------------------------------------------------
+export const recruiting = {
+  async list() {
+    return delay([...MOCK_RECRUITING_CANDIDATES].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  },
+  async create(form) {
+    const row = {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      kaynakLeadId: form.kaynakLeadId ?? null,
+      kaynak: form.kaynak,
+      adSoyad: form.adSoyad,
+      telefon: form.telefon || null,
+      email: form.email || null,
+      atananDanismanId: form.atananDanismanId || null,
+      durum: form.durum,
+      kayitTipi: form.kaynakLeadId ? 'lead' : 'manuel',
+      yenidenAktifAt: null,
+      aciklama: form.aciklama || null,
+    }
+    MOCK_RECRUITING_CANDIDATES.unshift(row)
+    return delay(row)
+  },
+  async update(id, patch) {
+    const row = MOCK_RECRUITING_CANDIDATES.find((c) => c.id === id)
+    if (!row) throw new Error('Aday bulunamadı.')
     Object.assign(row, patch)
     return delay({ ...row })
   },

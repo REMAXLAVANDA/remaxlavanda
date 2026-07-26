@@ -25,7 +25,7 @@ async function run(promise) {
 // --- Opportunities (Fırsatlar) ----------------------------------------------
 const OPPORTUNITY_COLUMNS =
   'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, ' +
-  'm2, oda_sayisi, fiyat_min, fiyat_max, categories(key)'
+  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, categories(key)'
 
 function mapOpportunity(row) {
   return {
@@ -44,6 +44,7 @@ function mapOpportunity(row) {
     odaSayisi: row.oda_sayisi,
     fiyatMin: row.fiyat_min,
     fiyatMax: row.fiyat_max,
+    kaynakLeadId: row.kaynak_lead_id,
     // Bilinçli olarak leadAd/leadTelefon YOK — bkz. dosya başı not.
   }
 }
@@ -73,6 +74,7 @@ export const opportunities = {
       oda_sayisi: payload.odaSayisi || null,
       fiyat_min: payload.fiyatMin ?? null,
       fiyat_max: payload.fiyatMax ?? null,
+      kaynak_lead_id: payload.kaynakLeadId ?? null,
       // Danışman kendi bulduğu müşteriyi eklerken (havuza atmadıysa) direkt
       // kendine atanmış olsun — açık havuza düşüp başka bir danışmana
       // kaptırılmasın (bkz. opportunities_insert RLS: danışman sadece
@@ -471,6 +473,9 @@ function mapLead(row) {
     kayipNedeni: row.kayip_nedeni,
     aciklama: row.aciklama,
     metaLeadId: row.meta_lead_id,
+    kampanyaKodu: row.kampanya_kodu,
+    reklamAdi: row.reklam_adi,
+    metaAdId: row.meta_ad_id,
   }
 }
 
@@ -492,6 +497,8 @@ export const leads = {
           atanan_danisman_id: form.atananDanismanId || null,
           durum: form.durum,
           aciklama: form.aciklama || null,
+          kampanya_kodu: form.kampanyaKodu || null,
+          reklam_adi: form.reklamAdi || null,
         })
         .select()
         .single(),
@@ -511,8 +518,77 @@ export const leads = {
     if ('sonucAt' in patch) dbPatch.sonuc_at = patch.sonucAt
     if ('kayipNedeni' in patch) dbPatch.kayip_nedeni = patch.kayipNedeni || null
     if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null
+    if ('kampanyaKodu' in patch) dbPatch.kampanya_kodu = patch.kampanyaKodu || null
+    if ('reklamAdi' in patch) dbPatch.reklam_adi = patch.reklamAdi || null
     const data = await run(client().from('leads').update(dbPatch).eq('id', id).select().single())
     return mapLead(data)
+  },
+}
+
+// --- Recruiting (Aday takibi) --------------------------------------------------
+// recruiting_manage RLS'i leads_manage ile birebir aynı — sadece broker/
+// owner/ofis. Lead Havuzu'ndan bağımsız da (kendi "+ Yeni Aday" akışıyla)
+// kullanılabilir, bkz. lib/recruiting.js notu.
+function mapCandidate(row) {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    kaynakLeadId: row.kaynak_lead_id,
+    kaynak: row.kaynak,
+    adSoyad: row.ad_soyad,
+    telefon: row.telefon,
+    email: row.email,
+    atananDanismanId: row.atanan_danisman_id,
+    durum: row.durum,
+    kayitTipi: row.kayit_tipi,
+    yenidenAktifAt: row.yeniden_aktif_at,
+    aciklama: row.aciklama,
+  }
+}
+
+export const recruiting = {
+  async list() {
+    const data = await run(
+      client().from('recruiting_candidates').select('*').order('created_at', { ascending: false }),
+    )
+    return data.map(mapCandidate)
+  },
+  // kayit_tipi formda YOK — kaynak_lead_id doluysa 'lead', boşsa 'manuel'
+  // (bkz. lib/recruiting.js notu). 'gecmis' sadece arşiv taşımasıyla veya
+  // "Yeniden Aktifleştir"in tersiyle set edilir, buradan asla.
+  async create(form) {
+    const data = await run(
+      client()
+        .from('recruiting_candidates')
+        .insert({
+          kaynak_lead_id: form.kaynakLeadId ?? null,
+          kaynak: form.kaynak,
+          ad_soyad: form.adSoyad,
+          telefon: form.telefon || null,
+          email: form.email || null,
+          atanan_danisman_id: form.atananDanismanId || null,
+          durum: form.durum,
+          kayit_tipi: form.kaynakLeadId ? 'lead' : 'manuel',
+          aciklama: form.aciklama || null,
+        })
+        .select()
+        .single(),
+    )
+    return mapCandidate(data)
+  },
+  async update(id, patch) {
+    const dbPatch = {}
+    if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
+    if ('adSoyad' in patch) dbPatch.ad_soyad = patch.adSoyad
+    if ('telefon' in patch) dbPatch.telefon = patch.telefon || null
+    if ('email' in patch) dbPatch.email = patch.email || null
+    if ('atananDanismanId' in patch) dbPatch.atanan_danisman_id = patch.atananDanismanId || null
+    if ('durum' in patch) dbPatch.durum = patch.durum
+    if ('kayitTipi' in patch) dbPatch.kayit_tipi = patch.kayitTipi
+    if ('yenidenAktifAt' in patch) dbPatch.yeniden_aktif_at = patch.yenidenAktifAt
+    if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null
+    const data = await run(client().from('recruiting_candidates').update(dbPatch).eq('id', id).select().single())
+    return mapCandidate(data)
   },
 }
 

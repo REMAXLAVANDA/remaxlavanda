@@ -5,7 +5,7 @@ import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
-function emptyForm(defaultType) {
+function emptyForm(defaultType, initialValues) {
   return {
     type: defaultType,
     category: OPPORTUNITY_CATEGORIES[0].key,
@@ -19,6 +19,7 @@ function emptyForm(defaultType) {
     m2: '',
     odaSayisi: '',
     havuzaAt: false,
+    ...initialValues,
   }
 }
 
@@ -29,8 +30,20 @@ const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+
 // showPoolToggle: sadece danışman rolünde gösterilir — diğer roller zaten
 // her zaman havuza ekliyor (bkz. Firsatlar.jsx CAN_CREATE_ROLES/handleCreate).
 // defaultType: hangi bölümün "+" butonundan açıldığına göre (Satıcılar/Alıcılar).
-export default function NewOpportunityModal({ onClose, onSubmit, submitting, showPoolToggle = false, defaultType = 'satici' }) {
-  const [form, setForm] = useState(() => emptyForm(defaultType))
+// initialValues/kaynakLeadId: Lead Havuzu'ndan "Fırsata Dönüştür" ile
+// açıldığında ön-dolu alanlar (bkz. Leads.jsx handleConvertToOpportunity).
+// kaynakLeadId form alanı DEĞİL — kullanıcı görmez/değiştiremez, submit'te
+// ayrıca payload'a eklenir.
+export default function NewOpportunityModal({
+  onClose,
+  onSubmit,
+  submitting,
+  showPoolToggle = false,
+  defaultType = 'satici',
+  initialValues,
+  kaynakLeadId,
+}) {
+  const [form, setForm] = useState(() => emptyForm(defaultType, initialValues))
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const phoneRef = useRef(null)
 
@@ -69,6 +82,7 @@ export default function NewOpportunityModal({ onClose, onSubmit, submitting, sho
             leadTelefon,
             konum: capitalizeWords(form.konum.trim()),
             ozet: capitalizeFirst(form.ozet.trim()),
+            kaynakLeadId: kaynakLeadId ?? null,
           })
         }}
         className="space-y-3"

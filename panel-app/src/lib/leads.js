@@ -17,6 +17,13 @@ export const LEAD_KAYNAK_LABELS = {
   diger: 'Diğer',
 }
 
+// Meta webhook entegrasyonu baştan otomatik kurulacağı için erken eklendi
+// — elle de girilebilir (LeadDetailModal'da dropdown), opsiyonel.
+export const LEAD_KAMPANYA_KODLARI = ['RECRUIT', 'SATICI', 'MARKA']
+
+// 'donusturuldu' BİLEREK bu listede değil — dropdown'da hiçbir zaman
+// seçenek olarak sunulmasın diye (bkz. LeadDetailModal). Sadece Fırsata/
+// Recruiting'e dönüştürme aksiyonu bu değeri set edebilir.
 export const LEAD_DURUMLARI = ['yeni', 'arandi', 'randevu', 'gorusuldu', 'kazanildi', 'kaybedildi', 'gecersiz']
 export const LEAD_DURUM_LABELS = {
   yeni: 'Yeni',
@@ -26,6 +33,7 @@ export const LEAD_DURUM_LABELS = {
   kazanildi: 'Kazanıldı',
   kaybedildi: 'Kaybedildi',
   gecersiz: 'Geçersiz',
+  donusturuldu: 'Dönüştürüldü',
 }
 export const LEAD_DURUM_STYLES = {
   yeni: 'bg-ink-100 text-ink-600',
@@ -35,6 +43,7 @@ export const LEAD_DURUM_STYLES = {
   kazanildi: 'bg-emerald-50 text-emerald-700',
   kaybedildi: 'bg-red-50 text-red-600',
   gecersiz: 'bg-ink-50 text-ink-400',
+  donusturuldu: 'bg-violet-50 text-violet-700',
 }
 
 // leads_manage RLS kuralıyla aynı: sadece broker/owner/ofis erişebilir —

@@ -41,3 +41,119 @@ danışman bildirimleri.
   Panel'in "Dikkat Gerekiyor" bölümüne bağlanmadı.
 - Detay paneli modal (brief'in ilk sürümü "sağ panel" diyordu, düzeltildi —
   projede sağ panel deseni yok, her yerde `Modal` bileşeni kullanılıyor).
+
+## 2026-07-26 — Lead Havuzu → Fırsatlar / Recruiting dönüşümü + Recruiting modülü
+
+**Teknik borç — Kiralık fırsat desteği eksik.** Gereken: `opportunity_type`
+enum'una `kiralik`, `FirsatlarTab.jsx`'e 3. bölüm, `Panel.jsx`
+`openSatici`/`openAlici` ayrımının üçe çıkarılması, `Panel.jsx` ve
+`Edit`/`NewOpportunityModal`'daki ikili ternary'lerin (satıcı varsayılan)
+düzeltilmesi. Şimdilik `tip: 'kiralik'` lead'ler Lead Havuzu'nda kalıp elle
+takip ediliyor, "Fırsata Dönüştür" butonu bu tip için gösterilmiyor.
+
+**Teknik borç — Leads.jsx üç listeyi tamamen client-side yüklüyor.**
+Dönüşüm hedefini bulmak için `opportunities` ve `recruiting_candidates`
+listelerinin tamamı yükleniyor. Düşük hacimde sorun değil, kayıt sayısı
+artınca sunucu taraflı sorguya çevrilmeli.
+
+**Kural — dönüşüm kaynağı ayrımı için ayrı bir alan YOK.** Bir
+opportunity/recruiting_candidate satırının lead'den mi geldiğini (`Meta`
+reklamı üzerinden) yoksa elle mi girildiğini (`kaynak_lead_id` NULL) ayırt
+etmek için ayrı bir `kayit_tipi` kolonu eklenmedi — `kaynak_lead_id`
+dolu/boş olması bu ayrımı zaten taşıyor. Sonraki dönüşüm-oranı raporlarında
+bu kuralla hesap yapılmalı, karıştırılmamalı.
+
+**Yeni dosyalar:**
+- `supabase/migrations/20260726150000_recruiting_ve_lead_donusum.sql` —
+  `opportunities.kaynak_lead_id` (FK → `leads.id`), `leads.durum` CHECK'ine
+  `'donusturuldu'` eklendi, yeni `public.recruiting_candidates` tablosu +
+  RLS (`recruiting_manage`, `leads_manage` ile aynı desen).
+- `src/lib/recruiting.js` — 7 durumlu huni (6 aşama + `olumsuz`),
+  `canManageRecruiting` (= `canManageLeads`).
+- `src/data/mockRecruiting.js`, `src/pages/Recruiting.jsx`,
+  `src/components/recruiting/{RecruitingTable,RecruitingFilters,
+  RecruitingDetailModal}.jsx` — Lead Havuzu ile aynı basit desen (tablo +
+  filtre + tek modal), kanban YOK. Kendi "+ Yeni Aday" akışı var — Lead
+  Havuzu'ndan bağımsız da kullanılabilir (aday her zaman reklamdan
+  gelmiyor).
+
+**Değiştirilen dosyalar:**
+- `src/lib/leads.js` — `'donusturuldu'` durumu `LEAD_DURUM_LABELS`/
+  `STYLES`'a eklendi ama BİLEREK `LEAD_DURUMLARI` (dropdown listesi)
+  dışında tutuldu — hiçbir zaman elle seçilemez, sadece dönüştürme
+  aksiyonu set eder. DB trigger'ı YOK, sadece UI seviyesi engel (tablo
+  zaten sadece broker/owner/ofis'e açık).
+- `src/components/leads/LeadDetailModal.jsx` — `durum==='donusturuldu'`
+  ise form yerine salt okunur görünüm + hedef kayda giden buton;
+  `satici/alici` için "Fırsata Dönüştür", `recruiting` için "Recruiting'e
+  Dönüştür" aksiyonu (kiralık için buton yok).
+- `src/components/opportunities/NewOpportunityModal.jsx` — `initialValues`/
+  `kaynakLeadId` prop'ları eklendi (dönüşüm formunu ön-doldurmak için),
+  mevcut Fırsatlar sayfası kullanımını etkilemiyor.
+- `src/pages/Leads.jsx` — dönüştürülen lead'in hedef kaydını bulmak için
+  `opportunities`/`recruiting_candidates` de yükleniyor (bkz. teknik borç).
+- `src/lib/dataProvider/{supabaseProvider,mockProvider,index}.js` —
+  `opportunities`'e `kaynakLeadId`, yeni `recruiting` bloğu.
+- `src/lib/modules.js`, `src/App.jsx` — `/recruiting` route + modül
+  (Lead Havuzu ile aynı erişim: broker/owner/ofis).
+
+**Basitleştirme:** Fırsata dönüştürülen opportunity her zaman havuzda
+(unclaimed) oluşturuluyor — lead'in `atananDanismanId`'si otomatik olarak
+yeni fırsata taşınmıyor (staff isterse Fırsatlar sayfasından elle atar).
+Bu bir sonraki iyileştirme adayı, şimdilik kapsam dışı bırakıldı.
+
+## 2026-07-26 — Meta metaveri alanları + Recruiting'in kendi kaynak listesi + arşiv taşıması
+
+Meta webhook entegrasyonu baştan otomatik kurulacağı için (elle girişle
+başlanmayacak) metaveri alanları erken eklendi. Ayrıca recruiting'in kaynak
+listesi leads'ten ayrıştırıldı ve arşivdeki 429 eski aday kaydı için taşıma
+migration'ı hazırlandı (ayrı onay bekliyor, henüz çalıştırılmadı).
+
+**Şema değişiklikleri (`20260726150000_recruiting_ve_lead_donusum.sql`
+içine işlendi, henüz canlıda değil):**
+- `leads.kampanya_kodu` (CHECK: `RECRUIT`/`SATICI`/`MARKA`, nullable,
+  dropdown), `leads.reklam_adi` (serbest metin), `leads.meta_ad_id`
+  (serbest metin, **UNIQUE DEĞİL** — `meta_lead_id`'nin aksine bir reklam
+  birden çok lead üretebilir). `meta_ad_id`/`meta_lead_id` formda YOK,
+  sadece webhook'un dolduracağı alanlar.
+- `recruiting_candidates.kaynak` — leads'in 7 değerlik listesinden AYRI,
+  kendi 13 değerlik listesi: `meta_recruiting, kariyer_net, isinolsun,
+  linkedin, secretcv, indeed, instagram, referans, remax_agi, seminer,
+  santral, ofis, diger`. `sahibinden`/`web`/`tabela` bilerek YOK (recruiting
+  kanalı değil), `ofis` (ofise gelip başvuran) eklendi.
+- `recruiting_candidates.kayit_tipi` (`'lead'|'manuel'|'gecmis'`, formda
+  YOK — `create()` içinde `kaynak_lead_id` dolu/boşa göre otomatik
+  `'lead'`/`'manuel'` set edilir), `yeniden_aktif_at` (timestamptz).
+
+**Kural — Lead Havuzu'ndan Recruiting'e dönüştürürken kaynak eşleştirmesi
+deterministik, boş bırakılmıyor** (`lib/recruiting.js`
+`LEAD_TO_RECRUITING_KAYNAK`): `meta_recruiting→meta_recruiting,
+telefon→santral, referans→referans, web/tabela/meta_portfoy/diger→diger`.
+Personel formda isterse değiştirebilir.
+
+**"Yeniden Aktifleştir" butonu** (`RecruitingDetailModal.jsx`):
+`kayit_tipi==='gecmis'` olan HER kayıtta görünür (durum fark etmez — 358
+"Beklemede" arşiv kaydı zaten `yeni_basvuru` olarak gelecek, onları raporlu
+sürece almak tam olarak bu demek). Tıklanınca: `kayit_tipi:'manuel'`,
+`yeniden_aktif_at: now()`, `durum==='olumsuz'` ise `'yeni_basvuru'`'ya
+çekilir, değilse durum korunur.
+
+**Arşiv veri taşıması (`20260726160000_recruiting_arsiv_tasima.sql`) —
+AYRI ONAY GEREKTİRİYOR, henüz çalıştırılmadı:**
+`archive.recruiting_candidates`'taki `is_deleted=false` ~421 satır
+`public.recruiting_candidates`'a taşınır. `durum` eşleştirmesi (Beklemede/
+Yeni Başvuru→yeni_basvuru, Ön Görüşme→on_gorusme, Olumsuz/OLUMSUZ→olumsuz)
+kullanıcı onaylı; eşleşmeyen bir değer çıkarsa INSERT NOT NULL ihlaliyle
+patlar (sessiz varsayılan yok). `kaynak` Türkçe-locale-güvenli normalize
+edilip (`translate`+`lower`) bilinen varyant listeleriyle eşleştirilir,
+hiç eşleşmeyen HER ŞEY `diger`'e düşer — orijinal değer HER durumda
+`aciklama`'ya "Eski kaynak: X" olarak yazılır. `gorusme_notu`,
+`atanan_yonetici`, `gorusmeci`, `aday_puani`, `il`/`ilce`, tüm tarihler de
+yapılandırılmış metin olarak `aciklama`'ya ekleniyor (yeni kolon açılmadı).
+`atanan_danisman_id` NULL (eski `atanan_yonetici` bir isim metni, uuid'ye
+güvenilir eşlenemez). Migration dosyasında INSERT'ten sonra 2 rapor sorgusu
+var: (1) özet sayım — bilinen örüntüyle diğer'e düşen vs. hiç eşleşmeyen,
+(2) hiç eşleşmeyen ham kaynak değerlerinin dökümü.
+
+**`archive.gd_leads`'e (684 satır, portföy tarafı) DOKUNULMADI** — ayrı bir
+faz olarak ele alınacak, bu taşımaya dahil değil.

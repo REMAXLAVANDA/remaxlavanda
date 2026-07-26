@@ -10,6 +10,7 @@ import {
   Trophy,
   BookOpen,
   Inbox,
+  UserSearch,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -41,6 +42,16 @@ export const MODULES = [
     icon: Inbox,
     // Sadece yönetim/ofis — danışman ne menüde görür ne route'a girebilir
     // (bkz. lib/roles.js canManageLeads, pages/Leads.jsx guard).
+    roles: MANAGE_ROLES,
+  },
+  {
+    key: 'recruiting',
+    path: '/recruiting',
+    label: 'Recruiting',
+    description: 'Aday takibi — başvurudan evraka huni',
+    icon: UserSearch,
+    // Lead Havuzu ile aynı erişim seviyesi (bkz. lib/recruiting.js
+    // canManageRecruiting, pages/Recruiting.jsx guard).
     roles: MANAGE_ROLES,
   },
   {
