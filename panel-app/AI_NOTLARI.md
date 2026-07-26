@@ -3,6 +3,55 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Meta Lead Ads webhook entegrasyonu (Edge Function, henüz deploy edilmedi)
+
+`supabase/functions/meta-leads-webhook/index.ts` + `20260726190000_meta_webhook_hata_log.sql`
+yazıldı, henüz Supabase'e deploy edilmedi / migration çalıştırılmadı — sıra
+kullanıcının Meta panelinde App kurup gerekli izinleri alması ve secret'ları
+(`META_APP_SECRET`, `META_VERIFY_TOKEN`, `META_PAGE_ACCESS_TOKEN`) sağlamasında.
+
+**Graph API sürümü:** `developers.facebook.com` doğrudan erişime kapalı
+(403, bot koruması) — birden fazla ikincil kaynağı çapraz kontrol ederek
+`v25.0` varsayımıyla ilerlendi, ama koda SABİT yazılmadı: `META_GRAPH_API_VERSION`
+env var'ı (Dashboard secret) ile override edilebiliyor, verilmezse `v25.0`
+fallback. Kullanıcı Meta App Dashboard'da gerçek güncel sürümü görünce
+tek satır secret değişikliğiyle güncellenebilir, kod değişmez.
+
+**Akış:** GET → `hub.challenge` doğrulaması. POST → `X-Hub-Signature-256`
+(HMAC-SHA256, Web Crypto API) doğrulanır → `leadgen_id`'den Graph API'yle
+`field_data` çekilir → Ad Soyad/Telefon/E-posta birden fazla bilinen alan adı
+varyantıyla (standart İngilizce + Türkçe, case/aksan-duyarsız) eşleştirilir
+— form alanlarının gerçek isimleri bilinmediği için (bkz. AI_NOTLARI eski
+notu yok, bu ilk kurulum) esnek bırakıldı. Ad Soyad hiçbirine uymazsa
+insert denenmez. `ad_id` üzerinden reklam adı + kampanya adı çekilir,
+kampanya adının BAŞINDAKİ kod (`RECRUIT`/`SATICI`/`MARKA`, ardından
+`_`/`-`/boşluk ayracı) ayıklanır — uymuyorsa `kampanya_kodu=NULL`,
+uydurulmaz. `tip`: kod `RECRUIT` ise `recruiting`, aksi TÜM durumlarda
+(SATICI/MARKA/NULL) `portfoy`. `telefon` alanı `src/lib/phone.js`
+`formatPhoneInput` ile AYNI mantıkla (bilerek edge function içinde ayrı
+yazıldı, telsam-webhook'taki normalizePhone ile aynı "self-contained
+Edge Function" yaklaşımı) formatlanır — manuel girilen ve webhook'tan gelen
+lead'ler aynı görünsün diye.
+
+**Hata yönetimi — yeni `public.meta_webhook_errors` tablosu** (broker/owner
+select, audit_log'dan BİLEREK ayrı: o kullanıcı aksiyonları için, bu sistem/
+webhook kaynaklı): 4 tür — `imza_hatasi` (sahte/bozuk istek), `graph_api_hatasi`
+(Meta'dan veri çekilemedi — token/izin/ağ sorunu), `alan_eslesmedi` (Ad Soyad
+form cevaplarında bulunamadı), `insert_hatasi` (DB insert başarısız). Her
+durumda ham payload kaydedilir, lead kaybolmaz. `meta_lead_id` zaten `unique`
+olduğu için aynı `leadgen_id` tekrar gelirse (Meta retry) `ignoreDuplicates`
+ile sessizce atlanır, hata sayılmaz. İmza doğrulaması başarısız olsa BİLE
+Meta'ya her zaman 200 dönülür (brief'in açık talebi) — retry döngüsüne girip
+webhook aboneliğinin Meta tarafından durdurulmasını önlemek için.
+
+**Test:** Deno bu ortamda kurulamadı (deno.land kurulum script'i egress
+politikasınca 403) — saf mantık fonksiyonları (`findFieldValue`,
+`formatPhoneInput`, `extractKampanyaKodu`, `verifySignature`) Node'a
+kopyalanıp 20 assertion'la doğrulandı (hepsi geçti), ayrıca dosyanın tamamı
+`tsc --noEmit` ile (Deno global'leri için shim'lenerek) tip hatasız derlendi.
+Gerçek Meta payload'ıyla uçtan uca test ancak Meta App onaylandıktan ve
+gerçek bir lead formu doldurulduktan sonra mümkün.
+
 ## 2026-07-26 — Arşiv taşıması çalıştırıldı: 421 eski aday kaydı public.recruiting_candidates'a taşındı
 
 `20260726160000_recruiting_arsiv_tasima.sql` kullanıcı onayıyla çalıştırıldı
