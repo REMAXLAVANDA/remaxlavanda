@@ -3,6 +3,53 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Meta Lead Ads webhook: Supabase deploy + Meta App kurulumu tamamlandı
+
+Önceki notta yazılan `meta-leads-webhook` Edge Function'ı ve
+`meta_webhook_errors` migration'ı bu turda gerçekten deploy edildi ve
+kullanıcıyla birlikte adım adım Meta tarafı kuruldu:
+
+- Migration çalıştırıldı, Edge Function Dashboard'un "Via Editor" yoluyla
+  deploy edildi (Verify JWT kapatıldı — Meta Supabase auth header'ı
+  göndermiyor).
+- 3 secret girildi: `META_VERIFY_TOKEN` (bizim ürettiğimiz rastgele metin),
+  `META_APP_SECRET`, `META_PAGE_ACCESS_TOKEN`.
+- **`META_PAGE_ACCESS_TOKEN` için Business Manager'da yeni bir System User**
+  ("Lead Webhook Entegrasyonu", Admin erişimi, süresiz token) oluşturuldu —
+  hem Facebook Sayfası hem App'in kendisi bu System User'a "varlık" olarak
+  atanmak ZORUNDA (ikisi de ayrı ayrı, Business Settings > Kullanıcılar >
+  Sistem kullanıcıları > Varlıklar Atayın) — App atanmadan token oluşturma
+  adımında "Uygun izin yok" hatası alınıyordu. Token'ın kendisi System
+  User'ın token'ı değil, `GET /{page-id}?fields=access_token` ile o
+  token'dan TÜRETİLEN gerçek Page Access Token — ilk seferinde yanlışlıkla
+  System User token'ı girilmişti, düzeltildi.
+- Meta App önce sadece "Standard Access" (Ready for testing) izinleriyle
+  kuruldu — App Review'a gerek kalmadı çünkü Sayfa/Reklam Hesabı zaten
+  aynı doğrulanmış Business Portfolio'nun (Remax Lavanda) içinde.
+- **Kritik bulgu:** App "Unpublished" durumdayken gerçek/test lead'ler
+  webhook'a hiç ulaşmıyor — sadece Meta'nın kendi Dashboard'undaki
+  "Webhooks > leadgen > Test" düğmesiyle gönderilen ÖRNEK veri ulaşıyor.
+  Bunu App Settings'te Privacy Policy URL + Category doldurup **Publish**
+  ederek çözdük.
+- Uçtan uca doğrulama: Dashboard'un örnek `leadgen` payload'ı
+  (`leadgen_id: 444444444444`, sahte) gönderildiğinde imza doğrulandı,
+  Graph API'den veri çekilemedi (beklenen — sahte ID), `meta_webhook_errors`'a
+  `graph_api_hatasi` olarak doğru loglandı, fonksiyon 200 döndü — mekanik
+  tarafın tamamen doğru çalıştığı kanıtlandı.
+- **Açık kalan tek nokta:** Lead Ads Testing Tool'un "Create lead" ile
+  ürettiği test lead'i (App yayınlandıktan SONRA bile) webhook'a hiç
+  ulaşmadı — bu aracın kendi güvenilirlik sorunu olabilir. Gerçek bir
+  reklamdan gelecek gerçek bir lead ile ya da testing tool'u daha sonra
+  tekrar deneyerek doğrulanmalı. Kod tarafında eksik/hatalı bir şey yok.
+- Gerçek kampanyalar için üretim formu oluşturuldu: **"RE/MAX Lavanda -
+  Başvuru Formu"** (Full name/Email/Phone number standart alanları,
+  Türkçe karşılama/bitiş metinleri). Tek form hem Recruiting hem Portföy
+  kampanyalarında kullanılacak — `tip` forma değil kampanya adına
+  (`RECRUIT_.../SATICI_.../MARKA_...` öneki) bağlı olduğu için ayrı form
+  gerekmiyor. Reklamı kim çıkaracaksa kampanya adının doğru önekle
+  başlamasına dikkat etmeli, aksi halde `kampanya_kodu` boş kalır ve
+  `tip` otomatik "portfoy"a düşer.
+
 ## 2026-07-26 — Meta Lead Ads webhook entegrasyonu (Edge Function, henüz deploy edilmedi)
 
 `supabase/functions/meta-leads-webhook/index.ts` + `20260726190000_meta_webhook_hata_log.sql`
