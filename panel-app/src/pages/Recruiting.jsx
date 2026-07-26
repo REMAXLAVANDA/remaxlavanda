@@ -5,13 +5,16 @@ import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { recruiting as recruitingProvider } from '../lib/dataProvider'
-import { canManageRecruiting } from '../lib/recruiting'
+import { canManageRecruiting, matchesKayitTipiFilter } from '../lib/recruiting'
 import RecruitingTable from '../components/recruiting/RecruitingTable'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-const INITIAL_FILTERS = { durum: 'tumu', atananId: 'tumu' }
+// kayitTipi varsayılan 'aktif' — arşiv taşımasıyla gelen ~421 'gecmis'
+// kaydı listeyi kirletmesin diye (bkz. lib/recruiting.js
+// matchesKayitTipiFilter, AI_NOTLARI.md).
+const INITIAL_FILTERS = { durum: 'tumu', atananId: 'tumu', kayitTipi: 'aktif' }
 
 export default function Recruiting() {
   const { role } = useAuth()
@@ -38,6 +41,7 @@ export default function Recruiting() {
         if (filters.atananId === 'atanmadi') return !c.atananDanismanId
         return c.atananDanismanId === filters.atananId
       })
+      .filter((c) => matchesKayitTipiFilter(c, filters.kayitTipi))
   }, [candidates, filters])
 
   async function handleSave(form) {

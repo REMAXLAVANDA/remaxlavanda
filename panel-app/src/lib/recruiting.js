@@ -52,6 +52,22 @@ export const RECRUITING_KAYNAK_LABELS = {
   diger: 'Diğer',
 }
 
+// Arşiv taşıması (421 kayıt, kayit_tipi='gecmis') sonrası günlük görünümü
+// kirletmesin diye — varsayılan filtre 'aktif' (lead+manuel), geçmiş
+// kayıtlar sadece elle "Geçmiş"/"Tümü" seçilince görünür (bkz.
+// pages/Recruiting.jsx, RecruitingFilters.jsx).
+export const RECRUITING_KAYIT_TIPI_FILTRELERI = ['aktif', 'gecmis', 'tumu']
+export const RECRUITING_KAYIT_TIPI_FILTRE_LABELS = {
+  aktif: 'Aktif',
+  gecmis: 'Geçmiş',
+  tumu: 'Tümü',
+}
+export function matchesKayitTipiFilter(candidate, filterValue) {
+  if (filterValue === 'tumu') return true
+  if (filterValue === 'gecmis') return candidate.kayitTipi === 'gecmis'
+  return candidate.kayitTipi !== 'gecmis'
+}
+
 // Lead Havuzu'ndan "Recruiting'e Dönüştür" ile açılırken lead.kaynak'ı
 // (leads.js'in 7 değerlik listesi) recruiting'in kendi 13 değerlik
 // listesine deterministik çevirir — form boş açılıp elle doldurmaya

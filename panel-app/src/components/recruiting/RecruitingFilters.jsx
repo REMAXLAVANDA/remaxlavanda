@@ -1,5 +1,10 @@
 import { Plus } from 'lucide-react'
-import { RECRUITING_DURUMLARI, RECRUITING_DURUM_LABELS } from '../../lib/recruiting'
+import {
+  RECRUITING_DURUMLARI,
+  RECRUITING_DURUM_LABELS,
+  RECRUITING_KAYIT_TIPI_FILTRELERI,
+  RECRUITING_KAYIT_TIPI_FILTRE_LABELS,
+} from '../../lib/recruiting'
 
 function Select({ value, onChange, children }) {
   return (
@@ -33,6 +38,13 @@ export default function RecruitingFilters({ filters, onChange, danismanOptions, 
           {danismanOptions.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
+            </option>
+          ))}
+        </Select>
+        <Select value={filters.kayitTipi} onChange={(v) => set({ kayitTipi: v })}>
+          {RECRUITING_KAYIT_TIPI_FILTRELERI.map((k) => (
+            <option key={k} value={k}>
+              {RECRUITING_KAYIT_TIPI_FILTRE_LABELS[k]}
             </option>
           ))}
         </Select>

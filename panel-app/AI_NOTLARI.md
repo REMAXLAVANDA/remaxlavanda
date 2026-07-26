@@ -3,6 +3,26 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Recruiting listesi: arşiv kayıtları varsayılan görünümden gizlendi
+
+Arşiv taşıma migration'ı (`20260726160000_recruiting_arsiv_tasima.sql`,
+~421 kayıt) çalıştırılmadan ÖNCE, günlük görünümü kirletmesin diye hazırlık.
+
+**Yeni "Kayıt Tipi" filtresi** (`lib/recruiting.js`
+`RECRUITING_KAYIT_TIPI_FILTRELERI`/`matchesKayitTipiFilter`) — `Aktif`
+(varsayılan, `kayitTipi in ('lead','manuel')`) | `Geçmiş`
+(`kayitTipi==='gecmis'`) | `Tümü`. `pages/Recruiting.jsx`'in `visible`
+listesi artık bu filtreyi de uyguluyor, `INITIAL_FILTERS.kayitTipi` `'aktif'`
+— sayfa ilk açıldığında arşiv kayıtları hiç görünmüyor.
+
+**Sayaç/uyarı çubuğu notu:** Recruiting sayfasında şu an (bu değişiklikten
+önce de) ayrı bir sayaç/uyarı çubuğu YOK — `RecruitingTable`/
+`RecruitingFilters` hiçbir toplam göstermiyor, `Panel.jsx` dashboard'unda da
+recruiting aday sayısı yok. Yani "sayaçlar 'gecmis' saymasın" kuralı,
+mevcut `visible` listesinin zaten varsayılan olarak filtrelenmesiyle
+sağlanmış oluyor — ileride bir sayaç eklenirse `visible.length` (filtrelenmiş
+liste) kullanılmalı, ham `candidates.length` değil.
+
 ## 2026-07-26 — Lead Havuzu yetki daraltma (sadece broker/owner) + "gönder" terminolojisi
 
 Lead Havuzu artık sadece broker/owner erişebiliyor — ofis çıkarıldı (daha
