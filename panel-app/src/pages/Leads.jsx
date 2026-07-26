@@ -42,7 +42,6 @@ export default function Leads() {
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [staleFocus, setStaleFocus] = useState(false)
-  const [showModal, setShowModal] = useState(false)
   const [editingLead, setEditingLead] = useState(null)
   const [convertTarget, setConvertTarget] = useState(null) // { type: 'opportunity'|'recruiting', lead }
   const [submitting, setSubmitting] = useState(false)
@@ -90,20 +89,16 @@ export default function Leads() {
     return null
   }, [editingLead, data])
 
+  // Lead Havuzu'na elle yeni kayıt eklenmiyor artık — leadler sadece Meta
+  // webhook'undan gelir (bkz. AI_NOTLARI.md). Bu yüzden burada sadece
+  // GÜNCELLEME var, oluşturma yok.
   async function handleSave(form) {
     setSubmitting(true)
     try {
-      if (editingLead) {
-        const updated = await leadsProvider.update(editingLead.id, form)
-        setData((prev) => ({ ...prev, leads: prev.leads.map((l) => (l.id === editingLead.id ? updated : l)) }))
-        showToast('Lead güncellendi.', 'success')
-      } else {
-        const created = await leadsProvider.create(form)
-        setData((prev) => ({ ...prev, leads: [created, ...prev.leads] }))
-        showToast('Lead eklendi.', 'success')
-      }
+      const updated = await leadsProvider.update(editingLead.id, form)
+      setData((prev) => ({ ...prev, leads: prev.leads.map((l) => (l.id === editingLead.id ? updated : l)) }))
+      showToast('Lead güncellendi.', 'success')
       setEditingLead(null)
-      setShowModal(false)
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
     } finally {
@@ -211,21 +206,18 @@ export default function Leads() {
           )}
 
           <div className="mb-5">
-            <LeadFilters filters={filters} onChange={setFilters} onNewLeadClick={() => setShowModal(true)} />
+            <LeadFilters filters={filters} onChange={setFilters} />
           </div>
 
           <LeadTable leads={visible} resolveProcessStatus={resolveProcessStatus} onRowClick={setEditingLead} />
         </>
       )}
 
-      {(showModal || editingLead) && (
+      {editingLead && (
         <LeadDetailModal
           lead={editingLead}
           convertedTarget={convertedTarget}
-          onClose={() => {
-            setShowModal(false)
-            setEditingLead(null)
-          }}
+          onClose={() => setEditingLead(null)}
           onSubmit={handleSave}
           onConvertToOpportunity={handleConvertToOpportunity}
           onConvertToRecruiting={handleConvertToRecruiting}

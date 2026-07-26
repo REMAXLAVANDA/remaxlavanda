@@ -66,11 +66,12 @@ function ConvertedView({ lead, convertedTarget, onClose, onViewTarget }) {
   )
 }
 
-// Hem "+ Yeni Lead" (lead=null) hem satır tıklaması (lead=mevcut kayıt)
-// AYNI paneli açar (bkz. brief 3.5) — tüm alanlar her zaman düzenlenebilir,
-// TEK istisna: lead zaten atandıysa (bkz. ConvertedView). Atanan danışman
-// BİLEREK burada YOK — Lead Havuzu dağıtım noktası, atama hedef modülde
-// yapılır (bkz. AI_NOTLARI.md radikal sadeleştirme notu).
+// Satır tıklaması bu paneli açar (elle yeni lead ekleme YOK — lead'ler
+// sadece Meta webhook'undan gelir, bkz. AI_NOTLARI.md). Tüm alanlar her
+// zaman düzenlenebilir, TEK istisna: lead zaten atandıysa (bkz.
+// ConvertedView). Atanan danışman BİLEREK burada YOK — Lead Havuzu
+// dağıtım noktası, atama hedef modülde yapılır (bkz. AI_NOTLARI.md
+// radikal sadeleştirme notu).
 export default function LeadDetailModal({
   lead,
   convertedTarget,
@@ -82,15 +83,15 @@ export default function LeadDetailModal({
   submitting,
 }) {
   const [form, setForm] = useState({
-    tip: lead?.tip ?? 'portfoy',
-    kaynak: lead?.kaynak ?? 'telefon',
-    adSoyad: lead?.adSoyad ?? '',
-    telefon: lead?.telefon ?? '',
-    email: lead?.email ?? '',
-    durum: lead?.durum ?? 'yeni',
-    aciklama: lead?.aciklama ?? '',
-    kampanyaKodu: lead?.kampanyaKodu ?? '',
-    reklamAdi: lead?.reklamAdi ?? '',
+    tip: lead.tip,
+    kaynak: lead.kaynak,
+    adSoyad: lead.adSoyad,
+    telefon: lead.telefon ?? '',
+    email: lead.email ?? '',
+    durum: lead.durum,
+    aciklama: lead.aciklama ?? '',
+    kampanyaKodu: lead.kampanyaKodu ?? '',
+    reklamAdi: lead.reklamAdi ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.adSoyad.trim().length > 0
@@ -98,10 +99,7 @@ export default function LeadDetailModal({
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    // Yeni kayıt için "önceki durum" her zaman 'yeni' kabul edilir — bkz.
-    // lib/leads.js computeAutoFields notu.
-    const previous = lead ?? { durum: 'yeni' }
-    const autoFields = computeAutoFields(previous, form.durum)
+    const autoFields = computeAutoFields(lead, form.durum)
     onSubmit({
       ...form,
       adSoyad: capitalizeWords(form.adSoyad.trim()),
@@ -114,10 +112,10 @@ export default function LeadDetailModal({
     })
   }
 
-  const isConverted = lead?.durum === 'atandi'
+  const isConverted = lead.durum === 'atandi'
 
   return (
-    <Modal title={lead ? 'Lead Detayı' : 'Yeni Lead'} onClose={onClose}>
+    <Modal title="Lead Detayı" onClose={onClose}>
       {isConverted ? (
         <ConvertedView lead={lead} convertedTarget={convertedTarget} onClose={onClose} onViewTarget={onViewTarget} />
       ) : (
@@ -209,20 +207,15 @@ export default function LeadDetailModal({
             />
           </div>
 
-          {/* Dönüştürme aksiyonları — SADECE mevcut bir lead düzenlenirken
-              (yeni lead oluştururken değil). tip artık sadece 2 değerli,
-              istisna yok. */}
-          {lead && (
-            <div className="rounded-lg bg-ink-50 p-3">
-              <button
-                type="button"
-                onClick={() => (form.tip === 'recruiting' ? onConvertToRecruiting(lead) : onConvertToOpportunity(lead))}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-brand-700 shadow-sm hover:bg-brand-50"
-              >
-                {form.tip === 'recruiting' ? "Recruiting'e Gönder" : "Operasyon'a Gönder"} <ArrowRight size={14} />
-              </button>
-            </div>
-          )}
+          <div className="rounded-lg bg-ink-50 p-3">
+            <button
+              type="button"
+              onClick={() => (form.tip === 'recruiting' ? onConvertToRecruiting(lead) : onConvertToOpportunity(lead))}
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-brand-700 shadow-sm hover:bg-brand-50"
+            >
+              {form.tip === 'recruiting' ? "Recruiting'e Gönder" : "Operasyon'a Gönder"} <ArrowRight size={14} />
+            </button>
+          </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <button

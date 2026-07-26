@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-26 — Lead Havuzu: elle "+ Yeni Lead" ekleme kaldırıldı
+
+Meta webhook entegrasyonu canlıya alındıktan sonra elle lead ekleme
+gereksiz hale geldi — lead'ler artık sadece Meta'dan otomatik geliyor.
+`LeadFilters.jsx`'teki "+ Yeni Lead" butonu kaldırıldı, `Leads.jsx`'teki
+`showModal` state'i ve `handleSave`'in "oluşturma" dalı silindi (artık
+sadece güncelleme var, `editingLead` her zaman dolu geldiği için).
+`LeadDetailModal.jsx` de buna göre sadeleşti: `lead` prop'u artık HER ZAMAN
+dolu (null olabilme ihtimali kalktı) — `lead ? ... : 'Yeni Lead'` gibi
+şartlı ifadeler ve dönüştürme butonunun `{lead && ...}` sargısı kaldırıldı.
+
+**Değişmeyen:** Mevcut bir lead'e tıklayıp görüntüleme, durumu 'elendi'ye
+çekme, Operasyon'a/Recruiting'e Gönder — hepsi aynen çalışıyor.
+`lib/dataProvider`'daki `leads.create()` fonksiyonuna BİLEREK dokunulmadı
+(provider seviyesinde genel bir CRUD metodu, zararsız duruyor) — sadece UI
+tarafındaki tetikleyici kaldırıldı.
+
 ## 2026-07-26 — Meta Lead Ads webhook: Supabase deploy + Meta App kurulumu tamamlandı
 
 Önceki notta yazılan `meta-leads-webhook` Edge Function'ı ve
