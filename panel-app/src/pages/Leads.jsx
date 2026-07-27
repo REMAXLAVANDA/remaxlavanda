@@ -119,6 +119,15 @@ export default function Leads() {
     setConvertTarget({ type: 'recruiting', lead })
   }
 
+  // Listeden tek tıkla yönlendirme (Lead Detayı'na hiç girmeden) — broker
+  // kampanya/reklam adına bakıp karar veriyor (bkz. LeadTable
+  // QuickRouteButtons). Aynı hedef modalını açan handleConvertTo* ile
+  // birebir aynı akış, sadece tetikleyici satırdan geliyor.
+  function handleQuickConvert(lead, type) {
+    if (type === 'recruiting') handleConvertToRecruiting(lead)
+    else handleConvertToOpportunity(lead)
+  }
+
   async function handleOpportunitySubmit(form) {
     const lead = convertTarget.lead
     setSubmitting(true)
@@ -209,7 +218,12 @@ export default function Leads() {
             <LeadFilters filters={filters} onChange={setFilters} />
           </div>
 
-          <LeadTable leads={visible} resolveProcessStatus={resolveProcessStatus} onRowClick={setEditingLead} />
+          <LeadTable
+            leads={visible}
+            resolveProcessStatus={resolveProcessStatus}
+            onRowClick={setEditingLead}
+            onQuickConvert={handleQuickConvert}
+          />
         </>
       )}
 

@@ -27,15 +27,43 @@ function ProcessStatusBadge({ process }) {
   )
 }
 
-// Kolonlar: Tarih · Ad Soyad · Telefon · Tip · Durum · Süreç Durumu — Lead
-// Havuzu dağıtım noktası olduğu için Kaynak/Atanan artık listede değil,
-// sadece detay modalinde (bkz. AI_NOTLARI.md radikal sadeleştirme).
+// Satırı açmadan tek tıkla yönlendirme — broker kampanya/reklam adına
+// bakıp (Ad Soyad'ın yanında) karar veriyor, Lead Detayı'na hiç girmeden
+// doğrudan hedef formunu (Fırsat/Recruiting oluşturma) açıyor. Zaten
+// yönlendirilmiş (durum='atandi') satırlarda gösterilmez — orada tekrar
+// göndermenin bir anlamı yok. e.stopPropagation() satırın kendi onClick'ini
+// (Lead Detayı'nı açan) tetiklemesin diye.
+function QuickRouteButtons({ lead, onQuickConvert }) {
+  if (lead.durum === 'atandi') return null
+  return (
+    <div className="flex shrink-0 gap-1.5" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => onQuickConvert(lead, 'recruiting')}
+        className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100"
+      >
+        Recruiting
+      </button>
+      <button
+        type="button"
+        onClick={() => onQuickConvert(lead, 'opportunity')}
+        className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100"
+      >
+        Portföy
+      </button>
+    </div>
+  )
+}
+
+// Kolonlar: Tarih · Ad Soyad · Telefon · Tip · Durum · Süreç Durumu · Gönder
+// — Lead Havuzu dağıtım noktası olduğu için Kaynak/Atanan artık listede
+// değil, sadece detay modalinde (bkz. AI_NOTLARI.md radikal sadeleştirme).
 // Süreç Durumu: durum='atandi' ise hedef kaydın (opportunity/recruiting_
 // candidate) GÜNCEL durumunu gösterir — resolveProcessStatus(lead) Leads.jsx
 // tarafından hesaplanıp geçiriliyor, atandi değilse '—' döner.
 // 24 saatten uzun süredir 'yeni' kalan satırlar kırmızı sol kenarlıkla
 // işaretlenir — aynı görsel dil Panel'deki gecikme uyarılarıyla tutarlı.
-export default function LeadTable({ leads, resolveProcessStatus, onRowClick }) {
+export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQuickConvert }) {
   if (leads.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
@@ -56,6 +84,7 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick }) {
               <th className="px-3 py-2.5">Tip</th>
               <th className="px-3 py-2.5">Durum</th>
               <th className="px-3 py-2.5">Süreç Durumu</th>
+              <th className="px-3 py-2.5">Gönder</th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +107,9 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick }) {
                   </td>
                   <td className="px-3 py-3">
                     <ProcessStatusBadge process={resolveProcessStatus(lead)} />
+                  </td>
+                  <td className="px-3 py-3">
+                    <QuickRouteButtons lead={lead} onQuickConvert={onQuickConvert} />
                   </td>
                 </tr>
               )
@@ -108,6 +140,11 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick }) {
                 <span>{leadDateLabel(lead.createdAt)}</span>
                 {process && <ProcessStatusBadge process={process} />}
               </div>
+              {lead.durum !== 'atandi' && (
+                <div className="mt-2 border-t border-ink-50 pt-2">
+                  <QuickRouteButtons lead={lead} onQuickConvert={onQuickConvert} />
+                </div>
+              )}
             </div>
           )
         })}
