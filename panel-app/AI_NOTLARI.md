@@ -3,6 +3,47 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-27 — Meta Lead Ads webhook: gerçek lead teslimatı çalışmıyordu, 3 ayrı kök sebep bulundu ve düzeltildi
+
+Bir gerçek Meta lead'i ("Erdem", Recruiting, 27.07 13:37) portala hiç
+düşmedi. Önceki turda (26.07) "mekanik taraf doğru çalışıyor" denip
+bırakılan "Testing Tool'un test lead'i webhook'a ulaşmıyor" bulgusu
+aslında gerçek lead'lerin de kaybolduğu asıl sorunun belirtisiymiş. Üç
+BAĞIMSIZ kök sebep vardı, üçü de aynı anda düzeltilmeden hiçbiri tek
+başına yeterli olmuyordu:
+
+1. **Sayfa, App'e hiç abone değildi.** App Dashboard'daki "Webhooks"
+   ekranı (Callback URL/Verify Token/leadgen toggle) App'in NEYİ
+   alabileceğini ayarlıyor — ama hedef Sayfa'nın o App'e abone olması
+   için AYRICA `POST /{page-id}/subscribed_apps?subscribed_fields=leadgen`
+   çağrısı yapılması gerekiyor. Bu adım (ilk kurulumda "adım 8" olarak
+   yazılmıştı) hiç yapılmamış — `GET /{page-id}/subscribed_apps` boş
+   `data: []` dönüyordu. Graph API Explorer'dan POST edilerek düzeltildi.
+2. **Lead Access Manager'da CRM'imize erişim verilmemişti.** Bu,
+   `subscribed_apps`'ten TAMAMEN AYRI bir izin katmanı — Meta Business
+   Suite > Ayarlar > Entegrasyonlar > Potansiyel Müşteri Bilgileri
+   Erişimi > CRM'ler sekmesi. Lead Ads Testing Tool'un "Track status"
+   özelliği hatayı açıkça gösterdi: *"CRM access has been revoked from
+   Lead Access Manager"*. "CRM'ler Ata" ile App'imiz eklenerek çözüldü.
+3. **Kayıtlı `META_PAGE_ACCESS_TOKEN` geçersiz hale gelmişti**
+   (`Error validating access token: The session is invalid because the
+   user logged out`, subcode 467) — muhtemelen kişisel oturuma bağlı bir
+   türetmeydi. System User'dan yeni, süresiz bir token üretilip
+   (`GET /{page-id}?fields=access_token` ile Page token'a çevrilip)
+   secret güncellenerek düzeltildi.
+
+**Teşhis yöntemi önemli:** Lead Ads Testing Tool'daki "Track status"
+butonu (Create lead'in hemen altında) gerçek zamanlı teslimat durumunu
+ve HATA MESAJINI gösteriyor — önceki turda bu özellik fark edilmemişti,
+sadece Supabase Invocations/leads tablosuna bakılıyordu. Bir sonraki
+webhook sorununda önce buraya bakılmalı.
+
+Üçü de düzeltildikten sonra "Create lead" ile uçtan uca doğrulandı:
+Testing Tool → Track status "Success" → Supabase Invocations'da 200 POST
+→ `leads` tablosunda satır → Lead Havuzu UI'ında görünür. Kayıp "Erdem"
+lead'i kullanıcı onayıyla elle SQL ile eklendi (`meta_lead_id` NULL,
+`aciklama`'da not düşüldü), test lead'i silindi.
+
 ## 2026-07-26 — Lead Havuzu: elle "+ Yeni Lead" ekleme kaldırıldı
 
 Meta webhook entegrasyonu canlıya alındıktan sonra elle lead ekleme
