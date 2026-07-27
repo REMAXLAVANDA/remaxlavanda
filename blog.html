@@ -29,11 +29,18 @@ img{max-width:100%;display:block;}
 .container{max-width:1100px;margin:0 auto;padding:0 24px;}
 
 nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;top:0;z-index:100;}
-.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;}
-.logo{display:flex;align-items:center;gap:10px;}
-.logo img{height:34px;width:auto;}
-.logo-name{height:18px;width:auto;color:var(--navy);display:block;}
-.nav-back{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:6px;}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px;}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0;min-width:0;}
+.logo img{height:34px;width:auto;flex-shrink:0;}
+.logo-name{height:18px;width:auto;color:var(--navy);display:block;flex-shrink:0;}
+.nav-back{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;}
+@media(max-width:480px){
+  .nav-inner{padding:0 16px;height:58px;}
+  .logo img{height:26px;}
+  .logo-name{height:14px;}
+  .nav-back{font-size:0;}
+  .nav-back::before{content:"←";font-size:20px;}
+}
 .nav-back:hover{color:var(--red);}
 
 .blog-hero{background:var(--navy);padding:56px 24px;}
@@ -45,7 +52,8 @@ nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;t
 .blog-card{border:1px solid #eee;border-radius:8px;overflow:hidden;cursor:pointer;transition:box-shadow .2s;}
 .blog-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1);}
 .blog-card-img{height:180px;object-fit:cover;width:100%;}
-.blog-card-img-placeholder{height:180px;display:flex;align-items:flex-end;padding:16px;}
+.blog-card-img-placeholder{height:180px;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(135deg,var(--navy),#0a2d63);}
+.blog-card-img-placeholder svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:1.4;opacity:.9;}
 .blog-card-img-placeholder span{font-size:11px;color:rgba(255,255,255,.8);font-weight:600;}
 .blog-card-body{padding:20px;}
 .blog-tag{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--red);text-transform:uppercase;margin-bottom:8px;}
@@ -64,7 +72,8 @@ nav{background:var(--white);border-bottom:3px solid var(--red);position:sticky;t
 .article h1{font-family:'Manrope',sans-serif;font-size:30px;font-weight:800;color:var(--navy);line-height:1.3;margin-bottom:16px;}
 .article-meta{font-size:13px;color:#999;margin-bottom:32px;display:flex;gap:16px;flex-wrap:wrap;}
 .article-img{width:100%;border-radius:8px;object-fit:cover;height:360px;margin-bottom:36px;}
-.article-img-placeholder{width:100%;border-radius:8px;height:360px;margin-bottom:36px;display:flex;align-items:center;justify-content:center;}
+.article-img-placeholder{width:100%;border-radius:8px;height:360px;margin-bottom:36px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy),#0a2d63);}
+.article-img-placeholder svg{width:76px;height:76px;stroke:#fff;fill:none;stroke-width:1.2;opacity:.9;}
 .article h2{font-family:'Manrope',sans-serif;font-size:21px;font-weight:700;color:var(--navy);margin:36px 0 12px;}
 .article h3{font-family:'Manrope',sans-serif;font-size:17px;font-weight:700;color:var(--navy);margin:24px 0 10px;}
 .article p{font-size:15px;line-height:1.85;margin-bottom:16px;color:#333;}
@@ -127,7 +136,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <div class="blog-grid" id="blog-grid">
 
         <div class="blog-card" onclick="openArticle('a1')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1565514158740-064f34bd5b33?w=600&q=75&auto=format&fit=crop" alt="Çorlu Fabrika Kiralama" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="7" height="12"></rect><rect x="14" y="3" width="7" height="18"></rect><line x1="3" y1="21" x2="21" y2="21"></line></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Ticari Gayrimenkul</div>
             <h2>Çorlu'da Fabrika Kiralamak: Fiyatlar, Bölgeler ve Dikkat Edilecekler</h2>
@@ -140,7 +149,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
         </div>
 
         <div class="blog-card" onclick="openArticle('a2')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&q=75&auto=format&fit=crop" alt="Gayrimenkul Danışmanı Olmak" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Kariyer</div>
             <h2>Gayrimenkul Danışmanı Olmak: Gerçekler, Beklentiler ve Başlangıç Rehberi</h2>
@@ -153,7 +162,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
         </div>
 
         <div class="blog-card" onclick="openArticle('a3')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=75&auto=format&fit=crop" alt="Çorlu Ticari Gayrimenkul" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Yatırım</div>
             <h2>Çorlu'da Ticari Gayrimenkul Yatırımı: 2026 Piyasa Analizi</h2>
@@ -166,7 +175,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
         </div>
 
         <div class="blog-card" onclick="openArticle('a4')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=600&q=75&auto=format&fit=crop" alt="Çorlu'da Ev Almak" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Konut</div>
             <h2>Çorlu'da Ev Almak: 2026 Alıcı Rehberi</h2>
@@ -179,7 +188,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
         </div>
 
         <div class="blog-card" onclick="openArticle('a5')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&q=75&auto=format&fit=crop" alt="Çorlu'da Arsa Yatırımı" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Arsa</div>
             <h2>Çorlu'da Arsa Yatırımı: Nelere Dikkat Etmeli?</h2>
@@ -192,7 +201,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
         </div>
 
         <div class="blog-card" onclick="openArticle('a6')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=75&auto=format&fit=crop" alt="Gayrimenkul Satarken Doğru Fiyatlama" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Satış</div>
             <h2>Gayrimenkulünüzü Satarken Doğru Fiyatlama Nasıl Yapılır?</h2>
@@ -205,11 +214,50 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
         </div>
 
         <div class="blog-card" onclick="openArticle('a7')">
-          <img class="blog-card-img" src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=75&auto=format&fit=crop" alt="Çorlu'da Kiralık Daire" loading="lazy">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="M21 2l-9.6 9.6"></path><path d="M15.5 7.5l3 3L22 7l-3-3"></path></svg></div>
           <div class="blog-card-body">
             <div class="blog-tag">Kiralama</div>
             <h2>Çorlu'da Kiralık Daire Ararken Dikkat Edilmesi Gerekenler</h2>
             <p>Kontrat imzalamadan önce sormanız gereken sorular ve güncel kira seviyeleri.</p>
+            <div class="blog-card-footer">
+              <span class="blog-card-date">2026</span>
+              <span class="blog-card-read">Okumaya devam →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-card" onclick="openArticle('a8')">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="12" y2="15"></line></svg></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">Vergi</div>
+            <h2>Emlak Vergisi Nasıl Hesaplanır? 2026 Rehberi</h2>
+            <p>Emlak vergisi oranları, ödeme tarihleri ve vergi değeri nasıl belirlenir.</p>
+            <div class="blog-card-footer">
+              <span class="blog-card-date">2026</span>
+              <span class="blog-card-read">Okumaya devam →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-card" onclick="openArticle('a9')">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">Tapu</div>
+            <h2>Tapu Harcı Hesaplama: Alıcı ve Satıcı Ne Kadar Öder?</h2>
+            <p>2026 tapu harcı oranı, hesaplama örneği ve ek masraflar.</p>
+            <div class="blog-card-footer">
+              <span class="blog-card-date">2026</span>
+              <span class="blog-card-read">Okumaya devam →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-card" onclick="openArticle('a10')">
+          <div class="blog-card-img-placeholder"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"></path><polyline points="9 12 11 14 15 10"></polyline></svg></div>
+          <div class="blog-card-body">
+            <div class="blog-tag">Güvenlik</div>
+            <h2>Deprem Yönetmeliğine Uygun Ev Nasıl Anlaşılır?</h2>
+            <p>Ev almadan önce bina güvenliğini kontrol etmenin yolları: hangi belgeler istenmeli.</p>
             <div class="blog-card-footer">
               <span class="blog-card-date">2026</span>
               <span class="blog-card-read">Okumaya devam →</span>
@@ -233,7 +281,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>7 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1565514158740-064f34bd5b33?w=1200&q=80&auto=format&fit=crop" alt="Çorlu Sanayi Bölgesi Fabrika" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="7" height="12"></rect><rect x="14" y="3" width="7" height="18"></rect><line x1="3" y1="21" x2="21" y2="21"></line></svg></div>
 
     <p>Çorlu, Türkiye'nin Avrupa'ya en yakın organize sanayi bölgelerinden birine sahip olmasıyla üretim, lojistik ve depolama alanında kritik bir konumdadır. İstanbul'a 80 km mesafesi, E5 ve TEM otoyollarına erişimi ve güçlü demiryolu bağlantısıyla Çorlu'da fabrika kiralamak hem yerli hem yabancı yatırımcılar için cazip olmaya devam ediyor.</p>
 
@@ -319,7 +367,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>8 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200&q=80&auto=format&fit=crop" alt="Gayrimenkul Danışmanı Kariyer" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
 
     <p>Gayrimenkul danışmanlığı, Türkiye'de giderek daha fazla kişinin ilgi gösterdiği bir kariyer alanı. Ancak sektörün gerçek tablosu, dışarıdan göründüğünden hem daha karmaşık hem de daha fırsat dolu.</p>
 
@@ -392,7 +440,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>7 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80&auto=format&fit=crop" alt="Çorlu Ticari Gayrimenkul" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
 
     <p>Çorlu, son on yılda Türkiye'nin en hızlı büyüyen ticari gayrimenkul pazarlarından biri haline geldi. İstanbul'un taşınan sanayi kapasitesinin önemli bir kısmını absorbe eden şehir, hem yatırımcı hem de kiracı talebiyle canlı bir piyasaya sahip.</p>
 
@@ -458,7 +506,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>8 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80&auto=format&fit=crop" alt="Çorlu'da Ev Almak" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
 
     <p>Çorlu, İstanbul'a yakınlığı, güçlü sanayi altyapısı ve büyüyen nüfusuyla Trakya'nın en hareketli konut piyasalarından biri haline geldi. Sanayide çalışan geniş bir işgücü, İstanbul'dan taşınan aileler ve yatırımcılar aynı anda talep yaratıyor — bu da doğru kararı vermeyi hem önemli hem de biraz kafa karıştırıcı hale getirebiliyor.</p>
 
@@ -547,7 +595,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>7 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80&auto=format&fit=crop" alt="Çorlu'da Arsa Yatırımı" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg></div>
 
     <p>Arsa yatırımı, doğru yapıldığında uzun vadede en yüksek getiriyi sunan gayrimenkul segmentlerinden biri. Ama aynı zamanda en fazla hata yapılan alan — imar durumu net anlaşılmadan, tapu kontrolü atlanarak yapılan bir arsa alımı, yıllarca kullanılamayan veya değer kazanamayan bir mülkle sonuçlanabilir.</p>
 
@@ -622,7 +670,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>6 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80&auto=format&fit=crop" alt="Gayrimenkul Satarken Doğru Fiyatlama" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg></div>
 
     <p>Satıcıların en sık yaptığı hata, gayrimenkulü "biraz yüksekten koyup pazarlıkla ineriz" mantığıyla fiyatlandırmak. Pratikte bu strateji tam tersi etki yaratır: yanlış fiyatlanan bir ilan, doğru alıcıların gözünden kaçar, ilanda uzun süre kalır ve sonunda piyasa değerinin altında satılır.</p>
 
@@ -688,7 +736,7 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <span>2026</span>
       <span>6 dakika okuma</span>
     </div>
-    <img class="article-img" src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80&auto=format&fit=crop" alt="Çorlu'da Kiralık Daire" loading="lazy">
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="M21 2l-9.6 9.6"></path><path d="M15.5 7.5l3 3L22 7l-3-3"></path></svg></div>
 
     <p>Sanayi bölgelerinin çekim gücü nedeniyle Çorlu'da kiralık daire talebi yüksek — bu da hem kiracı hem kiraya veren için sürecin dikkatli yönetilmesini gerektiriyor. Kontrat imzalamadan önce sorulması gereken sorular, ilerideki anlaşmazlıkların büyük kısmını baştan önler.</p>
 
@@ -740,6 +788,217 @@ footer p{font-size:12px;color:rgba(255,255,255,.3);}
       <h3>Size Uygun Kiralık Daireyi Bulalım</h3>
       <p>Bütçenize ve ihtiyaçlarınıza uygun güncel kiralık portföyümüzü birlikte inceleyelim.</p>
       <a href="https://wa.me/905325535559?text=Merhaba%2C%20Çorlu'da%20kiralık%20daire%20arıyorum.%20Bilgi%20alabilir%20miyim%3F" target="_blank" class="btn btn-red">
+        <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        WhatsApp ile Bilgi Al
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAKALE 8: EMLAK VERGİSİ -->
+<div class="article" id="article-a8">
+  <div class="container">
+    <span class="article-back" onclick="closArticle()">← Blog'a Dön</span>
+    <div class="article-tag">Vergi</div>
+    <h1>Emlak Vergisi Nasıl Hesaplanır? 2026 Rehberi</h1>
+    <div class="article-meta">
+      <span>RE/MAX Lavanda</span>
+      <span>2026</span>
+      <span>6 dakika okuma</span>
+    </div>
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="12" y2="15"></line></svg></div>
+
+    <p>Her gayrimenkul sahibinin her yıl ödemesi gereken emlak vergisi, çoğu kişi için kafa karıştırıcı bir konu. Vergi değeri nereden geliyor, oranlar nasıl belirleniyor, ne zaman ödenmesi gerekiyor — bu rehberde hepsini sade bir şekilde anlatıyoruz.</p>
+
+    <h2>Emlak Vergisi Nedir?</h2>
+    <p>Emlak vergisi, sahip olduğunuz bina, arsa veya arazi için belediyeye her yıl ödediğiniz bir vergidir. Türkiye'de 1319 sayılı Emlak Vergisi Kanunu'na göre düzenlenir ve tahsilatı bulunduğunuz ilçe belediyesi tarafından yapılır.</p>
+
+    <h2>Emlak Vergisi Nasıl Hesaplanır?</h2>
+    <p>Vergi tutarı, gayrimenkulün "vergi değeri" üzerinden hesaplanır — bu değer gerçek piyasa fiyatı değil, belediyenin belirlediği rayiç bedeldir ve genellikle piyasa değerinin altındadır. Vergi değeri üzerinden uygulanan oranlar gayrimenkul türüne ve bulunduğu yere göre değişir:</p>
+    <ul>
+      <li><strong>Konut (büyükşehir dışı):</strong> binde 1</li>
+      <li><strong>Konut (büyükşehir sınırları içi):</strong> binde 2</li>
+      <li><strong>Ticari gayrimenkul (büyükşehir dışı):</strong> binde 2</li>
+      <li><strong>Ticari gayrimenkul (büyükşehir sınırları içi):</strong> binde 4</li>
+      <li><strong>Arsa (büyükşehir dışı):</strong> binde 3</li>
+      <li><strong>Arazi (büyükşehir dışı):</strong> binde 1</li>
+    </ul>
+    <p>Örnek: Vergi değeri 2.000.000 TL olan, büyükşehir sınırları dışında bir konut için yıllık emlak vergisi 2.000.000 × 0.001 = 2.000 TL olarak hesaplanır.</p>
+
+    <h2>Emlak Vergisi Ne Zaman Ödenir?</h2>
+    <p>Yıllık emlak vergisi iki taksitte ödenir:</p>
+    <ul>
+      <li><strong>1. taksit:</strong> Mart–Mayıs ayları arasında</li>
+      <li><strong>2. taksit:</strong> Kasım ayı içinde</li>
+    </ul>
+    <p>Ödemeler belediye veznelerinden, anlaşmalı bankalardan veya e-Devlet üzerinden yapılabilir.</p>
+
+    <h2>Vergi Değeri Nasıl Güncellenir?</h2>
+    <p>Vergi değeri, her yıl Hazine ve Maliye Bakanlığı tarafından açıklanan yeniden değerleme oranının yarısı kadar artırılır. Yeni satın alınan bir gayrimenkulde ise ilk vergi değeri, tapu devri sırasında beyan edilen değer üzerinden belirlenir ve takip eden yıldan itibaren güncellenir.</p>
+
+    <h2>Emlak Vergisinde İndirim veya Muafiyet Var mı?</h2>
+    <p>Tek meskeni olan, hiçbir geliri bulunmayan emekliler, engelliler, gaziler ve şehit yakınları, belirli şartları sağlamaları koşuluyla 200 m²'yi geçmeyen tek konutları için emlak vergisinden muaf tutulabilir. Bu muafiyet için ilgili belediyeye başvuru yapılması gerekir.</p>
+
+    <div class="article-faq">
+      <h2>Sıkça Sorulan Sorular</h2>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Emlak vergisi ödenmezse ne olur?</div>
+        <div class="faq-a">Süresinde ödenmeyen emlak vergisine gecikme zammı uygulanır. Uzun süreli ödenmeme durumunda belediye icra takibi başlatabilir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Yeni satın alınan bir evde emlak vergisi kim öder?</div>
+        <div class="faq-a">Tapu devrinin yapıldığı yıl için vergi, yıl başında malik olan kişiden tahsil edilir. Yıl içinde el değiştiren gayrimenkullerde devir sonrası taksitler yeni malike aittir, taraflar arasında bu genelde tapu devri sırasında netleştirilir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Emlak vergisi değeri ile satış fiyatı neden farklı?</div>
+        <div class="faq-a">Emlak vergisi değeri, belediyenin belirlediği rayiç bedeldir ve genellikle piyasa satış fiyatının altında kalır. Vergi bu değer üzerinden hesaplanır, satış fiyatı ise alıcı ve satıcının piyasa koşullarında anlaştığı tutardır.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Emlak vergisi hangi belediyeye ödenir?</div>
+        <div class="faq-a">Gayrimenkulün bulunduğu ilçe belediyesine ödenir. Birden fazla gayrimenkule sahip olan kişiler, her biri için ayrı ayrı ilgili belediyeye ödeme yapar.</div>
+      </div>
+    </div>
+
+    <div class="article-cta">
+      <h3>Gayrimenkul Süreçlerinizde Yanınızdayız</h3>
+      <p>Alım, satım veya kiralama sürecinizde vergi ve masraf kalemleri konusunda bilgi almak için bize ulaşın.</p>
+      <a href="https://wa.me/905325535559?text=Merhaba%2C%20emlak%20vergisi%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" class="btn btn-red">
+        <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        WhatsApp ile Bilgi Al
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAKALE 9: TAPU HARCI HESAPLAMA -->
+<div class="article" id="article-a9">
+  <div class="container">
+    <span class="article-back" onclick="closArticle()">← Blog'a Dön</span>
+    <div class="article-tag">Tapu</div>
+    <h1>Tapu Harcı Hesaplama: Alıcı ve Satıcı Ne Kadar Öder?</h1>
+    <div class="article-meta">
+      <span>RE/MAX Lavanda</span>
+      <span>2026</span>
+      <span>5 dakika okuma</span>
+    </div>
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg></div>
+
+    <p>Bir gayrimenkul alım satımında en çok sorulan sorulardan biri: "Tapu harcı ne kadar, kim öder?" Bu rehberde güncel oranı, hesaplama mantığını ve tapu devri gününde karşılaşacağınız diğer masrafları netleştiriyoruz.</p>
+
+    <h2>Tapu Harcı Oranı Nedir?</h2>
+    <p>Tapu harcı, satış bedeli üzerinden hesaplanan ve tapu devri sırasında ödenen bir harçtır. Güncel oran, satış bedelinin <strong>%4</strong>'üdür ve kanunen alıcı ile satıcı arasında yarı yarıya paylaştırılır — yani her taraf %2 öder.</p>
+
+    <h2>Tapu Harcı Nasıl Hesaplanır?</h2>
+    <p>Hesaplama, tapuda beyan edilen satış bedeli üzerinden yapılır. Örnek:</p>
+    <ul>
+      <li><strong>Satış bedeli:</strong> 3.000.000 TL</li>
+      <li><strong>Toplam tapu harcı (%4):</strong> 120.000 TL</li>
+      <li><strong>Alıcının payı (%2):</strong> 60.000 TL</li>
+      <li><strong>Satıcının payı (%2):</strong> 60.000 TL</li>
+    </ul>
+    <p>Önemli bir nokta: tapuda beyan edilen satış bedeli, gayrimenkulün emlak vergisi değerinden düşük olamaz. Tapu müdürlüğü bu iki değeri karşılaştırır ve yüksek olanı esas alır.</p>
+
+    <h2>Tapu Devrinde Ödenen Diğer Masraflar</h2>
+    <ul>
+      <li><strong>Döner sermaye ücreti:</strong> Tapu müdürlüğünün işlem hizmet bedeli, her yıl güncellenen sabit bir tutardır.</li>
+      <li><strong>DASK poliçesi:</strong> Konut devri için zorunludur, poliçe olmadan tapu işlemi tamamlanmaz.</li>
+      <li><strong>İpotek tesis masrafı:</strong> Kredi kullanan alıcılar için bankanın ipotek tesis ettirmesi ek bir masraf kalemidir.</li>
+      <li><strong>Emlakçı komisyonu:</strong> Bir danışman aracılığıyla yapılan işlemlerde, genellikle satış bedelinin %2'si + KDV oranında, alıcı ve satıcıdan ayrı ayrı tahsil edilir.</li>
+    </ul>
+
+    <h2>Taraflar Farklı Bir Paylaşım Yapabilir mi?</h2>
+    <p>Kanundaki %2-%2 paylaşımı emredici değildir — taraflar kendi aralarında anlaşarak farklı bir dağılım (örneğin harcın tamamının alıcı tarafından ödenmesi) belirleyebilir. Bu durumda anlaşmanın satış sözleşmesinde açıkça yazılması, ileride anlaşmazlık yaşanmasını önler.</p>
+
+    <div class="article-faq">
+      <h2>Sıkça Sorulan Sorular</h2>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Tapu harcı düşük beyan edilebilir mi?</div>
+        <div class="faq-a">Hayır, bu yasal bir risktir. Tapuda gerçek satış bedelinin altında beyan yapmak, sonradan tespit edilmesi halinde cezalı tarhiyat ve gecikme faizine yol açar. Beyan edilen bedel ayrıca emlak vergisi değerinin altında olamaz.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Tapu harcı kredi kartıyla ödenebilir mi?</div>
+        <div class="faq-a">Evet, tapu müdürlüklerinde anlaşmalı bankaların POS cihazlarından kredi kartıyla ödeme yapılabilir, ayrıca banka şubelerinden veya internet bankacılığından da ödenebilir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">İlk konut alımında tapu harcında indirim var mı?</div>
+        <div class="faq-a">Genel oran %4'tür ve konut türüne özel kalıcı bir indirim bulunmamaktadır; dönemsel kampanyalar Hazine ve Maliye Bakanlığı tarafından ayrıca duyurulur ve geçicidir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Tapu harcı ne zaman ödenir?</div>
+        <div class="faq-a">Tapu devri işleminden önce ödenmesi gerekir — tapu müdürlüğü harç ödemesi yapılmadan devri gerçekleştirmez.</div>
+      </div>
+    </div>
+
+    <div class="article-cta">
+      <h3>Tapu Sürecinde Yanınızdayız</h3>
+      <p>Alım satım sürecinizdeki tüm masraf kalemlerini birlikte netleştirelim.</p>
+      <a href="https://wa.me/905325535559?text=Merhaba%2C%20tapu%20harc%C4%B1%20ve%20masraflar%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" class="btn btn-red">
+        <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        WhatsApp ile Bilgi Al
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MAKALE 10: DEPREM YÖNETMELİĞİ VE BİNA GÜVENLİĞİ -->
+<div class="article" id="article-a10">
+  <div class="container">
+    <span class="article-back" onclick="closArticle()">← Blog'a Dön</span>
+    <div class="article-tag">Güvenlik</div>
+    <h1>Deprem Yönetmeliğine Uygun Ev Nasıl Anlaşılır?</h1>
+    <div class="article-meta">
+      <span>RE/MAX Lavanda</span>
+      <span>2026</span>
+      <span>7 dakika okuma</span>
+    </div>
+    <div class="article-img-placeholder"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"></path><polyline points="9 12 11 14 15 10"></polyline></svg></div>
+
+    <p>Son yıllarda yaşanan depremler, ev alırken bina güvenliğini sorgulamayı herkes için öncelikli bir konu haline getirdi. Ama bir binanın deprem yönetmeliğine uygun olup olmadığını dışarıdan bakarak anlamak mümkün değil — hangi belgelerin istenmesi gerektiğini bilmek gerekiyor.</p>
+
+    <h2>Öncelikle: Hangi Yönetmelik, Hangi Tarih?</h2>
+    <p>Türkiye'de bina deprem yönetmelikleri zaman içinde güncellendi — en son ve en kapsamlı güncelleme 2018 Türkiye Bina Deprem Yönetmeliği'dir. Bir binanın inşaat ruhsat tarihi, hangi yönetmeliğe göre projelendirildiğini gösterir. Genel kural olarak, ruhsat tarihi ne kadar yeniyse bina o kadar güncel deprem standartlarına göre tasarlanmış olur — ancak tek başına yeterli bir gösterge değildir, uygulamanın projeye uygun yapılmış olması da kritiktir.</p>
+
+    <h2>Ev Alırken İstenmesi Gereken Belgeler</h2>
+    <ul>
+      <li><strong>Yapı ruhsatı:</strong> Binanın hangi tarihte, hangi projeyle inşa edildiğini gösterir.</li>
+      <li><strong>Yapı kullanım izni (iskan):</strong> Binanın projesine uygun tamamlandığını ve kullanıma uygun olduğunu belgeler.</li>
+      <li><strong>Zemin etüdü raporu:</strong> Arsanın zemin yapısı ve taşıma kapasitesi hakkında bilgi verir — özellikle sıvılaşma riski olan bölgelerde kritik önemdedir.</li>
+      <li><strong>Yapı denetim raporları:</strong> 2001 sonrası inşa edilen binalarda yapı denetim şirketleri tarafından düzenlenen, inşaatın projeye uygunluğunu belgeleyen raporlardır.</li>
+    </ul>
+
+    <h2>Bağımsız Deprem Risk Analizi Yaptırmak</h2>
+    <p>Belgeler yeterli görülmüyorsa, lisanslı bir mühendislik firmasına "deprem risk analizi" veya "performans analizi" yaptırmak mümkündür. Bu analiz, binanın taşıyıcı sistemini, beton kalitesini ve mevcut durumunu inceleyerek somut bir risk skoru verir. Özellikle 2000 öncesi yapılmış binalarda bu adım ciddi şekilde değerlendirilmelidir.</p>
+
+    <h2>Kentsel Dönüşüm Kapsamındaki Binalarda Dikkat</h2>
+    <p>Riskli yapı tespiti yapılmış veya kentsel dönüşüm sürecine girmiş binalarda satın alma kararı çok daha dikkatli değerlendirilmelidir. Riskli yapı raporu olan bir gayrimenkul, düşük fiyatla cazip görünse de yıkım/yeniden yapım sürecinin belirsizlikleri (süre, hak sahipliği, ek maliyet) göz önünde bulundurulmalıdır.</p>
+
+    <h2>Gözle Görülebilecek Uyarı İşaretleri</h2>
+    <p>Uzman raporunun yerini tutmasa da, gezme sırasında dikkat edilebilecek bazı işaretler vardır: duvarlarda çapraz çatlaklar, kolonlarda görünür hasar veya onarım izleri, bodrum katta düşük tavan yüksekliği ile orantısız kolon kalınlığı, ve binanın zemin katının ticari amaçla aşırı genişletilmiş (perde duvarların kesilmiş) olması.</p>
+
+    <div class="article-faq">
+      <h2>Sıkça Sorulan Sorular</h2>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Yapı ruhsatı yeni olan her bina güvenli midir?</div>
+        <div class="faq-a">Ruhsat tarihi güncel yönetmeliğe göre projelendirildiğini gösterir, ancak uygulamanın projeye tam uygun yapıldığından emin olmak için yapı denetim raporlarının da incelenmesi gerekir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Deprem risk analizi ne kadar sürer ve maliyeti nedir?</div>
+        <div class="faq-a">Bina büyüklüğüne göre değişmekle birlikte genellikle birkaç gün ile birkaç hafta arasında sürer. Maliyet, binanın büyüklüğüne ve analiz kapsamına (görsel inceleme mi, karot testli detaylı analiz mi) göre değişir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Eski bir binada oturmak tamamen riskli midir?</div>
+        <div class="faq-a">Yaş tek başına belirleyici değildir — bazı eski binalar iyi mühendislik ve düzenli bakım sayesinde sağlam olabilirken, bazı yeni binalarda uygulama hataları görülebilir. Belgeye dayalı değerlendirme her zaman tahminden daha güvenilirdir.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Riskli yapı tespiti olan binayı satın almak mantıklı mı?</div>
+        <div class="faq-a">Fiyat avantajı sunabilir, ancak dönüşüm sürecinin süresi ve ek maliyetleri iyi hesaplanmalıdır. Bu tür bir alım kararı öncesinde mutlaka ilgili belediyeden sürecin güncel durumu araştırılmalıdır.</div>
+      </div>
+    </div>
+
+    <div class="article-cta">
+      <h3>Güvenli Bir Ev Bulmanıza Yardımcı Olalım</h3>
+      <p>Portföyümüzdeki gayrimenkullerin yapı belgelerini birlikte değerlendirelim.</p>
+      <a href="https://wa.me/905325535559?text=Merhaba%2C%20ev%20alırken%20bina%20güvenliği%20konusunda%20bilgi%20almak%20istiyorum." target="_blank" class="btn btn-red">
         <svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.27-.1-.46-.15-.66.15-.2.3-.76.95-.93 1.15-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.4-1.48-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.1 4.5.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.7-.7 1.94-1.37.24-.67.24-1.24.17-1.36-.07-.12-.27-.2-.57-.34z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.94-1.46A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.1.91.93-3-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>
         WhatsApp ile Bilgi Al
       </a>
