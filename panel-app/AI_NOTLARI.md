@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-27 — Meta Lead Ads webhook: Kampanya/Reklam Seti/Reklam adı birleşik kaydediliyor
+
+Çok sayıda farklı isimlendirilmiş kampanya açıldığı için `RECRUIT_.../
+SATICI_.../MARKA_...` öneki kuralına güvenmek yerine (kullanıcı: "az işlev,
+basit seçenek" istedi — isimlendirme kuralı hatırlamak istemiyor),
+`fetchAdInfo` artık `adset{name}` alanını da çekiyor ve `reklam_adi`
+kolonuna **"Kampanya Adı / Reklam Seti Adı / Reklam Adı"** formatında
+birleşik metin yazıyor. `kampanya_kodu` (RECRUIT/SATICI/MARKA) çıkarımı
+hâlâ dursun diye bırakıldı (eşleşirse `tip` otomatik doğru gelir, zararsız)
+ama artık tek güvenilir yol değil — broker Lead Havuzu'nda birleşik ad/
+reklam bilgisine bakıp Recruiting/Portföy'ü elle seçiyor.
+
 ## 2026-07-27 — Meta Lead Ads webhook: gerçek lead teslimatı çalışmıyordu, 3 ayrı kök sebep bulundu ve düzeltildi
 
 Bir gerçek Meta lead'i ("Erdem", Recruiting, 27.07 13:37) portala hiç

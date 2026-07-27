@@ -124,10 +124,10 @@ async function fetchLeadFieldData(leadgenId: string) {
 }
 
 async function fetchAdInfo(adId: string) {
-  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${adId}?fields=name,campaign{name}&access_token=${META_PAGE_ACCESS_TOKEN}`
+  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${adId}?fields=name,adset{name},campaign{name}&access_token=${META_PAGE_ACCESS_TOKEN}`
   const res = await fetch(url)
   if (!res.ok) throw new Error(`reklam bilgisi çekilemedi: ${res.status} ${await res.text()}`)
-  return (await res.json()) as { name?: string; campaign?: { name?: string } }
+  return (await res.json()) as { name?: string; adset?: { name?: string }; campaign?: { name?: string } }
 }
 
 // deno-lint-ignore no-explicit-any
@@ -167,7 +167,12 @@ async function processLeadgenChange(admin: any, value: Record<string, unknown>) 
   if (adId && adId !== '0') {
     try {
       const adInfo = await fetchAdInfo(adId)
-      reklamAdi = adInfo?.name ?? null
+      // Kampanya adı çoğu zaman RECRUIT/SATICI/MARKA koduyla başlamıyor
+      // (çok sayıda farklı isimlendirilmiş kampanya açılıyor) — kod tahmin
+      // etmek yerine üç seviyeyi (Kampanya/Reklam Seti/Reklam) tek metinde
+      // birleştirip kaydediyor, broker Lead Havuzu'nda buna bakıp
+      // Recruiting/Portföy'ü elle seçiyor (bkz. AI_NOTLARI.md).
+      reklamAdi = [adInfo?.campaign?.name, adInfo?.adset?.name, adInfo?.name].filter(Boolean).join(' / ') || null
       kampanyaKodu = extractKampanyaKodu(adInfo?.campaign?.name)
     } catch (err) {
       // Reklam bilgisi çekilemese bile lead kendisi hâlâ kaydedilebilir
