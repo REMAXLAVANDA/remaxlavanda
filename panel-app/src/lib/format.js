@@ -22,13 +22,58 @@ export function capitalizeWords(text) {
     .join(' ')
 }
 
+// TAMAMI büyük harfle yazılmış bir notu küçültürken özel isimlerin
+// (il/ilçe adları) büyük kalması için — kod bir kelimenin özel isim olup
+// olmadığını genel olarak bilemez (kişi adları için kapsamlı bir sözlük
+// pratik değil), ama yer adları sonlu ve bilinen bir liste. Kapsam
+// bilerek 81 il + ofisin çalıştığı bölgedeki sık geçen ilçe/semtlerle
+// sınırlı (bkz. "dil bilgisine uygun olsun" isteği — tam NLP çözümü
+// olmadan ulaşılabilecek en pratik yaklaşım budur).
+const PROPER_NOUNS = [
+  'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+  'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+  'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+  'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+  'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+  'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+  'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt',
+  'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak',
+  'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
+  'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce',
+  // Ofis bölgesinde sık geçen ilçeler — gerçek not örneklerinde görüldü.
+  'Çorlu', 'Çerkezköy', 'Ergene', 'Marmaraereğlisi', 'Muratlı', 'Saray', 'Malkara', 'Süleymanpaşa',
+]
+const PROPER_NOUN_MAP = new Map(PROPER_NOUNS.map((n) => [n.toLocaleLowerCase('tr-TR'), n]))
+
 // Not/açıklama/başlık gibi tek cümle veya birkaç cümlelik serbest metin
-// alanları için — capitalizeWords'ün aksine SADECE metnin ilk harfini
+// alanları için — capitalizeWords'ün aksine sadece metnin ilk harfini
 // büyütür, geri kalanına dokunmaz (her kelimeyi büyütmek cümle içinde
 // yanlış görünür, ör. "Neden Katılamıyorsun" gibi).
+//
+// İSTİSNA: metnin TAMAMI büyük harfle yazılmışsa (ör. caps lock açıkken
+// girilen notlar) önce küçük harfe çevrilir (PROPER_NOUNS'taki kelimeler
+// hariç, onlar büyük kalır), SONRA ilk harf büyütülür — aksi halde
+// "geri kalanına dokunma" kuralı caps-lock notlarını olduğu gibi
+// bırakırdı (bkz. "hala büyük yazmaya devam edilebiliyor, yazan hatalı
+// bile olsa bizim formatta devam etsin" isteği). Karışık/doğru yazılmış
+// metne (ör. içinde özel isim geçen normal bir cümleye) dokunulmaz.
 export function capitalizeFirst(text) {
   if (!text) return text
-  return text.charAt(0).toLocaleUpperCase('tr-TR') + text.slice(1)
+  const isAllCaps = text === text.toLocaleUpperCase('tr-TR') && text !== text.toLocaleLowerCase('tr-TR')
+  let base = text
+  if (isAllCaps) {
+    base = text
+      .split(/(\s+)/)
+      .map((token) => {
+        const match = token.match(/^([^\p{L}]*)([\p{L}]+)([^\p{L}]*)$/u)
+        if (!match) return token
+        const [, pre, word, post] = match
+        const lower = word.toLocaleLowerCase('tr-TR')
+        return pre + (PROPER_NOUN_MAP.get(lower) ?? lower) + post
+      })
+      .join('')
+  }
+  return base.charAt(0).toLocaleUpperCase('tr-TR') + base.slice(1)
 }
 
 // Kullanıcının yazdığı ham rakamları binlik ayraçlı gösterime çevirir —

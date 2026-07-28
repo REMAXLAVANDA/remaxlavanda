@@ -25,6 +25,20 @@ describe('capitalizeFirst', () => {
     expect(capitalizeFirst('')).toBe('')
     expect(capitalizeFirst(undefined)).toBe(undefined)
   })
+
+  it('tamamen büyük harfle yazılmışsa küçültüp sadece ilk harfi büyütür', () => {
+    expect(capitalizeFirst('SAHİBİNDEN DE BULUNAN İLAN İÇİN ARADILAR')).toBe('Sahibinden de bulunan ilan için aradılar')
+  })
+
+  it('küçültürken bilinen yer adlarını (il/ilçe) özel isim olarak korur', () => {
+    expect(capitalizeFirst('ÇORLU PARK EVLER BÖLGESİNDE BULUNAN İLAN İÇİN ARADI.')).toBe(
+      'Çorlu park evler bölgesinde bulunan ilan için aradı.',
+    )
+  })
+
+  it('karışık/doğru yazılmış metne dokunmaz', () => {
+    expect(capitalizeFirst('İstanbul merkezli bir firma aradı')).toBe('İstanbul merkezli bir firma aradı')
+  })
 })
 
 describe('formatThousands / parseThousands', () => {
