@@ -4,6 +4,7 @@ import {
   PhoneCall,
   Inbox,
   Target,
+  UserPlus,
   CalendarDays,
   GraduationCap,
   Trophy,
@@ -23,8 +24,12 @@ import {
   education as educationProvider,
   league as leagueProvider,
   users as usersProvider,
+  leads as leadsProvider,
+  recruiting as recruitingProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, computeReklamKoduConversion, computeSourceConversion, maskPhone } from '../lib/callLogs'
+import { isStaleLead } from '../lib/leads'
+import { matchesKayitTipiFilter } from '../lib/recruiting'
 import { ROLES } from '../lib/roles'
 import {
   canViewEvent,
@@ -49,6 +54,7 @@ import DateRangeFilter from '../components/common/DateRangeFilter'
 import SourceConversionBoard from '../components/operasyon/SourceConversionBoard'
 import ReklamKoduConversionBoard from '../components/operasyon/ReklamKoduConversionBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
+import ProcessSummaryTable from '../components/panel/ProcessSummaryTable'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
@@ -70,6 +76,8 @@ async function loadAll() {
     users,
     ciroGirisleri,
     musteriReviewCounts,
+    leads,
+    recruitingCandidates,
   ] = await Promise.all([
     callLogsProvider.list(),
     opportunitiesProvider.list(),
@@ -86,6 +94,12 @@ async function loadAll() {
     usersProvider.listAll(),
     leagueProvider.listCiroGirisleri(),
     leagueProvider.listMusteriReviewCounts(),
+    // leads_select/recruiting_candidates_select RLS'i broker/owner
+    // dışındaki rollerde boş dizi döner (hata değil) — Süreç Özeti
+    // tablosu zaten sadece isBrokerOrOwner'da render ediliyor, ama veri
+    // burada koşulsuz çekiliyor (Panel'in geri kalanıyla aynı desen).
+    leadsProvider.list(),
+    recruitingProvider.list(),
   ])
   return {
     calls,
@@ -103,6 +117,8 @@ async function loadAll() {
     users,
     ciroGirisleri,
     musteriReviewCounts,
+    leads,
+    recruitingCandidates,
   }
 }
 
@@ -170,52 +186,6 @@ function ProgressRing({ percent, size = 88, strokeWidth = 8, color = '#003da5', 
   )
 }
 
-// Çok dilimli halka — StatCard'ların ana göstergesi. Altındaki renkli
-// nokta/lejant listesiyle AYNI segments dizisini kullanır ki halka ile
-// lejant hep birebir eşleşsin (biri değişince öbürü otomatik tutarlı
-// kalsın, iki ayrı yerde elle senkronize edilmesin). Dilimler her zaman
-// TAM bir bölünmedir (toplamları %100'e tamamlanır), farklı eksenden
-// (ör. kişi sayısı gibi) bir değer buraya karıştırılmaz — bkz. StatCard
-// çağrı noktalarındaki "note" alanı, o tür farklı-birimli bilgiler için.
-function SegmentedRing({ segments, size = 88, strokeWidth = 8, centerLabel, fontSize }) {
-  const r = (size - strokeWidth) / 2
-  const c = 2 * Math.PI * r
-  const clean = (segments ?? []).filter((s) => s.value > 0)
-  const total = clean.reduce((sum, s) => sum + s.value, 0)
-  let cumulative = 0
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={strokeWidth} />
-        {total > 0 &&
-          clean.map((s) => {
-            const segLen = (s.value / total) * c
-            const startLen = (cumulative / total) * c
-            cumulative += s.value
-            return (
-              <circle
-                key={s.label}
-                cx={size / 2}
-                cy={size / 2}
-                r={r}
-                fill="none"
-                stroke={s.color}
-                strokeWidth={strokeWidth}
-                strokeDasharray={`${segLen} ${c - segLen}`}
-                strokeDashoffset={-startLen}
-              />
-            )
-          })}
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-bold text-ink-900" style={{ fontSize: fontSize ?? size * 0.22 }}>
-          {centerLabel}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 // Uygulamada profil fotoğrafı YOK — mevcut kural (bkz. ProfileMenu,
 // HealthScoreRow) daireye baş harf koymak, mockup'taki avatar fotoğrafları
 // yerine bu kullanılıyor.
@@ -243,43 +213,6 @@ function ringColorFor(percent) {
   if (percent >= 100) return '#16a34a'
   if (percent >= 50) return '#f59e0b'
   return '#dc1c2e'
-}
-
-// Broker'ın istediği "rapor odaklı" özet kartları — yüzdelik halka + kısa
-// dağılım, tıklanınca ilgili modüle götürüyor. Halka ve altındaki lejant
-// AYNI segments dizisinden besleniyor (bkz. SegmentedRing notu) — yüzde
-// metni de her zaman bu dilimlerden birinin (asıl "başarı" dilimi) oranı,
-// böylece halka/lejant/yüzde üçü hep birbirini doğruluyor. "note" ise
-// segmentlerle aynı eksende OLMAYAN (ör. kişi sayısı gibi farklı birimden)
-// ek bilgi için — halkaya karıştırılmaz, ayrı bir satır olarak gösterilir.
-function StatCard({ icon: Icon, to, label, percent, ratioLabel, segments, note }) {
-  return (
-    <Link
-      to={to}
-      className="rounded-2xl border border-ink-100 bg-white p-5 transition-colors hover:border-brand-300 hover:bg-brand-50/40"
-    >
-      <div className="mb-4 flex items-center gap-2 text-ink-400">
-        <Icon size={15} />
-        <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <SegmentedRing segments={segments} centerLabel={`%${Math.max(0, Math.min(100, Math.round(percent || 0)))}`} />
-        {ratioLabel && <p className="mt-2 text-xs text-ink-400">{ratioLabel}</p>}
-      </div>
-      {segments?.length > 0 && (
-        <div className="mt-4 space-y-1.5 border-t border-ink-100 pt-3">
-          {segments.map((s) => (
-            <div key={s.label} className="flex items-center gap-2 text-xs">
-              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
-              <span className="text-ink-500">{s.label}</span>
-              <span className="ml-auto font-medium text-ink-800">{s.value}</span>
-            </div>
-          ))}
-          {note && <p className="pt-1 text-[11px] text-ink-400">{note}</p>}
-        </div>
-      )}
-    </Link>
-  )
 }
 
 // "Dikkat Gerekiyor" satırı — broker/owner'ın sabah ilk açtığında görmesi
@@ -528,6 +461,26 @@ export default function Panel() {
     return { total, acik, claimed, kapandi, iptal }
   }, [data, filters])
 
+  // --- Broker raporu: Süreç Özeti tablosu (bkz. ProcessSummaryTable) —
+  // Lead Havuzu/Recruiting bilerek tarih filtresinden BAĞIMSIZ, "panele
+  // girer girmez o ANKİ duruma hakim olmak" isteği tarih aralığı
+  // seçimine göre değişmemeli (bkz. AI_NOTLARI.md, "Dikkat Gerekiyor"
+  // bölümüyle aynı gerekçe).
+  const leadStats = useMemo(() => {
+    if (!data) return { yeni: 0, stale: 0 }
+    const yeni = data.leads.filter((l) => l.durum === 'yeni').length
+    const stale = data.leads.filter((l) => isStaleLead(l)).length
+    return { yeni, stale }
+  }, [data])
+
+  const recruitingStats = useMemo(() => {
+    if (!data) return { yeniBasvuru: 0, aktifSurecte: 0 }
+    const aktifKayitlar = data.recruitingCandidates.filter((c) => matchesKayitTipiFilter(c, 'aktif'))
+    const yeniBasvuru = aktifKayitlar.filter((c) => c.durum === 'yeni_basvuru').length
+    const aktifSurecte = aktifKayitlar.filter((c) => c.durum !== 'olumsuz').length
+    return { yeniBasvuru, aktifSurecte }
+  }, [data])
+
   // --- Broker raporu: yaklaşan etkinliklerin ne kadarının katılım listesi
   // netleşmiş olduğu (herkes RSVP vermiş) — StatCard'daki halkanın oranı bu,
   // alttaki dağılım da AYNI netleşti/bekliyor ayrımı (etkinlik türü değil —
@@ -558,6 +511,64 @@ export default function Panel() {
     return { completed, total }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, isEducationManager, teamMembers, user])
+
+  // --- Broker raporu: Süreç Özeti tablosu satırları — eski dağınık
+  // halka/kart grid'i yerine (bkz. AI_NOTLARI.md) TEK bir tabloda, her
+  // sürecin özet sayısı. attention: kırmızı rozetle vurgulanan, aksiyon
+  // gerektiren sayı (0 ise rozet hiç gösterilmez).
+  const processSummaryRows = useMemo(
+    () => [
+      {
+        label: 'Operasyon',
+        icon: PhoneCall,
+        to: '/operasyon',
+        primary: `${callStats.total} çağrı`,
+        detail: `${callStats.total - callStats.assigned} atanmamış · ${callStats.donusYapilmadi} dönüş bekliyor`,
+        attentionCount: callStats.total - callStats.assigned + callStats.donusYapilmadi,
+      },
+      {
+        label: 'Fırsatlar / Portföy',
+        icon: Target,
+        to: '/firsatlar',
+        primary: `${opportunityStats.acik} açık`,
+        detail: `${opportunityStats.claimed} alındı · ${opportunityStats.kapandi} kapandı`,
+        attentionCount: 0,
+      },
+      {
+        label: 'Lead Havuzu',
+        icon: Inbox,
+        to: '/leads',
+        primary: `${leadStats.yeni} yeni`,
+        detail: `${leadStats.stale} kayıt 24 saattir işlenmedi`,
+        attentionCount: leadStats.stale,
+      },
+      {
+        label: 'Recruiting',
+        icon: UserPlus,
+        to: '/recruiting',
+        primary: `${recruitingStats.yeniBasvuru} yeni başvuru`,
+        detail: `${recruitingStats.aktifSurecte} aday süreçte`,
+        attentionCount: 0,
+      },
+      {
+        label: 'Etkinlikler',
+        icon: CalendarDays,
+        to: '/takvim',
+        primary: `${upcomingEvents.length} yaklaşan`,
+        detail: `${eventReadiness.ready} / ${eventReadiness.total} netleşti`,
+        attentionCount: 0,
+      },
+      {
+        label: 'Eğitim',
+        icon: GraduationCap,
+        to: '/egitim',
+        primary: `${educationGaps.length} kişi eksik`,
+        detail: `${educationCompletion.completed} / ${educationCompletion.total} madde tamamlandı`,
+        attentionCount: educationGaps.length,
+      },
+    ],
+    [callStats, opportunityStats, leadStats, recruitingStats, upcomingEvents, eventReadiness, educationGaps, educationCompletion],
+  )
 
   // --- Broker raporu: portalı en çok/en az kullanan (Supabase Auth'un
   // gerçekten tuttuğu son giriş zamanına göre — mock/uydurma veri değil).
@@ -975,6 +986,16 @@ export default function Panel() {
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
+      {/* Süreç Özeti — broker/owner panele girer girmez TÜM süreçlere
+          (Operasyon/Fırsatlar/Lead Havuzu/Recruiting/Etkinlik/Eğitim) tek
+          tabloda hakim olabilsin diye en üstte (bkz. AI_NOTLARI.md, eski
+          dağınık halka/kart grid'inin yerine geçti). */}
+      {!loading && !error && isBrokerOrOwner && (
+        <div className="mb-5">
+          <ProcessSummaryTable rows={processSummaryRows} />
+        </div>
+      )}
+
       {!loading && !error && isBrokerOrOwner && attentionItems.length > 0 && (
         <div className="mb-5">
           <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-400">
@@ -985,59 +1006,6 @@ export default function Panel() {
               <AttentionRow key={item.id} icon={item.icon} text={item.text} to={item.to} />
             ))}
           </div>
-        </div>
-      )}
-
-      {!loading && !error && isBrokerOrOwner && (
-        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard
-            icon={PhoneCall}
-            to="/operasyon"
-            label="Operasyon"
-            percent={callStats.total ? Math.round((callStats.donusYapildi / callStats.total) * 100) : 0}
-            ratioLabel={`${callStats.donusYapildi} / ${callStats.total} dönüş yapıldı`}
-            segments={[
-              { label: 'Atanmadı', value: callStats.total - callStats.assigned, color: '#9ca3af' },
-              { label: 'Dönüş Yapıldı', value: callStats.donusYapildi, color: '#16a34a' },
-              { label: 'Bekliyor', value: callStats.donusYapilmadi, color: '#f59e0b' },
-            ]}
-          />
-          <StatCard
-            icon={Target}
-            to="/firsatlar"
-            label="Fırsatlar / Portföy"
-            percent={opportunityStats.total ? Math.round((opportunityStats.kapandi / opportunityStats.total) * 100) : 0}
-            ratioLabel={`${opportunityStats.kapandi} / ${opportunityStats.total} kapandı`}
-            segments={[
-              { label: 'Açık', value: opportunityStats.acik, color: '#9ca3af' },
-              { label: 'Alındı', value: opportunityStats.claimed, color: '#0369a1' },
-              { label: 'Kapandı', value: opportunityStats.kapandi, color: '#16a34a' },
-              { label: 'İptal', value: opportunityStats.iptal, color: '#dc1c2e' },
-            ]}
-          />
-          <StatCard
-            icon={CalendarDays}
-            to="/takvim"
-            label="Yaklaşan Etkinlikler"
-            percent={eventReadiness.total ? Math.round((eventReadiness.ready / eventReadiness.total) * 100) : 0}
-            ratioLabel={`${eventReadiness.ready} / ${eventReadiness.total} netleşti`}
-            segments={[
-              { label: 'Netleşti', value: eventReadiness.ready, color: '#7c3aed' },
-              { label: 'Bekliyor', value: eventReadiness.total - eventReadiness.ready, color: '#9ca3af' },
-            ]}
-          />
-          <StatCard
-            icon={GraduationCap}
-            to="/egitim"
-            label="Eksik Eğitim / Checklist"
-            percent={educationCompletion.total ? Math.round((educationCompletion.completed / educationCompletion.total) * 100) : 0}
-            ratioLabel={`${educationCompletion.completed} / ${educationCompletion.total} madde tamamlandı`}
-            segments={[
-              { label: 'Tamamlanan', value: educationCompletion.completed, color: '#16a34a' },
-              { label: 'Eksik', value: educationCompletion.total - educationCompletion.completed, color: '#dc1c2e' },
-            ]}
-            note={`${educationGaps.length} kişi %100 altında`}
-          />
         </div>
       )}
 
