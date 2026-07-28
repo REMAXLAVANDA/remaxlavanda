@@ -200,6 +200,7 @@ export default function OperasyonTab() {
           onSubmit={handleCreate}
           submitting={submitting}
           inviteeOptions={inviteeOptions}
+          existingCalls={calls ?? []}
         />
       )}
 

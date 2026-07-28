@@ -264,6 +264,7 @@ export default function Leads() {
             kaynakLeadId: convertTarget.lead.id,
           }}
           danismanOptions={danismanOptions}
+          existingCandidates={data?.recruitingCandidates ?? []}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleRecruitingSubmit}
           submitting={submitting}

@@ -1,16 +1,29 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { Info } from 'lucide-react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
-import { capitalizeFirst, capitalizeWords } from '../../lib/format'
+import { capitalizeFirst, capitalizeWords, relativeTime } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
 const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '', notlar: '', reklamKodu: '' }
 
-export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOptions }) {
+const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
+
+export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOptions, existingCalls = [] }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const phoneRef = useRef(null)
   const canSubmit = form.arayanAd.trim().length > 0 && isPhoneComplete(form.arayanTelefon)
+
+  // Aynı numarayla daha önce çağrı girilmiş mi — engellemiyor, sadece
+  // bilgilendiriyor (bkz. "tekrar giriliyorsa uyarı verse" isteği).
+  // Telefon tam (11 hane) olmadan kontrol anlamsız, gereksiz eşleşme
+  // göstermesin diye isPhoneComplete ile aynı eşik kullanılıyor.
+  const duplicateMatch = useMemo(() => {
+    const digits = onlyDigits(form.arayanTelefon)
+    if (digits.length !== 11) return null
+    return existingCalls.find((c) => onlyDigits(c.arayanTelefon) === digits) ?? null
+  }, [form.arayanTelefon, existingCalls])
 
   return (
     <Modal title="Yeni Çağrı" onClose={onClose}>
@@ -77,6 +90,12 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
           />
           {!isPhoneComplete(form.arayanTelefon) && (
             <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı — 0 (5XX) XXX XX XX</p>
+          )}
+          {duplicateMatch && (
+            <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
+              <Info size={13} className="mt-0.5 shrink-0" />
+              Bu numarayla daha önce çağrı girilmiş: {duplicateMatch.arayanAd} — {relativeTime(duplicateMatch.createdAt)}
+            </p>
           )}
         </div>
 

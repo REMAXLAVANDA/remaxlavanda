@@ -1,15 +1,17 @@
-import { useState } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { RotateCcw, Info } from 'lucide-react'
 import Modal from '../common/Modal'
 import { formatPhoneInput } from '../../lib/phone'
-import { capitalizeWords, capitalizeFirst } from '../../lib/format'
+import { capitalizeWords, capitalizeFirst, relativeTime } from '../../lib/format'
 import { RECRUITING_DURUMLARI, RECRUITING_DURUM_LABELS, RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
+
+const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
 
 // Hem "+ Yeni Aday" (candidate=null) hem satır tıklaması (candidate=mevcut
 // kayıt) AYNI paneli açar — Lead Havuzu'ndaki LeadDetailModal ile aynı
 // desen. initialValues: Lead Havuzu'ndan "Recruiting'e Dönüştür" ile
 // açıldığında ön-dolu alanlar (bkz. Leads.jsx handleConvertToRecruiting).
-export default function RecruitingDetailModal({ candidate, initialValues, danismanOptions, onClose, onSubmit, onReactivate, submitting }) {
+export default function RecruitingDetailModal({ candidate, initialValues, danismanOptions, existingCandidates = [], onClose, onSubmit, onReactivate, submitting }) {
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
@@ -21,6 +23,17 @@ export default function RecruitingDetailModal({ candidate, initialValues, danism
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.adSoyad.trim().length > 0
+
+  // Aynı numarayla daha önce aday girilmiş mi — sadece YENİ aday eklerken
+  // anlamlı (düzenlerken kayıt kendi numarasıyla eşleşip yanlış uyarı
+  // verir), o yüzden candidate varken hiç hesaplanmıyor. Engellemiyor,
+  // sadece bilgilendiriyor (bkz. "tekrar giriliyorsa uyarı verse" isteği).
+  const duplicateMatch = useMemo(() => {
+    if (candidate) return null
+    const digits = onlyDigits(form.telefon)
+    if (digits.length !== 11) return null
+    return existingCandidates.find((c) => onlyDigits(c.telefon) === digits) ?? null
+  }, [candidate, form.telefon, existingCandidates])
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -62,13 +75,21 @@ export default function RecruitingDetailModal({ candidate, initialValues, danism
         />
 
         <div className="grid grid-cols-2 gap-2">
-          <input
-            type="tel"
-            value={form.telefon}
-            onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
-            placeholder="Telefon"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
+          <div>
+            <input
+              type="tel"
+              value={form.telefon}
+              onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
+              placeholder="Telefon"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+            {duplicateMatch && (
+              <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
+                <Info size={13} className="mt-0.5 shrink-0" />
+                Bu numarayla daha önce aday girilmiş: {duplicateMatch.adSoyad} — {relativeTime(duplicateMatch.createdAt)}
+              </p>
+            )}
+          </div>
           <input
             type="email"
             value={form.email}
