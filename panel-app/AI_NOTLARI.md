@@ -3,6 +3,54 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-28 — capitalizeFirst: caps-lock notlarını normalize ederken yer adlarını koru
+
+Bir önceki maddedeki düzeltmeden SONRA bile yeni girilen bazı notlar
+büyük harfle kalmaya devam ediyordu ("hala büyük yazmaya devam
+edilebiliyor" bulgusu) — sebep `capitalizeFirst`'ün sadece ilk harfi
+büyütüp gerisine dokunmaması: metin baştan sona büyük harfle yazılmışsa
+(caps lock) ilk harf zaten büyük olduğu için hiçbir şey değişmiyordu.
+`capitalizeFirst` artık metin TAMAMEN büyük harfse önce küçültüyor, SONRA
+ilk harfi büyütüyor. Bunu yaparken bilinen özel isimlerin (81 il +
+ofisin çalıştığı bölgedeki sık geçen ilçeler — Çorlu, Çerkezköy, Ergene
+vb., `PROPER_NOUNS` sabiti) küçülmemesi için ayrıca bir eşleştirme
+katmanı var — tam dil bilgisi doğruluğu (kişi adları dahil) kapsamlı bir
+sözlük/NLP gerektirdiği için kapsam bilerek yer adlarıyla sınırlandırıldı
+(bkz. "dil bilgisine uygun olsun" isteği). `capitalizeFirst` tüm notlar/
+açıklama alanlarında ortak kullanıldığı için (Lead Havuzu, Recruiting,
+Operasyon) tek yerden düzeltilip her yerde otomatik etkili oldu.
+
+## 2026-07-28 — Aynı telefonla tekrar kayıt girilirse uyarı (Operasyon + Recruiting)
+
+"Yeni Çağrı" (Operasyon) ve "Yeni Aday" (Recruiting) formlarında, girilen
+telefon numarasıyla eşleşen mevcut bir kayıt varsa formun altında
+bilgilendirici bir uyarı gösteriliyor (isim + tarih, göreceli değil net
+"gg.aa.yyyy" formatında — `lib/format.js`'e eklenen `formatDateOnly`).
+Engellemiyor, sadece bilgi veriyor. `RecruitingDetailModal` hem "+ Yeni
+Aday" hem Lead Havuzu'ndan "Recruiting'e Gönder" akışında kullanıldığı
+için kontrol SADECE `candidate` prop'u boşken (yeni kayıt) çalışıyor —
+düzenlerken kayıt kendi numarasıyla eşleşip yanlış uyarı vermesin diye.
+
+## 2026-07-28 — Operasyon çağrı tablosu: açıklama artık alt satırda tam görünüyor
+
+Notlar (açıklama), dar "Arayan" sütununa sıkışıp `line-clamp-2` ile 2
+satırdan sonra kesiliyordu. `CallTable.jsx`'te not varsa artık ayrı, tüm
+genişlikte bir alt `<tr>` ile tam metin gösteriliyor (masaüstü tabloda
+`Fragment` ile iki satır; mobil kartta zaten kesilmiyordu, değişmedi).
+
+## 2026-07-28 — Lead Havuzu: satırdan tek tıkla Recruiting/Portföy'e gönder
+
+Kampanya adı artık `RECRUIT_.../SATICI_.../MARKA_...` önekiyle otomatik
+`tip` tahmin etmek yerine (bkz. aşağıdaki "Kampanya/Reklam Seti/Reklam adı
+birleşik" maddesi) çoğunlukla elle karar gerektirdiği için, `LeadTable.jsx`
+her satıra "Recruiting" ve "Portföy" hızlı gönderme butonları eklendi —
+broker `reklam_adi`'na bakıp Lead Detayı'nı hiç açmadan doğrudan hedef
+formunu (Fırsat/Recruiting oluşturma) açabiliyor. Zaten yönlendirilmiş
+(durum=atandi) satırlarda gösterilmiyor. `Leads.jsx`'teki mevcut
+`handleConvertToRecruiting`/`handleConvertToOpportunity` fonksiyonları
+aynen kullanılıyor, yeni bir akış değil — sadece tetikleyici satırdan da
+erişilebiliyor.
+
 ## 2026-07-27 — Meta Lead Ads webhook: Kampanya/Reklam Seti/Reklam adı birleşik kaydediliyor
 
 Çok sayıda farklı isimlendirilmiş kampanya açıldığı için `RECRUIT_.../
