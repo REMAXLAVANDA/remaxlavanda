@@ -56,3 +56,12 @@ export function relativeTime(dateIso) {
   const months = Math.floor(diffDays / 30)
   return `${months} ay önce`
 }
+
+// "dün/2 gün önce" gibi göreceli ifadeler yerine net tarih — formlardaki
+// bilgi amaçlı uyarılarda (ör. "bu numarayla daha önce girilmiş") saat
+// gerekmiyor, sadece gün/ay/yıl (bkz. "tarih girmeliyiz, saate gerek yok"
+// isteği).
+export function formatDateOnly(dateIso) {
+  if (!dateIso) return '—'
+  return new Date(dateIso).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { Info } from 'lucide-react'
 import Modal from '../common/Modal'
 import { CALL_SOURCES } from '../../lib/callLogs'
-import { capitalizeFirst, capitalizeWords, relativeTime } from '../../lib/format'
+import { capitalizeFirst, capitalizeWords, formatDateOnly } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
 const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '', notlar: '', reklamKodu: '' }
@@ -94,7 +94,7 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
           {duplicateMatch && (
             <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
               <Info size={13} className="mt-0.5 shrink-0" />
-              Bu numarayla daha önce çağrı girilmiş: {duplicateMatch.arayanAd} — {relativeTime(duplicateMatch.createdAt)}
+              Bu numarayla daha önce çağrı girilmiş: {duplicateMatch.arayanAd} — {formatDateOnly(duplicateMatch.createdAt)}
             </p>
           )}
         </div>

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { RotateCcw, Info } from 'lucide-react'
 import Modal from '../common/Modal'
 import { formatPhoneInput } from '../../lib/phone'
-import { capitalizeWords, capitalizeFirst, relativeTime } from '../../lib/format'
+import { capitalizeWords, capitalizeFirst, formatDateOnly } from '../../lib/format'
 import { RECRUITING_DURUMLARI, RECRUITING_DURUM_LABELS, RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
 const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
@@ -86,7 +86,7 @@ export default function RecruitingDetailModal({ candidate, initialValues, danism
             {duplicateMatch && (
               <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
                 <Info size={13} className="mt-0.5 shrink-0" />
-                Bu numarayla daha önce aday girilmiş: {duplicateMatch.adSoyad} — {relativeTime(duplicateMatch.createdAt)}
+                Bu numarayla daha önce aday girilmiş: {duplicateMatch.adSoyad} — {formatDateOnly(duplicateMatch.createdAt)}
               </p>
             )}
           </div>
