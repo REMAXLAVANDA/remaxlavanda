@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { ChevronRight, Eye, EyeOff, Target, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
 import { telHref, whatsappHref } from '../../lib/phone'
@@ -240,72 +240,81 @@ export default function CallTable({
               // atanmadan bu alanları değiştiremiyor). Atama (kime
               // verileceği) ayrı bir yetki (bkz. "Atanan" sütunu, isManager).
               const canEditResult = call.assignedTo === currentUserId
+              // Açıklama (notlar) dar "Arayan" sütununa sıkışıp 2 satırla
+              // kesilmesin diye (bkz. "açıklama görünmüyor, boydan boya
+              // olsa" isteği) ayrı, tüm genişlikte bir alt satırda tam
+              // metin gösteriliyor — sadece not varsa ikinci <tr> render
+              // edilir, yoksa satır tek kalır.
               return (
-                <tr key={call.id} className="border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50">
-                  <td className="px-3 py-3">
-                    <div className="flex flex-col items-start gap-0.5">
-                      {isManager && <KaynakBadge kaynak={call.kaynak} />}
-                      {call.portfoyNo && (
-                        <span className="whitespace-nowrap text-[11px] text-ink-400" title="Talep no">
-                          {call.portfoyNo}
+                <Fragment key={call.id}>
+                  <tr className={`align-middle hover:bg-ink-50 ${call.notlar ? '' : 'border-b border-ink-50 last:border-0'}`}>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-col items-start gap-0.5">
+                        {isManager && <KaynakBadge kaynak={call.kaynak} />}
+                        {call.portfoyNo && (
+                          <span className="whitespace-nowrap text-[11px] text-ink-400" title="Talep no">
+                            {call.portfoyNo}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="max-w-[140px] px-3 py-3 font-medium text-ink-900">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <span className="truncate">{call.arayanAd}</span>
+                        {call.opportunityId && <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />}
+                      </span>
+                      {call.reklamKodu && (
+                        <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-ink-500" title="Reklam kodu">
+                          <Tag size={12} className="shrink-0 text-ink-400" />
+                          {call.reklamKodu}
                         </span>
                       )}
-                    </div>
-                  </td>
-                  <td className="max-w-[140px] px-3 py-3 font-medium text-ink-900">
-                    <span className="flex items-center gap-1.5 truncate">
-                      <span className="truncate">{call.arayanAd}</span>
-                      {call.opportunityId && <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />}
-                    </span>
-                    {/* Tooltip yerine doğrudan metin — telefonda hover olmadığı
-                        için danışman notu göremiyordu (bkz. "ne için aradığını
-                        da yazmamız lazım" isteği). */}
-                    {call.notlar && (
-                      <span className="mt-0.5 flex items-start gap-1 text-xs font-normal text-ink-500">
-                        <StickyNote size={12} className="mt-0.5 shrink-0 text-ink-400" />
-                        <span className="line-clamp-2">{call.notlar}</span>
-                      </span>
-                    )}
-                    {call.reklamKodu && (
-                      <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-ink-500" title="Reklam kodu">
-                        <Tag size={12} className="shrink-0 text-ink-400" />
-                        {call.reklamKodu}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-3 text-ink-600">
-                    <PhoneCell phone={call.arayanTelefon} />
-                  </td>
-                  <td className="px-3 py-3">
-                    <CallProgressSteps call={call} canEdit={canEditResult} onToggle={onToggle} />
-                  </td>
-                  <td className="px-3 py-3">
-                    <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} resolveName={resolveName} onAssign={onAssign} />
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{callDateLabel(call.createdAt)}</td>
-                  <td className="px-3 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      {canEditCallDetails(currentRole, call.createdAt) && (
-                        <button
-                          onClick={() => onEditDetails(call)}
-                          className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
-                          title="Bilgileri düzenle"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                      )}
-                      {isManager && (
-                        <button
-                          onClick={() => onDelete(call)}
-                          className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
-                          title="Çağrıyı sil"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="px-3 py-3 text-ink-600">
+                      <PhoneCell phone={call.arayanTelefon} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <CallProgressSteps call={call} canEdit={canEditResult} onToggle={onToggle} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} resolveName={resolveName} onAssign={onAssign} />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{callDateLabel(call.createdAt)}</td>
+                    <td className="px-3 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {canEditCallDetails(currentRole, call.createdAt) && (
+                          <button
+                            onClick={() => onEditDetails(call)}
+                            className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                            title="Bilgileri düzenle"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
+                        {isManager && (
+                          <button
+                            onClick={() => onDelete(call)}
+                            className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                            title="Çağrıyı sil"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {call.notlar && (
+                    <tr className="border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50">
+                      <td />
+                      <td colSpan={6} className="px-3 pb-3 text-xs text-ink-500">
+                        <span className="flex items-start gap-1">
+                          <StickyNote size={12} className="mt-0.5 shrink-0 text-ink-400" />
+                          <span>{call.notlar}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               )
             })}
           </tbody>
