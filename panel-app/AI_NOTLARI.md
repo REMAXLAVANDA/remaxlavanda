@@ -3,6 +3,28 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-28 — Panel: dağınık halka/kart grid'i yerine tek Süreç Özeti tablosu
+
+"Dashboard'a girer girmez Office'in tüm süreçlerine hakim olmak
+istiyorum" isteği — eskiden Operasyon/Fırsatlar/Yaklaşan Etkinlik/Eksik
+Eğitim dört ayrı `StatCard` (yüzdelik halka) kartına dağılmıştı, **Lead
+Havuzu ve Recruiting Panel'de hiç yoktu**. Yeni `ProcessSummaryTable`
+bileşeni (bkz. `components/panel/`) altı süreci (Operasyon, Fırsatlar/
+Portföy, Lead Havuzu, Recruiting, Etkinlikler, Eğitim) TEK bir tabloda,
+satır satır gösteriyor — her satır ilgili sayfaya link, dikkat
+gerektiren sayı (atanmamış çağrı, 24s+ işlenmemiş lead, %100 altında
+eğitim vb.) kırmızı rozetle vurgulanıyor. En üstte, "Dikkat Gerekiyor"
+bölümünden bile önce render ediliyor (bkz. "panele girer girmez"
+isteği). `Panel.jsx`'in `loadAll()`'ına `leads`/`recruitingCandidates`
+eklendi — RLS zaten broker/owner dışı rollerde boş dizi döndürüyor,
+tablo da zaten sadece `isBrokerOrOwner`'da render ediliyor. Artık hiç
+kullanılmayan `StatCard`/`SegmentedRing` bileşenleri kaldırıldı (bkz.
+"ölü kod bırakma" kuralı).
+
+Lead Havuzu/Recruiting sayıları BİLEREK üstteki tarih filtresinden
+bağımsız — "Dikkat Gerekiyor" bölümüyle aynı gerekçe, o anki gerçek
+duruma bakılmalı, seçili tarih aralığına göre değişmemeli.
+
 ## 2026-07-28 — capitalizeFirst: caps-lock notlarını normalize ederken yer adlarını koru
 
 Bir önceki maddedeki düzeltmeden SONRA bile yeni girilen bazı notlar
