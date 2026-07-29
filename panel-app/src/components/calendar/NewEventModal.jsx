@@ -12,6 +12,10 @@ const EMPTY_FORM = {
   startTime: '10:00',
   endTime: '11:00',
   inviteeIds: [],
+  // Davetliler'in ALT KÜMESİ — aynı etkinliğe bazı kişiler zorunlu, bazıları
+  // isteğe bağlı katılabildiği için (bkz. broker isteği) zorunluluk kişi
+  // bazında tutuluyor: burada olmayan davetli 'zorunlu' sayılır.
+  optionalInviteeIds: [],
 }
 
 export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOptions }) {
@@ -21,10 +25,19 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
   const canSubmit = form.title.trim().length > 0 && form.date
 
   function toggleInvitee(id) {
+    const isSelected = form.inviteeIds.includes(id)
     set({
-      inviteeIds: form.inviteeIds.includes(id)
-        ? form.inviteeIds.filter((x) => x !== id)
-        : [...form.inviteeIds, id],
+      inviteeIds: isSelected ? form.inviteeIds.filter((x) => x !== id) : [...form.inviteeIds, id],
+      // Davetlilikten çıkarılan biri isteğe bağlı listede de kalmasın.
+      optionalInviteeIds: isSelected ? form.optionalInviteeIds.filter((x) => x !== id) : form.optionalInviteeIds,
+    })
+  }
+
+  function toggleOptional(id) {
+    set({
+      optionalInviteeIds: form.optionalInviteeIds.includes(id)
+        ? form.optionalInviteeIds.filter((x) => x !== id)
+        : [...form.optionalInviteeIds, id],
     })
   }
 
@@ -122,6 +135,32 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
             ))}
           </div>
         </div>
+
+        {form.inviteeIds.length > 0 && (
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-ink-400">
+              İsteğe Bağlı Katılımcılar <span className="font-normal text-ink-300">(seçilmeyenler zorunlu sayılır)</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {inviteeOptions
+                .filter((u) => form.inviteeIds.includes(u.id))
+                .map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => toggleOptional(u.id)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                      form.optionalInviteeIds.includes(u.id)
+                        ? 'bg-ink-700 text-white'
+                        : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                    }`}
+                  >
+                    {u.name}
+                  </button>
+                ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-2">
           <button

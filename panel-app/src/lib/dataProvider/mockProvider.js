@@ -156,7 +156,7 @@ export const calendarEvents = {
     return delay([...MOCK_EVENTS])
   },
   async listAttendance() {
-    return delay([...MOCK_ATTENDANCE])
+    return delay(MOCK_ATTENDANCE.map((a) => ({ ...a, zorunluluk: a.zorunluluk ?? 'zorunlu' })))
   },
   async create(form, creatorId) {
     const startAt = new Date(`${form.date}T${form.startTime}`).toISOString()
@@ -173,8 +173,14 @@ export const calendarEvents = {
     }
     MOCK_EVENTS.push(row)
     if (form.inviteeIds?.length) {
+      const optional = new Set(form.optionalInviteeIds ?? [])
       for (const userId of form.inviteeIds) {
-        MOCK_ATTENDANCE.push({ eventId: row.id, userId, status: 'davetli' })
+        MOCK_ATTENDANCE.push({
+          eventId: row.id,
+          userId,
+          status: 'davetli',
+          zorunluluk: optional.has(userId) ? 'istege_bagli' : 'zorunlu',
+        })
       }
     }
     return delay(row)
@@ -194,6 +200,7 @@ export const calendarEvents = {
       eventId: row.eventId,
       userId: row.userId,
       status: row.status,
+      zorunluluk: row.zorunluluk ?? 'zorunlu',
       mazeretText: row.mazeretText ?? null,
       mazeretStatus: row.mazeretStatus ?? null,
       mazeretReviewedBy: row.mazeretReviewedBy ?? null,
@@ -210,6 +217,7 @@ export const calendarEvents = {
       eventId: row.eventId,
       userId: row.userId,
       status: row.status,
+      zorunluluk: row.zorunluluk ?? 'zorunlu',
       mazeretText: row.mazeretText ?? null,
       mazeretStatus: row.mazeretStatus ?? null,
       mazeretReviewedBy: row.mazeretReviewedBy ?? null,

@@ -57,6 +57,20 @@ export const MAZERET_STATUS_STYLES = {
   reddedildi: 'bg-red-50 text-red-600',
 }
 
+// Kişi bazlı katılım zorunluluğu — aynı etkinliğe bazı davetliler zorunlu,
+// bazıları isteğe bağlı olabiliyor (bkz. event_attendance.zorunluluk,
+// migration 20260729190000). Etkinliğin kendisinde DEĞİL, her davet
+// satırında ayrı tutuluyor.
+export const ZORUNLULUK_LABELS = {
+  zorunlu: 'Zorunlu',
+  istege_bagli: 'İsteğe Bağlı',
+}
+
+export const ZORUNLULUK_STYLES = {
+  zorunlu: 'bg-red-50 text-red-600',
+  istege_bagli: 'bg-ink-100 text-ink-500',
+}
+
 // Danışman kendi katılımını artık serbestçe her duruma çekemiyor (bkz.
 // event_attendance_update_self RLS) — sadece RSVP (onayladi) ya da mazeret
 // bildirebilir. Gerçek katıldı/katılmadı/geç kaldı kararını ve mazeret

@@ -3,6 +3,37 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-29 — Etkinlik katılımı: kişi bazlı Zorunlu / İsteğe Bağlı
+
+Broker'ın bulgusu: aynı eğitime bazı danışmanlar zorunlu, bazıları isteğe
+bağlı katılabiliyor — eskiden `event_attendance`'ta bu bilgi hiç
+tutulmuyordu (sadece RSVP durumu vardı). Zorunluluk etkinliğin kendisine
+DEĞİL, her davet satırına eklendi (migration `20260729190000_katilim_
+zorunluluk.sql`, `event_attendance.zorunluluk`, `'zorunlu'|'istege_bagli'`,
+NOT NULL DEFAULT 'zorunlu' — geriye dönük tüm eski davetler önceki
+davranışla aynı şekilde zorunlu sayılıyor).
+
+`NewEventModal`'da davetliler seçildikten SONRA ikinci bir bölüm çıkıyor:
+"İsteğe Bağlı Katılımcılar" — sadece SEÇİLİ davetliler arasından, buradan
+işaretlenmeyenler zorunlu kalıyor (varsayılan). İki ayrı tam liste
+göstermek yerine (kalabalık/karmaşık olurdu) bu şekilde tek adımda önce
+"kim davetli" sonra "bunlardan kim isteğe bağlı" akışı seçildi.
+
+Rozet gösterildiği yerler: `EventDetailModal` (hem "Katılım Durumun" hem
+her katılımcı satırında), `Panel.jsx`'in danışman "Yaklaşan Etkinlikler"
+kartında (kendi zorunluluk durumunu görsün diye). `ZORUNLULUK_LABELS`/
+`ZORUNLULUK_STYLES` — `lib/calendar.js`, diğer etiket sözlükleriyle aynı
+desen (Zorunlu=kırmızı, İsteğe Bağlı=nötr gri, kritik/uyarı renk kuralına
+bilerek dokunulmadı, mevcut ATTENDANCE_STATUS_STYLES ile aynı aile).
+
+Kapsam dışı bırakılan: `EditEventModal` davetli listesini hiç düzenlemiyor
+(zaten önceki davranış — "ayrı bir işlem sayılıyor"), zorunluluk da invite
+anında set ediliyor, sonradan değiştirme UI'ı yok (broker isterse ayrı
+ele alınmalı). Aylık Etkinlik Panosu tasarımındaki (bkz. artifact) tek
+"Zorunlu/İsteğe Bağlı" rozeti bu yüzden hâlâ kişiye özel değil — pano
+kişiye özel değil TEK görsel olduğu için, gerçek kişisel durum Portal'da
+(bu değişiklikle) görülüyor.
+
 ## 2026-07-29 — Panel/Dashboard: üstteki tarih filtresi hangi kartları etkiliyor
 
 Broker'ın "Tarih Filtresi Kararları" briefi — bir önceki maddedeki yeni

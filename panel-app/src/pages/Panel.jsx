@@ -39,6 +39,8 @@ import {
   ATTENDANCE_STATUS_STYLES,
   MAZERET_STATUS_LABELS,
   MAZERET_STATUS_STYLES,
+  ZORUNLULUK_LABELS,
+  ZORUNLULUK_STYLES,
 } from '../lib/calendar'
 import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
@@ -827,7 +829,16 @@ export default function Panel() {
               <div key={e.id} className="rounded-xl border border-ink-100 px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-ink-900">{e.title}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-medium text-ink-900">{e.title}</p>
+                      {myAttendance && (
+                        <span
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${ZORUNLULUK_STYLES[myAttendance.zorunluluk]}`}
+                        >
+                          {ZORUNLULUK_LABELS[myAttendance.zorunluluk] ?? ZORUNLULUK_LABELS.zorunlu}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-ink-400">
                       {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
                     </p>

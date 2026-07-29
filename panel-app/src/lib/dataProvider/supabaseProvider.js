@@ -191,6 +191,7 @@ function mapAttendance(row) {
     eventId: row.event_id,
     userId: row.user_id,
     status: row.status,
+    zorunluluk: row.zorunluluk,
     mazeretText: row.mazeret_text,
     mazeretStatus: row.mazeret_status,
     mazeretReviewedBy: row.mazeret_reviewed_by,
@@ -226,10 +227,18 @@ export const calendarEvents = {
         .single(),
     )
     if (form.inviteeIds?.length) {
+      const optional = new Set(form.optionalInviteeIds ?? [])
       await run(
         client()
           .from('event_attendance')
-          .insert(form.inviteeIds.map((userId) => ({ event_id: eventRow.id, user_id: userId, status: 'davetli' }))),
+          .insert(
+            form.inviteeIds.map((userId) => ({
+              event_id: eventRow.id,
+              user_id: userId,
+              status: 'davetli',
+              zorunluluk: optional.has(userId) ? 'istege_bagli' : 'zorunlu',
+            })),
+          ),
       )
     }
     return mapEvent(eventRow)
