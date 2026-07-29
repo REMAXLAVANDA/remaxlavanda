@@ -57,17 +57,34 @@ export const MAZERET_STATUS_STYLES = {
   reddedildi: 'bg-red-50 text-red-600',
 }
 
-// Kişi bazlı katılım zorunluluğu — aynı etkinliğe bazı davetliler zorunlu,
-// bazıları isteğe bağlı olabiliyor (bkz. event_attendance.zorunluluk,
+// Kişi bazlı katılım tipi — aynı etkinliğe bazı davetliler zorunlu, bazıları
+// önerilen, bazıları isteğe bağlı olabiliyor (bkz. event_attendance.katilim_tipi,
 // migration 20260729190000). Etkinliğin kendisinde DEĞİL, her davet
-// satırında ayrı tutuluyor.
-export const ZORUNLULUK_LABELS = {
+// satırında ayrı tutuluyor. Sıralama (zorunlu → önerilen → isteğe bağlı)
+// önem sırasını yansıtıyor — NewEventModal'daki select/toplu işlem
+// butonları ve raporlama bu sırayı kullanır.
+export const KATILIM_TIPI_OPTIONS = ['zorunlu', 'onerilen', 'istege_bagli']
+
+// Üçüncü şahıs — yönetimin katılımcı listesinde başkalarının katılım
+// tipini görürken kullanılır (bkz. EventDetailModal).
+export const KATILIM_TIPI_LABELS = {
   zorunlu: 'Zorunlu',
+  onerilen: 'Önerilen',
   istege_bagli: 'İsteğe Bağlı',
 }
 
-export const ZORUNLULUK_STYLES = {
+// Birinci şahıs — danışman kendi Takvim/Panel görünümünde KENDİ katılım
+// tipini görürken kullanılır (bkz. broker isteği: "Senin için Zorunlu" /
+// "Sana Öneriliyor" gibi kişiselleştirilmiş ifade).
+export const KATILIM_TIPI_SELF_LABELS = {
+  zorunlu: 'Senin için Zorunlu',
+  onerilen: 'Sana Öneriliyor',
+  istege_bagli: 'İsteğe Bağlı',
+}
+
+export const KATILIM_TIPI_STYLES = {
   zorunlu: 'bg-red-50 text-red-600',
+  onerilen: 'bg-amber-50 text-amber-700',
   istege_bagli: 'bg-ink-100 text-ink-500',
 }
 

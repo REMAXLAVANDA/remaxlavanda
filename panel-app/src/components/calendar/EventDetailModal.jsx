@@ -8,8 +8,9 @@ import {
   MAZERET_STATUS_STYLES,
   EVENT_TYPE_LABELS,
   EVENT_TYPE_STYLES,
-  ZORUNLULUK_LABELS,
-  ZORUNLULUK_STYLES,
+  KATILIM_TIPI_LABELS,
+  KATILIM_TIPI_SELF_LABELS,
+  KATILIM_TIPI_STYLES,
   formatEventDate,
   formatEventTime,
 } from '../../lib/calendar'
@@ -118,8 +119,8 @@ export default function EventDetailModal({
         <div className="mt-4 border-t border-ink-50 pt-3">
           <div className="mb-2 flex items-center gap-2">
             <p className="text-xs font-medium text-ink-400">Katılım Durumun</p>
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${ZORUNLULUK_STYLES[myAttendance.zorunluluk]}`}>
-              {ZORUNLULUK_LABELS[myAttendance.zorunluluk] ?? ZORUNLULUK_LABELS.zorunlu}
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${KATILIM_TIPI_STYLES[myAttendance.katilimTipi]}`}>
+              {KATILIM_TIPI_SELF_LABELS[myAttendance.katilimTipi] ?? KATILIM_TIPI_SELF_LABELS.zorunlu}
             </span>
           </div>
           {myAttendance.status === 'mazeretli' ? (
@@ -188,8 +189,8 @@ export default function EventDetailModal({
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-1.5 text-ink-700">
                     {a.name}
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${ZORUNLULUK_STYLES[a.zorunluluk]}`}>
-                      {ZORUNLULUK_LABELS[a.zorunluluk] ?? ZORUNLULUK_LABELS.zorunlu}
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${KATILIM_TIPI_STYLES[a.katilimTipi]}`}>
+                      {KATILIM_TIPI_LABELS[a.katilimTipi] ?? KATILIM_TIPI_LABELS.zorunlu}
                     </span>
                   </span>
                   {isManager ? (

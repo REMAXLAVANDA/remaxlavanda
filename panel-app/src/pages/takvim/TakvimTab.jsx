@@ -104,12 +104,11 @@ export default function TakvimTab() {
     setSubmitting(true)
     try {
       const created = await calendarProvider.create(form, user.id)
-      const optional = new Set(form.optionalInviteeIds ?? [])
-      const newAttendance = (form.inviteeIds ?? []).map((userId) => ({
+      const newAttendance = Object.entries(form.katilimTipleri ?? {}).map(([userId, katilimTipi]) => ({
         eventId: created.id,
         userId,
         status: 'davetli',
-        zorunluluk: optional.has(userId) ? 'istege_bagli' : 'zorunlu',
+        katilimTipi,
       }))
       setData((prev) => ({
         events: [created, ...prev.events],

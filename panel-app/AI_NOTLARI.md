@@ -3,36 +3,61 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-07-29 — Etkinlik katılımı: kişi bazlı Zorunlu / İsteğe Bağlı
+## 2026-07-29 — Etkinlik katılımı: kişi bazlı Zorunlu / Önerilen / İsteğe Bağlı
 
-Broker'ın bulgusu: aynı eğitime bazı danışmanlar zorunlu, bazıları isteğe
+Broker'ın bulgusu ve sonraki genişletme talebi: aynı etkinliğe (ör. Base
+Camp eğitimi) bazı danışmanlar zorunlu, bazıları önerilen, bazıları isteğe
 bağlı katılabiliyor — eskiden `event_attendance`'ta bu bilgi hiç
-tutulmuyordu (sadece RSVP durumu vardı). Zorunluluk etkinliğin kendisine
-DEĞİL, her davet satırına eklendi (migration `20260729190000_katilim_
-zorunluluk.sql`, `event_attendance.zorunluluk`, `'zorunlu'|'istege_bagli'`,
+tutulmuyordu. Katılım tipi etkinliğin kendisine DEĞİL, her davet satırına
+eklendi (migration `20260729190000_katilim_zorunluluk.sql`,
+`event_attendance.katilim_tipi`, `'zorunlu'|'onerilen'|'istege_bagli'`,
 NOT NULL DEFAULT 'zorunlu' — geriye dönük tüm eski davetler önceki
-davranışla aynı şekilde zorunlu sayılıyor).
+davranışla aynı şekilde zorunlu sayılıyor). "Davet Edilmedi" ayrı bir enum
+değeri DEĞİL — o kullanıcı için `event_attendance`'ta hiç satır yoksa
+zaten davetli değildir, bu yeterli (4 seçenekten 3'ü DB değeri, 4.'sü
+yokluk).
 
-`NewEventModal`'da davetliler seçildikten SONRA ikinci bir bölüm çıkıyor:
-"İsteğe Bağlı Katılımcılar" — sadece SEÇİLİ davetliler arasından, buradan
-işaretlenmeyenler zorunlu kalıyor (varsayılan). İki ayrı tam liste
-göstermek yerine (kalabalık/karmaşık olurdu) bu şekilde tek adımda önce
-"kim davetli" sonra "bunlardan kim isteğe bağlı" akışı seçildi.
+(Önceki tasarım — sadece "davetliler" + ayrı "isteğe bağlı alt kümesi" iki
+adımlı chip akışı — bu maddeyle TAMAMEN değiştirildi, henüz production'a
+hiç deploy edilmemişti.)
 
-Rozet gösterildiği yerler: `EventDetailModal` (hem "Katılım Durumun" hem
-her katılımcı satırında), `Panel.jsx`'in danışman "Yaklaşan Etkinlikler"
-kartında (kendi zorunluluk durumunu görsün diye). `ZORUNLULUK_LABELS`/
-`ZORUNLULUK_STYLES` — `lib/calendar.js`, diğer etiket sözlükleriyle aynı
-desen (Zorunlu=kırmızı, İsteğe Bağlı=nötr gri, kritik/uyarı renk kuralına
-bilerek dokunulmadı, mevcut ATTENDANCE_STATUS_STYLES ile aynı aile).
+`NewEventModal`'da tek, birleşik bir liste var: her bilinen kullanıcı için
+bir satır — checkbox (toplu işlem için) + isim + açılır liste (Davet
+Edilmedi / Zorunlu / Önerilen / İsteğe Bağlı, varsayılan "Davet Edilmedi").
+Bir kişiyi davet etmek = dropdown'dan bir katılım tipi seçmek; ayrı bir
+"davet et" adımı yok. Üstte, en az bir kişi işaretliyken beliren toplu
+işlem çubuğu ("Seçilenleri: Zorunlu Yap · Önerilen Yap · İsteğe Bağlı
+Yap") — checkbox'lar dropdown değerinden bağımsız, admin önce "yeni
+başlayanlar"ı işaretleyip Zorunlu Yap'a basıyor, sonra başka bir alt
+kümeyi işaretleyip Önerilen Yap'a basıyor gibi çok geçişli bir akışı
+destekliyor. Liste `max-h-56 overflow-y-auto` — büyük ekip listesi modalı
+şişirmesin diye.
+
+Rozet/etiket iki ayrı sözlükle ayrılıyor (`lib/calendar.js`):
+`KATILIM_TIPI_LABELS` (üçüncü şahıs, "Zorunlu"/"Önerilen"/"İsteğe Bağlı" —
+EventDetailModal'da yönetimin BAŞKALARININ katılım tipini gördüğü liste)
+ve `KATILIM_TIPI_SELF_LABELS` (birinci şahıs, "Senin için Zorunlu"/"Sana
+Öneriliyor"/"İsteğe Bağlı" — EventDetailModal'ın "Katılım Durumun"
+bölümünde ve Panel.jsx'in danışman "Yaklaşan Etkinlikler" kartında,
+danışman KENDİ durumunu görürken). Renk: Zorunlu=kırmızı, Önerilen=amber,
+İsteğe Bağlı=nötr gri (`KATILIM_TIPI_STYLES`) — kritik/uyarı renk kuralına
+paralel, ATTENDANCE_STATUS_STYLES ile aynı aile.
 
 Kapsam dışı bırakılan: `EditEventModal` davetli listesini hiç düzenlemiyor
-(zaten önceki davranış — "ayrı bir işlem sayılıyor"), zorunluluk da invite
-anında set ediliyor, sonradan değiştirme UI'ı yok (broker isterse ayrı
-ele alınmalı). Aylık Etkinlik Panosu tasarımındaki (bkz. artifact) tek
-"Zorunlu/İsteğe Bağlı" rozeti bu yüzden hâlâ kişiye özel değil — pano
-kişiye özel değil TEK görsel olduğu için, gerçek kişisel durum Portal'da
-(bu değişiklikle) görülüyor.
+(zaten önceki davranış — "ayrı bir işlem sayılıyor"), katılım tipi de
+invite anında set ediliyor, sonradan değiştirme UI'ı yok (broker isterse
+ayrı ele alınmalı). Aylık Etkinlik Panosu tasarımındaki (bkz. artifact,
+henüz koda bağlanmadı) tek rozet kişiye özel DEĞİL ve olmamalı — pano
+(WhatsApp/TV) tek, herkese aynı görsel, broker'ın kendi kararı: pano genel
+bir rozet göstermeli (ör. "Bazı Danışmanlar İçin Zorunlu"), kişiye özel
+gerçek durum sadece Portal'da (bu değişiklikle) görülüyor. Bu ileride pano
+otomasyonu inşa edilirken uygulanacak.
+
+Raporlama için (broker'ın "ileride büyümeye uygun" isteği): `katilim_tipi`
+ve `status` (RSVP) aynı satırda birlikte durduğu için "zorunlu eğitim
+katılım oranı", "kaç zorunlu etkinlik kaçırıldı" gibi raporlar ek bir
+tabloya gerek kalmadan bu iki alanın kombinasyonuyla hesaplanabilir — şu an
+böyle bir rapor EKRANI yok, sadece veri modeli buna hazır.
 
 ## 2026-07-29 — Panel/Dashboard: üstteki tarih filtresi hangi kartları etkiliyor
 

@@ -191,7 +191,7 @@ function mapAttendance(row) {
     eventId: row.event_id,
     userId: row.user_id,
     status: row.status,
-    zorunluluk: row.zorunluluk,
+    katilimTipi: row.katilim_tipi,
     mazeretText: row.mazeret_text,
     mazeretStatus: row.mazeret_status,
     mazeretReviewedBy: row.mazeret_reviewed_by,
@@ -226,17 +226,20 @@ export const calendarEvents = {
         .select()
         .single(),
     )
-    if (form.inviteeIds?.length) {
-      const optional = new Set(form.optionalInviteeIds ?? [])
+    // form.katilimTipleri: { [userId]: 'zorunlu'|'onerilen'|'istege_bagli' }
+    // — anahtarların kümesi davetli listesi, "Davet Edilmedi" ayrı bir
+    // değer değil, sözlükte hiç olmamak demek (bkz. NewEventModal).
+    const invitees = Object.entries(form.katilimTipleri ?? {})
+    if (invitees.length) {
       await run(
         client()
           .from('event_attendance')
           .insert(
-            form.inviteeIds.map((userId) => ({
+            invitees.map(([userId, katilimTipi]) => ({
               event_id: eventRow.id,
               user_id: userId,
               status: 'davetli',
-              zorunluluk: optional.has(userId) ? 'istege_bagli' : 'zorunlu',
+              katilim_tipi: katilimTipi,
             })),
           ),
       )
