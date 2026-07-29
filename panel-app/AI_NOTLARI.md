@@ -3,6 +3,40 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-29 — Panel/Dashboard: üstteki tarih filtresi hangi kartları etkiliyor
+
+Broker'ın "Tarih Filtresi Kararları" briefi — bir önceki maddedeki yeni
+Dashboard'un HANGİ kartlarının üstteki tarih filtresini (7 gün/30 gün/4 ay/
+Yıl/Tümü/Özel) dinleyeceği netleştirildi. Filtre seçenekleri DEĞİŞMEDİ
+(90 gün eklenmedi, "4 ay" aynen kaldı) — sadece hangi kartın filtreye göre
+yeniden hesaplandığı netleşti:
+
+**Filtreyi dinleyen** (zaten filtreliydi veya bu maddeyle filtreli hale
+getirildi): Operasyon (çağrı sayısı + artık "yeni lead" detayı da —
+`leadStats` önceki maddede bilerek bağımsız bırakılmıştı, broker'ın açık
+talimatıyla bu karar TERSİNE çevrildi), Portföy, Recruiting (`recruitingStats`
+de aynı şekilde artık filtreli), Reklam Kaynakları.
+
+**Filtreden bağımsız kalan** (broker'ın açık kararı — "her kartı zorla
+tarih filtresine bağlamayacağız, ürün mantığı açısından yanlış"): Haftanın
+Liderleri (Lig'in kendi aktif dönemini gösterir — kart başlığının altına
+"Aktif lig dönemi" notu eklendi), Portal Kullanımı (sabit Bugün/Son 7 gün/
+7+ gün kovaları — "Güncel giriş durumu" notu eklendi), Dikkat Gerekiyor
+("Açık konular" notu eklendi), Yaklaşan Etkinlik (artık `upcomingEvents`
+— filtreli, danışman/ofis'in kullandığı liste — DEĞİL, yeni ayrı bir
+`nextEventsAlways` listesi kullanıyor; "En yakın etkinlik" notu eklendi).
+Ofisin Nabzı'ndaki "Etkinlik" KPI kutusu da aynı `nextEventsAlways` sayısını
+gösteriyor — aksi halde aynı ekranda aynı kavram ("kaç etkinlik var") için
+iki farklı sayı görünürdü.
+
+**Not (kendi kararım, broker'a açıkça sorulmadı):** "Eğitim" KPI kutusu ve
+"Eğitim — Geride Kalanlar" kartı da bilerek bağımsız bırakıldı —
+`educationGaps` bir AKIŞ değil BACKLOG metriği ("kaç kişi %100 altında"),
+Dikkat Gerekiyor ile aynı mantık. Modül/checklist'in `doneAt` tarihi var
+ama bunu "bu aralıkta kaç kişi tamamladı" gibi ayrı bir aktivite metriğine
+çevirmek brief'te istenmedi, mevcut "geride kalanlar" anlamını bozardı.
+Broker bunu farklı isterse ayrıca ele alınmalı.
+
 ## 2026-07-29 — Panel/Dashboard: Broker/Owner için baştan tasarım (Ofisin Nabzı + Dikkat Gerekiyor)
 
 Bir önceki maddedeki `ProcessSummaryTable` (tek büyük tablo) bu maddeyle

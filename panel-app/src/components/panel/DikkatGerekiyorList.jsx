@@ -32,7 +32,12 @@ function Row({ item }) {
 export default function DikkatGerekiyorList({ items }) {
   return (
     <div id="dikkat-gerekiyor">
-      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Dikkat Gerekiyor</h2>
+      <div className="mb-2 flex items-baseline gap-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-400">Dikkat Gerekiyor</h2>
+        {/* Üstteki tarih filtresinden BAĞIMSIZ — her zaman güncel, hâlâ açık
+            konuları gösterir (bkz. "Tarih Filtresi Kararları"). */}
+        <span className="text-[11px] font-normal normal-case tracking-normal text-ink-300">Açık konular</span>
+      </div>
       <div className="divide-y divide-ink-50 overflow-hidden rounded-2xl border border-ink-100 bg-white">
         {items.length === 0 ? (
           <div className="flex items-center gap-2.5 border-l-2 border-l-emerald-500 bg-white px-4 py-3">

@@ -28,7 +28,6 @@ import {
   recruiting as recruitingProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callLogs'
-import { isStaleLead } from '../lib/leads'
 import { matchesKayitTipiFilter } from '../lib/recruiting'
 import { ROLES } from '../lib/roles'
 import {
@@ -357,6 +356,20 @@ export default function Panel() {
       .sort((a, b) => new Date(a.startAt) - new Date(b.startAt))
   }, [data, user, filters, selectedRange])
 
+  // --- Broker/owner raporu: "Yaklaşan Etkinlik" kartı üstteki tarih
+  // filtresinden BAĞIMSIZ (bkz. "Tarih Filtresi Kararları" — bu, danışman/
+  // ofis'in kullandığı yukarıdaki filtreli `upcomingEvents`'ten AYRI bir
+  // liste, üst bileşenler etkilenmesin diye). Üst sınır yok — sadece
+  // gelecekteki tüm etkinlikler, en yakın olan en üstte.
+  const nextEventsAlways = useMemo(() => {
+    if (!data) return []
+    const now = Date.now()
+    return data.events
+      .filter((e) => canViewEvent(e, user, data.attendance))
+      .filter((e) => new Date(e.startAt).getTime() >= now)
+      .sort((a, b) => new Date(a.startAt) - new Date(b.startAt))
+  }, [data, user])
+
   // --- Takvim: Panel'den, Takvim'e girmeden hızlı RSVP — "gd paneline
   // düşsün" isteği: davetli olduğun ama henüz cevap vermediğin etkinlikler
   // için Katılacağım/Mazeret Bildir doğrudan burada (bkz. EventDetailModal
@@ -457,24 +470,30 @@ export default function Panel() {
     return { total, acik, claimed, kapandi, iptal }
   }, [data, filters])
 
-  // --- Broker raporu: "Ofisin Nabzı" kutuları — Lead Havuzu/Recruiting
-  // bilerek tarih filtresinden BAĞIMSIZ, "panele girer girmez o ANKİ
-  // duruma hakim olmak" isteği tarih aralığı seçimine göre değişmemeli
-  // (bkz. AI_NOTLARI.md, "Dikkat Gerekiyor" bölümüyle aynı gerekçe).
+  // --- Broker raporu: "Ofisin Nabzı" kutuları — "Tarih filtresi Kararları"
+  // (bkz. AI_NOTLARI.md) uyarınca Lead Havuzu/Recruiting artık Operasyon/
+  // Recruiting'in bir parçası olarak üstteki tarih filtresini dinliyor
+  // (önceki "her zaman anlık durum" kararı bilerek tersine çevrildi —
+  // Dikkat Gerekiyor/Portal Kullanımı/Haftanın Liderleri/Yaklaşan Etkinlik
+  // gibi "durum" kartlarından farklı olarak bunlar "kaç yeni kayıt girildi"
+  // türünden bir AKIŞ metriği, dolayısıyla filtreye göre anlamlı şekilde
+  // hesaplanabiliyor).
   const leadStats = useMemo(() => {
-    if (!data) return { yeni: 0, stale: 0 }
-    const yeni = data.leads.filter((l) => l.durum === 'yeni').length
-    const stale = data.leads.filter((l) => isStaleLead(l)).length
-    return { yeni, stale }
-  }, [data])
+    if (!data) return { yeni: 0 }
+    const yeni = data.leads
+      .filter((l) => l.durum === 'yeni')
+      .filter((l) => isWithinRange(l.createdAt, filters.dateRange, filters.customFrom, filters.customTo)).length
+    return { yeni }
+  }, [data, filters])
 
   const recruitingStats = useMemo(() => {
-    if (!data) return { yeniBasvuru: 0, aktifSurecte: 0 }
-    const aktifKayitlar = data.recruitingCandidates.filter((c) => matchesKayitTipiFilter(c, 'aktif'))
-    const yeniBasvuru = aktifKayitlar.filter((c) => c.durum === 'yeni_basvuru').length
-    const aktifSurecte = aktifKayitlar.filter((c) => c.durum !== 'olumsuz').length
-    return { yeniBasvuru, aktifSurecte }
-  }, [data])
+    if (!data) return { yeniBasvuru: 0 }
+    const yeniBasvuru = data.recruitingCandidates
+      .filter((c) => matchesKayitTipiFilter(c, 'aktif'))
+      .filter((c) => c.durum === 'yeni_basvuru')
+      .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo)).length
+    return { yeniBasvuru }
+  }, [data, filters])
 
   // --- Broker raporu: portalı en çok/en az kullanan (Supabase Auth'un
   // gerçekten tuttuğu son giriş zamanına göre — mock/uydurma veri değil).
@@ -518,7 +537,7 @@ export default function Panel() {
   }, [activityRanking])
 
   // --- Broker raporu: sıradaki tek etkinliğin detayı + katılımcı listesi.
-  const nextEvent = upcomingEvents[0] ?? null
+  const nextEventAlways = nextEventsAlways[0] ?? null
   // --- Broker/owner raporu: "Dikkat Gerekiyor" — sabah ilk bakışta görülmesi
   // gereken istisnalar. Tarih filtresinden BAĞIMSIZ (gecikme/durgunluk her
   // zaman güncel olmalı, seçilen rapor aralığına göre değişmemeli).
@@ -610,7 +629,11 @@ export default function Panel() {
         label: 'Etkinlik',
         icon: CalendarDays,
         to: '/takvim',
-        value: upcomingEvents.length,
+        // "Yaklaşan Etkinlik" kartıyla aynı sayıyı göstersin diye bilerek
+        // upcomingEvents (filtreli) değil nextEventsAlways (tarih
+        // filtresinden bağımsız) kullanılıyor — aksi halde aynı ekranda
+        // aynı kavram için iki farklı sayı görünürdü.
+        value: nextEventsAlways.length,
         detail: 'yaklaşan',
       },
       {
@@ -628,7 +651,7 @@ export default function Panel() {
         onClick: () => document.getElementById('dikkat-gerekiyor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
       },
     ],
-    [callStats, leadStats, opportunityStats, recruitingStats, upcomingEvents, educationGaps, attentionItems],
+    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, educationGaps, attentionItems],
   )
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
@@ -991,7 +1014,7 @@ export default function Panel() {
             <Widget
               icon={UsersIcon}
               title="Portal Kullanımı"
-              description="Danışmanlar, en son giriş yaptıkları zamana göre"
+              description="Güncel giriş durumu · danışmanlar en son giriş zamanına göre"
               to="/takip"
               linkLabel="Takip'e git"
               accent="navy"
@@ -1027,27 +1050,27 @@ export default function Panel() {
               katılımcı avatar satırı kaldırıldı, sadece tarih/başlık/saat
               + "+N tane daha" (bkz. brief). */}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            <Widget icon={CalendarDays} title="Yaklaşan Etkinlik" description={upcomingLabel} to="/takvim" linkLabel="Takvim'e git" accent="navy">
-              {!nextEvent ? (
-                <EmptyRow text="Bu aralıkta etkinlik yok." />
+            <Widget icon={CalendarDays} title="Yaklaşan Etkinlik" description="En yakın etkinlik" to="/takvim" linkLabel="Takvim'e git" accent="navy">
+              {!nextEventAlways ? (
+                <EmptyRow text="Yaklaşan etkinlik yok." />
               ) : (
                 <>
                   <div className="flex items-center gap-3 rounded-xl border border-ink-100 p-3">
                     <div className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-red-50 py-1 text-red-600">
-                      <span className="text-base font-bold leading-none">{new Date(nextEvent.startAt).getDate()}</span>
+                      <span className="text-base font-bold leading-none">{new Date(nextEventAlways.startAt).getDate()}</span>
                       <span className="text-[9px] font-medium uppercase">
-                        {new Date(nextEvent.startAt).toLocaleDateString('tr-TR', { month: 'short' })}
+                        {new Date(nextEventAlways.startAt).toLocaleDateString('tr-TR', { month: 'short' })}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-ink-900">{nextEvent.title}</p>
+                      <p className="truncate text-sm font-semibold text-ink-900">{nextEventAlways.title}</p>
                       <p className="mt-0.5 text-xs text-ink-400">
-                        {EVENT_TYPE_LABELS[nextEvent.type]} · {formatEventDate(nextEvent.startAt)} {formatEventTime(nextEvent.startAt)}
+                        {EVENT_TYPE_LABELS[nextEventAlways.type]} · {formatEventDate(nextEventAlways.startAt)} {formatEventTime(nextEventAlways.startAt)}
                       </p>
                     </div>
                   </div>
-                  {upcomingEvents.length > 1 && (
-                    <p className="mt-2 text-center text-xs text-ink-400">+{upcomingEvents.length - 1} etkinlik daha</p>
+                  {nextEventsAlways.length > 1 && (
+                    <p className="mt-2 text-center text-xs text-ink-400">+{nextEventsAlways.length - 1} etkinlik daha</p>
                   )}
                 </>
               )}

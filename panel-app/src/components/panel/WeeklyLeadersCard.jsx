@@ -40,10 +40,15 @@ export default function WeeklyLeadersCard({ categories, rankingsByCategory }) {
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
-          <Trophy size={16} strokeWidth={1.75} className="text-brand-600" /> Haftanın Liderleri
-        </h2>
-        <Link to="/lig" className="text-xs font-medium text-ink-900 hover:text-brand-700">
+        <div>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+            <Trophy size={16} strokeWidth={1.75} className="text-brand-600" /> Haftanın Liderleri
+          </h2>
+          {/* Üstteki tarih filtresinden BAĞIMSIZ — Lig'in kendi aktif
+              dönemini gösterir (bkz. "Tarih Filtresi Kararları"). */}
+          <p className="mt-0.5 text-xs text-ink-400">Aktif lig dönemi</p>
+        </div>
+        <Link to="/lig" className="shrink-0 text-xs font-medium text-ink-900 hover:text-brand-700">
           Lig'e git →
         </Link>
       </div>
