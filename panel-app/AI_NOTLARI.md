@@ -3,7 +3,53 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-07-28 — Panel: dağınık halka/kart grid'i yerine tek Süreç Özeti tablosu
+## 2026-07-29 — Panel/Dashboard: Broker/Owner için baştan tasarım (Ofisin Nabzı + Dikkat Gerekiyor)
+
+Bir önceki maddedeki `ProcessSummaryTable` (tek büyük tablo) bu maddeyle
+TAMAMEN kaldırıldı — broker'ın "panele girer girmez tüm süreçlere hakim
+olmak istiyorum ama hala okunaklılığa ulaşamadık" geri bildirimi üzerine
+önce ASCII wireframe onayı alınıp (bkz. brief süreci), sonra React'e
+geçildi. Sadece `isBrokerOrOwner` rolünü etkiliyor — Ofis ve Danışman
+dashboard'ları (Lig Durumu podyumu, Danışman Sağlık Skoru vb.) bilerek
+dokunulmadan bırakıldı, Playwright ile rol bazlı ekran görüntüleriyle
+doğrulandı.
+
+Yeni bileşenler (`components/panel/`):
+- **`OfisinNabziGrid`** — 6 KPI kutusu (Operasyon, Portföy, Recruiting,
+  Etkinlik, Eğitim, Kritik Uyarılar), masaüstünde tek satır (`lg:grid-cols-6`).
+  Lead Havuzu ayrı kutu DEĞİL, Operasyon kutusunun "detail" satırına
+  dahil edildi (brief'in açık kararı). "Kritik Uyarılar" kutusu ayrı bir
+  sayfaya gitmiyor, aynı sayfada `#dikkat-gerekiyor`'a scroll ediyor.
+- **`DikkatGerekiyorList`** — KRİTİK (kırmızı) / UYARI (amber) rozetli
+  liste, her zaman render ediliyor; problem yoksa kart gizlenmek yerine
+  tek satır yeşil "Şu anda müdahale gerektiren bir konu bulunmuyor."
+  gösteriliyor.
+- **`WeeklyLeadersCard`** — eskiden 3 ayrı kart (Ciro/Memnuniyet/Sosyal
+  Medya) olan Lig liderleri artık TEK kartta, her kategorinin sadece
+  1. sırası tek satır; o dönem hiç veri girilmemiş kategori hiç
+  gösterilmiyor.
+
+`Panel.jsx`'te `usageBuckets` ("Portal Kullanımı") 3 kesişmeyen kovaya
+netleştirildi: Bugün (son giriş bugün) / Son 7 gün (bugün hariç, 1-7 gün
+önce) / 7+ gün (7 günden fazla veya hiç giriş yok) — eski hali "dün"
+ile "7 gün" arası tanımsız bir boşluk bırakıyordu.
+
+Renk kuralı SADECE bu yeni bölümde değişti: `Widget` bileşenine
+`accent="navy"` prop'u eklendi — broker bölümündeki normal aksiyon
+linkleri ("X'e git →") artık kurumsal lacivert, kırmızı sadece gerçekten
+kritik durumlar için ayrıldı (Kritik Uyarılar kutusu, KRİTİK rozeti).
+Uygulamanın geri kalanı (danışman/ofis widget'ları, diğer tüm sayfalar)
+eski kırmızı-link kuralında bırakıldı, `accent` default'u `'red'`.
+
+Broker'ın açıkça reddettiği bir öneri: ağırlıklı "Genel Performans" skoru
+(dönüş oranı + fırsat sağlığı + eğitim + dikkat-gerekiyor sayısından tek
+bir 0-100 puan). Gerekçe: "Henüz sağlam ve güvenilir bir formülü yok,
+rastgele ağırlıklarla üretilen 91/100 gibi bir sayı yöneticiye gerçekte
+olduğundan daha kesin bilgi verir." Bu skor EKLENMEDİ — formül netliği,
+tanımlı ağırlıklar, tarihsel karşılaştırma ve davranış açıklaması
+netleşmeden tekrar gündeme getirilmemeli.
+
+## 2026-07-28 — Panel: dağınık halka/kart grid'i yerine tek Süreç Özeti tablosu (SONRADAN KALDIRILDI — bkz. 2026-07-29 maddesi)
 
 "Dashboard'a girer girmez Office'in tüm süreçlerine hakim olmak
 istiyorum" isteği — eskiden Operasyon/Fırsatlar/Yaklaşan Etkinlik/Eksik

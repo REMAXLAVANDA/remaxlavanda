@@ -27,7 +27,7 @@ import {
   leads as leadsProvider,
   recruiting as recruitingProvider,
 } from '../lib/dataProvider'
-import { canManageCalls, computeReklamKoduConversion, computeSourceConversion, maskPhone } from '../lib/callLogs'
+import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callLogs'
 import { isStaleLead } from '../lib/leads'
 import { matchesKayitTipiFilter } from '../lib/recruiting'
 import { ROLES } from '../lib/roles'
@@ -51,10 +51,10 @@ import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation } from '.
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
-import SourceConversionBoard from '../components/operasyon/SourceConversionBoard'
-import ReklamKoduConversionBoard from '../components/operasyon/ReklamKoduConversionBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
-import ProcessSummaryTable from '../components/panel/ProcessSummaryTable'
+import OfisinNabziGrid from '../components/panel/OfisinNabziGrid'
+import DikkatGerekiyorList from '../components/panel/DikkatGerekiyorList'
+import WeeklyLeadersCard from '../components/panel/WeeklyLeadersCard'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
@@ -122,19 +122,28 @@ async function loadAll() {
   }
 }
 
-function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', children }) {
+// accent="navy": broker dashboard'daki yeni bölümler için — kırmızı SADECE
+// kritik durumlarda kullanılmalı, normal "git →" linkleri kurumsal
+// lacivert olmalı (bkz. brief madde 8). Danışman/ofis widget'ları
+// (accent varsayılanı "red") mevcut marka rengini (RE/MAX kırmızısı)
+// aynen koruyor — bu, uygulamanın geri kalanındaki (Lead Havuzu, Operasyon
+// vb.) yerleşik kırmızı-link kuralıyla tutarlı, sadece bu yeni dashboard
+// bölümü farklı bir kural izliyor.
+function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', accent = 'red', children }) {
+  const iconColor = accent === 'navy' ? 'text-ink-900' : 'text-brand-600'
+  const linkColor = accent === 'navy' ? 'text-ink-900 hover:text-brand-700' : 'text-brand-600 hover:text-brand-700'
   return (
     <div className={`min-w-0 rounded-2xl border border-ink-100 bg-white p-5 ${className}`}>
       <div className="mb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon size={16} className="text-brand-600" />
+          <Icon size={16} strokeWidth={1.75} className={iconColor} />
           <h2 className="text-sm font-semibold text-ink-900">{title}</h2>
           {count > 0 && (
             <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">{count}</span>
           )}
         </div>
         {to && (
-          <Link to={to} className="text-xs font-medium text-brand-600 hover:text-brand-700">
+          <Link to={to} className={`text-xs font-medium ${linkColor}`}>
             {linkLabel} →
           </Link>
         )}
@@ -213,27 +222,6 @@ function ringColorFor(percent) {
   if (percent >= 100) return '#16a34a'
   if (percent >= 50) return '#f59e0b'
   return '#dc1c2e'
-}
-
-// "Dikkat Gerekiyor" satırı — broker/owner'ın sabah ilk açtığında görmesi
-// gereken, müdahale gerektirebilecek istisnalar. Bilerek müşteri ismi/
-// telefonu YOK — sadece sayı + genel özet, detay ilgili sayfada. Tek sakin
-// beyaz kart içinde ince satırlar — art arda gelen dolu sarı kutular "uyarı
-// duvarı" gibi durup itici geldiği için (bkz. "çok itici" geri bildirimi),
-// renk artık sadece ikon + ince sol şerit olarak kalıyor.
-function AttentionRow({ icon: Icon, text, to }) {
-  return (
-    <Link
-      to={to}
-      className="group flex items-center justify-between gap-3 border-l-2 border-amber-400 bg-white px-4 py-3 transition-colors hover:bg-ink-50"
-    >
-      <div className="flex items-center gap-2.5">
-        <Icon size={15} className="shrink-0 text-amber-500" />
-        <span className="text-sm text-ink-700">{text}</span>
-      </div>
-      <span className="shrink-0 text-xs text-ink-400 transition-colors group-hover:text-brand-700">İncele →</span>
-    </Link>
-  )
 }
 
 // Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun diye
@@ -398,6 +386,10 @@ export default function Panel() {
   }
 
   // --- Eğitim/Checklist: eksik olanlar (yönetim: ekip, danışman: kendisi) ---
+  // overallPercent: modül+checklist toplam madde sayısına göre AĞIRLIKLI
+  // tek yüzde — Panel'deki tek ilerleme çubuğu (bkz. "Eğitim — Geride
+  // Kalanlar") bunu kullanıyor, iki ayrı yüzdeyi basit ortalamak yerine
+  // (ör. 20 modül + 3 checklist maddesi eşit ağırlıkta sayılmasın diye).
   const educationGaps = useMemo(() => {
     if (!data) return []
     const subjects = isEducationManager ? teamMembers : [user]
@@ -405,7 +397,9 @@ export default function Panel() {
       .map((u) => {
         const mp = moduleProgressFor(u.id, data.modules, data.progress)
         const cp = checklistProgress(u.id, 'baslangic', data.checklistItems, data.checklistStatus)
-        return { id: u.id, name: u.name ?? user.name, modulePercent: mp.percent, checklistPercent: cp.percent }
+        const totalItems = mp.total + cp.total
+        const overallPercent = totalItems === 0 ? 0 : Math.round(((mp.completed + cp.completed) / totalItems) * 100)
+        return { id: u.id, name: u.name ?? user.name, modulePercent: mp.percent, checklistPercent: cp.percent, overallPercent }
       })
       .filter((r) => r.modulePercent < 100 || r.checklistPercent < 100)
       .sort((a, b) => a.modulePercent + a.checklistPercent - (b.modulePercent + b.checklistPercent))
@@ -437,16 +431,18 @@ export default function Panel() {
     return computeSourceConversion(inRange)
   }, [data, filters])
 
-  // --- Broker raporu: "hangi Sponsorlu reklamdan geldi" — reklamKodu
-  // bazında çağrı/yetki/satış dökümü (bkz. "hangi reklamdan geldiğini
-  // ölçmeliyiz, portföyün alınıp alınmadığı kontrol edilmeli" isteği).
-  const reklamKoduStats = useMemo(() => {
-    if (!data) return []
-    const inRange = data.calls.filter((c) =>
-      isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
-    )
-    return computeReklamKoduConversion(inRange)
-  }, [data, filters])
+  // --- Broker raporu: Reklam Kaynakları artık Panel'de detay tablo değil,
+  // TEK bir huni özeti (Çağrı → Yetki → Satış) — sourceStats'ın (kaynak
+  // bazlı satırlar) toplamı. Detay isteyen Operasyon'a gidiyor (bkz.
+  // brief: "Dashboard'da detay tablo istemiyorum, sadece özet KPI").
+  const sourceFunnelTotals = useMemo(
+    () =>
+      sourceStats.reduce(
+        (acc, r) => ({ cagri: acc.cagri + r.total, yetki: acc.yetki + r.converted, satis: acc.satis + r.sold }),
+        { cagri: 0, yetki: 0, satis: 0 },
+      ),
+    [sourceStats],
+  )
 
   const opportunityStats = useMemo(() => {
     if (!data) return { total: 0, acik: 0, claimed: 0, kapandi: 0, iptal: 0 }
@@ -461,11 +457,10 @@ export default function Panel() {
     return { total, acik, claimed, kapandi, iptal }
   }, [data, filters])
 
-  // --- Broker raporu: Süreç Özeti tablosu (bkz. ProcessSummaryTable) —
-  // Lead Havuzu/Recruiting bilerek tarih filtresinden BAĞIMSIZ, "panele
-  // girer girmez o ANKİ duruma hakim olmak" isteği tarih aralığı
-  // seçimine göre değişmemeli (bkz. AI_NOTLARI.md, "Dikkat Gerekiyor"
-  // bölümüyle aynı gerekçe).
+  // --- Broker raporu: "Ofisin Nabzı" kutuları — Lead Havuzu/Recruiting
+  // bilerek tarih filtresinden BAĞIMSIZ, "panele girer girmez o ANKİ
+  // duruma hakim olmak" isteği tarih aralığı seçimine göre değişmemeli
+  // (bkz. AI_NOTLARI.md, "Dikkat Gerekiyor" bölümüyle aynı gerekçe).
   const leadStats = useMemo(() => {
     if (!data) return { yeni: 0, stale: 0 }
     const yeni = data.leads.filter((l) => l.durum === 'yeni').length
@@ -480,95 +475,6 @@ export default function Panel() {
     const aktifSurecte = aktifKayitlar.filter((c) => c.durum !== 'olumsuz').length
     return { yeniBasvuru, aktifSurecte }
   }, [data])
-
-  // --- Broker raporu: yaklaşan etkinliklerin ne kadarının katılım listesi
-  // netleşmiş olduğu (herkes RSVP vermiş) — StatCard'daki halkanın oranı bu,
-  // alttaki dağılım da AYNI netleşti/bekliyor ayrımı (etkinlik türü değil —
-  // halka ile lejant farklı eksenlerde olmasın diye, bkz. StatCard notu).
-  const eventReadiness = useMemo(() => {
-    if (!data) return { ready: 0, total: 0 }
-    const total = upcomingEvents.length
-    const ready = upcomingEvents.filter((e) => {
-      const invitees = data.attendance.filter((a) => a.eventId === e.id)
-      return invitees.length > 0 && invitees.every((a) => a.status !== 'davetli')
-    }).length
-    return { ready, total }
-  }, [data, upcomingEvents])
-
-  // --- Broker raporu: ekip genelinde modül + checklist tamamlama oranı,
-  // kişi kişi değil "kaç öğeden kaçı bitmiş" olarak toplanıyor.
-  const educationCompletion = useMemo(() => {
-    if (!data) return { completed: 0, total: 0 }
-    const subjects = isEducationManager ? teamMembers : [user]
-    let completed = 0
-    let total = 0
-    for (const u of subjects) {
-      const mp = moduleProgressFor(u.id, data.modules, data.progress)
-      const cp = checklistProgress(u.id, 'baslangic', data.checklistItems, data.checklistStatus)
-      completed += mp.completed + cp.completed
-      total += mp.total + cp.total
-    }
-    return { completed, total }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, isEducationManager, teamMembers, user])
-
-  // --- Broker raporu: Süreç Özeti tablosu satırları — eski dağınık
-  // halka/kart grid'i yerine (bkz. AI_NOTLARI.md) TEK bir tabloda, her
-  // sürecin özet sayısı. attention: kırmızı rozetle vurgulanan, aksiyon
-  // gerektiren sayı (0 ise rozet hiç gösterilmez).
-  const processSummaryRows = useMemo(
-    () => [
-      {
-        label: 'Operasyon',
-        icon: PhoneCall,
-        to: '/operasyon',
-        primary: `${callStats.total} çağrı`,
-        detail: `${callStats.total - callStats.assigned} atanmamış · ${callStats.donusYapilmadi} dönüş bekliyor`,
-        attentionCount: callStats.total - callStats.assigned + callStats.donusYapilmadi,
-      },
-      {
-        label: 'Fırsatlar / Portföy',
-        icon: Target,
-        to: '/firsatlar',
-        primary: `${opportunityStats.acik} açık`,
-        detail: `${opportunityStats.claimed} alındı · ${opportunityStats.kapandi} kapandı`,
-        attentionCount: 0,
-      },
-      {
-        label: 'Lead Havuzu',
-        icon: Inbox,
-        to: '/leads',
-        primary: `${leadStats.yeni} yeni`,
-        detail: `${leadStats.stale} kayıt 24 saattir işlenmedi`,
-        attentionCount: leadStats.stale,
-      },
-      {
-        label: 'Recruiting',
-        icon: UserPlus,
-        to: '/recruiting',
-        primary: `${recruitingStats.yeniBasvuru} yeni başvuru`,
-        detail: `${recruitingStats.aktifSurecte} aday süreçte`,
-        attentionCount: 0,
-      },
-      {
-        label: 'Etkinlikler',
-        icon: CalendarDays,
-        to: '/takvim',
-        primary: `${upcomingEvents.length} yaklaşan`,
-        detail: `${eventReadiness.ready} / ${eventReadiness.total} netleşti`,
-        attentionCount: 0,
-      },
-      {
-        label: 'Eğitim',
-        icon: GraduationCap,
-        to: '/egitim',
-        primary: `${educationGaps.length} kişi eksik`,
-        detail: `${educationCompletion.completed} / ${educationCompletion.total} madde tamamlandı`,
-        attentionCount: educationGaps.length,
-      },
-    ],
-    [callStats, opportunityStats, leadStats, recruitingStats, upcomingEvents, eventReadiness, educationGaps, educationCompletion],
-  )
 
   // --- Broker raporu: portalı en çok/en az kullanan (Supabase Auth'un
   // gerçekten tuttuğu son giriş zamanına göre — mock/uydurma veri değil).
@@ -589,13 +495,15 @@ export default function Panel() {
   }, [data, teamMembers])
 
   // --- Broker raporu: "Portal Kullanımı"nı liste yerine son giriş zamanına
-  // göre 4 kovaya ayırıyor (Bugün/Dün/3 gün içinde/7+ gün) — tek tek isim
-  // yerine önce genel tabloyu görmek istendiği için.
+  // göre 3 kovaya ayırıyor — Bugün / Son 7 gün (bugün HARİÇ, 1-7 gün önce) /
+  // 7+ gün (7 günden fazla ya da hiç girmemiş). Kovalar birbirini
+  // KAPSAMAZ — bir danışman sadece bir satırda sayılır (bkz. brief:
+  // "kategoriler birbirine karışmamalı").
   const usageBuckets = useMemo(() => {
-    const buckets = { bugun: [], dun: [], uc_gun: [], yedi_gun: [] }
+    const buckets = { bugun: [], son7gun: [], uzunSuredir: [] }
     for (const r of activityRanking) {
       if (!r.lastSignInAt) {
-        buckets.yedi_gun.push(r)
+        buckets.uzunSuredir.push(r)
         continue
       }
       if (isToday(r.lastSignInAt)) {
@@ -603,23 +511,14 @@ export default function Panel() {
         continue
       }
       const diffDays = Math.floor((Date.now() - new Date(r.lastSignInAt).getTime()) / (24 * 60 * 60 * 1000))
-      if (diffDays === 1) buckets.dun.push(r)
-      else if (diffDays <= 3) buckets.uc_gun.push(r)
-      else buckets.yedi_gun.push(r)
+      if (diffDays <= 7) buckets.son7gun.push(r)
+      else buckets.uzunSuredir.push(r)
     }
     return buckets
   }, [activityRanking])
 
   // --- Broker raporu: sıradaki tek etkinliğin detayı + katılımcı listesi.
   const nextEvent = upcomingEvents[0] ?? null
-  const nextEventAttendees = useMemo(() => {
-    if (!nextEvent || !data) return []
-    return data.attendance
-      .filter((a) => a.eventId === nextEvent.id)
-      .map((a) => knownUsers[a.userId])
-      .filter(Boolean)
-  }, [nextEvent, data, knownUsers])
-
   // --- Broker/owner raporu: "Dikkat Gerekiyor" — sabah ilk bakışta görülmesi
   // gereken istisnalar. Tarih filtresinden BAĞIMSIZ (gecikme/durgunluk her
   // zaman güncel olmalı, seçilen rapor aralığına göre değişmemeli).
@@ -633,11 +532,15 @@ export default function Panel() {
     // birbirinden sapmasınlar diye (bkz. geçmişte 528 fırsat kafa karışıklığı).
     // Link'lere eklenen ?odak=1, hedef sayfada "sadece bunları göster" moduna
     // geçiriyor.
+    // severity: kritik (kırmızı) müşteri/iş kaybı riski taşıyan, zamana
+    // duyarlı durumlar; uyarı (turuncu) daha çok iç operasyonel gecikmeler
+    // (bkz. brief örnekleri — "fırsat bekliyor" kritik, "danışman girmedi"
+    // ve "eğitimde geride" uyarı olarak verilmişti).
     const staleReturns = data.calls.filter((c) => isStaleReturn(c, now))
     if (staleReturns.length > 0) {
       items.push({
         id: 'stale-returns',
-        icon: PhoneCall,
+        severity: 'kritik',
         to: '/operasyon?odak=cagri',
         text: `${staleReturns.length} çağrıda 2 günden uzun süredir dönüş yapılmadı`,
       })
@@ -647,7 +550,7 @@ export default function Panel() {
     if (staleOpps.length > 0) {
       items.push({
         id: 'stale-opps',
-        icon: Target,
+        severity: 'kritik',
         to: '/firsatlar?odak=firsat',
         text: `${staleOpps.length} fırsat 3 günden uzun süredir havuzda bekliyor`,
       })
@@ -657,7 +560,7 @@ export default function Panel() {
     if (inactiveAgents.length > 0) {
       items.push({
         id: 'inactive-agents',
-        icon: UsersIcon,
+        severity: 'uyari',
         to: '/takip?odak=danisman',
         text: `${inactiveAgents.length} danışman 7 günden uzun süredir portala girmedi`,
       })
@@ -667,7 +570,7 @@ export default function Panel() {
     if (behindEducation.length > 0) {
       items.push({
         id: 'behind-education',
-        icon: GraduationCap,
+        severity: 'uyari',
         to: '/egitim?odak=egitim',
         text: `${behindEducation.length} danışmanın eğitim/checklist tamamlama oranı %50'nin altında`,
       })
@@ -675,6 +578,58 @@ export default function Panel() {
 
     return items
   }, [data, activityRanking, educationGaps])
+
+  // --- Broker raporu: "Ofisin Nabzı" — 6 küçük KPI kutusu (bkz.
+  // OfisinNabziGrid). Lead Havuzu ayrı kutu DEĞİL, Operasyon'un detay
+  // satırına dahil edildi (bkz. brief). Kritik Uyarılar kutusu bir sayfaya
+  // değil, aynı sayfadaki "Dikkat Gerekiyor" bölümüne kaydırıyor.
+  const nabziTiles = useMemo(
+    () => [
+      {
+        label: 'Operasyon',
+        icon: PhoneCall,
+        to: '/operasyon',
+        value: callStats.total,
+        detail: `${leadStats.yeni} yeni lead · ${callStats.total - callStats.assigned} atanmamış`,
+      },
+      {
+        label: 'Portföy',
+        icon: Target,
+        to: '/firsatlar',
+        value: opportunityStats.acik,
+        detail: 'açık fırsat',
+      },
+      {
+        label: 'Recruiting',
+        icon: UserPlus,
+        to: '/recruiting',
+        value: recruitingStats.yeniBasvuru,
+        detail: 'yeni başvuru',
+      },
+      {
+        label: 'Etkinlik',
+        icon: CalendarDays,
+        to: '/takvim',
+        value: upcomingEvents.length,
+        detail: 'yaklaşan',
+      },
+      {
+        label: 'Eğitim',
+        icon: GraduationCap,
+        to: '/egitim',
+        value: educationGaps.length,
+        detail: 'kişi eksik',
+      },
+      {
+        label: 'Kritik Uyarılar',
+        icon: AlertTriangle,
+        value: attentionItems.length,
+        detail: 'dikkat gerekiyor',
+        onClick: () => document.getElementById('dikkat-gerekiyor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      },
+    ],
+    [callStats, leadStats, opportunityStats, recruitingStats, upcomingEvents, educationGaps, attentionItems],
+  )
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
@@ -986,26 +941,16 @@ export default function Panel() {
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      {/* Süreç Özeti — broker/owner panele girer girmez TÜM süreçlere
-          (Operasyon/Fırsatlar/Lead Havuzu/Recruiting/Etkinlik/Eğitim) tek
-          tabloda hakim olabilsin diye en üstte (bkz. AI_NOTLARI.md, eski
-          dağınık halka/kart grid'inin yerine geçti). */}
+      {/* Broker/owner yönetim merkezi — "panele girer girmez 30 saniyede
+          ofisin durumuna hakim olmak" isteği (bkz. AI_NOTLARI.md). Sabit
+          sıra: Ofisin Nabzı → Dikkat Gerekiyor → Portal Kullanımı →
+          Haftanın Liderleri → Yaklaşan Etkinlik → Eğitim → Reklam
+          Kaynakları. Kartlar arası boşluk bilerek dar (space-y-3) —
+          "aynı ekranda daha fazla bilgi görülsün" isteği. */}
       {!loading && !error && isBrokerOrOwner && (
-        <div className="mb-5">
-          <ProcessSummaryTable rows={processSummaryRows} />
-        </div>
-      )}
-
-      {!loading && !error && isBrokerOrOwner && attentionItems.length > 0 && (
-        <div className="mb-5">
-          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-400">
-            <AlertTriangle size={14} className="text-amber-500" /> Dikkat Gerekiyor
-          </h2>
-          <div className="divide-y divide-ink-50 overflow-hidden rounded-2xl border border-ink-100 bg-white">
-            {attentionItems.map((item) => (
-              <AttentionRow key={item.id} icon={item.icon} text={item.text} to={item.to} />
-            ))}
-          </div>
+        <div className="space-y-3">
+          <OfisinNabziGrid tiles={nabziTiles} />
+          <DikkatGerekiyorList items={attentionItems} />
         </div>
       )}
 
@@ -1034,15 +979,22 @@ export default function Panel() {
         </div>
       )}
 
-      {!loading && !error && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:grid-flow-row-dense">
-          {isBrokerOrOwner && (
+      {/* Broker/owner yönetim merkezinin devamı — sabit sıra: Portal
+          Kullanımı → Haftanın Liderleri → Yaklaşan Etkinlik → Eğitim →
+          Reklam Kaynakları (bkz. brief "Nihai sıralama"). */}
+      {!loading && !error && isBrokerOrOwner && (
+        <div className="mt-3 space-y-3">
+          {/* Desktop'ta Portal Kullanımı + Haftanın Liderleri yan yana
+              (bkz. brief "Mobil Öncelik" > Desktop notu), mobilde alt
+              alta (grid-cols-1). */}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <Widget
               icon={UsersIcon}
               title="Portal Kullanımı"
               description="Danışmanlar, en son giriş yaptıkları zamana göre"
               to="/takip"
               linkLabel="Takip'e git"
+              accent="navy"
             >
               {activityRanking.length === 0 ? (
                 <EmptyRow text="Henüz danışman yok." />
@@ -1050,15 +1002,14 @@ export default function Panel() {
                 <div className="space-y-1.5">
                   {[
                     { key: 'bugun', label: 'Bugün giriş yapanlar', color: '#16a34a' },
-                    { key: 'dun', label: 'Dün giriş yapanlar', color: '#f59e0b' },
-                    { key: 'uc_gun', label: '3 gün içinde giriş yapanlar', color: '#003da5' },
-                    { key: 'yedi_gun', label: '7 günden uzun süredir giriş yapmayanlar', color: '#dc1c2e' },
+                    { key: 'son7gun', label: 'Son 7 gün içinde giriş yapanlar', color: '#003da5' },
+                    { key: 'uzunSuredir', label: '7 günden uzun süredir giriş yapmayanlar', color: '#dc1c2e' },
                   ].map((b) => {
                     const people = usageBuckets[b.key]
                     const percent = activityRanking.length ? (people.length / activityRanking.length) * 100 : 0
                     return (
                       <div key={b.key} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
-                        <ProgressRing percent={percent} size={38} strokeWidth={4} color={b.color} fontSize={9} />
+                        <ProgressRing percent={percent} size={34} strokeWidth={4} color={b.color} fontSize={9} />
                         <span className="min-w-0 flex-1 text-sm text-ink-700">{b.label}</span>
                         <span className="shrink-0 text-sm font-semibold text-ink-900">{people.length}</span>
                       </div>
@@ -1067,126 +1018,108 @@ export default function Panel() {
                 </div>
               )}
             </Widget>
-          )}
 
-          {isBrokerOrOwner && sourceStats.length > 0 && (
-            <Widget
-              icon={Megaphone}
-              title="Reklam Kaynakları"
-              description="Çağrı → yetki → satış dönüşümü, kaynak bazında"
-              to="/operasyon"
-              linkLabel="Operasyon'a git"
-              className="md:col-span-2"
-            >
-              <SourceConversionBoard rows={sourceStats} />
-            </Widget>
-          )}
+            <WeeklyLeadersCard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
+          </div>
 
-          {isBrokerOrOwner && reklamKoduStats.length > 0 && (
-            <Widget
-              icon={Megaphone}
-              title="Sponsorlu Reklam Performansı"
-              description="Çağrı girilirken işaretlenen reklam adına göre yetki/satış dönüşümü"
-              to="/operasyon"
-              linkLabel="Operasyon'a git"
-              className="md:col-span-2"
-            >
-              <ReklamKoduConversionBoard rows={reklamKoduStats} />
-            </Widget>
-          )}
-
-          {isBrokerOrOwner && (
-            <Widget icon={CalendarDays} title="Yaklaşan Etkinlik" description={upcomingLabel} to="/takvim" linkLabel="Takvim'e git">
+          {/* Desktop'ta Eğitim + Yaklaşan Etkinlik yan yana. Yaklaşan
+              Etkinlik: kart yüksekliği eskisinin yaklaşık yarısı —
+              katılımcı avatar satırı kaldırıldı, sadece tarih/başlık/saat
+              + "+N tane daha" (bkz. brief). */}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <Widget icon={CalendarDays} title="Yaklaşan Etkinlik" description={upcomingLabel} to="/takvim" linkLabel="Takvim'e git" accent="navy">
               {!nextEvent ? (
                 <EmptyRow text="Bu aralıkta etkinlik yok." />
               ) : (
                 <>
-                  <div className="rounded-xl border border-ink-100 p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex w-12 shrink-0 flex-col items-center rounded-lg bg-red-50 py-1.5 text-red-600">
-                        <span className="text-lg font-bold leading-none">{new Date(nextEvent.startAt).getDate()}</span>
-                        <span className="text-[10px] font-medium uppercase">
-                          {new Date(nextEvent.startAt).toLocaleDateString('tr-TR', { month: 'short' })}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-ink-900">{nextEvent.title}</p>
-                        <p className="mt-0.5 text-xs text-ink-400">
-                          {EVENT_TYPE_LABELS[nextEvent.type]} · {formatEventDate(nextEvent.startAt)} {formatEventTime(nextEvent.startAt)}
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-ink-100 p-3">
+                    <div className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-red-50 py-1 text-red-600">
+                      <span className="text-base font-bold leading-none">{new Date(nextEvent.startAt).getDate()}</span>
+                      <span className="text-[9px] font-medium uppercase">
+                        {new Date(nextEvent.startAt).toLocaleDateString('tr-TR', { month: 'short' })}
+                      </span>
                     </div>
-                    {nextEventAttendees.length > 0 && (
-                      <div className="mt-3 flex items-center -space-x-2">
-                        {nextEventAttendees.slice(0, 5).map((u) => (
-                          <div key={u.id} className="rounded-full ring-2 ring-white">
-                            <InitialsBadge name={u.name} size={28} />
-                          </div>
-                        ))}
-                        {nextEventAttendees.length > 5 && (
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-100 text-[10px] font-semibold text-ink-500 ring-2 ring-white">
-                            +{nextEventAttendees.length - 5}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-ink-900">{nextEvent.title}</p>
+                      <p className="mt-0.5 text-xs text-ink-400">
+                        {EVENT_TYPE_LABELS[nextEvent.type]} · {formatEventDate(nextEvent.startAt)} {formatEventTime(nextEvent.startAt)}
+                      </p>
+                    </div>
                   </div>
                   {upcomingEvents.length > 1 && (
-                    <p className="mt-3 text-center text-xs text-ink-400">+{upcomingEvents.length - 1} etkinlik daha bu aralıkta</p>
+                    <p className="mt-2 text-center text-xs text-ink-400">+{upcomingEvents.length - 1} etkinlik daha</p>
                   )}
                 </>
               )}
             </Widget>
-          )}
 
-          {isBrokerOrOwner && (
             <Widget
               icon={GraduationCap}
-              title="Eksik Eğitim / Checklist"
-              description="Modül veya checklist tamamlama %100 altında olanlar"
+              title="Eğitim — Geride Kalanlar"
+              description="Modül + checklist tamamlama %100 altında olanlar"
               to="/egitim"
               linkLabel="Tümünü gör"
+              accent="navy"
             >
               {educationGaps.length === 0 ? (
                 <EmptyRow text="Herkes tamamlamış, harika!" />
               ) : (
-                <div className="space-y-1.5">
-                  {educationGaps.slice(0, 5).map((r) => (
-                    <div key={r.id} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2">
-                      <InitialsBadge name={r.name} size={32} />
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-900">{r.name}</span>
-                      <div className="flex shrink-0 items-center gap-3">
-                        <div className="flex flex-col items-center gap-0.5">
-                          <ProgressRing percent={r.modulePercent} size={32} strokeWidth={4} color={ringColorFor(r.modulePercent)} fontSize={8} />
-                          <span className="text-[9px] text-ink-400">Modül</span>
+                <div className="space-y-2.5">
+                  {educationGaps.slice(0, 3).map((r) => (
+                    <div key={r.id} className="flex items-center gap-3">
+                      <InitialsBadge name={r.name} size={28} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-sm font-medium text-ink-900">{r.name}</span>
+                          <span className="shrink-0 text-xs font-semibold text-ink-500">%{r.overallPercent}</span>
                         </div>
-                        <div className="flex flex-col items-center gap-0.5">
-                          <ProgressRing percent={r.checklistPercent} size={32} strokeWidth={4} color={ringColorFor(r.checklistPercent)} fontSize={8} />
-                          <span className="text-[9px] text-ink-400">Checklist</span>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${r.overallPercent}%`, backgroundColor: ringColorFor(r.overallPercent) }}
+                          />
                         </div>
                       </div>
                     </div>
                   ))}
-                  {educationGaps.length > 5 && (
-                    <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
+                  {educationGaps.length > 3 && (
+                    <Link to="/egitim" className="block pt-1 text-center text-xs font-medium text-ink-900 hover:text-brand-700">
+                      +{educationGaps.length - 3} kişi daha →
+                    </Link>
                   )}
                 </div>
               )}
             </Widget>
-          )}
+          </div>
 
+          {/* Reklam Kaynakları: detay tablo YOK, tek satır huni özeti —
+              detay isteyen Operasyon'a gidiyor (bkz. brief). Hiç çağrı
+              yoksa kart tamamen gizli (boş kart gösterme kuralı). Tam
+              genişlik (bkz. brief desktop notu). */}
+          {sourceFunnelTotals.cagri > 0 && (
+            <Widget icon={Megaphone} title="Reklam Kaynakları" to="/operasyon" linkLabel="Operasyon'a git" accent="navy">
+              <div className="flex items-center justify-center gap-2 py-1 text-sm font-semibold text-ink-900">
+                <span>{sourceFunnelTotals.cagri} Çağrı</span>
+                <span className="text-ink-300">→</span>
+                <span>{sourceFunnelTotals.yetki} Yetki</span>
+                <span className="text-ink-300">→</span>
+                <span>{sourceFunnelTotals.satis} Satış</span>
+              </div>
+            </Widget>
+          )}
         </div>
       )}
 
       {/* Lig Durumu: danışman için zaten en üstte (ligDurumuBlock, yukarıdaki
-          isDanisman bloğunda) gösterildi — broker/owner/ofis için burada,
-          eski yerinde kalıyor. */}
-      {!loading && !error && !isDanisman && <div className="mt-4">{ligDurumuBlock}</div>}
+          isDanisman bloğunda) gösterildi; broker/owner için "Haftanın
+          Liderleri" (WeeklyLeadersCard) yukarıdaki yeni bölümde — burada
+          artık sadece ofis eski podyum görünümünü görüyor. */}
+      {!loading && !error && !isDanisman && !isBrokerOrOwner && <div className="mt-4">{ligDurumuBlock}</div>}
 
-      {/* Danışman Sağlık Skoru: broker/owner'ın gördüğü büyük yönetim panosundan
-          (isBrokerOrOwner) AYRI tutuluyor — ofis de bu widget'ı görmeli ama
-          çağrı/fırsat/eğitim istatistiklerinin tamamını görmemeli. */}
-      {!loading && !error && (isBrokerOrOwner || role === ROLES.OFIS) && (
+      {/* Danışman Sağlık Skoru: broker/owner'ın yeni "Ofisin Nabzı" +
+          sabit 8 bölümlük akışında YOK (bkz. brief "Nihai sıralama") —
+          artık sadece ofis görüyor. */}
+      {!loading && !error && role === ROLES.OFIS && (
         <Widget
           icon={HeartPulse}
           title="Danışman Sağlık Skoru"
