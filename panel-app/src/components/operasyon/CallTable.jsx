@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import { ChevronRight, Eye, EyeOff, Target, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
+import { ChevronRight, Eye, EyeOff, Target, Send, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
@@ -208,6 +208,7 @@ export default function CallTable({
   onToggle,
   onEditDetails,
   onDelete,
+  onConvertToOpportunity,
 }) {
   if (calls.length === 0) {
     return (
@@ -282,6 +283,15 @@ export default function CallTable({
                     <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{callDateLabel(call.createdAt)}</td>
                     <td className="px-3 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {!call.opportunityId && (canEditResult || isManager) && (
+                          <button
+                            onClick={() => onConvertToOpportunity(call)}
+                            className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-700"
+                            title="Fırsata Dönüştür"
+                          >
+                            <Send size={14} />
+                          </button>
+                        )}
                         {canEditCallDetails(currentRole, call.createdAt) && (
                           <button
                             onClick={() => onEditDetails(call)}
@@ -355,6 +365,15 @@ export default function CallTable({
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  {!call.opportunityId && (canEditResult || isManager) && (
+                    <button
+                      onClick={() => onConvertToOpportunity(call)}
+                      className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-700"
+                      title="Fırsata Dönüştür"
+                    >
+                      <Send size={14} />
+                    </button>
+                  )}
                   {canEditCallDetails(currentRole, call.createdAt) && (
                     <button
                       onClick={() => onEditDetails(call)}

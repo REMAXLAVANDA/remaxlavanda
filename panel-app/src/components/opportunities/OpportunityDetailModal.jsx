@@ -9,6 +9,8 @@ import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
   OPPORTUNITY_TYPE_LABELS,
+  ISLEM_TIPI_LABELS,
+  ISLEM_TIPI_STYLES,
   canExpressInterest,
   canRevealContact,
   formatPrice,
@@ -125,6 +127,9 @@ export default function OpportunityDetailModal({
         <span className="rounded-full bg-ink-50 px-2 py-0.5 text-xs font-medium text-ink-500">
           {categoryLabel(opp.category)}
         </span>
+        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${ISLEM_TIPI_STYLES[opp.islemTipi]}`}>
+          {ISLEM_TIPI_LABELS[opp.islemTipi] ?? ISLEM_TIPI_LABELS.satilik}
+        </span>
         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${OPPORTUNITY_STATUS_STYLES[opp.status]}`}>
           {OPPORTUNITY_STATUS_LABELS[opp.status]}
         </span>
@@ -140,6 +145,7 @@ export default function OpportunityDetailModal({
           {opp.type === 'alici' && (opp.fiyatMin || opp.fiyatMax)
             ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
             : formatPrice(opp.fiyat)}
+          {opp.islemTipi === 'kiralik' && <span className="text-sm font-normal text-ink-400"> / ay</span>}
         </p>
         {opp.ozet && <p className="text-ink-600">{opp.ozet}</p>}
 

@@ -85,6 +85,19 @@ export const OPPORTUNITY_TYPE_LABELS = {
   alici: 'Alıcı',
 }
 
+// Satıcı için: mülk satılık mı kiralık mı. Alıcı için: satın almak mı
+// kiralamak mı istiyor. Hem Satıcı hem Alıcı tarafında geçerli — broker
+// kararı (bkz. AI_NOTLARI.md).
+export const ISLEM_TIPI_LABELS = {
+  satilik: 'Satılık',
+  kiralik: 'Kiralık',
+}
+
+export const ISLEM_TIPI_STYLES = {
+  satilik: 'bg-sky-50 text-sky-700',
+  kiralik: 'bg-fuchsia-50 text-fuchsia-700',
+}
+
 export const OPPORTUNITY_STATUS_LABELS = {
   acik: 'Açık',
   claimed: 'Üstlenildi',

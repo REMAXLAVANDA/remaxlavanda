@@ -25,7 +25,7 @@ async function run(promise) {
 // --- Opportunities (Fırsatlar) ----------------------------------------------
 const OPPORTUNITY_COLUMNS =
   'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, ' +
-  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, categories(key)'
+  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, islem_tipi, categories(key)'
 
 function mapOpportunity(row) {
   return {
@@ -45,6 +45,9 @@ function mapOpportunity(row) {
     fiyatMin: row.fiyat_min,
     fiyatMax: row.fiyat_max,
     kaynakLeadId: row.kaynak_lead_id,
+    // Satılık/kiralık — hem Satıcı hem Alıcı tarafında geçerli (bkz.
+    // migration 20260729230000, lib/opportunities.js ISLEM_TIPI_LABELS).
+    islemTipi: row.islem_tipi,
     // Bilinçli olarak leadAd/leadTelefon YOK — bkz. dosya başı not.
   }
 }
@@ -75,6 +78,7 @@ export const opportunities = {
       fiyat_min: payload.fiyatMin ?? null,
       fiyat_max: payload.fiyatMax ?? null,
       kaynak_lead_id: payload.kaynakLeadId ?? null,
+      islem_tipi: payload.islemTipi || 'satilik',
       // Danışman kendi bulduğu müşteriyi eklerken (havuza atmadıysa) direkt
       // kendine atanmış olsun — açık havuza düşüp başka bir danışmana
       // kaptırılmasın (bkz. opportunities_insert RLS: danışman sadece
@@ -100,6 +104,7 @@ export const opportunities = {
     if ('ozet' in patch) updateRow.ozet = patch.ozet || null
     if ('m2' in patch) updateRow.m2 = patch.m2 ?? null
     if ('odaSayisi' in patch) updateRow.oda_sayisi = patch.odaSayisi || null
+    if ('islemTipi' in patch) updateRow.islem_tipi = patch.islemTipi
     const data = await run(
       client().from('opportunities').update(updateRow).eq('id', id).select(OPPORTUNITY_COLUMNS).single(),
     )
@@ -461,6 +466,10 @@ export const callLogs = {
     if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
     if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
     if ('reklamKodu' in patch) dbPatch.reklam_kodu = patch.reklamKodu || null
+    // Operasyon'dan Fırsata dönüştürme akışı set ediyor (bkz. OperasyonTab.jsx
+    // handleOpportunitySubmit) — kolon zaten vardı (init_schema), sadece
+    // yazan bir akış hiç yoktu.
+    if ('opportunityId' in patch) dbPatch.opportunity_id = patch.opportunityId
     const data = await run(client().from('call_logs').update(dbPatch).eq('id', id).select().single())
     return mapCallLog(data)
   },

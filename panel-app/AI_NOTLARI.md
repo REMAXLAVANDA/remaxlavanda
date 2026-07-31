@@ -3,6 +3,57 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-29 — Fırsatlar: Satılık/Kiralık + Operasyon'dan direkt dönüştürme
+
+Broker'ın iki bulgusu — ikisi de doğrulandı, kodda gerçekten yoktu:
+
+**1) Satılık/Kiralık hiç yoktu.** Fırsatlar formunda sadece Satıcı/Alıcı
+(taraf) ve Konut/Ticari/Arsa/Diğer (emlak tipi) vardı, mülkün satılık mı
+kiralık mı olduğu hiç sorulmuyordu. Eklendi: `opportunities.islem_tipi`
+(migration `20260729230000_islem_tipi_ve_cagri_donusum.sql`,
+`'satilik'|'kiralik'`, NOT NULL DEFAULT 'satilik' — geriye dönük tüm
+kayıtlar satılık sayılıyor). Broker kararı: **hem Satıcı hem Alıcı**
+tarafında geçerli (Alıcı için "satın almak mı kiralamak mı istiyor"),
+kiralık seçilince fiyat alanının placeholder'ı da değişiyor ("Aylık Kira
+(₺)" / "Kira bütçesi min-max (₺)"). `NewOpportunityModal` VE
+`EditOpportunityModal`'da düzenlenebilir (type/category'nin aksine "hangi
+kutu" değişimi sayılmıyor, konum/fiyat gibi düzeltilebilir bir detay).
+Rozet: `OpportunityTable` (Tür sütununda kategori yanında), `OpportunityDetailModal`
+(üstteki rozet satırında + fiyatın yanına kiralıksa "/ ay"). BİLİNÇLİ
+kapsam dışı: `computeBoxCounts` (Fırsatlar'daki 8 kutu) değiştirilmedi —
+Satıcı/Alıcı × 4 kategoriye üçüncü bir eksen (× 2 işlem tipi = 16 kutu)
+eklemek kalabalıklaştırırdı, rozet tabloda/detaya yeterli. Panel.jsx'in
+`OpportunityMiniRow`'una (Açık Fırsatlar mini widget) da eklenmedi — o
+zaten çok dar, kategori+konum+fiyat+tarih tek satırda sığıyor.
+
+**2) Operasyon'dan Fırsata direkt dönüştürme hiç yoktu.** `call_logs.
+opportunity_id` kolonu VE "Fırsata dönüştü" ikonu (CallTable.jsx) zaten
+vardı ama hiçbir akış bu alanı YAZMIYORDU — yarım bırakılmış bir özellik.
+Broker: "Santral/Sponsorlu'dan gelen bir çağrı zaten bilgisayar yazıyor,
+ben onu hiçbir şeye dokunmadan havuza atabilir miyim". Lead Havuzu'ndaki
+"Fırsata Dönüştür" ile BİREBİR aynı desen CallTable satırlarına eklendi
+(Send ikonu, "Fırsata Dönüştür" title) — tıklanınca `NewOpportunityModal`
+`arayanAd`/`arayanTelefon` ile ÖN DOLU açılıyor, isim/telefon tekrar
+yazılmıyor (mahalle/fiyat gibi telefonda konuşulmayan bilgiler yine de
+girilmeli — tam "hiçbir şeye dokunmadan" değil, ama en can sıkıcı
+tekrarı ortadan kaldırıyor). Buton SADECE çağrıyı üstlenen danışman veya
+yönetim için görünüyor, `call.opportunityId` doluysa (zaten dönüştüyse)
+gizleniyor.
+
+Havuza atma seçimi: Lead Havuzu dönüşümünün AKSİNE (o her zaman havuza
+gider, selfClaim hep false) burada FirsatlarTab.jsx'in "Yeni Fırsat"
+akışıyla AYNI kural kullanıldı — danışman/broker "Havuza at"ı
+işaretlemezse fırsat direkt kendine atanır. Gerekçe: bir Lead Havuzu
+kaydı dönüşümden ÖNCE zaten paylaşılan bir kaynak, ama bir Operasyon
+çağrısı zaten `assignedTo` ile TEK bir danışmana atanmış oluyor — kendi
+çalıştığı müşteriyi otomatik havuza zorlamak yanlış olurdu, seçim
+bırakıldı (broker'ın "havuza atabilir miyim" sorusu zaten "seçebilmek"
+istediğini gösteriyordu).
+
+Yan otomasyon: dönüşüm anında çağrının `portfoyAlindiMi`'si de otomatik
+"Alındı" yapılıyor — Fırsat oluşup Süreç zincirinde "Portföy: Bekliyor"
+çelişkili görünmesin diye.
+
 ## 2026-07-29 — Aylık Etkinlik Panosu: gerçek Takvim'e bağlandı (WhatsApp/TV görseli)
 
 Daha önce sadece bir tasarım örneği (artifact, Temmuz 2026 uydurma

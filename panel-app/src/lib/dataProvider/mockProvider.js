@@ -47,12 +47,18 @@ export const opportunities = {
   // — gerçek isim/telefon SADECE getContact() üzerinden (izin kontrolüyle)
   // döner.
   async list() {
-    return delay(MOCK_OPPORTUNITIES.map(({ leadAd: _leadAd, leadTelefon: _leadTelefon, ...rest }) => ({ ...rest })))
+    return delay(
+      MOCK_OPPORTUNITIES.map(({ leadAd: _leadAd, leadTelefon: _leadTelefon, ...rest }) => ({
+        ...rest,
+        islemTipi: rest.islemTipi ?? 'satilik',
+      })),
+    )
   },
   async create(payload, ownerId, selfClaim = false) {
     const row = {
       id: `opp-${Date.now()}`,
       ...payload,
+      islemTipi: payload.islemTipi || 'satilik',
       status: selfClaim ? 'claimed' : 'acik',
       ownerId,
       claimerId: selfClaim ? ownerId : null,

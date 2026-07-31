@@ -4,16 +4,20 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { callLogs as callLogsProvider } from '../../lib/dataProvider'
+import { callLogs as callLogsProvider, opportunities as opportunitiesProvider } from '../../lib/dataProvider'
 import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
+import { parseThousands } from '../../lib/format'
+import { formatPhoneInput } from '../../lib/phone'
+import { ROLES } from '../../lib/roles'
 import FocusBanner from '../../components/common/FocusBanner'
 import CallTable from '../../components/operasyon/CallTable'
 import CallFilters from '../../components/operasyon/CallFilters'
 import StatsCards from '../../components/operasyon/StatsCards'
 import NewCallModal from '../../components/operasyon/NewCallModal'
 import EditCallDetailsModal from '../../components/operasyon/EditCallDetailsModal'
+import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
@@ -29,6 +33,7 @@ export default function OperasyonTab() {
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
   const [editingCall, setEditingCall] = useState(null)
+  const [convertingCall, setConvertingCall] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -122,6 +127,47 @@ export default function OperasyonTab() {
     }
   }
 
+  // Santral/Reklam/Web Sitesi'nden gelen bir çağrı zaten arayan ad/telefonu
+  // otomatik tutuyor — danışman "Fırsata Dönüştür" deyince bunları tekrar
+  // yazmasın diye NewOpportunityModal'a ön-dolu açılıyor (Lead Havuzu'ndaki
+  // "Fırsata Dönüştür" ile AYNI desen, bkz. Leads.jsx handleConvertToOpportunity).
+  function handleConvertToOpportunity(call) {
+    setConvertingCall(call)
+  }
+
+  async function handleOpportunitySubmit(form) {
+    setSubmitting(true)
+    try {
+      const payload = {
+        ...form,
+        fiyat: parseThousands(form.fiyat),
+        fiyatMin: parseThousands(form.fiyatMin),
+        fiyatMax: parseThousands(form.fiyatMax),
+        m2: form.m2 ? Number(form.m2) : null,
+      }
+      // FirsatlarTab.jsx'teki "Yeni Fırsat" ile AYNI kural: danışman/broker
+      // "Havuza at"ı işaretlemediyse direkt kendine atanmış olarak kaydedilir
+      // — Lead Havuzu dönüşümünün aksine (o her zaman havuza gider) burada
+      // çağrı zaten kişiye atanmış olduğu için seçim bırakılıyor (bkz.
+      // "ben onu direkt oradan havuza atabilir miyim" isteği).
+      const selfClaim = (role === ROLES.DANISMAN || role === ROLES.BROKER) && !form.havuzaAt
+      const created = await opportunitiesProvider.create(payload, user.id, selfClaim)
+      // Çağrı zaten portföye dönüştüğü için "Portföy" durumu da otomatik
+      // "Alındı" oluyor — Fırsat oluşup Portföy hâlâ "Bekliyor" görünmesin diye.
+      const updated = await callLogsProvider.update(convertingCall.id, {
+        opportunityId: created.id,
+        portfoyAlindiMi: true,
+      })
+      setCalls((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+      setConvertingCall(null)
+      showToast("Fırsatlar'a gönderildi.", 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Dönüştürülemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleCreate(form) {
     setSubmitting(true)
     try {
@@ -190,8 +236,23 @@ export default function OperasyonTab() {
             onToggle={handleToggle}
             onEditDetails={setEditingCall}
             onDelete={handleDelete}
+            onConvertToOpportunity={handleConvertToOpportunity}
           />
         </>
+      )}
+
+      {convertingCall && (
+        <NewOpportunityModal
+          initialValues={{
+            type: null,
+            leadAd: convertingCall.arayanAd,
+            leadTelefon: convertingCall.arayanTelefon ? formatPhoneInput(convertingCall.arayanTelefon) : '',
+          }}
+          showPoolToggle={role === ROLES.DANISMAN}
+          onClose={() => setConvertingCall(null)}
+          onSubmit={handleOpportunitySubmit}
+          submitting={submitting}
+        />
       )}
 
       {showModal && (

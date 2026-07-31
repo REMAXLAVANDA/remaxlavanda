@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
-import { OPPORTUNITY_TYPE_LABELS } from '../../lib/opportunities'
+import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
@@ -9,6 +9,9 @@ function emptyForm(defaultType, initialValues) {
   return {
     type: defaultType,
     category: OPPORTUNITY_CATEGORIES[0].key,
+    // Satıcı: mülk satılık mı kiralık mı. Alıcı: satın almak mı kiralamak
+    // mı istiyor. Her iki tarafta da geçerli (bkz. broker kararı).
+    islemTipi: 'satilik',
     leadAd: '',
     leadTelefon: '',
     konum: '',
@@ -48,6 +51,7 @@ export default function NewOpportunityModal({
   const phoneRef = useRef(null)
 
   const isAlici = form.type === 'alici'
+  const isKiralik = form.islemTipi === 'kiralik'
   const isKonut = form.category === 'konut'
   const minVal = parseThousands(form.fiyatMin)
   const maxVal = parseThousands(form.fiyatMax)
@@ -118,6 +122,21 @@ export default function NewOpportunityModal({
           ))}
         </div>
 
+        <div className="flex gap-1.5">
+          {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => set({ islemTipi: key })}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                form.islemTipi === key ? 'bg-ink-800 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <select
           value={form.category}
           onChange={(e) => set({ category: e.target.value, odaSayisi: '' })}
@@ -167,14 +186,14 @@ export default function NewOpportunityModal({
                 inputMode="numeric"
                 value={form.fiyatMin}
                 onChange={(e) => set({ fiyatMin: formatThousands(e.target.value) })}
-                placeholder="Bütçe min (₺)"
+                placeholder={isKiralik ? 'Kira bütçesi min (₺)' : 'Bütçe min (₺)'}
                 className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
               />
               <input
                 inputMode="numeric"
                 value={form.fiyatMax}
                 onChange={(e) => set({ fiyatMax: formatThousands(e.target.value) })}
-                placeholder="Bütçe max (₺)"
+                placeholder={isKiralik ? 'Kira bütçesi max (₺)' : 'Bütçe max (₺)'}
                 className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
               />
             </div>
@@ -185,7 +204,7 @@ export default function NewOpportunityModal({
             inputMode="numeric"
             value={form.fiyat}
             onChange={(e) => set({ fiyat: formatThousands(e.target.value) })}
-            placeholder="Yaklaşık Fiyat (₺)"
+            placeholder={isKiralik ? 'Aylık Kira (₺)' : 'Yaklaşık Fiyat (₺)'}
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
         )}
