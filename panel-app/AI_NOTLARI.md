@@ -3,6 +3,27 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-31 — Satılık/Kiralık: ikon yerine kısa harf kodlu rozet
+
+Broker geri bildirimi: bir önceki maddedeki ikon (Satılık=ev, Kiralık=
+anahtar) "hiç anlaşılmıyor" — soyut bir sembolün ne anlama geldiğini
+tahmin etmek gerekiyordu, sözcüğe hiç yakın değildi.
+
+Çözüm: `CallTable`'daki `KaynakBadge` (Kynk sütunu: S/R/WS/D) ile AYNI
+dilde küçük, renkli, kısa harf kodlu rozet — `ISLEM_TIPI_ICONS`/
+`ISLEM_TIPI_ICON_STYLES` kaldırıldı, yerine `ISLEM_TIPI_CODES` geldi
+(`lib/opportunities.js`): Satılık="SAT" (sky), Kiralık="KİR" (fuchsia).
+"S" bilerek kullanılmadı — CallTable'da aynı satırda Kynk sütunundaki "S"
+(Santral) ile karışırdı. Rozet zaten kelimeye yakın olduğu için ayrıca
+sözcük yazmaya (tam "Satılık"/"Kiralık" pill) gerek kalmadı — bu da bir
+önceki "göz yoruyor" bulgusuna geri dönmeden kompakt kalmasını sağladı.
+
+`OpportunityTable` (Mahalle sütunu) ve `CallTable` (arayanAd yanı, sadece
+call.opportunityId doluysa) aynı rozeti kullanıyor; RLS izin vermeyen
+kayıtlarda (`islemTipiByOpportunityId`'de karşılığı yoksa) CallTable genel
+"dönüştü" Target ikonuna düşmeye devam ediyor. Form seçimi (NewOpportunity/
+EditOpportunityModal toggle butonları) yine dokunulmadı.
+
 ## 2026-07-29 — Satılık/Kiralık: renkli rozet yerine küçük ikon
 
 Broker geri bildirimi: bir önceki maddedeki renkli rozet ("Satılık"/

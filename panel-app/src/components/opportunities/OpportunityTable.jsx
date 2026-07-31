@@ -3,12 +3,26 @@ import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
   ISLEM_TIPI_LABELS,
-  ISLEM_TIPI_ICONS,
-  ISLEM_TIPI_ICON_STYLES,
+  ISLEM_TIPI_CODES,
+  ISLEM_TIPI_STYLES,
   canExpressInterest,
   formatPrice,
   relativeTime,
 } from '../../lib/opportunities'
+
+// CallTable'daki KaynakBadge ile aynı desen (küçük, renkli, kısa harf
+// kodu) — ilk denemedeki ikon "hiç anlaşılmıyor" bulgusu üzerine.
+function IslemTipiBadge({ islemTipi }) {
+  const key = islemTipi ?? 'satilik'
+  return (
+    <span
+      title={ISLEM_TIPI_LABELS[key] ?? ISLEM_TIPI_LABELS.satilik}
+      className={`inline-flex h-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${ISLEM_TIPI_STYLES[key] ?? ISLEM_TIPI_STYLES.satilik}`}
+    >
+      {ISLEM_TIPI_CODES[key] ?? ISLEM_TIPI_CODES.satilik}
+    </span>
+  )
+}
 
 // Gizlilik kuralı: bu tabloda müşteri isim/telefon/danışman bilgisi HİÇ
 // gösterilmiyor. Detay sadece satıra tıklayınca açılan modalda, izinliyse
@@ -45,7 +59,6 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
               opp.type === 'alici' && (opp.fiyatMin != null || opp.fiyatMax != null)
                 ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
                 : formatPrice(opp.fiyat)
-            const IslemTipiIcon = ISLEM_TIPI_ICONS[opp.islemTipi] ?? ISLEM_TIPI_ICONS.satilik
             return (
               <tr
                 key={opp.id}
@@ -63,12 +76,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
               >
                 <td className="px-4 py-3 text-ink-700">
                   <span className="flex items-center gap-1.5">
-                    <IslemTipiIcon
-                      size={14}
-                      strokeWidth={2}
-                      className={`shrink-0 ${ISLEM_TIPI_ICON_STYLES[opp.islemTipi] ?? ISLEM_TIPI_ICON_STYLES.satilik}`}
-                      title={ISLEM_TIPI_LABELS[opp.islemTipi] ?? ISLEM_TIPI_LABELS.satilik}
-                    />
+                    <IslemTipiBadge islemTipi={opp.islemTipi} />
                     {opp.konum || '—'}
                   </span>
                 </td>

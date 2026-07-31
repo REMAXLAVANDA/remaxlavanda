@@ -1,4 +1,3 @@
-import { Home, Key } from 'lucide-react'
 import { ROLES } from './roles'
 import { isToday } from './format'
 import { OPPORTUNITY_CATEGORIES } from './categories'
@@ -99,19 +98,16 @@ export const ISLEM_TIPI_STYLES = {
   kiralik: 'bg-fuchsia-50 text-fuchsia-700',
 }
 
-// Listelerde renkli rozet yerine küçük bir ikon kullanılıyor (bkz. broker
-// isteği: "listeyi çok göz yorsun istemiyorum") — Satılık=ev, Kiralık=
-// anahtar, tıpkı gerçek emlak ilanlarındaki yaygın kullanım gibi sezgisel.
-// Renkli rozet (ISLEM_TIPI_STYLES) sadece tek kayıtlık detay görünümünde
-// (OpportunityDetailModal) kalmaya devam ediyor.
-export const ISLEM_TIPI_ICONS = {
-  satilik: Home,
-  kiralik: Key,
-}
-
-export const ISLEM_TIPI_ICON_STYLES = {
-  satilik: 'text-sky-600',
-  kiralik: 'text-fuchsia-600',
+// İlk deneme (ikon: Satılık=ev, Kiralık=anahtar) "hiç anlaşılmıyor" geri
+// bildirimi aldı — soyut bir ikonun ne anlama geldiğini tahmin etmek
+// gerekiyordu. Bunun yerine CallTable'daki KaynakBadge (Kaynak sütunu:
+// S/R/WS/D) ile AYNI dil kullanılıyor: küçük, renkli, kısa harf kodu —
+// hem kompakt hem kelimeye yakın olduğu için ek açıklama gerektirmiyor.
+// "S" bilerek kullanılmadı — Kaynak sütunundaki "S" (Santral) ile aynı
+// satırda karışırdı.
+export const ISLEM_TIPI_CODES = {
+  satilik: 'SAT',
+  kiralik: 'KİR',
 }
 
 export const OPPORTUNITY_STATUS_LABELS = {
