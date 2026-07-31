@@ -22,14 +22,36 @@ import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
 
+// Yükleme bitmeden önce data null olur — useMemo bağımlılıklarının her
+// render'da referans değiştirmemesi için sabit, boş bir dizi kullanılır.
+const EMPTY = []
+
 export default function OperasyonTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
-  const { data: calls, setData: setCalls, loading, error, reload } = useAsyncList(
-    () => callLogsProvider.list(),
+  // Fırsatlar da (sadece islem_tipi'ni okumak için) çekiliyor — dönüştürülmüş
+  // bir çağrının yanında Satılık/Kiralık ikonu gösterebilmek için (bkz.
+  // "lead'in yanında bir ikon olsun" isteği). RLS izin vermediği kayıtlar
+  // için ikon sessizce gösterilmez (diğer sayfalardaki aynı davranış).
+  const { data, setData, loading, error, reload } = useAsyncList(
+    () =>
+      Promise.all([callLogsProvider.list(), opportunitiesProvider.list()]).then(([calls, opportunities]) => ({
+        calls,
+        opportunities,
+      })),
     [],
   )
+  const calls = data?.calls ?? EMPTY
+  const opportunities = data?.opportunities ?? EMPTY
+  function setCalls(updater) {
+    setData((prev) => ({ ...prev, calls: typeof updater === 'function' ? updater(prev.calls) : updater }))
+  }
+  const islemTipiByOpportunityId = useMemo(() => {
+    const map = {}
+    for (const o of opportunities) map[o.id] = o.islemTipi
+    return map
+  }, [opportunities])
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
   const [editingCall, setEditingCall] = useState(null)
@@ -158,7 +180,12 @@ export default function OperasyonTab() {
         opportunityId: created.id,
         portfoyAlindiMi: true,
       })
-      setCalls((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+      // İkon hemen görünsün diye yeni fırsat da lokal listeye ekleniyor —
+      // sayfa yenilenmeden (bkz. islemTipiByOpportunityId).
+      setData((prev) => ({
+        calls: prev.calls.map((c) => (c.id === updated.id ? updated : c)),
+        opportunities: [created, ...prev.opportunities],
+      }))
       setConvertingCall(null)
       showToast("Fırsatlar'a gönderildi.", 'success')
     } catch (err) {
@@ -237,6 +264,7 @@ export default function OperasyonTab() {
             onEditDetails={setEditingCall}
             onDelete={handleDelete}
             onConvertToOpportunity={handleConvertToOpportunity}
+            islemTipiByOpportunityId={islemTipiByOpportunityId}
           />
         </>
       )}

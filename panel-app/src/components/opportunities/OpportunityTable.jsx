@@ -3,7 +3,8 @@ import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
   ISLEM_TIPI_LABELS,
-  ISLEM_TIPI_STYLES,
+  ISLEM_TIPI_ICONS,
+  ISLEM_TIPI_ICON_STYLES,
   canExpressInterest,
   formatPrice,
   relativeTime,
@@ -44,6 +45,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
               opp.type === 'alici' && (opp.fiyatMin != null || opp.fiyatMax != null)
                 ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
                 : formatPrice(opp.fiyat)
+            const IslemTipiIcon = ISLEM_TIPI_ICONS[opp.islemTipi] ?? ISLEM_TIPI_ICONS.satilik
             return (
               <tr
                 key={opp.id}
@@ -59,15 +61,18 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
                 aria-label={`${opp.konum || 'Fırsat'} detayını aç`}
                 className="cursor-pointer border-b border-ink-50 outline-none last:border-0 hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400"
               >
-                <td className="px-4 py-3 text-ink-700">{opp.konum || '—'}</td>
-                <td className="px-4 py-3 text-ink-500">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span>{categoryLabel(opp.category)}</span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-medium ${ISLEM_TIPI_STYLES[opp.islemTipi]}`}>
-                      {ISLEM_TIPI_LABELS[opp.islemTipi] ?? ISLEM_TIPI_LABELS.satilik}
-                    </span>
-                  </div>
+                <td className="px-4 py-3 text-ink-700">
+                  <span className="flex items-center gap-1.5">
+                    <IslemTipiIcon
+                      size={14}
+                      strokeWidth={2}
+                      className={`shrink-0 ${ISLEM_TIPI_ICON_STYLES[opp.islemTipi] ?? ISLEM_TIPI_ICON_STYLES.satilik}`}
+                      title={ISLEM_TIPI_LABELS[opp.islemTipi] ?? ISLEM_TIPI_LABELS.satilik}
+                    />
+                    {opp.konum || '—'}
+                  </span>
                 </td>
+                <td className="px-4 py-3 text-ink-500">{categoryLabel(opp.category)}</td>
                 <td className="px-4 py-3 font-medium text-ink-900">{priceLabel}</td>
                 <td className="max-w-[260px] truncate px-4 py-3 text-ink-500">{opp.ozet || '—'}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-ink-400">{relativeTime(opp.createdAt)}</td>

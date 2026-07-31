@@ -3,6 +3,36 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-29 — Satılık/Kiralık: renkli rozet yerine küçük ikon
+
+Broker geri bildirimi: bir önceki maddedeki renkli rozet ("Satılık"/
+"Kiralık" yazılı dolgulu pill) hem OpportunityTable hem CallTable'da
+"listeyi göz yoruyordu". Ayrıca Operasyon'da bir çağrı Fırsata (özellikle
+Alıcı tarafına, ör. kiralık arayan bir müşteri) dönüşünce "Portföy:
+Alındı" yazısının kelime olarak pek oturmadığı da not edildi — ama çözüm
+olarak yeni bir durum/kelime icat etmek yerine (ör. "Arayış Başladı"),
+konunun bağlamını (satılık mı kiralık mı) bir İKONLA anında görünür
+kılmak tercih edildi; "Alındı/Almadık/Bekliyor" metinleri hiç değişmedi.
+
+`ISLEM_TIPI_ICONS`/`ISLEM_TIPI_ICON_STYLES` eklendi (`lib/opportunities.js`)
+— Satılık=ev (Home), Kiralık=anahtar (Key), gerçek emlak ilanlarındaki
+yaygın sezgisel kullanım. Renkli rozet (`ISLEM_TIPI_STYLES`) SADECE
+`OpportunityDetailModal`'da (tek kayıtlık detay, liste değil) kaldı;
+`OpportunityTable`'da Mahalle sütununun başına küçük bir ikona indirgendi
+("Tür" sütunu artık sade metin, kategori). `CallTable`'da ise bir çağrı
+Fırsata dönüşünce (call.opportunityId) `arayanAd`'ın yanında AYNI ikon
+gösteriliyor — bunun için `OperasyonTab.jsx` artık `opportunities`
+listesini de çekip `islemTipiByOpportunityId` haritası oluşturuyor (RLS
+izin vermeyen kayıtlarda ikon sessizce gösterilmiyor, genel "dönüştü"
+Target ikonuna düşülüyor — iki ikon birden gösterilmiyor, tekrar/kalabalık
+olmasın diye).
+
+Katılım tipi seçimindeki (Zorunlu/Önerilen/İsteğe Bağlı) veya Satılık/
+Kiralık FORM seçimindeki (NewOpportunityModal/EditOpportunityModal
+buton toggle'ları) hiçbir şey değişmedi — broker'ın "biz seçelim ama"
+ifadesi bu seçim mekanizmalarının aynen kalmasını, sadece LİSTE
+görünümünün sadeleşmesini istediğini doğruladı.
+
 ## 2026-07-29 — Fırsatlar: Satılık/Kiralık + Operasyon'dan direkt dönüştürme
 
 Broker'ın iki bulgusu — ikisi de doğrulandı, kodda gerçekten yoktu:

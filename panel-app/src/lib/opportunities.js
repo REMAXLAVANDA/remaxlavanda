@@ -1,3 +1,4 @@
+import { Home, Key } from 'lucide-react'
 import { ROLES } from './roles'
 import { isToday } from './format'
 import { OPPORTUNITY_CATEGORIES } from './categories'
@@ -96,6 +97,21 @@ export const ISLEM_TIPI_LABELS = {
 export const ISLEM_TIPI_STYLES = {
   satilik: 'bg-sky-50 text-sky-700',
   kiralik: 'bg-fuchsia-50 text-fuchsia-700',
+}
+
+// Listelerde renkli rozet yerine küçük bir ikon kullanılıyor (bkz. broker
+// isteği: "listeyi çok göz yorsun istemiyorum") — Satılık=ev, Kiralık=
+// anahtar, tıpkı gerçek emlak ilanlarındaki yaygın kullanım gibi sezgisel.
+// Renkli rozet (ISLEM_TIPI_STYLES) sadece tek kayıtlık detay görünümünde
+// (OpportunityDetailModal) kalmaya devam ediyor.
+export const ISLEM_TIPI_ICONS = {
+  satilik: Home,
+  kiralik: Key,
+}
+
+export const ISLEM_TIPI_ICON_STYLES = {
+  satilik: 'text-sky-600',
+  kiralik: 'text-fuchsia-600',
 }
 
 export const OPPORTUNITY_STATUS_LABELS = {

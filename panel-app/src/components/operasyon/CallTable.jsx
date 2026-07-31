@@ -1,8 +1,31 @@
 import { Fragment, useState } from 'react'
 import { ChevronRight, Eye, EyeOff, Target, Send, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
+import { ISLEM_TIPI_ICONS, ISLEM_TIPI_ICON_STYLES, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
+
+// Fırsata dönüşen çağrının yanında hangi ikon gösterilsin — biliniyorsa
+// (islemTipiByOpportunityId'de varsa) Satılık/Kiralık ikonu, RLS izin
+// vermiyorsa (bkz. OperasyonTab.jsx notu) genel "dönüştü" ikonuna düşer.
+// İkisi birden gösterilmiyor — aynı bilgiyi iki kez tekrar edip satırı
+// kalabalıklaştırmasın diye (bkz. "listeyi çok göz yorsun istemiyorum").
+function ConvertedIcon({ opportunityId, islemTipiByOpportunityId }) {
+  if (!opportunityId) return null
+  const islemTipi = islemTipiByOpportunityId?.[opportunityId]
+  if (islemTipi) {
+    const Icon = ISLEM_TIPI_ICONS[islemTipi] ?? ISLEM_TIPI_ICONS.satilik
+    return (
+      <Icon
+        size={13}
+        strokeWidth={2}
+        className={`shrink-0 ${ISLEM_TIPI_ICON_STYLES[islemTipi] ?? ISLEM_TIPI_ICON_STYLES.satilik}`}
+        title={`Fırsata dönüştü — ${ISLEM_TIPI_LABELS[islemTipi] ?? ISLEM_TIPI_LABELS.satilik}`}
+      />
+    )
+  }
+  return <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />
+}
 
 function satisTarihiLabel(satisTarihi) {
   if (!satisTarihi) return 'Satış tarihi'
@@ -209,6 +232,7 @@ export default function CallTable({
   onEditDetails,
   onDelete,
   onConvertToOpportunity,
+  islemTipiByOpportunityId,
 }) {
   if (calls.length === 0) {
     return (
@@ -262,7 +286,7 @@ export default function CallTable({
                     <td className="max-w-[140px] px-3 py-3 font-medium text-ink-900">
                       <span className="flex items-center gap-1.5 truncate">
                         <span className="truncate">{call.arayanAd}</span>
-                        {call.opportunityId && <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />}
+                        <ConvertedIcon opportunityId={call.opportunityId} islemTipiByOpportunityId={islemTipiByOpportunityId} />
                       </span>
                       {call.reklamKodu && (
                         <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-ink-500" title="Reklam kodu">
@@ -346,7 +370,7 @@ export default function CallTable({
                       </span>
                     )}
                     <span className="truncate font-medium text-ink-900">{call.arayanAd}</span>
-                    {call.opportunityId && <Target size={13} className="shrink-0 text-brand-600" title="Fırsata dönüştü" />}
+                    <ConvertedIcon opportunityId={call.opportunityId} islemTipiByOpportunityId={islemTipiByOpportunityId} />
                   </div>
                   <div className="mt-1 text-sm text-ink-600">
                     <PhoneCell phone={call.arayanTelefon} />
