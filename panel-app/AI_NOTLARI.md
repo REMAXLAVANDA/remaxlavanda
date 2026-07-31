@@ -63,6 +63,18 @@ değişikliğinde) kırıldığı fark edildi — hâlâ eski `inviteeIds` forma
 gönderiyordu, yeni `katilimTipleri` sözlüğünü değil, bu yüzden doğum günü
 etkinlikleri davetsiz (0 katılımcı) oluşuyordu. Düzeltildi.
 
+**Sonraki turda eklenen ince ayar — paylaşıma özel seçim:** Broker: "biz
+bunu paylaşım yapacağımız zaman istediklerimizi seçebilelim" — "Panoda
+göster" işareti sadece o ayın ADAY listesini belirliyor (etkinlik
+oluşturulurken bir kere işaretlenir), ama her paylaşımda hepsinin
+görünmesi gerekmeyebilir. Bu yüzden `EventBoardModal`'a ayrıca, sadece O
+GÖRSELE özel bir checkbox listesi eklendi ("Bu Paylaşıma Dahil Et") — ay
+değişince adayların hepsi varsayılan seçili gelir, paylaşmadan önce
+istemediğini tek tek çıkarabilir. Bu seçim hiçbir yere KAYDEDİLMİYOR
+(sadece modal açıkken yaşayan geçici state) — her açılışta yeniden aday
+listesinin tamamından başlar. Şema değişikliği gerektirmedi, saf
+client-side bir filtre.
+
 ## 2026-07-29 — Etkinlik katılımı: kişi bazlı Zorunlu / Önerilen / İsteğe Bağlı
 
 Broker'ın bulgusu ve sonraki genişletme talebi: aynı etkinliğe (ör. Base

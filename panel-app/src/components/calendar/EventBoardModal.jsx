@@ -46,6 +46,12 @@ export default function EventBoardModal({ onClose, events, attendance }) {
   const [error, setError] = useState(null)
   const [qrDataUrl, setQrDataUrl] = useState(null)
   const [downloading, setDownloading] = useState(false)
+  // "Panoda göster" işaretli etkinlikler o ayın ADAY listesi — ama her
+  // paylaşımda hepsinin görünmesi gerekmeyebilir (broker isteği: "paylaşım
+  // yapacağımız zaman istediklerimizi seçebilelim"). Bu yüzden aday
+  // listesinden ayrıca, SADECE bu görsele özel bir alt seçim yapılıyor.
+  // Varsayılan: hepsi seçili (checkbox'ı işaretlemiş olmak zaten bir niyet).
+  const [selectedIds, setSelectedIds] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -79,6 +85,22 @@ export default function EventBoardModal({ onClose, events, attendance }) {
       .catch(() => setQrDataUrl(null))
   }, [])
 
+  const eligibleEvents = events
+    .filter((e) => e.panoGoster && isSameMonth(e.startAt, monthDate))
+    .sort((a, b) => new Date(a.startAt) - new Date(b.startAt))
+
+  // Ay değişince (ya da ilk açılışta) o ayın adaylarının HEPSİ varsayılan
+  // olarak seçili gelsin — sonra istemeyeni tek tek çıkarabilsin.
+  const eligibleKey = `${monthDate.getFullYear()}-${monthDate.getMonth()}-${eligibleEvents.map((e) => e.id).join(',')}`
+  useEffect(() => {
+    setSelectedIds(eligibleEvents.map((e) => e.id))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eligibleKey])
+
+  function toggleSelected(id) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
   function changeMonth(delta) {
     setMonthDate((d) => {
       const next = new Date(d)
@@ -102,9 +124,8 @@ export default function EventBoardModal({ onClose, events, attendance }) {
     }
   }
 
-  const boardEvents = events
-    .filter((e) => e.panoGoster && isSameMonth(e.startAt, monthDate))
-    .sort((a, b) => new Date(a.startAt) - new Date(b.startAt))
+  const boardEvents = eligibleEvents
+    .filter((e) => (selectedIds ?? []).includes(e.id))
     .map((e) => ({ ...e, katilimBadge: aggregateBadge(e.id, attendance) }))
 
   let focusItems = []
@@ -164,6 +185,51 @@ export default function EventBoardModal({ onClose, events, attendance }) {
 
       {!loading && !error && (
         <>
+          {eligibleEvents.length > 0 && (
+            <div className="mb-3">
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-xs font-medium text-ink-400">
+                  Bu Paylaşıma Dahil Et <span className="text-ink-300">({(selectedIds ?? []).length}/{eligibleEvents.length})</span>
+                </p>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds(eligibleEvents.map((e) => e.id))}
+                    className="rounded-full bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-600 hover:bg-ink-100"
+                  >
+                    Tümünü Seç
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds([])}
+                    className="rounded-full bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-600 hover:bg-ink-100"
+                  >
+                    Hiçbirini Seçme
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-40 space-y-0.5 overflow-y-auto rounded-lg border border-ink-100 p-1.5">
+                {eligibleEvents.map((e) => (
+                  <label
+                    key={e.id}
+                    className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-sm text-ink-700 hover:bg-ink-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={(selectedIds ?? []).includes(e.id)}
+                      onChange={() => toggleSelected(e.id)}
+                      className="h-3.5 w-3.5 shrink-0 rounded border-ink-300"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{e.title}</span>
+                    <span className="shrink-0 text-xs text-ink-400">
+                      {new Date(e.startAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <EventBoard
             ref={cardRef}
             monthDate={monthDate}
@@ -174,8 +240,8 @@ export default function EventBoardModal({ onClose, events, attendance }) {
           />
 
           <p className="mt-3 text-xs text-ink-400">
-            Panoda sadece "Panoda göster" işaretli etkinlikler görünür — bir etkinliği eklemek için Yeni/Düzenle
-            Etkinlik formundaki ilgili kutuyu işaretle.
+            Panoda "Panoda göster" işaretli etkinliklerden yukarıda seçtiklerin görünür — yeni bir etkinliği aday
+            listesine eklemek için Yeni/Düzenle Etkinlik formundaki ilgili kutuyu işaretle.
           </p>
 
           <button
