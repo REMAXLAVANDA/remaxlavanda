@@ -125,7 +125,7 @@ export default function Ayarlar() {
               date: nextBirthdayDate(form.dogumTarihi),
               startTime: '09:00',
               endTime: '',
-              inviteeIds: [created.id],
+              katilimTipleri: { [created.id]: 'istege_bagli' },
             },
             user.id,
           )

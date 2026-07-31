@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Image } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -10,6 +10,7 @@ import EventCalendar from '../../components/calendar/EventCalendar'
 import EventDetailModal from '../../components/calendar/EventDetailModal'
 import NewEventModal from '../../components/calendar/NewEventModal'
 import EditEventModal from '../../components/calendar/EditEventModal'
+import EventBoardModal from '../../components/calendar/EventBoardModal'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -40,6 +41,7 @@ export default function TakvimTab() {
   const [editingEvent, setEditingEvent] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [showBoardModal, setShowBoardModal] = useState(false)
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
   const events = data?.events ?? EMPTY
@@ -163,7 +165,13 @@ export default function TakvimTab() {
   return (
     <div>
       {isManager && (
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap justify-end gap-2">
+          <button
+            onClick={() => setShowBoardModal(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100"
+          >
+            <Image size={16} /> Aylık Pano
+          </button>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
@@ -239,6 +247,10 @@ export default function TakvimTab() {
           submitting={submitting}
           inviteeOptions={Object.values(knownUsers).filter((u) => u.id !== user.id)}
         />
+      )}
+
+      {showBoardModal && (
+        <EventBoardModal onClose={() => setShowBoardModal(false)} events={events} attendance={attendance} />
       )}
 
       {deleteTargetId && (

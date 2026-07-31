@@ -3,6 +3,66 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-29 — Aylık Etkinlik Panosu: gerçek Takvim'e bağlandı (WhatsApp/TV görseli)
+
+Daha önce sadece bir tasarım örneği (artifact, Temmuz 2026 uydurma
+verilerle) olarak gösterilen "Aylık Etkinlik Panosu" gerçek Takvim'e
+bağlandı — Planlama sayfasında yönetici (broker/owner/ofis) artık "Aylık
+Pano" butonuyla o ayın panosunu görüp PNG olarak indirebiliyor.
+
+**Etkinlik seçimi:** brief'teki gibi yönetici işaretleyerek seçiyor (tüm
+takvim otomatik DEĞİL) — Yeni/Düzenle Etkinlik formuna "Aylık Etkinlik
+Panosunda göster" checkbox'ı eklendi (`calendar_events.pano_goster`,
+migration `20260729210000_etkinlik_panosu.sql`, NOT NULL DEFAULT false).
+Panoda SADECE bu işaretli etkinlikler görünür — hem takvim ızgarasındaki
+ikonlar hem "Bu Ay Seni Neler Bekliyor?" kartları için (broker/1-1
+görüşmeleri gibi özel etkinlikler sosyal medyaya sızmasın diye).
+
+**Format:** şimdilik SADECE 16:9 (WhatsApp/TV) yapıldı — Instagram Story
+(9:16) ve A4 baskı ayrı, sonraki bir adım (farklı en-boy oranı = farklı
+yerleşim, ayrı bir tasarım işi). `EventBoard.jsx`/`EventBoard.css`
+component'i tasarım aşamasındaki artifact'in NEREDEYSE BİREBİR AYNISI —
+cqw/cqh container query birimleri (`container-type: size` şart, bkz. o
+zamanki bulgu) aynen taşındı, sadece font embedding (@font-face base64)
+ve logo/QR base64 embedding kaldırıldı — gerçek uygulamada Poppins/
+Montserrat zaten global yüklü (`--font-sans`), logo `/panel/remax-
+balloon.png`'den, QR `qrcode` paketiyle (KartvizitCard.jsx'teki aynı
+desen) canlı üretiliyor. İndirme `html-to-image`'in `toPng()` fonksiyonuyla
+(ShareCardModal.jsx'teki AYNI desen, pixelRatio:2).
+
+**Etkinlik ikonları/renkleri:** ilk tasarımdaki uydurma 6 kategori
+(Haftalık Toplantı/Ticari Toplantı/Recruiting/Ödül Töreni...) YERİNE
+uygulamanın GERÇEK 5 etkinlik tipi kullanıldı (Toplantı/Eğitim/Etkinlik/
+Broker Görüşmesi/Koçluk Görüşmesi — `EVENT_TYPE_LABELS`/`EVENT_TYPE_COLORS`,
+Takvim'in geri kalanıyla aynı renkler) — veri modelinde olmayan bir
+taksonomi icat etmek yerine var olanı kullanmak daha doğru.
+
+**Katılım rozeti panoda BİLEREK kişiye özel değil** (broker'ın kararı —
+bkz. bir önceki madde): her kartta o etkinliğin davetlilerinden en az biri
+zorunlu ise kırmızı "Zorunlu" rozeti, yoksa en az biri önerilen ise amber
+"Önerilen" rozeti, hepsi isteğe bağlıysa/davetli yoksa hiç rozet yok.
+Kişisel "Senin için Zorunlu" bilgisi sadece Portal'da (Panel/Takvim).
+
+**Bu Ayın Odak Noktaları — gerçek veri kaynakları:**
+- Tamamlanması Gereken Eğitim: `moduleProgressFor`/`checklistProgress`
+  (Panel.jsx'teki `educationGaps` ile aynı hesap)
+- Doğum Günleri: ayrı bir veri kaynağı YOK — Ayarlar.jsx'in kullanıcı
+  oluştururken otomatik eklediği `🎂 {isim} — Doğum Günü` başlıklı takvim
+  etkinliklerinden regex ile çıkarılıyor (zaten var olan bir kayıt,
+  tekrar icat edilmedi)
+- Lig Güncelleme: aktif dönemin (`periods[0]`) `ad` alanı
+- Ayın En Büyük Etkinliği: panoya işaretli etkinlikler arasından en çok
+  davetlisi olan (heuristik — "en büyük" için başka bir sinyal yok)
+- **Ayın Portföy Hedefi BİLEREK EKLENMEDİ** — uygulamada aylık hedef
+  belirleme diye bir kavram/veri yok, uydurmak yerine bu satır atlandı.
+  Broker isterse ayrı bir "hedef belirleme" özelliği olarak ele alınmalı.
+
+**Yan not — regresyon düzeltmesi:** Bu çalışma sırasında `Ayarlar.jsx`'teki
+doğum günü otomatik takvim ekleme akışının önceki turda (katılım tipi
+değişikliğinde) kırıldığı fark edildi — hâlâ eski `inviteeIds` formatını
+gönderiyordu, yeni `katilimTipleri` sözlüğünü değil, bu yüzden doğum günü
+etkinlikleri davetsiz (0 katılımcı) oluşuyordu. Düzeltildi.
+
 ## 2026-07-29 — Etkinlik katılımı: kişi bazlı Zorunlu / Önerilen / İsteğe Bağlı
 
 Broker'ın bulgusu ve sonraki genişletme talebi: aynı etkinliğe (ör. Base
