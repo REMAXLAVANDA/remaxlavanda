@@ -19,7 +19,9 @@ function Chip({ active, children, ...props }) {
 // Google Ads vb.) ofis/yönetim işi, danışmanın filtrelemesine gerek yok.
 // onNewCallClick: sadece yönetim rollerinde verilir — "Yeni Çağrı" artık
 // kendi üst satırı yerine burada, gün filtrelerinin yanında duruyor.
-export default function CallFilters({ filters, onChange, showKaynak = true, onNewCallClick }) {
+// onlyMine/onOnlyMineChange: broker/ofis ofisteki tüm çağrıları görür —
+// "sadece bana atananları göreyim" isteğiyle eklendi (bkz. OperasyonTab.jsx).
+export default function CallFilters({ filters, onChange, showKaynak = true, onNewCallClick, onlyMine, onOnlyMineChange }) {
   const set = (patch) => onChange({ ...filters, ...patch })
 
   return (
@@ -39,14 +41,36 @@ export default function CallFilters({ filters, onChange, showKaynak = true, onNe
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <DateRangeFilter value={filters} onChange={onChange} />
-        {onNewCallClick && (
-          <button
-            onClick={onNewCallClick}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
-          >
-            <Plus size={14} /> Yeni Çağrı
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {onOnlyMineChange && (
+            <div className="inline-flex rounded-full bg-ink-50 p-1 text-xs font-medium">
+              <button
+                onClick={() => onOnlyMineChange(false)}
+                className={`rounded-full px-3 py-1.5 transition-colors ${
+                  !onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                }`}
+              >
+                Herkes
+              </button>
+              <button
+                onClick={() => onOnlyMineChange(true)}
+                className={`rounded-full px-3 py-1.5 transition-colors ${
+                  onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                }`}
+              >
+                Sadece Benim
+              </button>
+            </div>
+          )}
+          {onNewCallClick && (
+            <button
+              onClick={onNewCallClick}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+            >
+              <Plus size={14} /> Yeni Çağrı
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -52,6 +52,13 @@ export default function OperasyonTab() {
     return map
   }, [opportunities])
   const [filters, setFilters] = useState(INITIAL_FILTERS)
+  // Broker/owner/ofis (isManager) RLS gereği ofisteki HER çağrıyı görür —
+  // kendine atanan çağrıları o kalabalığın içinde ayırt etmek zordu (bkz.
+  // "sadece ekledigim bana atanan çağrıları görebileyim" isteği). Şema'da
+  // "kim ekledi" diye ayrı bir alan yok, bu yüzden "atanan" (assignedTo)
+  // üzerinden filtreleniyor — danışman zaten RLS'te sadece kendine atananı
+  // görüyor, bu toggle onun için bir şey değiştirmez.
+  const [onlyMine, setOnlyMine] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingCall, setEditingCall] = useState(null)
   const [convertingCall, setConvertingCall] = useState(null)
@@ -68,7 +75,7 @@ export default function OperasyonTab() {
   const odakActive = searchParams.get('odak') === 'cagri'
 
   const visible = useMemo(() => {
-    const roleFiltered = (calls ?? []).filter((c) => canViewCall(c, user))
+    const roleFiltered = (calls ?? []).filter((c) => canViewCall(c, user)).filter((c) => !onlyMine || c.assignedTo === user.id)
     if (odakActive) {
       return roleFiltered.filter((c) => isStaleReturn(c)).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
     }
@@ -79,7 +86,7 @@ export default function OperasyonTab() {
       // işaretlemek satırı listede yukarı/aşağı sıçratmasın istendi (bkz.
       // "seçince en üste çıkıyor, tarih sıralaması bozulmasın" isteği).
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [calls, user, filters, odakActive])
+  }, [calls, user, filters, odakActive, onlyMine])
 
   const stats = useMemo(() => computeCallStats(visible), [visible])
 
@@ -238,6 +245,8 @@ export default function OperasyonTab() {
                   onChange={setFilters}
                   showKaynak={isManager}
                   onNewCallClick={isManager ? () => setShowModal(true) : undefined}
+                  onlyMine={onlyMine}
+                  onOnlyMineChange={isManager ? setOnlyMine : undefined}
                 />
               </div>
 

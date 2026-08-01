@@ -23,13 +23,13 @@ isterse havuza gönderebilsin diye.
 "tik kapalıysa fırsat sende kalır" metnini ezip, hedef başka biriyse
 ("Zeynep Kaya adına kaydedilir" gibi) doğru kişiyi adıyla gösteriyor.
 
-**"Sadece Benim" filtresi** (`FirsatlarTab.jsx`): broker/owner RLS
-gereği ofisteki HER fırsatı görüyor — kendi sahip/üstlendiği kayıtları o
-kalabalığın içinde ayırt etmek zordu (bkz. "kendi fırsatlarımı sade
-şekilde göremiyorum" geri bildirimi). Satıcılar/Alıcılar bölümlerinin
-üstüne "Tüm Ofis / Sadece Benim" ikili geçişi eklendi — ikincisi
-`ownerId === user.id || claimerId === user.id` ile filtreliyor. Rol bazlı
-gizlenmiyor, herkes için (danışman/ofis dahil) anlamlı bir filtre.
+**"Sadece Benim" filtresi**: ilk denemede Fırsatlar sayfasına eklendi, ama
+broker "fırsatlardan kaldıralım, Operasyon'a ekleyelim" diye düzeltti —
+esas ihtiyaç kendine ATANAN ÇAĞRILARI ayırt etmekti. `FirsatlarTab.jsx`'teki
+toggle geri alındı, yerine `CallFilters.jsx`'e "Herkes / Sadece Benim"
+eklendi (`OperasyonTab.jsx`, sadece isManager'da görünür — danışman zaten
+RLS'te yalnız kendine atananı görüyor). Şemada "kim ekledi" diye ayrı bir
+alan olmadığından `call.assignedTo === user.id` üzerinden filtreleniyor.
 
 ## 2026-07-31 — Satılık/Kiralık: ikon yerine kısa harf kodlu rozet
 
