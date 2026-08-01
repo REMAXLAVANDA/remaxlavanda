@@ -1169,6 +1169,27 @@ export const auditLog = {
   },
 }
 
+// --- Webhook Hataları (Ayarlar > Webhook Hataları) ----------------------------
+// meta_webhook_errors_select RLS'i sadece broker/owner'a okuma izni veriyor —
+// Meta Lead Ads webhook'u (bkz. supabase/functions/meta-leads-webhook) bir
+// lead'i işleyemediğinde (imza/Graph API/alan eşleşme/insert hatası) ham
+// payload'ı buraya yazar. audit_log'dan BİLEREK ayrı (bkz. o dosyanın notu).
+export const metaWebhookErrors = {
+  async list() {
+    const data = await run(
+      client().from('meta_webhook_errors').select('*').order('created_at', { ascending: false }).limit(100),
+    )
+    return data.map((r) => ({
+      id: r.id,
+      createdAt: r.created_at,
+      tur: r.tur,
+      leadgenId: r.leadgen_id,
+      rawPayload: r.raw_payload,
+      hataMesaji: r.hata_mesaji,
+    }))
+  },
+}
+
 // --- Görevler (Planlama > Görevler) -------------------------------------------
 function mapTask(row) {
   return {

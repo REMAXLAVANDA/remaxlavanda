@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus, Lock } from 'lucide-react'
+import { Users, Shield, Tag, ScrollText, Plus, Lock, Webhook } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -9,6 +9,7 @@ import {
   categories as categoriesProvider,
   calendarEvents as calendarProvider,
   auditLog as auditLogProvider,
+  metaWebhookErrors as metaWebhookErrorsProvider,
 } from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
@@ -20,6 +21,7 @@ import ResetPasswordModal from '../components/settings/ResetPasswordModal'
 import CategoryManager from '../components/settings/CategoryManager'
 import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
+import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -28,6 +30,7 @@ const TABS = [
   { key: 'yetki', label: 'Yetki', icon: Shield },
   { key: 'kategori', label: 'Kategori', icon: Tag },
   { key: 'log', label: 'Log', icon: ScrollText },
+  { key: 'webhook', label: 'Webhook Hataları', icon: Webhook },
 ]
 
 export default function Ayarlar() {
@@ -59,6 +62,15 @@ export default function Ayarlar() {
     error: auditError,
     reload: reloadAudit,
   } = useAsyncList(() => (canManage && tab === 'log' ? auditLogProvider.list() : Promise.resolve([])), [canManage, tab])
+  const {
+    data: webhookErrorRows,
+    loading: loadingWebhookErrors,
+    error: webhookErrorsError,
+    reload: reloadWebhookErrors,
+  } = useAsyncList(
+    () => (canManage && tab === 'webhook' ? metaWebhookErrorsProvider.list() : Promise.resolve([])),
+    [canManage, tab],
+  )
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
@@ -343,6 +355,21 @@ export default function Ayarlar() {
           {loadingAudit && <LoadingState />}
           {!loadingAudit && auditError && <ErrorState error={auditError} onRetry={reloadAudit} />}
           {!loadingAudit && !auditError && <AuditLogTable rows={auditRows ?? []} resolveName={resolveName} />}
+        </>
+      )}
+
+      {tab === 'webhook' && (
+        <>
+          <p className="mb-4 text-xs text-ink-400">
+            Meta (Facebook/Instagram) Lead Ads webhook'unun işleyemediği kayıtlar — son 100 hata. "Lead kaybolmuş
+            olabilir" etiketli kayıtlar en öncelikli: Meta lead verisini sınırlı süre saklıyor, gecikmeden
+            incelenmeli.
+          </p>
+          {loadingWebhookErrors && <LoadingState />}
+          {!loadingWebhookErrors && webhookErrorsError && (
+            <ErrorState error={webhookErrorsError} onRetry={reloadWebhookErrors} />
+          )}
+          {!loadingWebhookErrors && !webhookErrorsError && <WebhookErrorsTable rows={webhookErrorRows ?? []} />}
         </>
       )}
 

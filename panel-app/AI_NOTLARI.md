@@ -3,6 +3,39 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Ayarlar > Webhook Hataları + gerçek bir Meta lead kaybı vakası
+
+Broker'ın "reklam bilgisi neden boş" sorusundan başlayan canlı bir olay
+zincirinden çıktı (bkz. bu tarihli sohbet): `meta_webhook_errors` tablosu
+vardı ama okumanın TEK yolu SQL'di — broker her seferinde SQL Editor'e
+girmek zorunda kalıyordu. Vaka esnasında şu bulunup düzeltildi:
+
+- **Meta App'in Sistem Kullanıcı token'ında `ads_read` izni eksikti**
+  (sadece `leads_retrieval` vardı) — bu yüzden hangi reklamdan geldiği
+  hiç çekilemiyordu. Kod hatası DEĞİL, Meta Business Manager tarafında bir
+  izin eksikliğiydi; broker token'ı yeniledi.
+- Bu eksiklik yüzünden **bir lead yanlış kategoriye düşmüştü**: kampanya
+  adı `RECRUIT_...` ile başladığı için normalde otomatik "Recruiting"
+  etiketlenmesi gerekirken, reklam bilgisi çekilemediğinde kod
+  `kampanyaKodu`'yu hesaplayamıyor ve sessizce "Portföy" varsayılanına
+  düşüyordu (bkz. `meta-leads-webhook/index.ts` `tip = kampanyaKodu ===
+  'RECRUIT' ? ... : 'portfoy'`). Elle SQL ile düzeltildi.
+- **Bir lead kalıcı olarak kayboldu**: `field_data` çekme adımı (lead'in
+  isim/telefonunu Meta'dan almak) token geçersizken başarısız olmuş, lead
+  hiç `public.leads`'e düşmemiş. Meta'nın veri saklama süresi dolduğu için
+  isim/telefon geri getirilemedi — token düzeltildiğinde artık çok geçti.
+
+**Yeni ekran** (`WebhookErrorsTable.jsx`, `Ayarlar.jsx` "Webhook Hataları"
+sekmesi, broker/owner-only — `metaWebhookErrors_select` RLS ile aynı
+kısıt): `meta_webhook_errors`'ı SQL'e inmeden gösterir. `graph_api_hatasi`
+türü ikiye ayrılıyor — `hata_mesaji` "field_data çekilemedi" ile
+başlıyorsa **"Lead kaybolmuş olabilir"** (kırmızı, en öncelikli — yukarıdaki
+vakadaki gibi lead hiç kaydedilmemiş olabilir), "Reklam bilgisi
+çekilemedi" ile başlıyorsa **"Sadece reklam adı eksik"** (amber, düşük
+öncelik — lead zaten kayıtlı). Bu ayrım UI'da otomatik, tur sütununun
+kendisi bunu ayırt etmiyordu — canlı vakada bunu SQL'i tek tek okuyarak
+elle yapmıştık, artık ekran yapıyor.
+
 ## 2026-07-31 — Fırsat dönüşüm hatası: broker atanmış çağrıyı dönüştürünce kendine geçiyordu + "Sadece Benim" filtresi
 
 Kod denetiminde bulundu (broker'ın "CRM mimarı gibi analiz et" talimatı

@@ -775,6 +775,24 @@ export const auditLog = {
   },
 }
 
+// --- Webhook Hataları (Ayarlar > Webhook Hataları) ----------------------------
+const MOCK_META_WEBHOOK_ERRORS = [
+  {
+    id: 'mwe-1',
+    tur: 'graph_api_hatasi',
+    leadgenId: '1073507478692140',
+    hataMesaji:
+      'field_data çekilemedi: 400 {"error":{"message":"Error validating access token: Session has expired","type":"OAuthException","code":190}}',
+    createdAt: usersDaysAgo(6),
+  },
+]
+
+export const metaWebhookErrors = {
+  async list() {
+    return delay([...MOCK_META_WEBHOOK_ERRORS])
+  },
+}
+
 // --- Görevler (Planlama > Görevler) ------------------------------------------
 export const tasks = {
   async list() {
