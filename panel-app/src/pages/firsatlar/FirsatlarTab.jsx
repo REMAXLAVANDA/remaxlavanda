@@ -57,10 +57,19 @@ export default function FirsatlarTab() {
   const [createType, setCreateType] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
+  // Broker/owner RLS gereği ofisteki HER fırsatı görür — kendi sahip/
+  // üstlendiği kayıtları o kalabalığın içinde bulmak zorlaşıyordu (bkz.
+  // "kendi fırsatlarımı sade bir şekilde göremiyorum" geri bildirimi).
+  // Herkes için anlamlı olduğundan role'e göre gizlenmiyor.
+  const [onlyMine, setOnlyMine] = useState(false)
 
   const roleVisible = useMemo(
     () => (opportunities ?? []).filter((o) => canViewOpportunity(o, user)),
     [opportunities, user],
+  )
+  const scoped = useMemo(
+    () => (onlyMine ? roleVisible.filter((o) => o.ownerId === user.id || o.claimerId === user.id) : roleVisible),
+    [roleVisible, onlyMine, user],
   )
 
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, normal
@@ -72,14 +81,14 @@ export default function FirsatlarTab() {
     [roleVisible, odakActive],
   )
 
-  const boxes = useMemo(() => computeBoxCounts(roleVisible), [roleVisible])
+  const boxes = useMemo(() => computeBoxCounts(scoped), [scoped])
 
   function sectionData(type) {
     const typeBoxes = boxes.filter((b) => b.type === type)
-    const total = roleVisible.filter((o) => o.type === type).length
+    const total = scoped.filter((o) => o.type === type).length
     const category = activeCategory[type]
     const rows = category
-      ? roleVisible
+      ? scoped
           .filter((o) => o.type === type && o.category === category)
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       : []
@@ -229,6 +238,27 @@ export default function FirsatlarTab() {
 
       {!loading && !error && !odakActive && (
         <div className="space-y-4">
+          <div className="flex justify-end">
+            <div className="inline-flex rounded-full bg-ink-50 p-1 text-xs font-medium">
+              <button
+                onClick={() => setOnlyMine(false)}
+                className={`rounded-full px-3 py-1.5 transition-colors ${
+                  !onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                }`}
+              >
+                Tüm Ofis
+              </button>
+              <button
+                onClick={() => setOnlyMine(true)}
+                className={`rounded-full px-3 py-1.5 transition-colors ${
+                  onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                }`}
+              >
+                Sadece Benim
+              </button>
+            </div>
+          </div>
+
           <OpportunitySection
             dotColor="bg-emerald-500"
             label="🟢 Satıcılar"

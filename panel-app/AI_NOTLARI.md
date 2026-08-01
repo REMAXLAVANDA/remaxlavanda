@@ -3,6 +3,34 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-07-31 — Fırsat dönüşüm hatası: broker atanmış çağrıyı dönüştürünce kendine geçiyordu + "Sadece Benim" filtresi
+
+Kod denetiminde bulundu (broker'ın "CRM mimarı gibi analiz et" talimatı
+üzerine yapılan gözden geçirmede): Operasyon'da bir danışmana atanmış bir
+çağrıyı broker/ofis "Fırsata Dönüştür" ile fırsata çevirdiğinde, oluşan
+fırsat sessizce broker'a atanıyordu — atanan danışmanın adı hiç
+geçmiyordu, "Havuza at" seçeneği de bu ekranda broker'a hiç
+gösterilmiyordu (`showPoolToggle={role === ROLES.DANISMAN}`).
+
+**Düzeltme** (`OperasyonTab.jsx`): `targetOwnerId = convertingCall.assignedTo || user.id`
+— çağrı bir danışmana atanmışsa fırsat ONA (owner+claimer) kaydediliyor,
+dönüştüren kişi (broker/ofis) kim olursa olsun. Atanmamış bir çağrıda
+eski davranış (dönüştüren kişiye) korunuyor. "Havuza at" kutusu artık bu
+ekranda HERKESE gösteriliyor (`showPoolToggle` sabit true), broker de
+isterse havuza gönderebilsin diye.
+
+`NewOpportunityModal`'a yeni `poolToggleNote` prop'u eklendi — varsayılan
+"tik kapalıysa fırsat sende kalır" metnini ezip, hedef başka biriyse
+("Zeynep Kaya adına kaydedilir" gibi) doğru kişiyi adıyla gösteriyor.
+
+**"Sadece Benim" filtresi** (`FirsatlarTab.jsx`): broker/owner RLS
+gereği ofisteki HER fırsatı görüyor — kendi sahip/üstlendiği kayıtları o
+kalabalığın içinde ayırt etmek zordu (bkz. "kendi fırsatlarımı sade
+şekilde göremiyorum" geri bildirimi). Satıcılar/Alıcılar bölümlerinin
+üstüne "Tüm Ofis / Sadece Benim" ikili geçişi eklendi — ikincisi
+`ownerId === user.id || claimerId === user.id` ile filtreliyor. Rol bazlı
+gizlenmiyor, herkes için (danışman/ofis dahil) anlamlı bir filtre.
+
 ## 2026-07-31 — Satılık/Kiralık: ikon yerine kısa harf kodlu rozet
 
 Broker geri bildirimi: bir önceki maddedeki ikon (Satılık=ev, Kiralık=

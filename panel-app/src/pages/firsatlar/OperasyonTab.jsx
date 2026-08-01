@@ -10,7 +10,6 @@ import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
 import { parseThousands } from '../../lib/format'
 import { formatPhoneInput } from '../../lib/phone'
-import { ROLES } from '../../lib/roles'
 import FocusBanner from '../../components/common/FocusBanner'
 import CallTable from '../../components/operasyon/CallTable'
 import CallFilters from '../../components/operasyon/CallFilters'
@@ -167,13 +166,15 @@ export default function OperasyonTab() {
         fiyatMax: parseThousands(form.fiyatMax),
         m2: form.m2 ? Number(form.m2) : null,
       }
-      // FirsatlarTab.jsx'teki "Yeni Fırsat" ile AYNI kural: danışman/broker
-      // "Havuza at"ı işaretlemediyse direkt kendine atanmış olarak kaydedilir
-      // — Lead Havuzu dönüşümünün aksine (o her zaman havuza gider) burada
-      // çağrı zaten kişiye atanmış olduğu için seçim bırakılıyor (bkz.
-      // "ben onu direkt oradan havuza atabilir miyim" isteği).
-      const selfClaim = (role === ROLES.DANISMAN || role === ROLES.BROKER) && !form.havuzaAt
-      const created = await opportunitiesProvider.create(payload, user.id, selfClaim)
+      // Çağrı zaten bir danışmana atanmışsa fırsat da ONA ait olmalı —
+      // dönüştüren kişi (broker/ofis) kim olursa olsun, işi fiilen yapan
+      // danışmandan "çalınmasın" (bulunan hata: broker dönüştürünce sessizce
+      // kendine atanıyordu, atanan danışmanın adı hiç geçmiyordu). Çağrının
+      // ataması yoksa dönüştüren kişi kendine alır (eski davranış, "ben onu
+      // direkt oradan havuza atabilir miyim" isteğiyle aynı).
+      const targetOwnerId = convertingCall.assignedTo || user.id
+      const selfClaim = !form.havuzaAt
+      const created = await opportunitiesProvider.create(payload, targetOwnerId, selfClaim)
       // Çağrı zaten portföye dönüştüğü için "Portföy" durumu da otomatik
       // "Alındı" oluyor — Fırsat oluşup Portföy hâlâ "Bekliyor" görünmesin diye.
       const updated = await callLogsProvider.update(convertingCall.id, {
@@ -276,7 +277,12 @@ export default function OperasyonTab() {
             leadAd: convertingCall.arayanAd,
             leadTelefon: convertingCall.arayanTelefon ? formatPhoneInput(convertingCall.arayanTelefon) : '',
           }}
-          showPoolToggle={role === ROLES.DANISMAN}
+          showPoolToggle
+          poolToggleNote={
+            convertingCall.assignedTo && convertingCall.assignedTo !== user.id
+              ? `Tik kapalıysa fırsat direkt ${userName(convertingCall.assignedTo)} adına kaydedilir.`
+              : undefined
+          }
           onClose={() => setConvertingCall(null)}
           onSubmit={handleOpportunitySubmit}
           submitting={submitting}

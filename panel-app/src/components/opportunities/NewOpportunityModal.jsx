@@ -30,18 +30,24 @@ function emptyForm(defaultType, initialValues) {
 // listeden seçilsin diye (yazım farklılıkları/hatalar olmasın).
 const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+2', '6+1 ve üzeri']
 
-// showPoolToggle: sadece danışman rolünde gösterilir — diğer roller zaten
-// her zaman havuza ekliyor (bkz. Firsatlar.jsx CAN_CREATE_ROLES/handleCreate).
+// showPoolToggle: sadece danışman rolünde (ya da Operasyon'dan atanmış bir
+// çağrı dönüştürülürken herkeste) gösterilir — diğer roller zaten her zaman
+// havuza ekliyor (bkz. Firsatlar.jsx CAN_CREATE_ROLES/handleCreate).
 // defaultType: hangi bölümün "+" butonundan açıldığına göre (Satıcılar/Alıcılar).
 // initialValues/kaynakLeadId: Lead Havuzu'ndan "Fırsata Dönüştür" ile
 // açıldığında ön-dolu alanlar (bkz. Leads.jsx handleConvertToOpportunity).
 // kaynakLeadId form alanı DEĞİL — kullanıcı görmez/değiştiremez, submit'te
 // ayrıca payload'a eklenir.
+// poolToggleNote: varsayılan metni ("tik kapalıysa sende kalır") ezer —
+// Operasyon'da broker/ofis BAŞKASINA atanmış bir çağrıyı dönüştürürken
+// fırsat "sende" değil, çağrının atandığı danışmanda kalıyor; bu durumda
+// doğru kişiyi adıyla belirten bir not gönderilir (bkz. OperasyonTab.jsx).
 export default function NewOpportunityModal({
   onClose,
   onSubmit,
   submitting,
   showPoolToggle = false,
+  poolToggleNote,
   defaultType = 'satici',
   initialValues,
   kaynakLeadId,
@@ -103,7 +109,7 @@ export default function NewOpportunityModal({
             />
             <span>
               Havuza at — diğer danışmanlar görüp ilgi gösterebilsin. Müşteri ad/telefonu ilgi gösterene hiçbir
-              zaman açılmaz, sadece sen görürsün. Tik kapalıysa fırsat direkt sende kalır.
+              zaman açılmaz, sadece sahibi görür. {poolToggleNote ?? 'Tik kapalıysa fırsat direkt sende kalır.'}
             </span>
           </label>
         )}
