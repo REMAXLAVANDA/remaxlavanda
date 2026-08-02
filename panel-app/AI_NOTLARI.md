@@ -3,6 +3,34 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Aylık Etkinlik Panosu: eski Canva takvimine yakın yeniden tasarım
+
+Broker "logo yok görsel zayıf, biz her ay böyle bir takvim paylaşıyorduk"
+dedi ve eskiden Canva'da elle hazırladığı aylık takvim görselini (büyük
+başlık, renkli ikonlu etkinlikler, büyük RE/MAX balonu, yan liste, alt
+marka şeridi) referans olarak paylaştı. `EventBoard.jsx`/`EventBoard.css`
+buna yakın şekilde yeniden tasarlandı:
+- Büyük, kalın "AY YIL" başlığı + kırmızı alt çizgi + "ETKİNLİK TAKVİMİ" alt
+  başlığı (eskiden küçük başlık + küçük logo).
+- Her etkinlik türü artık kendi rengi + ikonuyla (Toplantı=mavi/Users,
+  Eğitim=yeşil/GraduationCap, Etkinlik=turuncu/PartyPopper, RE/MAX
+  Türkiye=kırmızı/Flag) hem takvim hücrelerinde hem YENİ sağ taraftaki
+  kronolojik listede gösteriliyor.
+- RE/MAX balon görseli artık büyük ve sağda ana görsel unsur (eskiden
+  küçük başlık ikonuydu).
+- Alt kısımda QR kod + "RE/MAX LAVANDA" marka yazısıyla gerçek bir marka
+  şeridi.
+
+ÖNEMLİ tasarım kararı: Pano'nun bu renk+ikon seti (`BOARD_TYPE_STYLE`,
+EventBoard.jsx içinde) BİLEREK `lib/calendar.js`'teki `EVENT_TYPE_COLORS`'tan
+AYRI tutuldu — o palet bugün "sadece RE/MAX renkleri" kararıyla kırmızı/
+mavi tonlarına indirilmişti (portalın iç arayüzü için hâlâ geçerli), ama
+Pano paylaşılan/asılan bir görsel olduğu için eski Canva takviminin canlı
+çok renkliliğine (yeşil/turuncu dahil) döndürüldü — SADECE mor yine yok
+(broker'ın "mor hoş değil" kararı hâlâ geçerli). Pano zaten sadece 4 türü
+gösteriyor (broker/koçluk görüşmesi hariç), bu yüzden 4 rengin hepsi
+birbirinden net ayrışıyor. DB değişikliği yok.
+
 ## 2026-08-02 — Takvim: etkinlik konusu artık saatten önce/önemli, kesilmiyor
 
 Bir önceki düzeltmeden (saatin küçültülmesi) sonra broker "konu satıra
