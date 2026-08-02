@@ -11,7 +11,23 @@ const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
 // kayıt) AYNI paneli açar — Lead Havuzu'ndaki LeadDetailModal ile aynı
 // desen. initialValues: Lead Havuzu'ndan "Recruiting'e Dönüştür" ile
 // açıldığında ön-dolu alanlar (bkz. Leads.jsx handleConvertToRecruiting).
-export default function RecruitingDetailModal({ candidate, initialValues, danismanOptions, existingCandidates = [], onClose, onSubmit, onReactivate, submitting }) {
+// hideAssignment: Lead Havuzu'ndan dönüştürürken verilir — bir gayrimenkul
+// danışmanının işe alım adayına atanması anlamsız bulundu ("biz herhangi
+// bir gayrimenkul danışmanı da bunu atamayacağız" kararı), o akış artık
+// tek tıkla direkt Recruiting'e gönderiyor. Recruiting sayfasının kendi
+// yönetim ekranında (candidate zaten var/elle ekleniyor) bu alan hâlâ
+// gösteriliyor, ORAYA dokunulmadı.
+export default function RecruitingDetailModal({
+  candidate,
+  initialValues,
+  danismanOptions,
+  hideAssignment = false,
+  existingCandidates = [],
+  onClose,
+  onSubmit,
+  onReactivate,
+  submitting,
+}) {
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
@@ -124,18 +140,20 @@ export default function RecruitingDetailModal({ candidate, initialValues, danism
           </select>
         </div>
 
-        <select
-          value={form.atananDanismanId}
-          onChange={(e) => set({ atananDanismanId: e.target.value })}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-        >
-          <option value="">Atanmadı</option>
-          {danismanOptions.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </select>
+        {!hideAssignment && (
+          <select
+            value={form.atananDanismanId}
+            onChange={(e) => set({ atananDanismanId: e.target.value })}
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          >
+            <option value="">Atanmadı</option>
+            {danismanOptions.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        )}
 
         <textarea
           value={form.aciklama}

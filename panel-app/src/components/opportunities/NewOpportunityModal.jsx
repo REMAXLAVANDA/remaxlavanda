@@ -22,6 +22,7 @@ function emptyForm(defaultType, initialValues) {
     m2: '',
     odaSayisi: '',
     havuzaAt: false,
+    assignToId: '',
     ...initialValues,
   }
 }
@@ -42,12 +43,20 @@ const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+
 // Operasyon'da broker/ofis BAŞKASINA atanmış bir çağrıyı dönüştürürken
 // fırsat "sende" değil, çağrının atandığı danışmanda kalıyor; bu durumda
 // doğru kişiyi adıyla belirten bir not gönderilir (bkz. OperasyonTab.jsx).
+// assignableOptions: sadece Lead Havuzu'ndan dönüştürürken verilir (bkz.
+// Leads.jsx) — broker, reklam kampanya/reklam seti başlığına bakıp
+// (KAYNAK BİLGİSİ alanındaki reklam adı) hangi danışmanın reklamı olduğunu
+// kendisi tanıyıp burada elle seçer, otomatik bir eşleştirme YOK (bkz.
+// "reklam kampanya setlerinin başlıklarına göre anlar" — broker'ın kendi
+// kararı, sistem tahmin etmiyor). Seçilirse "Havuza at" kutusu anlamsız
+// kalacağından gizlenir — ya belirli bir danışmana atanır ya havuza girer.
 export default function NewOpportunityModal({
   onClose,
   onSubmit,
   submitting,
   showPoolToggle = false,
   poolToggleNote,
+  assignableOptions,
   defaultType = 'satici',
   initialValues,
   kaynakLeadId,
@@ -99,7 +108,21 @@ export default function NewOpportunityModal({
         }}
         className="space-y-3"
       >
-        {showPoolToggle && (
+        {assignableOptions && assignableOptions.length > 0 && (
+          <select
+            value={form.assignToId}
+            onChange={(e) => set({ assignToId: e.target.value })}
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          >
+            <option value="">Hangi danışmana atansın? — seçilmezse havuza girer</option>
+            {assignableOptions.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        )}
+        {showPoolToggle && !form.assignToId && (
           <label className="flex items-start gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
             <input
               type="checkbox"

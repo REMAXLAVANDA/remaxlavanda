@@ -47,10 +47,13 @@ export default function Leads() {
   const [submitting, setSubmitting] = useState(false)
 
   const leads = data?.leads ?? []
-  // Lead seviyesinde atama YOK (dağıtım noktası — atama hedef modülde
-  // yapılır), ama RecruitingDetailModal'ın KENDİ Atanan alanı için hâlâ
-  // gerekli (bkz. dönüştürme akışı altında). Danışman-only + test hesabı
-  // hariç, Panel/Lig/Takip'teki aynı desen.
+  // Lead seviyesinde atama YOK (dağıtım noktası) — ama Portföy'e
+  // dönüştürürken broker'ın reklam başlığına bakıp elle hangi danışmana
+  // atayacağını seçebilmesi için NewOpportunityModal'a veriliyor (bkz.
+  // handleOpportunitySubmit). Recruiting'e dönüştürürken artık HİÇ
+  // kullanılmıyor — gayrimenkul danışmanı ataması o akıştan kaldırıldı
+  // (bkz. RecruitingDetailModal hideAssignment). Danışman-only + test
+  // hesabı hariç, Panel/Lig/Takip'teki aynı desen.
   const danismanOptions = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +142,14 @@ export default function Leads() {
         fiyatMax: parseThousands(form.fiyatMax),
         m2: form.m2 ? Number(form.m2) : null,
       }
-      const createdOpportunity = await opportunitiesProvider.create(payload, user.id, false)
+      // Broker reklam kampanya/reklam seti başlığına bakıp hangi danışmanın
+      // reklamı olduğunu kendisi tanıyıp elle seçebiliyor (form.assignToId,
+      // bkz. NewOpportunityModal notu) — seçtiyse fırsat DOĞRUDAN o
+      // danışmana atanır (havuza değil); seçmediyse eski davranış: havuza
+      // girer, herhangi bir danışman "İlgileniyorum" ile alabilir.
+      const targetOwnerId = form.assignToId || user.id
+      const selfClaim = Boolean(form.assignToId)
+      const createdOpportunity = await opportunitiesProvider.create(payload, targetOwnerId, selfClaim)
       const updatedLead = await leadsProvider.update(lead.id, {
         durum: 'atandi',
         ...computeAutoFields(lead, 'atandi'),
@@ -248,6 +258,7 @@ export default function Leads() {
             leadTelefon: convertTarget.lead.telefon ? formatPhoneInput(convertTarget.lead.telefon) : '',
           }}
           kaynakLeadId={convertTarget.lead.id}
+          assignableOptions={danismanOptions}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleOpportunitySubmit}
           submitting={submitting}
@@ -263,7 +274,7 @@ export default function Leads() {
             kaynak: LEAD_TO_RECRUITING_KAYNAK[convertTarget.lead.kaynak] ?? 'diger',
             kaynakLeadId: convertTarget.lead.id,
           }}
-          danismanOptions={danismanOptions}
+          hideAssignment
           existingCandidates={data?.recruitingCandidates ?? []}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleRecruitingSubmit}

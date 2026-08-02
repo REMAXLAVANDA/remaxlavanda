@@ -3,6 +3,31 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Lead Havuzu dönüşümü: Recruiting'den danışman ataması kaldırıldı, Portföy'e elle atama eklendi
+
+Broker kararı: Lead Havuzu sadece bir yönlendirme noktası — Recruiting'e
+giden bir başvuruya gayrimenkul danışmanı atamak anlamsız ("biz herhangi
+bir gayrimenkul danışmanı da bunu atamayacağız"), Portföy'e giden bir
+lead'de ise broker reklam kampanya/reklam seti başlığına bakıp (zaten
+görünen `reklam_adi`) hangi danışmanın reklamı olduğunu KENDİSİ tanıyıp
+elle seçebilmeli — otomatik bir reklam→danışman eşleştirmesi YOK, broker
+her seferinde kendi kararını veriyor.
+
+**Recruiting** (`RecruitingDetailModal.jsx`): yeni `hideAssignment` prop'u
+— true olunca "Atanmadı/[danışman]" select'i hiç render edilmiyor.
+Sadece `Leads.jsx`'in dönüştürme akışında true; Recruiting sayfasının
+kendi yönetim ekranındaki (aday zaten var/elle ekleniyor) kullanımına
+DOKUNULMADI, orada hâlâ gösteriliyor.
+
+**Portföy** (`NewOpportunityModal.jsx`): yeni `assignableOptions` prop'u
+— verilirse "Hangi danışmana atansın? — seçilmezse havuza girer" select'i
+en üstte görünür, seçilirse "Havuza at" kutusu (zaten anlamsız kalacağı
+için) gizlenir. Seçim yapılırsa `Leads.jsx`'teki `handleOpportunitySubmit`
+`targetOwnerId`/`selfClaim`'i o danışmana göre ayarlar (owner+claimer O
+danışman olur, direkt kendisine düşer, havuza değil) — Operasyon'daki
+"atanmış çağrıyı kendine çalma" düzeltmesiyle AYNI desen, sadece atamayı
+seçen kişi bu sefer çağrının kendisi değil broker'ın kendi tanıması.
+
 ## 2026-08-02 — Ayarlar > Webhook Hataları + gerçek bir Meta lead kaybı vakası
 
 Broker'ın "reklam bilgisi neden boş" sorusundan başlayan canlı bir olay
