@@ -238,7 +238,8 @@ export default function FirsatlarTab() {
           <OpportunitySection
             dotColor="bg-brand-600"
             borderColor="border-t-brand-600"
-            boxColor="bg-brand-600"
+            boxColor="bg-brand-600/10"
+            boxTextColor="text-brand-700"
             label="🔴 Satıcılar"
             total={satici.total}
             expanded={expanded.satici}
@@ -258,7 +259,8 @@ export default function FirsatlarTab() {
           <OpportunitySection
             dotColor="bg-remax-blue"
             borderColor="border-t-remax-blue"
-            boxColor="bg-remax-blue"
+            boxColor="bg-remax-blue/10"
+            boxTextColor="text-remax-blue"
             label="🔵 Alıcılar"
             total={alici.total}
             expanded={expanded.alici}

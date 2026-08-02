@@ -9,9 +9,9 @@ export default function StatsCards({ stats }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {items.map((it) => (
-        <div key={it.label} className="rounded-2xl bg-remax-navy p-4">
-          <p className={`text-2xl font-semibold ${it.warn ? 'text-amber-300' : 'text-white'}`}>{it.value}</p>
-          <p className="mt-0.5 text-xs text-white/70">{it.label}</p>
+        <div key={it.label} className="rounded-2xl bg-remax-navy/10 p-4">
+          <p className={`text-2xl font-semibold ${it.warn ? 'text-amber-600' : 'text-remax-navy'}`}>{it.value}</p>
+          <p className="mt-0.5 text-xs text-remax-navy/60">{it.label}</p>
         </div>
       ))}
     </div>

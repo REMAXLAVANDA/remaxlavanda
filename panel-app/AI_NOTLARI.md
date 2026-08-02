@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Fırsatlar/Operasyon: widget renkleri yumuşatıldı
+
+"Dediğin gibi fazla koyu oldu" geri bildirimiyle bir önceki dolu-renk +
+beyaz-yazı widget tasarımı geri alındı: kategori kutuları
+(`OpportunitySection.jsx`, yeni `boxTextColor` prop'u) ve Operasyon'un 4
+istatistik kutusu (`StatsCards.jsx`) artık tam doygun zemin yerine açık
+tonlu zemin (`/10` opaklık, ör. `bg-brand-600/10`, `bg-remax-navy/10`) +
+bölümün kendi rengiyle yazı (`text-brand-700`, `text-remax-blue`,
+`text-remax-navy`) kullanıyor. Seçili kutudaki koyu ring
+(`ring-2 ring-ink-900`) aynı şekilde duruyor. DB değişikliği yok.
+
 ## 2026-08-02 — Fırsatlar/Operasyon: widget'lar renkli dolu, yazılar beyaz
 
 Bölüm renklerinin (kırmızı/mavi/lacivert) sadece üst çizgide kalması
