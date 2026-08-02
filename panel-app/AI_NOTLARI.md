@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Lead Havuzu listesi: kampanya/reklam bilgisi artık satırda, satıra girmeye gerek yok
+
+Broker geri bildirimi: "lead giren biri hiç içine girmeye gerek kalmasın"
+— kampanya/reklam bilgisi (`reklamAdi`/`kampanyaKodu`) sadece Lead
+Detayı'na girince görünüyordu, broker Portföy/Recruiting yönlendirme
+kararını vermeden önce her satırı tek tek açmak zorunda kalıyordu.
+`LeadTable.jsx`'e yeni `campaignLabel(lead)` helper'ı eklendi — hem
+masaüstü tabloda (Tip hücresinin altında küçük gri metin) hem mobil
+kartlarda (Tip satırının altında) doğrudan gösteriliyor, bilgi yoksa
+hiçbir şey render edilmiyor. Kod içindeki eski yorum ("broker kampanya/
+reklam adına bakıp Ad Soyad'ın yanında karar veriyor") aslında hiç
+uygulanmamış bir niyeti tarif ediyordu — şimdi gerçek davranışla eşleşti.
+
 ## 2026-08-02 — Operasyon: "Fırsata Dönüştür" ikonu → "Müşterilerime Ekle" yazılı buton
 
 Broker geri bildirimi: danışman kendi çağrısını fırsata aktarırken

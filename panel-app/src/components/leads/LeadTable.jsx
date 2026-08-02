@@ -1,5 +1,14 @@
 import { LEAD_TIP_LABELS, LEAD_DURUM_LABELS, LEAD_DURUM_STYLES, isStaleLead } from '../../lib/leads'
 
+// Kampanya/reklam bilgisi — daha önce sadece Lead Detayı'na girince
+// görünüyordu, broker Portföy/Recruiting'e yönlendirme kararını (hangi
+// danışmanın reklamı) vermek için her seferinde satırı açmak zorunda
+// kalıyordu. Artık listede doğrudan görünüyor (bkz. "lead giren biri hiç
+// içine girmeye gerek kalmasın" isteği).
+function campaignLabel(lead) {
+  return [lead.kampanyaKodu, lead.reklamAdi].filter(Boolean).join(' — ') || null
+}
+
 function leadDateLabel(createdAt) {
   return new Date(createdAt).toLocaleString('tr-TR', {
     day: '2-digit',
@@ -90,6 +99,7 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
           <tbody>
             {leads.map((lead) => {
               const stale = isStaleLead(lead)
+              const campaign = campaignLabel(lead)
               return (
                 <tr
                   key={lead.id}
@@ -101,7 +111,10 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
                   <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{leadDateLabel(lead.createdAt)}</td>
                   <td className="px-3 py-3 font-medium text-ink-900">{lead.adSoyad}</td>
                   <td className="px-3 py-3 text-ink-600">{lead.telefon ?? '—'}</td>
-                  <td className="px-3 py-3 text-ink-600">{LEAD_TIP_LABELS[lead.tip]}</td>
+                  <td className="px-3 py-3 text-ink-600">
+                    {LEAD_TIP_LABELS[lead.tip]}
+                    {campaign && <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-ink-400">{campaign}</div>}
+                  </td>
                   <td className="px-3 py-3">
                     <DurumBadge durum={lead.durum} />
                   </td>
@@ -122,6 +135,7 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
         {leads.map((lead) => {
           const stale = isStaleLead(lead)
           const process = resolveProcessStatus(lead)
+          const campaign = campaignLabel(lead)
           return (
             <div
               key={lead.id}
@@ -133,6 +147,7 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
                   <p className="truncate font-medium text-ink-900">{lead.adSoyad}</p>
                   <p className="mt-0.5 text-sm text-ink-600">{lead.telefon ?? '—'}</p>
                   <p className="mt-1 text-xs text-ink-400">{LEAD_TIP_LABELS[lead.tip]}</p>
+                  {campaign && <p className="mt-0.5 truncate text-xs text-ink-400">{campaign}</p>}
                 </div>
                 <DurumBadge durum={lead.durum} />
               </div>
