@@ -47,15 +47,12 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-function formatDayMonth(iso) {
-  return new Date(iso).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' }).toUpperCase()
-}
-
-// props.boardEvents: [{ id, type, title, startAt, endAt, location }] — hem
-// takvim ızgarasındaki gün hücrelerine (ikon + isim) hem sağ taraftaki
-// kronolojik listeye besleniyor — referans alınan eski Canva takviminde
-// olduğu gibi ikisi de aynı bilgiyi iki farklı biçimde gösteriyor (bkz.
-// "biz her ay böyle bir takvim paylaşıyorduk" geri bildirimi).
+// props.boardEvents: [{ id, type, title, startAt, endAt, location }] —
+// sadece takvim ızgarasındaki gün hücrelerine (ikon + isim) besleniyor.
+// Ayrı bir kronolojik liste BİLEREK YOK — "bunu kaldır" geri bildirimiyle
+// (Canva referansındaki yan liste denendi, istenmedi) kaldırıldı, aynı
+// bilgi zaten takvimde var; bkz. daha önceki "sadece takvim bölümü
+// çıksın" kararıyla tutarlı.
 const EventBoard = forwardRef(function EventBoard(
   { monthDate, boardEvents, qrDataUrl, updatedLabel, quote = 'Birlikte Daha *Yükseğe!*' },
   ref,
@@ -131,32 +128,6 @@ const EventBoard = forwardRef(function EventBoard(
           <div className="board-side">
             <div className="board-balloon">
               <img src="/panel/remax-balloon.png" alt="RE/MAX" />
-            </div>
-            <div className="board-side-list">
-              {boardEvents.length === 0 ? (
-                <p className="board-side-empty">Bu ay için planlanan etkinlik yok.</p>
-              ) : (
-                <>
-                  {boardEvents.slice(0, 6).map((e) => {
-                    const style = BOARD_TYPE_STYLE[e.type]
-                    const Icon = style?.icon
-                    return (
-                      <div key={e.id} className="board-side-item">
-                        {Icon && (
-                          <span className="board-side-item-icon" style={{ background: style.color }}>
-                            <Icon size={9} strokeWidth={2.75} color="#fff" />
-                          </span>
-                        )}
-                        <div className="board-side-item-text">
-                          <div className="board-side-item-date">{formatDayMonth(e.startAt)}</div>
-                          <div className="board-side-item-title">{e.title}</div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {boardEvents.length > 6 && <div className="board-side-more">+{boardEvents.length - 6} etkinlik daha</div>}
-                </>
-              )}
             </div>
           </div>
         </div>

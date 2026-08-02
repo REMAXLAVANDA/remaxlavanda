@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Aylık Etkinlik Panosu: sağdaki kronolojik liste kaldırıldı
+
+Bir önceki maddedeki yeniden tasarımda Canva referansına uyum için eklenen
+sağ taraftaki kronolojik etkinlik listesi ("bunu kaldır" geri bildirimiyle)
+kaldırıldı — aynı bilgi zaten takvim hücrelerinde var, önceki "sadece
+takvim bölümü çıksın" kararıyla tutarlı. RE/MAX balonu artık sağ tarafta
+tek başına, daha büyük (34cqh). DB değişikliği yok.
+
 ## 2026-08-02 — Aylık Etkinlik Panosu: eski Canva takvimine yakın yeniden tasarım
 
 Broker "logo yok görsel zayıf, biz her ay böyle bir takvim paylaşıyorduk"
