@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Yeni etkinlik türü: RE/MAX Türkiye
+
+`kocluk_gorusmesi` ile aynı desen (calendar_event_type enum'una yeni değer)
+— RE/MAX Türkiye'nin ulusal etkinlikleri (konferans, eğitim vb.) artık
+Yeni/Düzenle Etkinlik formunda ayrı bir tür olarak elle girilebiliyor.
+Etkinlik/Eğitim/Toplantı ile birlikte Aylık Pano'ya da otomatik dahil
+(bkz. EventBoardModal.jsx BOARD_TYPES) — ayrıca bir işaretleme gerekmiyor.
+
 ## 2026-08-02 — DÜZELTME: event_attendance.katilim_tipi kolonu gerçekte "zorunluluk" imiş
 
 "Herkese Açık" migration'ı çalıştırılırken ortaya çıktı: `event_attendance`

@@ -10,8 +10,10 @@ const PORTAL_URL = 'https://panel.remaxlavanda.com.tr'
 // Panoda hangi etkinlik türleri görünür — broker_gorusmesi/kocluk_gorusmesi
 // bilerek dışarıda: bunlar birebir/dahili görüşmeler, herkese açık bir
 // paylaşım görselinde yeri yok (bkz. "etkinlik eğitim ve toplantı pano
-// seçince çıkmalı" isteği).
-const BOARD_TYPES = ['etkinlik', 'egitim', 'toplanti']
+// seçince çıkmalı" isteği). remax_turkiye dahil — RE/MAX Türkiye'nin
+// ulusal etkinlikleri de paylaşıma değer (bkz. "buraya ekle ve takvim
+// panosunda görülsün" isteği).
+const BOARD_TYPES = ['etkinlik', 'egitim', 'toplanti', 'remax_turkiye']
 
 function isSameMonth(iso, monthDate) {
   const d = new Date(iso)
