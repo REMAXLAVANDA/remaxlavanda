@@ -310,10 +310,10 @@ export default function CallTable({
                         {!call.opportunityId && (canEditResult || isManager) && (
                           <button
                             onClick={() => onConvertToOpportunity(call)}
-                            className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-700"
-                            title="Fırsata Dönüştür"
+                            className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                            title="Müşterilerime Ekle"
                           >
-                            <Send size={14} />
+                            <Send size={13} /> Müşterilerime Ekle
                           </button>
                         )}
                         {canEditCallDetails(currentRole, call.createdAt) && (
@@ -392,10 +392,10 @@ export default function CallTable({
                   {!call.opportunityId && (canEditResult || isManager) && (
                     <button
                       onClick={() => onConvertToOpportunity(call)}
-                      className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-700"
-                      title="Fırsata Dönüştür"
+                      className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                      title="Müşterilerime Ekle"
                     >
-                      <Send size={14} />
+                      <Send size={13} /> Müşterilerime Ekle
                     </button>
                   )}
                   {canEditCallDetails(currentRole, call.createdAt) && (

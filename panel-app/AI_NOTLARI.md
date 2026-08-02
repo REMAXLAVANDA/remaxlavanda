@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Operasyon: "Fırsata Dönüştür" ikonu → "Müşterilerime Ekle" yazılı buton
+
+Broker geri bildirimi: danışman kendi çağrısını fırsata aktarırken
+tıklaması gereken buton sadece bir ok/uçak ikonuydu (Send), ne olduğu
+anlaşılmıyordu (aynı "ikon anlaşılmıyor" deseni — bkz. Satılık/Kiralık
+ikon vakası). `CallTable.jsx`'te hem masaüstü tablo hem mobil kart
+görünümündeki buton, sadece ikon yerine ikon + "Müşterilerime Ekle"
+yazısına çevrildi — Düzenle/Sil ikonlarının aksine bu işlem en sık
+kullanılan/en önemli aksiyon olduğu için bilerek görsel olarak öne
+çıkarıldı (metin etiketli). Fonksiyon (onConvertToOpportunity) değişmedi.
+
 ## 2026-08-02 — Danışman dropdown'ları alfabetik sıralandı
 
 `lib/format.js`'e `sortByName(list)` eklendi — Türkçe İ/ı/Ş/Ğ/Ü/Ö/Ç doğru
