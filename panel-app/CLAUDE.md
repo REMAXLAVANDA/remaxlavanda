@@ -72,10 +72,13 @@ Kural:
 
 1. **HER DURUMDA önce migration dosyasını repoya commit et, SONRA uygula**
    — sırayı bozma.
-2. **Doğrudan `apply_migration` çalıştırma, önce sor.** Onay isteği kısa
-   ve tek ekranda şunları içermeli: (a) ne yapıyor — bir cümle, (b) hangi
-   tablo/fonksiyon etkileniyor, (c) geri alınabilir mi, (d) geri alma
-   SQL'i.
+2. **Doğrudan `apply_migration` çalıştırma, önce sor.** Onay isteği
+   **teknik terim kullanmadan**, düz Türkçe yazılır ve şu 3 soruyu
+   MUTLAKA cevaplar (2026-08-02 broker kararı):
+   1. Bir şey siliniyor mu? (evet/hayır)
+   2. Ters giderse geri alınabilir mi? (evet/hayır)
+   3. Portalda çalışan bir ekran bozulabilir mi? Kontrol ettim mi?
+   SQL de eklenir ama **en alta**, 3 sorudan sonra.
 3. **Sadece onay yeterli** (broker "onaylıyorum"/"evet" derse
    uygulanabilir): GRANT/REVOKE, search_path SET, RLS politikası
    ekleme/kaldırma, index ekleme.
