@@ -6,6 +6,7 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { tasks as tasksProvider } from '../../lib/dataProvider'
 import { canViewTask, canManageTasks, canToggleTask } from '../../lib/tasks'
+import { ROLE_LABELS, ROLE_ORDER } from '../../lib/roles'
 import { sortByName } from '../../lib/format'
 import TaskRow from '../../components/gorevler/TaskRow'
 import TaskFormModal from '../../components/gorevler/TaskFormModal'
@@ -21,6 +22,31 @@ function sortTasks(list) {
     if (!b.dueDate) return -1
     return new Date(a.dueDate) - new Date(b.dueDate)
   })
+}
+
+// Tek uzun liste "kime ne atanmış" sorusunu okumayı zorlaştırıyordu (bkz.
+// "sağlıklı bir görünümü yok, owner/ofis/danışmanlar için ayrı widget
+// olmalı" geri bildirimi) — artık görevler ATANAN kişinin ROLÜNE göre ayrı
+// kartlara bölünüyor (Broker/Owner/Ofis/Danışman sırasıyla, ROLE_ORDER).
+// Danışman gibi tek kişi kendi görevini görüyorsa zaten tek kart (kendi
+// rolü) görünür — yönetim hepsini rol rol ayrışmış görür. Rolü çözülemeyen
+// (silinmiş kullanıcı vb.) görevler "Diğer" kartına düşer, kaybolmasın.
+function groupByAssigneeRole(list, knownUsers) {
+  const groups = new Map()
+  for (const t of list) {
+    const role = knownUsers[t.assigneeId]?.role
+    const key = role && ROLE_ORDER.includes(role) ? role : 'diger'
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(t)
+  }
+  const ordered = [...ROLE_ORDER, 'diger']
+  return ordered
+    .filter((key) => groups.has(key))
+    .map((key) => ({
+      key,
+      label: key === 'diger' ? 'Diğer' : ROLE_LABELS[key],
+      tasks: sortTasks(groups.get(key)),
+    }))
 }
 
 export default function GorevlerTab() {
@@ -44,6 +70,8 @@ export default function GorevlerTab() {
     const list = (taskList ?? []).filter((t) => canViewTask(t, user))
     return sortTasks(list)
   }, [taskList, user])
+
+  const groups = useMemo(() => groupByAssigneeRole(visible, knownUsers), [visible, knownUsers])
 
   async function handleToggle(id, status) {
     try {
@@ -122,18 +150,30 @@ export default function GorevlerTab() {
       )}
 
       {!loading && !error && visible.length > 0 && (
-        <div className="space-y-2">
-          {visible.map((t) => (
-            <TaskRow
-              key={t.id}
-              task={t}
-              assigneeName={userName(t.assigneeId)}
-              canToggle={canToggleTask(t, user)}
-              canManage={isManager}
-              onToggle={handleToggle}
-              onEdit={setEditingTask}
-              onDeleteRequest={setDeleteTarget}
-            />
+        <div className="space-y-5">
+          {groups.map((g) => (
+            <div key={g.key} className="rounded-2xl border border-ink-100 bg-white p-4">
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                {g.label}
+                <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium text-ink-500">
+                  {g.tasks.length}
+                </span>
+              </h3>
+              <div className="space-y-2">
+                {g.tasks.map((t) => (
+                  <TaskRow
+                    key={t.id}
+                    task={t}
+                    assigneeName={userName(t.assigneeId)}
+                    canToggle={canToggleTask(t, user)}
+                    canManage={isManager}
+                    onToggle={handleToggle}
+                    onEdit={setEditingTask}
+                    onDeleteRequest={setDeleteTarget}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

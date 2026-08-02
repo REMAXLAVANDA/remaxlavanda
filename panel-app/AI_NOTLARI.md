@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Görevler: tek liste yerine rol bazlı ayrı widget'lar
+
+Broker "sağlıklı bir görünümü yok, owner/ofis/danışmanlar için ayrı widget
+olmalı" dedi — Planlama > Görevler tek uzun listeydi, kim kime ne atamış
+okumak zordu. `GorevlerTab.jsx`'e yeni `groupByAssigneeRole()`: görevler
+artık ATANAN kişinin rolüne göre (Broker/Owner/Ofis/Danışman sırasıyla,
+`lib/roles.js`'teki `ROLE_ORDER`) ayrı kartlara bölünüyor, her kart kendi
+başlığı + sayacıyla. Sadece dolu gruplar render ediliyor — danışman kendi
+görevini görüyorsa zaten tek kart (kendi rolü) görür, yönetim hepsini rol
+rol ayrışmış görür. DB değişikliği yok.
+
 ## 2026-08-02 — Aylık Etkinlik Panosu: sağdaki kronolojik liste kaldırıldı
 
 Bir önceki maddedeki yeniden tasarımda Canva referansına uyum için eklenen
