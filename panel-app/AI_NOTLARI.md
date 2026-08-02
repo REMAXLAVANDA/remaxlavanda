@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Görevler: rol widget'larına renk eklendi
+
+Bir önceki maddedeki rol bazlı ayrım "biraz okunaklı hale getir"
+geri bildirimiyle renklendirildi — Fırsatlar/Panel/Lig'deki aynı "üst
+kenar renkli, iç nötr" desen: Broker=kırmızı, Owner=lacivert, Ofis=mavi,
+Danışman=orta mavi, "Diğer"=nötr gri (`ROLE_WIDGET_COLORS`,
+GorevlerTab.jsx). DB değişikliği yok.
+
 ## 2026-08-02 — Görevler: tek liste yerine rol bazlı ayrı widget'lar
 
 Broker "sağlıklı bir görünümü yok, owner/ofis/danışmanlar için ayrı widget

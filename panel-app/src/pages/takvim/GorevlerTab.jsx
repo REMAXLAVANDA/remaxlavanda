@@ -13,6 +13,18 @@ import TaskFormModal from '../../components/gorevler/TaskFormModal'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
+// Fırsatlar/Panel/Lig'de kurulan "üst kenar renkli, iç nötr" desenle aynı
+// mantık (bkz. AI_NOTLARI.md) — her rol widget'ı kendi RE/MAX marka
+// rengiyle ayrışıyor: Broker=kırmızı (admin/birincil), Owner=lacivert,
+// Ofis=mavi, Danışman=orta mavi. "Diğer" (rolü çözülemeyen) nötr gri.
+const ROLE_WIDGET_COLORS = {
+  broker: { border: 'border-t-brand-600', dot: 'bg-brand-600' },
+  owner: { border: 'border-t-remax-navy', dot: 'bg-remax-navy' },
+  ofis: { border: 'border-t-remax-blue', dot: 'bg-remax-blue' },
+  danisman: { border: 'border-t-remax-blue-mid', dot: 'bg-remax-blue-mid' },
+  diger: { border: 'border-t-ink-300', dot: 'bg-ink-300' },
+}
+
 function sortTasks(list) {
   return [...list].sort((a, b) => {
     if (a.status !== b.status) return a.status === 'tamamlandi' ? 1 : -1
@@ -151,9 +163,12 @@ export default function GorevlerTab() {
 
       {!loading && !error && visible.length > 0 && (
         <div className="space-y-5">
-          {groups.map((g) => (
-            <div key={g.key} className="rounded-2xl border border-ink-100 bg-white p-4">
+          {groups.map((g) => {
+            const colors = ROLE_WIDGET_COLORS[g.key]
+            return (
+            <div key={g.key} className={`rounded-2xl border border-ink-100 bg-white border-t-4 ${colors.border} p-4`}>
               <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
                 {g.label}
                 <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium text-ink-500">
                   {g.tasks.length}
@@ -174,7 +189,8 @@ export default function GorevlerTab() {
                 ))}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
