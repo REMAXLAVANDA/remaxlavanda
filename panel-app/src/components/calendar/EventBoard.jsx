@@ -1,15 +1,6 @@
 import { forwardRef } from 'react'
-import { Users, GraduationCap, PartyPopper, Briefcase, MessageCircle } from 'lucide-react'
-import { EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from '../../lib/calendar'
+import { EVENT_TYPE_COLORS } from '../../lib/calendar'
 import './EventBoard.css'
-
-const TYPE_ICONS = {
-  toplanti: Users,
-  egitim: GraduationCap,
-  etkinlik: PartyPopper,
-  broker_gorusmesi: Briefcase,
-  kocluk_gorusmesi: MessageCircle,
-}
 
 const WEEKDAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
 
@@ -38,13 +29,12 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-// props.boardEvents: [{ id, type, title, startAt, endAt, location, katilimBadge: 'zorunlu'|'onerilen'|null }]
-// — sadece takvim ızgarasındaki gün ikonları için kullanılıyor, ayrı bir
-// liste/odak paneli YOK (bkz. "sadece takvim bölümü çıksın, sağında bu ay
-// seni ne bekliyor olmasın" isteği). Kişiye özel katılım bilgisi (Senin
-// için Zorunlu vb.) BİLEREK burada YOK — pano herkese aynı görünen TEK
-// görsel, broker'ın kararı: sadece genel bir rozet ("Zorunlu"/"Önerilen")
-// gösterilsin, kişisel durum Portal'da kalsın.
+// props.boardEvents: [{ id, type, title, startAt, endAt, location }] — her
+// etkinlik doğrudan ilgili günün hücresine, adıyla birlikte yazılıyor (bkz.
+// "takvimin içinde herşey yazsın" isteği) — ayrı bir lejant/liste/odak
+// paneli YOK, renk + başlık kendi başına yeterli bilgi veriyor. Kişiye özel
+// katılım bilgisi (Senin için Zorunlu vb.) BİLEREK burada YOK — pano
+// herkese aynı görünen TEK görsel, kişisel durum Portal'da kalıyor.
 const EventBoard = forwardRef(function EventBoard(
   { monthDate, boardEvents, qrDataUrl, updatedLabel, quote = 'Birlikte Daha *Yükseğe!*' },
   ref,
@@ -76,25 +66,6 @@ const EventBoard = forwardRef(function EventBoard(
               <div className="board-sub">RE/MAX Lavanda Etkinlik Panosu</div>
             </div>
           </div>
-          <div className="board-legend">
-            {[0, 1].map((rowIdx) => (
-              <div className="board-legend-row" key={rowIdx}>
-                {Object.entries(EVENT_TYPE_LABELS)
-                  .slice(rowIdx * 3, rowIdx * 3 + 3)
-                  .map(([key, label]) => {
-                    const Icon = TYPE_ICONS[key]
-                    return (
-                      <span className="board-legend-item" key={key}>
-                        <span className="board-legend-dot" style={{ background: EVENT_TYPE_COLORS[key] }}>
-                          <Icon size={9} strokeWidth={2.5} />
-                        </span>
-                        {label}
-                      </span>
-                    )
-                  })}
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="board-main">
@@ -113,16 +84,14 @@ const EventBoard = forwardRef(function EventBoard(
                 return (
                   <div key={d.toISOString()} className={`board-day ${!inMonth ? 'muted' : ''} ${isToday ? 'today' : ''}`}>
                     <span className="board-day-num">{d.getDate()}</span>
-                    <span className="board-day-icons">
-                      {dayEvents.slice(0, 3).map((e) => {
-                        const Icon = TYPE_ICONS[e.type]
-                        return (
-                          <span key={e.id} className="board-badge" style={{ background: EVENT_TYPE_COLORS[e.type] }}>
-                            <Icon size={9} strokeWidth={2.5} />
-                          </span>
-                        )
-                      })}
-                    </span>
+                    <div className="board-day-events">
+                      {dayEvents.slice(0, 3).map((e) => (
+                        <span key={e.id} className="board-day-event" style={{ borderLeftColor: EVENT_TYPE_COLORS[e.type] }}>
+                          {e.title}
+                        </span>
+                      ))}
+                      {dayEvents.length > 3 && <span className="board-day-more">+{dayEvents.length - 3} daha</span>}
+                    </div>
                   </div>
                 )
               })}

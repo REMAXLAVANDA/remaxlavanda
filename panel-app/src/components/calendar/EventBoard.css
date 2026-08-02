@@ -54,26 +54,20 @@
 .board-month-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 4.05cqw; line-height: 0.95; color: var(--navy); letter-spacing: -0.01em; }
 .board-sub { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.28cqw; letter-spacing: 0.05em; color: var(--red); text-transform: uppercase; }
 
-.board-legend { display: flex; flex-direction: column; align-items: flex-end; gap: 0.7cqh; }
-.board-legend-row { display: flex; gap: 1.35cqw; }
-.board-legend-item { display: flex; align-items: center; gap: 0.5cqw; font-size: 0.82cqw; font-weight: 600; color: var(--ink-700); white-space: nowrap; }
-.board-legend-dot { width: 0.95cqw; height: 0.95cqw; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; color: #fff; }
-.board-legend-dot svg { width: 62%; height: 62%; }
-
 .board-main { display: flex; min-height: 0; }
 
 .board-cal-card { flex: 1; background: var(--glass); backdrop-filter: blur(14px) saturate(140%); border: 1px solid var(--line); border-radius: 1.3cqw; padding: 1.5cqw 1.5cqw 1.2cqw; display: flex; flex-direction: column; min-height: 0; }
 .board-cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 0.7cqh; }
 .board-cal-weekdays span { text-align: center; font-size: 0.78cqw; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-400); text-transform: uppercase; }
 .board-cal-days { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.55cqw; min-height: 0; }
-.board-day { position: relative; border-radius: 0.85cqw; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(12, 39, 73, 0.055); padding: 0.55cqw 0.6cqw; display: flex; flex-direction: column; justify-content: space-between; }
+.board-day { position: relative; border-radius: 0.85cqw; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(12, 39, 73, 0.055); padding: 0.5cqw 0.55cqw; display: flex; flex-direction: column; gap: 0.35cqh; min-height: 0; overflow: hidden; }
 .board-day.muted { background: rgba(255, 255, 255, 0.18); border-color: rgba(12, 39, 73, 0.03); }
 .board-day.muted .board-day-num { color: var(--ink-300); font-weight: 600; }
-.board-day-num { font-family: 'Poppins', sans-serif; font-size: 1.05cqw; font-weight: 700; color: var(--navy); }
+.board-day-num { flex: none; font-family: 'Poppins', sans-serif; font-size: 1.05cqw; font-weight: 700; color: var(--navy); }
 .board-day.today .board-day-num { display: flex; align-items: center; justify-content: center; width: 1.9cqw; height: 1.9cqw; border-radius: 50%; background: var(--navy); color: #fff; }
-.board-day-icons { display: flex; gap: 0.32cqw; flex-wrap: wrap; }
-.board-badge { width: 1.5cqw; height: 1.5cqw; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 3px 6px -2px rgba(12, 39, 73, 0.35); flex: none; }
-.board-badge svg { width: 60%; height: 60%; }
+.board-day-events { display: flex; flex-direction: column; gap: 0.22cqh; min-height: 0; overflow: hidden; }
+.board-day-event { font-size: 0.62cqw; font-weight: 600; line-height: 1.25; color: var(--ink-700); border-left: 0.2cqw solid; padding-left: 0.35cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board-day-more { font-size: 0.58cqw; font-weight: 600; color: var(--ink-400); padding-left: 0.35cqw; }
 
 .board-foot { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2cqw; padding-top: 1.6cqh; border-top: 1px solid var(--line); }
 .board-quote-block { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3cqh; }

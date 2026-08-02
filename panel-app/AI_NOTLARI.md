@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Aylık Pano: lejant ve seçim menüsü kaldırıldı, etkinlik adları takvime yazıldı
+
+İki eleman kaldırıldı: sağ üstteki tür lejantı (Toplantı/Eğitim/Etkinlik/
+Broker Görüşmesi/Koçluk Görüşmesi renkli nokta listesi) ve "Bu Paylaşıma
+Dahil Et (N/N)" manuel seçim kutusu — artık o ayın etkinlik/eğitim/
+toplantıları hep tamamı otomatik dahil. Lejant gidince renk kodlarının
+anlamı belirsiz kalmasın diye gün hücrelerindeki küçük ikon noktaları,
+etkinlik adının kendisiyle (renkli sol çizgi + başlık, kısa metin taşarsa
+"+N daha") değiştirildi — artık takvimin kendisi kendi kendini açıklıyor,
+ayrı bir lejant/liste gerekmiyor (bkz. "takvimin içinde herşey yazsın"
+isteği).
+
 ## 2026-08-02 — Aylık Etkinlik Panosu indirme çözünürlüğü sabitlendi
 
 "Görseli İndir" sabit `pixelRatio: 2` kullanıyordu — çıktı çözünürlüğü
