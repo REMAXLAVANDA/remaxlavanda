@@ -3,6 +3,39 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — GÜVENLİK: Supabase advisor bulguları — 4 migration yazıldı (henüz UYGULANMADI)
+
+Broker, Supabase'in kendi security advisor çıktısını referans alarak bir
+güvenlik düzeltme listesi verdi. Araştırma (canlı DB + get_advisors +
+repo/Edge Function/API log taraması) ile doğrulandıktan sonra 4 ayrı
+migration dosyası yazıldı — **standart kural gereği ben ÇALIŞTIRMADIM,
+broker Supabase SQL Editor'den kendisi uygulayacak**:
+
+1. `20260802210000_guvenlik_execute_kaldir_admin_reset_verify_pin.sql` —
+   `admin_reset_credentials`/`verify_pin`'in EXECUTE yetkisi
+   PUBLIC/anon/authenticated'ten kaldırıldı.
+2. `20260802211000_guvenlik_kullanilmayan_legacy_auth_fonksiyonlarini_kaldir.sql`
+   — `verify_login`/`verify_pin`/`admin_reset_credentials`/
+   `change_own_credentials` DROP edildi. Repo'da (kod+migration), Edge
+   Function'larda, son 24 saatlik API loglarında hiç kullanım bulunamadı;
+   ayrıca `app_credentials` artık `archive` şemasında (`public`'te değil)
+   olduğu için bu 4 fonksiyon zaten çalışmıyordu (broken/dead kod).
+3. `20260802212000_guvenlik_search_path_sabitleme.sql` —
+   `set_updated_at`/`enforce_call_logs_detail_edit_window` search_path
+   sabitlendi.
+4. `20260802213000_guvenlik_avatars_bucket_select_kaldir.sql` —
+   `avatars_bucket_select` policy kaldırıldı (public bucket'ta obje URL
+   erişimi için gerekli değildi, sadece tüm dosyaları listelemeyi
+   sağlıyordu).
+
+**Kapsam dışı bırakılanlar (broker kararı):** `verify_login`'e brute-force
+koruması eklenmedi (brief'teki bu madde iptal edildi — DROP zaten daha
+kesin bir çözüm). `archive.app_credentials` tablosunun kendisine
+dokunulmadı. `admin_reset_credentials`'ı private şemaya taşıma/Edge
+Function'a alma seçeneği DROP ile karşılandığı için ayrıca uygulanmadı.
+Kalan manuel adım: Supabase Dashboard > Auth > Passwords'te "Leaked
+password protection" broker tarafından açılacak.
+
 ## 2026-08-02 — Görevler: rol widget'larına renk eklendi
 
 Bir önceki maddedeki rol bazlı ayrım "biraz okunaklı hale getir"
