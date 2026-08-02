@@ -7,6 +7,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { recruiting as recruitingProvider } from '../lib/dataProvider'
 import { canManageRecruiting, matchesKayitTipiFilter } from '../lib/recruiting'
 import { sortByName } from '../lib/format'
+import { ROLES } from '../lib/roles'
 import RecruitingTable from '../components/recruiting/RecruitingTable'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
@@ -31,6 +32,11 @@ export default function Recruiting() {
   const [submitting, setSubmitting] = useState(false)
 
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
+  // Reklam/kampanya bilgisi SADECE broker/owner'a görünsün — ofis Recruiting'e
+  // erişebiliyor (canManageRecruiting) ama bu bilgi onun işi değil (bkz.
+  // "danışman görmesine gerek yok, broker ve owner görebilsin" isteği —
+  // danışman zaten sayfaya hiç giremiyor, asıl kısıt burada ofis için).
+  const showCampaign = role === ROLES.BROKER || role === ROLES.OWNER
   const danismanOptions = sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi))
 
   const visible = useMemo(() => {
@@ -109,7 +115,7 @@ export default function Recruiting() {
             />
           </div>
 
-          <RecruitingTable candidates={visible} resolveName={resolveName} onRowClick={setEditingCandidate} />
+          <RecruitingTable candidates={visible} resolveName={resolveName} onRowClick={setEditingCandidate} showCampaign={showCampaign} />
         </>
       )}
 

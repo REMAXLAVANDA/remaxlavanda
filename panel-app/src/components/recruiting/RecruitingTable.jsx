@@ -28,7 +28,10 @@ function DurumBadge({ durum }) {
 
 // Kolonlar: Tarih · Ad Soyad · Telefon · Kaynak · Atanan · Durum — Lead
 // Havuzu'ndaki LeadTable ile aynı görsel dil (bkz. o dosyadaki not).
-export default function RecruitingTable({ candidates, resolveName, onRowClick }) {
+// showCampaign: SADECE broker/owner'a true gelir (bkz. Recruiting.jsx) —
+// ofis Recruiting'e erişebiliyor ama reklam/kampanya bilgisi onun işi
+// değil, o yüzden reklam adı/kodu ofis'e hiç render edilmiyor.
+export default function RecruitingTable({ candidates, resolveName, onRowClick, showCampaign }) {
   if (candidates.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
@@ -63,7 +66,7 @@ export default function RecruitingTable({ candidates, resolveName, onRowClick })
                 <td className="px-3 py-3 text-ink-600">{c.telefon ?? '—'}</td>
                 <td className="px-3 py-3 text-ink-600">
                   {RECRUITING_KAYNAK_LABELS[c.kaynak]}
-                  {campaignLabel(c) && (
+                  {showCampaign && campaignLabel(c) && (
                     <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-ink-400">{campaignLabel(c)}</div>
                   )}
                 </td>
@@ -87,7 +90,7 @@ export default function RecruitingTable({ candidates, resolveName, onRowClick })
                 <p className="truncate font-medium text-ink-900">{c.adSoyad}</p>
                 <p className="mt-0.5 text-sm text-ink-600">{c.telefon ?? '—'}</p>
                 <p className="mt-1 text-xs text-ink-400">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</p>
-                {campaignLabel(c) && <p className="mt-0.5 truncate text-xs text-ink-400">{campaignLabel(c)}</p>}
+                {showCampaign && campaignLabel(c) && <p className="mt-0.5 truncate text-xs text-ink-400">{campaignLabel(c)}</p>}
               </div>
               <DurumBadge durum={c.durum} />
             </div>

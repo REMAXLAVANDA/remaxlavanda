@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Recruiting'de reklam/kampanya bilgisi sadece broker/owner'a görünüyor
+
+Broker: "danışman görmesine gerek yok, broker ve owner görebilsin".
+Lead Havuzu tarafında zaten sorun yok — o sayfa `canManageLeads` ile
+zaten sadece broker/owner'a açık (danışman/ofis hiç giremiyor). Asıl
+kısıt Recruiting'de gerekti: `canManageRecruiting` broker/owner/OFİS'i
+kapsıyor, yani ofis Recruiting'e erişebiliyor ama reklam bilgisi onun işi
+değil. `Recruiting.jsx`'te `showCampaign = role === broker || role ===
+owner` hesaplanıp `RecruitingTable`'a veriliyor — false ise reklam
+adı/kodu hiç render edilmiyor, tablonun geri kalanı (isim/telefon/kaynak/
+durum) ofis için değişmedi. Danışman zaten sayfaya giremiyor, bu değişiklik
+onu etkilemiyor.
+
 ## 2026-08-02 — Recruiting listesinde de kampanya/reklam bilgisi (henüz canlı değil, migration bekliyor)
 
 Broker canlı Recruiting ekranını gösterip "hangi reklam üzerinden
