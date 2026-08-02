@@ -3,30 +3,36 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-08-02 — GÜVENLİK: Supabase advisor bulguları — 4 migration yazıldı (henüz UYGULANMADI)
+## 2026-08-02 — GÜVENLİK: Supabase advisor bulguları — kademeli onayla uygulanıyor
 
 Broker, Supabase'in kendi security advisor çıktısını referans alarak bir
 güvenlik düzeltme listesi verdi. Araştırma (canlı DB + get_advisors +
-repo/Edge Function/API log taraması) ile doğrulandıktan sonra 4 ayrı
-migration dosyası yazıldı — **standart kural gereği ben ÇALIŞTIRMADIM,
-broker Supabase SQL Editor'den kendisi uygulayacak**:
+repo/Edge Function/API log taraması) ile doğrulandıktan sonra migration'lar
+yazıldı. Bu süreçte broker yeni bir kalıcı kural tanımladı — **Migration
+Onay Kuralı** (bkz. `CLAUDE.md`): önce commit, sonra onay, GRANT/REVOKE/
+search_path/RLS policy/index gibi düşük riskli işler onayla uygulanabilir,
+DROP/DELETE/UPDATE/kolon tipi/erişim genişletme gibi yüksek riskliler
+sadece açık "bilgisayardayım, uygula" onayıyla.
 
-1. `20260802210000_guvenlik_execute_kaldir_admin_reset_verify_pin.sql` —
-   `admin_reset_credentials`/`verify_pin`'in EXECUTE yetkisi
-   PUBLIC/anon/authenticated'ten kaldırıldı.
-2. `20260802211000_guvenlik_kullanilmayan_legacy_auth_fonksiyonlarini_kaldir.sql`
-   — `verify_login`/`verify_pin`/`admin_reset_credentials`/
-   `change_own_credentials` DROP edildi. Repo'da (kod+migration), Edge
-   Function'larda, son 24 saatlik API loglarında hiç kullanım bulunamadı;
-   ayrıca `app_credentials` artık `archive` şemasında (`public`'te değil)
-   olduğu için bu 4 fonksiyon zaten çalışmıyordu (broken/dead kod).
+Durum (bu maddenin yazıldığı an itibarıyla):
+1. `20260802210000_guvenlik_execute_kaldir_legacy_auth_fonksiyonlari.sql`
+   — `admin_reset_credentials`/`verify_pin`/`verify_login`/
+   `change_own_credentials`'ın EXECUTE'u PUBLIC/anon/authenticated'ten
+   kaldırılıyor (broker'ın "verify_login'i de ekle" güncellemesiyle 2'den
+   4 fonksiyona çıktı). **Onay bekliyor.**
+2. `20260802211000_..._kaldir.sql` — aynı 4 fonksiyonu DROP eder. Repo'da,
+   Edge Function'larda, API loglarında kullanım yok; `app_credentials`
+   artık `archive` şemasında olduğu için bu 4 fonksiyon zaten çalışmıyordu
+   (broken/dead kod). **DROP içerdiği için beklemede — "bilgisayardayım,
+   uygula" onayı gerekiyor.**
 3. `20260802212000_guvenlik_search_path_sabitleme.sql` —
    `set_updated_at`/`enforce_call_logs_detail_edit_window` search_path
-   sabitlendi.
+   sabitlendi. **Onaylandı, UYGULANDI.**
 4. `20260802213000_guvenlik_avatars_bucket_select_kaldir.sql` —
-   `avatars_bucket_select` policy kaldırıldı (public bucket'ta obje URL
-   erişimi için gerekli değildi, sadece tüm dosyaları listelemeyi
-   sağlıyordu).
+   `avatars_bucket_select` policy kaldırıldı (avatars bucket'ı repoda
+   `.list()`/`.download()`/`createSignedUrl()` ile hiç kullanılmıyor,
+   sadece `.upload()`/`.getPublicUrl()` — koşullu onay karşılandı).
+   **UYGULANDI.**
 
 **Kapsam dışı bırakılanlar (broker kararı):** `verify_login`'e brute-force
 koruması eklenmedi (brief'teki bu madde iptal edildi — DROP zaten daha
