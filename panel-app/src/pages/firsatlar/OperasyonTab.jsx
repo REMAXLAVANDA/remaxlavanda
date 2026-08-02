@@ -8,7 +8,7 @@ import { callLogs as callLogsProvider, opportunities as opportunitiesProvider } 
 import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
-import { parseThousands } from '../../lib/format'
+import { parseThousands, sortByName } from '../../lib/format'
 import { formatPhoneInput } from '../../lib/phone'
 import FocusBanner from '../../components/common/FocusBanner'
 import CallTable from '../../components/operasyon/CallTable'
@@ -94,7 +94,7 @@ export default function OperasyonTab() {
   // atama listesinde görünür — ama Lig sıralamaları/Sağlık Skoru gibi
   // yerlerdeki "danışman listesi" filtreleri bilerek AYRI tutuluyor (bkz.
   // Lig.jsx/Panel.jsx/TakipTab.jsx), broker orada YAYINLANMAK istemiyor.
-  const inviteeOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker')
+  const inviteeOptions = sortByName(Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker'))
 
   async function updateCall(id, patch) {
     try {

@@ -9,6 +9,7 @@ import { leads as leadsProvider, opportunities as opportunitiesProvider, recruit
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
 import { LEAD_TO_RECRUITING_KAYNAK, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES } from '../lib/recruiting'
 import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
+import { sortByName } from '../lib/format'
 import LeadTable from '../components/leads/LeadTable'
 import LeadFilters from '../components/leads/LeadFilters'
 import LeadDetailModal from '../components/leads/LeadDetailModal'
@@ -52,7 +53,7 @@ export default function Leads() {
   // (kendi reklamı da olabilir), bu yüzden FirsatlarTab.jsx'teki
   // assignableOptions ile AYNI kapsam: danışman + broker (Panel/Lig/Takip'teki
   // "yayınlanan liderlik" filtreleriyle KARIŞTIRILMASIN, onlar bilerek dar).
-  const danismanOptions = Object.values(knownUsers).filter(
+  const danismanOptions = sortByName(Object.values(knownUsers)).filter(
     (u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi,
   )
 

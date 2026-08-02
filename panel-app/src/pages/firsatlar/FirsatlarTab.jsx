@@ -13,7 +13,7 @@ import {
   computeBoxCounts,
 } from '../../lib/opportunities'
 import { isStaleOpp } from '../../lib/attention'
-import { parseThousands } from '../../lib/format'
+import { parseThousands, sortByName } from '../../lib/format'
 import { ROLES } from '../../lib/roles'
 import OpportunitySection from '../../components/opportunities/OpportunitySection'
 import OpportunityTable from '../../components/opportunities/OpportunityTable'
@@ -203,7 +203,7 @@ export default function FirsatlarTab() {
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
   // Broker de fiilen danışmanlık yapabiliyor (bkz. handleCreate) — atama
   // listesi de aynı kapsamda: danışmanlar + broker.
-  const assignableOptions = Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker')
+  const assignableOptions = sortByName(Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker'))
 
   return (
     <div>

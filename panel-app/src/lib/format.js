@@ -1,5 +1,14 @@
 // Ortak tarih/metin biçimlendirme yardımcıları — birden fazla modül kullanıyor.
 
+// Danışman/atama dropdown'ları (Fırsatlar/Operasyon/Recruiting/Lead
+// Havuzu/Lig) hepsi Object.values(knownUsers) ile üretiliyor — sıra nesne
+// ekleme sırasına göre kalıyordu, alfabetik değildi (bkz. "danışmanlar
+// alfabe sırasına göre sıralansın" isteği). Türkçe İ/ı/Ş/Ğ/Ü/Ö/Ç doğru
+// sıralansın diye 'tr' locale'i ile karşılaştırılıyor.
+export function sortByName(list) {
+  return [...list].sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+}
+
 export function isToday(dateIso) {
   if (!dateIso) return false
   const d = new Date(dateIso)

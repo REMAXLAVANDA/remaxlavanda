@@ -6,6 +6,7 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { league as leagueProvider } from '../lib/dataProvider'
 import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
+import { sortByName } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
@@ -66,7 +67,7 @@ export default function Lig() {
 
   // Test hesabı Lig sıralamalarına/Yorum Hakkı listesine karışmasın diye
   // hariç tutuluyor (bkz. Panel.jsx'teki aynı filtre).
-  const danismanOptions = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
+  const danismanOptions = sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi))
   const activityTypes = data?.activityTypes ?? []
 
   // Ciro'ya dönen müşteriler isim isim burada — yorum hakkı (kaç isim

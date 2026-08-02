@@ -6,6 +6,7 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { tasks as tasksProvider } from '../../lib/dataProvider'
 import { canViewTask, canManageTasks, canToggleTask } from '../../lib/tasks'
+import { sortByName } from '../../lib/format'
 import TaskRow from '../../components/gorevler/TaskRow'
 import TaskFormModal from '../../components/gorevler/TaskFormModal'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
@@ -37,7 +38,7 @@ export default function GorevlerTab() {
   const userName = (id) => knownUsers[id]?.name ?? '—'
   // Broker de görev alabiliyor — atanabilir listede danışman + broker + ofis
   // hepsi var, kimin kime görev verdiği önemli değil.
-  const assigneeOptions = Object.values(knownUsers)
+  const assigneeOptions = sortByName(Object.values(knownUsers))
 
   const visible = useMemo(() => {
     const list = (taskList ?? []).filter((t) => canViewTask(t, user))

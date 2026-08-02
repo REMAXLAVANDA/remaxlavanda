@@ -6,6 +6,7 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { calendarEvents as calendarProvider } from '../../lib/dataProvider'
 import { canViewEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '../../lib/calendar'
+import { sortByName } from '../../lib/format'
 import EventCalendar from '../../components/calendar/EventCalendar'
 import EventDetailModal from '../../components/calendar/EventDetailModal'
 import NewEventModal from '../../components/calendar/NewEventModal'
@@ -245,7 +246,7 @@ export default function TakvimTab() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
-          inviteeOptions={Object.values(knownUsers).filter((u) => u.id !== user.id)}
+          inviteeOptions={sortByName(Object.values(knownUsers).filter((u) => u.id !== user.id))}
         />
       )}
 

@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Danışman dropdown'ları alfabetik sıralandı
+
+`lib/format.js`'e `sortByName(list)` eklendi — Türkçe İ/ı/Ş/Ğ/Ü/Ö/Ç doğru
+sıralansın diye `localeCompare(..., 'tr')` kullanıyor. `Object.values(
+knownUsers)` her yerde nesne ekleme sırasını (rastgele/kronolojik) veriyordu,
+alfabetik değildi. Danışman SEÇİMİ yapılan her yerde uygulandı — Fırsatlar/
+Operasyon atama, Lead Havuzu "Danışmana Ata", Recruiting/Lig danışman
+listeleri, Takvim davetli seçimi, Planlama > Görevler atanan seçimi.
+Panel/Takip/Eğitim'deki ekip DASHBOARD'ları (seçim değil, listeleme)
+BİLEREK dokunulmadı — kendi mantıklı sıralamaları var.
+
 ## 2026-08-02 — Lead Havuzu → Portföy: broker artık SADECE danışman seçiyor
 
 Bir önceki maddede Lead→Portföy dönüşümüne "Hangi danışmana atansın?"
