@@ -2,10 +2,12 @@ import { forwardRef } from 'react'
 import { TrendingUp, Heart, Megaphone, Crown } from 'lucide-react'
 import { MEDALS } from '../../lib/league'
 
+// LEAGUE_CATEGORY_COLORS (lib/league.js) ile aynı eşleme — Ciro=kırmızı,
+// Memnuniyet=mavi, Sosyal Medya=lacivert — RE/MAX marka paletinden.
 const CATEGORY_STYLE = {
-  ciro: { icon: TrendingUp, from: 'from-amber-400', to: 'to-amber-600' },
-  memnuniyet: { icon: Heart, from: 'from-sky-400', to: 'to-sky-600' },
-  sosyal_medya: { icon: Megaphone, from: 'from-fuchsia-400', to: 'to-fuchsia-600' },
+  ciro: { icon: TrendingUp, from: 'from-brand-500', to: 'to-brand-700' },
+  memnuniyet: { icon: Heart, from: 'from-remax-blue-mid', to: 'to-remax-blue' },
+  sosyal_medya: { icon: Megaphone, from: 'from-remax-blue-dark2', to: 'to-remax-navy' },
 }
 
 // format: 'story' (9:16, WhatsApp/Instagram Hikaye) | 'post' (4:5, Instagram

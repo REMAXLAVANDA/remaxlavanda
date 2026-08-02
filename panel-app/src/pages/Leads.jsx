@@ -242,7 +242,7 @@ export default function Leads() {
             <button
               onClick={() => setStaleFocus((v) => !v)}
               className={`mb-4 flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-white transition-colors ${
-                staleFocus ? 'bg-red-700' : 'bg-red-600 hover:bg-red-700'
+                staleFocus ? 'bg-brand-700' : 'bg-brand-600 hover:bg-brand-700'
               }`}
             >
               <span className="flex items-center gap-2">

@@ -18,14 +18,16 @@ export const RECRUITING_DURUM_LABELS = {
   evrak: 'Evrak',
   olumsuz: 'Olumsuz',
 }
+// RE/MAX marka paletinden (kırmızı + mavi tonları) — mor/amber/sky/emerald
+// gibi markaya ait olmayan stok renkler yerine (bkz. AI_NOTLARI.md).
 export const RECRUITING_DURUM_STYLES = {
   yeni_basvuru: 'bg-ink-100 text-ink-600',
-  ilk_arama: 'bg-amber-50 text-amber-700',
+  ilk_arama: 'bg-remax-blue-mid/10 text-remax-blue-mid',
   on_gorusme: 'bg-brand-50 text-brand-700',
-  ofis_tanitimi: 'bg-sky-50 text-sky-700',
-  karar_bekliyor: 'bg-violet-50 text-violet-700',
-  evrak: 'bg-emerald-50 text-emerald-700',
-  olumsuz: 'bg-red-50 text-red-600',
+  ofis_tanitimi: 'bg-remax-blue/10 text-remax-blue',
+  karar_bekliyor: 'bg-remax-blue-dark2/10 text-remax-blue-dark2',
+  evrak: 'bg-remax-navy/10 text-remax-navy',
+  olumsuz: 'bg-remax-red-dark/10 text-remax-red-dark',
 }
 
 // Kendi kaynak listesi — leads.kaynak ile AYNI DEĞİL, bilerek. Recruiting

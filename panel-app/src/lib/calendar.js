@@ -9,25 +9,27 @@ export const EVENT_TYPE_LABELS = {
   remax_turkiye: 'RE/MAX Türkiye',
 }
 
-// Spesifikasyon: toplantı mavi, eğitim yeşil, etkinlik sarı, broker
-// görüşmesi kırmızı, koçluk görüşmesi mor, RE/MAX Türkiye camgöbeği.
-// Badge sınıfları + FullCalendar hex renkleri.
+// Broker'ın RE/MAX 2024 Marka Standartları kılavuzunu paylaşıp "mor gibi
+// renkler hoş değil, RE/MAX'taki renkleri kullan" demesi üzerine 6 tür de
+// SADECE marka paletinden (2 kırmızı + 4 mavi tonu) seçildi — eskiden
+// yeşil/sarı/mor/camgöbeği gibi markaya ait olmayan Tailwind stok renkleri
+// kullanılıyordu. Badge sınıfları + FullCalendar hex renkleri.
 export const EVENT_TYPE_STYLES = {
-  toplanti: 'bg-blue-50 text-blue-700',
-  egitim: 'bg-emerald-50 text-emerald-700',
-  etkinlik: 'bg-amber-50 text-amber-700',
-  broker_gorusmesi: 'bg-red-50 text-red-700',
-  kocluk_gorusmesi: 'bg-violet-50 text-violet-700',
-  remax_turkiye: 'bg-teal-50 text-teal-700',
+  toplanti: 'bg-remax-blue/10 text-remax-blue',
+  egitim: 'bg-remax-blue-mid/10 text-remax-blue-mid',
+  etkinlik: 'bg-remax-blue-dark2/10 text-remax-blue-dark2',
+  broker_gorusmesi: 'bg-brand-50 text-brand-700',
+  kocluk_gorusmesi: 'bg-remax-red-dark/10 text-remax-red-dark',
+  remax_turkiye: 'bg-remax-navy/10 text-remax-navy',
 }
 
 export const EVENT_TYPE_COLORS = {
   toplanti: '#003da5',
-  egitim: '#16a34a',
-  etkinlik: '#f59e0b',
+  egitim: '#007dc3',
+  etkinlik: '#2e3f5a',
   broker_gorusmesi: '#dc1c2e',
-  kocluk_gorusmesi: '#7c3aed',
-  remax_turkiye: '#0d9488',
+  kocluk_gorusmesi: '#aa1120',
+  remax_turkiye: '#0c2749',
 }
 
 export const ATTENDANCE_STATUS_LABELS = {

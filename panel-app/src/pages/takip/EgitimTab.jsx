@@ -237,7 +237,7 @@ export default function EgitimTab() {
               <button
                 onClick={() => setModuleFilters((f) => ({ ...f, dateRange: 'tumu' }))}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  moduleFilters.dateRange === 'tumu' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                  moduleFilters.dateRange === 'tumu' ? 'bg-remax-blue text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                 }`}
               >
                 Tümü
@@ -293,7 +293,7 @@ export default function EgitimTab() {
                           key={t.key}
                           onClick={() => setChecklistTip(t.key)}
                           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                            checklistTip === t.key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                            checklistTip === t.key ? 'bg-remax-blue text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
                           }`}
                         >
                           {t.label}

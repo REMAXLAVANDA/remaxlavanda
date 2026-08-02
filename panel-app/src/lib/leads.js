@@ -34,8 +34,8 @@ export const LEAD_DURUM_LABELS = {
 }
 export const LEAD_DURUM_STYLES = {
   yeni: 'bg-ink-100 text-ink-600',
-  atandi: 'bg-violet-50 text-violet-700',
-  elendi: 'bg-red-50 text-red-600',
+  atandi: 'bg-remax-blue-mid/10 text-remax-blue-mid',
+  elendi: 'bg-brand-50 text-brand-700',
 }
 
 // leads_manage RLS kuralıyla aynı: sadece broker/owner erişebilir —

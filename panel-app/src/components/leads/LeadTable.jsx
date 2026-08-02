@@ -49,7 +49,7 @@ function QuickRouteButtons({ lead, onQuickConvert }) {
       <button
         type="button"
         onClick={() => onQuickConvert(lead, 'recruiting')}
-        className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100"
+        className="rounded-full bg-remax-blue/10 px-2.5 py-1 text-xs font-medium text-remax-blue hover:bg-remax-blue/20"
       >
         Recruiting
       </button>

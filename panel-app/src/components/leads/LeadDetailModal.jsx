@@ -24,7 +24,7 @@ import {
 function ConvertedView({ lead, convertedTarget, onClose, onViewTarget }) {
   return (
     <div className="space-y-3">
-      <div className="rounded-lg bg-violet-50 px-3 py-2 text-sm text-violet-700">
+      <div className="rounded-lg bg-ink-50 px-3 py-2 text-sm text-ink-600">
         Bu lead yönlendirildi, artık düzenlenemez.
       </div>
       <div className="space-y-1.5 text-sm text-ink-700">

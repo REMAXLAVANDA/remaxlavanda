@@ -3,6 +3,44 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Tüm portaldaki mor/yeşil/amber/teal renkler RE/MAX paletine çevrildi
+
+Broker RE/MAX'ın resmi "2024 Marka Standartları" kılavuzunu (s.19) paylaştı
+ve "mor gibi renkler hoş değil, RE/MAX'taki tüm renkleri kullan, dışına
+çıkma" dedi. Kılavuzdaki tam palet (2 ana + 8 alternatif renk, hepsi
+kırmızı/mavi/gri ailesinden) `index.css`'e yeni token'lar olarak eklendi:
+`remax-red-dark` (#AA1120), `remax-blue-mid` (#007DC3), `remax-blue-dark2`
+(#2E3F5A), `remax-blue-light` (#A4D7F4), `remax-gray-mid` (#949CA1),
+`remax-gray-light` (#C4C6C8) — Darker Blue zaten `remax-navy`, Dark Gray
+zaten `ink-800` ile birebir aynıydı, tekrar eklenmedi.
+
+Bu yeni paletle, markaya ait olmayan Tailwind stok renkleri (mor/violet/
+fuchsia + yeşil/amber/sky/teal gibi SADECE dekoratif/kimlik amaçlı
+kullanılanlar — anlamlı başarı/uyarı renkleri değil) değiştirildi:
+- **Takvim etkinlik türleri** (`lib/calendar.js`, 6 tür): artık sadece
+  2 kırmızı + 4 mavi tonu (toplantı=mavi, eğitim=orta mavi,
+  etkinlik=koyu mavi 2, broker görüşmesi=kırmızı, koçluk görüşmesi=koyu
+  kırmızı, RE/MAX Türkiye=lacivert).
+- **Recruiting aşamaları** (`lib/recruiting.js`, 7 aşama), **Lead durumu**
+  (`lib/leads.js`), **Satılık/Kiralık rozeti** (`lib/opportunities.js`)
+  aynı mantıkla kırmızı/mavi/gri tonlarına çevrildi.
+- **Lig paylaşım kartı** (`ShareCard.jsx`): Ciro/Memnuniyet/Sosyal Medya
+  gradyanları artık `LEAGUE_CATEGORY_COLORS` ile birebir aynı (kırmızı/
+  mavi/lacivert) — eskiden podyumdan tamamen farklı amber/sky/fuchsia
+  kullanıyordu, bu bir tutarsızlıktı, düzeltildi.
+- **Lead Havuzu** quick-route butonu ve dönüştürme bildirimi, 24 saat
+  gecikme uyarısı (stok kırmızıdan `brand-600`'e), **Takip → Eğitim**
+  sekme renkleri (Eğitim modülü = mavi, artık kırmızı değil).
+
+**Bilinçli olarak DEĞİŞTİRİLMEDİ:** `KartvizitCard.jsx`'teki Instagram
+(mor/pembe/amber gradyan), LinkedIn (#0a66c2), WhatsApp (yeşil) ikon
+renkleri — bunlar bizim dekoratif seçimimiz değil, o platformların KENDİ
+gerçek marka renkleri, ikonun tanınması için birebir korunmalı. Ayrıca
+gerçek anlamsal durum renkleri (mazeretli=sky, katılım onay/red=yeşil/
+kırmızı, checklist ilerleme çubukları vb.) bu kapsamın dışında tutuldu —
+bunlar "iyi/uyarı/kötü" evrensel UX kuralına hizmet ediyor, marka kimliği
+değil. DB değişikliği yok.
+
 ## 2026-08-02 — Renkli üst çizgi deseni diğer ekranlara da yayıldı
 
 Fırsatlar'daki "kenarları renkli, içi nötr" deseni (bkz. bir alt madde)

@@ -123,8 +123,8 @@ export const ISLEM_TIPI_LABELS = {
 }
 
 export const ISLEM_TIPI_STYLES = {
-  satilik: 'bg-sky-50 text-sky-700',
-  kiralik: 'bg-fuchsia-50 text-fuchsia-700',
+  satilik: 'bg-remax-blue/10 text-remax-blue',
+  kiralik: 'bg-remax-gray-mid/20 text-ink-700',
 }
 
 // İlk deneme (ikon: Satılık=ev, Kiralık=anahtar) "hiç anlaşılmıyor" geri

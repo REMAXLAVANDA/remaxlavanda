@@ -45,6 +45,19 @@
   --color-remax-blue: #003da5;
   --color-remax-navy: #0c2749;
 
+  /* RE/MAX 2024 Marka Standartları'nın "Alternatif Renkler" paleti (broker'ın
+     paylaştığı kılavuz, s.19) — mor/yeşil/amber/teal gibi markaya ait
+     olmayan Tailwind stok renkleri yerine, çok sayıda durum/tür ayrımı
+     gereken yerlerde (etkinlik türü, recruiting aşaması vb.) BUNLAR
+     kullanılıyor. Darker Blue (#0C2749) zaten remax-navy, Dark Gray
+     (#404041) zaten ink-800 ile birebir aynı — burada tekrar tanımlanmadı. */
+  --color-remax-red-dark: #aa1120;
+  --color-remax-blue-mid: #007dc3;
+  --color-remax-blue-dark2: #2e3f5a;
+  --color-remax-blue-light: #a4d7f4;
+  --color-remax-gray-mid: #949ca1;
+  --color-remax-gray-light: #c4c6c8;
+
   --color-ink-50: #f4f6f9;
   --color-ink-100: #e2e8f0;
   --color-ink-200: #dde0e5;
