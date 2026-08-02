@@ -73,8 +73,9 @@ export const opportunities = {
     const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
     return delay(publicRow)
   },
-  // supabaseProvider.update() ile birebir aynı davranış: sadece "detay"
-  // alanları düzeltilebilir, type/category değişmez.
+  // supabaseProvider.update() ile birebir aynı davranış: type/category
+  // dahil her alan düzenlenebilir (bkz. o dosyadaki not) — Object.assign
+  // zaten generic, ayrıca bir şey yapmaya gerek yok.
   async update(id, patch) {
     const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
     if (!row) throw new Error('Fırsat bulunamadı.')

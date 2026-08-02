@@ -1,22 +1,23 @@
 import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
-import { categoryLabel } from '../../lib/categories'
+import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
 const ODA_SAYISI_OPTIONS = ['1+0', '1+1', '2+1', '3+1', '4+1', '4+2', '5+1', '5+2', '6+1 ve üzeri']
 
-// Yeni Fırsat formunun aksine tip/kategori burada değiştirilemez — hangi
-// kutuya düştüğünü değiştirmek ayrı bir işlem sayılır, bu form sadece
-// "yanlış yazılmış" alanları düzeltmek için (bkz. canEditOpportunity).
-// Satılık/Kiralık ise "yanlış yazılmış" sayılan, düzeltilebilir bir detay
-// (hangi kutu olduğunu değiştirmiyor) — bu yüzden diğerlerinin aksine
-// burada düzenlenebilir.
+// Tür/Kategori ARTIK burada da düzenlenebilir — eskiden bilerek dışarıda
+// bırakılmıştı ("hangi kutuya düştüğünü değiştirmek ayrı bir işlem
+// sayılır") ama Lead Havuzu'ndan Portföy'e sadece danışman ataması ile
+// gönderilen bir kayıtta bu ikisi HİÇ bilinmiyor (broker alıcı/satıcı
+// ayrımını da kategoriyi de bilmiyor — reklamlar ikisini birden
+// topluyor). Danışman kendi kaydını ilk incelediğinde bunları kendisi
+// seçip tamamlıyor (bkz. AI_NOTLARI.md, Leads.jsx AssignPortfolioLeadModal).
 export default function EditOpportunityModal({ opportunity: opp, contact, onClose, onSubmit, submitting }) {
-  const isAlici = opp.type === 'alici'
-  const isKonut = opp.category === 'konut'
   const [form, setForm] = useState({
+    type: opp.type,
+    category: opp.category,
     leadAd: contact?.leadAd ?? '',
     leadTelefon: formatPhoneInput(contact?.leadTelefon ?? ''),
     islemTipi: opp.islemTipi ?? 'satilik',
@@ -30,6 +31,8 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const phoneRef = useRef(null)
+  const isAlici = form.type === 'alici'
+  const isKonut = form.category === 'konut'
   const isKiralik = form.islemTipi === 'kiralik'
   const minVal = parseThousands(form.fiyatMin)
   const maxVal = parseThousands(form.fiyatMax)
@@ -59,6 +62,8 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
             return
           }
           onSubmit({
+            type: form.type,
+            category: form.category,
             leadAd: capitalizeWords(form.leadAd.trim()),
             leadTelefon,
             islemTipi: form.islemTipi,
@@ -73,14 +78,32 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
         }}
         className="space-y-3"
       >
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
-            {OPPORTUNITY_TYPE_LABELS[opp.type]}
-          </span>
-          <span className="rounded-full bg-ink-50 px-2 py-0.5 text-xs font-medium text-ink-500">
-            {categoryLabel(opp.category)}
-          </span>
+        <div className="flex gap-1.5">
+          {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => set({ type: key })}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                form.type === key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
+
+        <select
+          value={form.category}
+          onChange={(e) => set({ category: e.target.value, odaSayisi: '' })}
+          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+        >
+          {OPPORTUNITY_CATEGORIES.map((c) => (
+            <option key={c.key} value={c.key}>
+              {c.label}
+            </option>
+          ))}
+        </select>
 
         <div className="flex gap-1.5">
           {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (

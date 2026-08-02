@@ -3,6 +3,40 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Lead Havuzu → Portföy: broker artık SADECE danışman seçiyor
+
+Bir önceki maddede Lead→Portföy dönüşümüne "Hangi danışmana atansın?"
+seçimi eklenmişti ama NewOpportunityModal'ın koca formuyla birlikte
+(mahalle zorunlu, fiyat, kategori, m², oda...). Broker bunu düzeltti:
+"biz reklamlarda alıcı ve satıcı adaylarının [ikisini de] topluyoruz,
+alıcı mı satıcı mı ben bunu bilmiyorum" — broker property'i hiç
+tanımıyor, sadece reklamın kime ait olduğunu biliyor. Form tamamen yanlış
+katmandaydı.
+
+**Kök çözüm — Tür/Kategori artık düzenlenebilir:** Eskiden bir fırsat
+oluşturulduktan sonra `type` (Satıcı/Alıcı) ve `category` HİÇ
+değiştirilemiyordu ("hangi kutuya düştüğünü değiştirmek ayrı bir işlem
+sayılır" kararı). Bu, broker'ın bilmediği bir şeyi ilk anda doğru tahmin
+etmesini zorunlu kılıyordu — yanlış tahmin telafisi SQL gerektirirdi.
+`supabaseProvider.js` `opportunities.update()`'e `type`/`category`
+eklendi (mock zaten generic `Object.assign`, dokunmadı).
+`EditOpportunityModal.jsx`'teki salt-okunur rozetler, `NewOpportunityModal`
+ile AYNI Satıcı/Alıcı toggle + Kategori dropdown'a çevrildi.
+
+**Yeni akış** (`AssignPortfolioLeadModal.jsx`, `Leads.jsx`
+`handleAssignPortfolioLead`): Lead Havuzu'nda "Portföy" → "Operasyon'a
+Gönder" artık bu minimal pencereyi açıyor — lead'in adı/telefonu/kampanya
+bilgisi salt-okunur gösteriliyor, TEK etkileşim danışman seçimi. Kaydedince
+`type:'satici', category:'diger'` gibi güvenli varsayımlarla, seçilen
+danışmana DOĞRUDAN atanmış (claimed) minimal bir fırsat oluşuyor — mahalle/
+fiyat/tür/kategori dahil her şeyi danışman kendi Fırsatlar ekranından ilk
+incelediğinde tamamlıyor/düzeltiyor.
+
+`danismanOptions` filtresi de düzeltildi — broker artık kendi adını da
+("Ahmet Erdemir" listede yoktu) görüyor, broker de fiilen danışmanlık
+yapabiliyor (`FirsatlarTab.jsx`'teki `assignableOptions` ile AYNI kapsam:
+danışman + broker).
+
 ## 2026-08-02 — Recruiting'den gayrimenkul danışmanı ataması TAMAMEN kaldırıldı
 
 Az önceki maddede sadece Lead Havuzu → Recruiting dönüşüm akışından

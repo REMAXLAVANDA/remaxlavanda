@@ -90,11 +90,21 @@ export const opportunities = {
   },
   // opportunities_update_manage RLS'i broker/owner'a her satırı, ofis/
   // danışmana SADECE kendi girdiği (owner_id) kaydı düzenletir — bkz.
-  // lib/opportunities.js canEditOpportunity. type/category bilerek
-  // patch'e alınmıyor (hangi kutuya düştüğünü değiştirmek ayrı bir işlem
-  // sayılır, burada sadece "yanlış yazılmış" alanlar düzeltiliyor).
+  // lib/opportunities.js canEditOpportunity. type/category ARTIK
+  // düzenlenebilir (eskiden bilerek dışarıda bırakılmıştı) — Lead
+  // Havuzu'ndan Portföy'e yönlendirilen bir lead'de broker alıcı/satıcı
+  // ayrımını bilemiyor ("biz reklamlarda ikisini de topluyoruz"), bu
+  // yüzden danışman arayıp öğrendikten sonra kendi ekranından
+  // düzeltebilmeli (bkz. AI_NOTLARI.md, Leads.jsx AssignPortfolioLeadModal).
   async update(id, patch) {
     const updateRow = {}
+    if ('type' in patch) updateRow.type = patch.type
+    if ('category' in patch) {
+      const categoryRow = await run(
+        client().from('categories').select('id').eq('module', 'opportunities').eq('key', patch.category).single(),
+      )
+      updateRow.category_id = categoryRow.id
+    }
     if ('leadAd' in patch) updateRow.lead_ad = patch.leadAd
     if ('leadTelefon' in patch) updateRow.lead_telefon = patch.leadTelefon || null
     if ('konum' in patch) updateRow.konum = patch.konum

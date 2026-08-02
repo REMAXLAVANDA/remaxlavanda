@@ -9,12 +9,10 @@ import { leads as leadsProvider, opportunities as opportunitiesProvider, recruit
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
 import { LEAD_TO_RECRUITING_KAYNAK, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES } from '../lib/recruiting'
 import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
-import { parseThousands } from '../lib/format'
-import { formatPhoneInput } from '../lib/phone'
 import LeadTable from '../components/leads/LeadTable'
 import LeadFilters from '../components/leads/LeadFilters'
 import LeadDetailModal from '../components/leads/LeadDetailModal'
-import NewOpportunityModal from '../components/opportunities/NewOpportunityModal'
+import AssignPortfolioLeadModal from '../components/leads/AssignPortfolioLeadModal'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -35,7 +33,7 @@ async function loadAll() {
 }
 
 export default function Leads() {
-  const { user, role } = useAuth()
+  const { role } = useAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
@@ -49,12 +47,14 @@ export default function Leads() {
   const leads = data?.leads ?? []
   // Lead seviyesinde atama YOK (dağıtım noktası) — ama Portföy'e
   // dönüştürürken broker'ın reklam başlığına bakıp elle hangi danışmana
-  // atayacağını seçebilmesi için NewOpportunityModal'a veriliyor (bkz.
-  // handleOpportunitySubmit). Recruiting'e dönüştürürken artık HİÇ
-  // kullanılmıyor — gayrimenkul danışmanı ataması o akıştan kaldırıldı
-  // (bkz. RecruitingDetailModal hideAssignment). Danışman-only + test
-  // hesabı hariç, Panel/Lig/Takip'teki aynı desen.
-  const danismanOptions = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
+  // atayacağını seçebilmesi için AssignPortfolioLeadModal'a veriliyor (bkz.
+  // handleAssignPortfolioLead). Broker de fiilen danışmanlık yapabiliyor
+  // (kendi reklamı da olabilir), bu yüzden FirsatlarTab.jsx'teki
+  // assignableOptions ile AYNI kapsam: danışman + broker (Panel/Lig/Takip'teki
+  // "yayınlanan liderlik" filtreleriyle KARIŞTIRILMASIN, onlar bilerek dar).
+  const danismanOptions = Object.values(knownUsers).filter(
+    (u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi,
+  )
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const staleLeads = useMemo(() => leads.filter((l) => isStaleLead(l)), [data])
@@ -131,25 +131,24 @@ export default function Leads() {
     else handleConvertToOpportunity(lead)
   }
 
-  async function handleOpportunitySubmit(form) {
+  // Broker'ın burada bildiği TEK şey hangi danışmanın reklamı olduğu —
+  // alıcı/satıcı ayrımını da kategoriyi de bilmiyor (bkz. AssignPortfolioLeadModal
+  // notu). Bu yüzden NewOpportunityModal'ın koca formu yerine minimal bir
+  // kayıt oluşturuluyor; tür/kategori varsayılan (danışman EditOpportunityModal'dan
+  // düzeltecek, artık ikisi de düzenlenebilir — bkz. AI_NOTLARI.md).
+  async function handleAssignPortfolioLead(assignToId) {
     const lead = convertTarget.lead
     setSubmitting(true)
     try {
       const payload = {
-        ...form,
-        fiyat: parseThousands(form.fiyat),
-        fiyatMin: parseThousands(form.fiyatMin),
-        fiyatMax: parseThousands(form.fiyatMax),
-        m2: form.m2 ? Number(form.m2) : null,
+        type: 'satici',
+        category: 'diger',
+        leadAd: lead.adSoyad,
+        leadTelefon: lead.telefon ?? '',
+        konum: null,
+        kaynakLeadId: lead.id,
       }
-      // Broker reklam kampanya/reklam seti başlığına bakıp hangi danışmanın
-      // reklamı olduğunu kendisi tanıyıp elle seçebiliyor (form.assignToId,
-      // bkz. NewOpportunityModal notu) — seçtiyse fırsat DOĞRUDAN o
-      // danışmana atanır (havuza değil); seçmediyse eski davranış: havuza
-      // girer, herhangi bir danışman "İlgileniyorum" ile alabilir.
-      const targetOwnerId = form.assignToId || user.id
-      const selfClaim = Boolean(form.assignToId)
-      const createdOpportunity = await opportunitiesProvider.create(payload, targetOwnerId, selfClaim)
+      const createdOpportunity = await opportunitiesProvider.create(payload, assignToId, true)
       const updatedLead = await leadsProvider.update(lead.id, {
         durum: 'atandi',
         ...computeAutoFields(lead, 'atandi'),
@@ -160,9 +159,9 @@ export default function Leads() {
         opportunities: [createdOpportunity, ...prev.opportunities],
       }))
       setConvertTarget(null)
-      showToast("Operasyon'a gönderildi.", 'success')
+      showToast("Danışmana atandı, Fırsatlar'a gönderildi.", 'success')
     } catch (err) {
-      showToast(err.message ?? 'Dönüştürülemedi, tekrar dene.', 'error')
+      showToast(err.message ?? 'Atanamadı, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -251,16 +250,11 @@ export default function Leads() {
       )}
 
       {convertTarget?.type === 'opportunity' && (
-        <NewOpportunityModal
-          initialValues={{
-            type: null,
-            leadAd: convertTarget.lead.adSoyad,
-            leadTelefon: convertTarget.lead.telefon ? formatPhoneInput(convertTarget.lead.telefon) : '',
-          }}
-          kaynakLeadId={convertTarget.lead.id}
+        <AssignPortfolioLeadModal
+          lead={convertTarget.lead}
           assignableOptions={danismanOptions}
           onClose={() => setConvertTarget(null)}
-          onSubmit={handleOpportunitySubmit}
+          onSubmit={handleAssignPortfolioLead}
           submitting={submitting}
         />
       )}
