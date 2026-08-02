@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Aylık Etkinlik Panosu indirme çözünürlüğü sabitlendi
+
+"Görseli İndir" sabit `pixelRatio: 2` kullanıyordu — çıktı çözünürlüğü
+modalın o anki ekran genişliğine bağlıydı, dar ekranda düşük çözünürlükte
+iniyordu (bkz. "görsel pikseli düşük mü" geri bildirimi). Artık hedef
+genişliğe (2560px) göre oran anlık hesaplanıyor — `pixelRatio =
+2560 / cardRef.current.offsetWidth` — ekran boyutundan bağımsız her zaman
+2560×1440 (QHD) sabit çıkıyor.
+
 ## 2026-08-02 — Aylık Etkinlik Panosu düzeltildi ve sadeleştirildi
 
 Bug: "Aylık Pano" açılınca hiçbir şey çıkmıyordu — pano SADECE elle

@@ -68,11 +68,19 @@ export default function EventBoardModal({ onClose, events }) {
     })
   }
 
+  // Sabit pixelRatio (ör. 2) modalın o anki ekran genişliğine bağlı kalırdı
+  // — modal dar açılırsa görsel de düşük çözünürlükte inerdi (bkz. "görsel
+  // pikseli düşük mü" geri bildirimi). Bunun yerine hedef genişliğe (2560px
+  // — WhatsApp/TV/Instagram için net görünecek kadar yüksek) göre oran
+  // hesaplanıyor, ekran boyutundan bağımsız her zaman aynı net çözünürlük.
+  const TARGET_WIDTH = 2560
+
   async function handleDownload() {
     if (!cardRef.current) return
     setDownloading(true)
     try {
-      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2 })
+      const pixelRatio = TARGET_WIDTH / cardRef.current.offsetWidth
+      const dataUrl = await toPng(cardRef.current, { pixelRatio })
       const link = document.createElement('a')
       const monthKey = monthDate.toLocaleDateString('tr-TR', { month: '2-digit', year: 'numeric' }).replace('.', '-')
       link.download = `remax-lavanda-etkinlik-panosu-${monthKey}.png`
