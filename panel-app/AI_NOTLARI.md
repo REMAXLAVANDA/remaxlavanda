@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Recruiting'den gayrimenkul danışmanı ataması TAMAMEN kaldırıldı
+
+Az önceki maddede sadece Lead Havuzu → Recruiting dönüşüm akışından
+kaldırılmıştı (`hideAssignment` prop'uyla). Broker bunu genişletti:
+"Recruiting menüsünde gayrimenkul danışmana atama diye bir seçim
+olmamalı" — yani Recruiting'in KENDİ yönetim ekranında (+ Yeni Aday /
+mevcut adayı düzenleme) da anlamsız. `RecruitingDetailModal.jsx`'ten
+`atananDanismanId` select'i ve `hideAssignment`/`danismanOptions`
+prop'ları tamamen silindi — artık koşulsuz, hiçbir yerde gösterilmiyor.
+
+`RecruitingTable`/`RecruitingFilters`'taki "Atanan" sütunu ve filtresine
+DOKUNULMADI — eski (bu karardan önce) atanmış kayıtlar varsa hâlâ
+görünür/filtrelenebilir, sadece BİR DAHA buradan set edilemiyor. Kolon
+DB'de duruyor, silinmedi (geriye dönük veri kaybı riski almadan).
+
 ## 2026-08-02 — Lead Havuzu dönüşümü: Recruiting'den danışman ataması kaldırıldı, Portföy'e elle atama eklendi
 
 Broker kararı: Lead Havuzu sadece bir yönlendirme noktası — Recruiting'e

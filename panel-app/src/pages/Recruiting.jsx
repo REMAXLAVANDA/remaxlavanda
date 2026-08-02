@@ -115,7 +115,6 @@ export default function Recruiting() {
       {(showModal || editingCandidate) && (
         <RecruitingDetailModal
           candidate={editingCandidate}
-          danismanOptions={danismanOptions}
           existingCandidates={candidates ?? []}
           onClose={() => {
             setShowModal(false)

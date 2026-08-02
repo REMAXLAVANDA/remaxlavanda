@@ -11,17 +11,16 @@ const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
 // kayıt) AYNI paneli açar — Lead Havuzu'ndaki LeadDetailModal ile aynı
 // desen. initialValues: Lead Havuzu'ndan "Recruiting'e Dönüştür" ile
 // açıldığında ön-dolu alanlar (bkz. Leads.jsx handleConvertToRecruiting).
-// hideAssignment: Lead Havuzu'ndan dönüştürürken verilir — bir gayrimenkul
-// danışmanının işe alım adayına atanması anlamsız bulundu ("biz herhangi
-// bir gayrimenkul danışmanı da bunu atamayacağız" kararı), o akış artık
-// tek tıkla direkt Recruiting'e gönderiyor. Recruiting sayfasının kendi
-// yönetim ekranında (candidate zaten var/elle ekleniyor) bu alan hâlâ
-// gösteriliyor, ORAYA dokunulmadı.
+// Bir gayrimenkul danışmanının işe alım adayına atanması hiçbir bağlamda
+// anlamlı değil ("biz herhangi bir gayrimenkul danışmanı da bunu
+// atamayacağız" kararı) — bu yüzden atananDanismanId seçimi buradan
+// TAMAMEN kaldırıldı (sadece Lead dönüşümünde değil, Recruiting'in kendi
+// yönetim ekranında da). Eski kayıtlarda kolon/veri DB'de durabilir,
+// RecruitingTable/RecruitingFilters'taki salt-okunur gösterim ve filtre
+// buna dokunmuyor — sadece BURADAN bir daha set edilemiyor.
 export default function RecruitingDetailModal({
   candidate,
   initialValues,
-  danismanOptions,
-  hideAssignment = false,
   existingCandidates = [],
   onClose,
   onSubmit,
@@ -33,7 +32,6 @@ export default function RecruitingDetailModal({
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
     telefon: candidate?.telefon ?? initialValues?.telefon ?? '',
     email: candidate?.email ?? initialValues?.email ?? '',
-    atananDanismanId: candidate?.atananDanismanId ?? initialValues?.atananDanismanId ?? '',
     durum: candidate?.durum ?? 'yeni_basvuru',
     aciklama: candidate?.aciklama ?? '',
   })
@@ -139,21 +137,6 @@ export default function RecruitingDetailModal({
             ))}
           </select>
         </div>
-
-        {!hideAssignment && (
-          <select
-            value={form.atananDanismanId}
-            onChange={(e) => set({ atananDanismanId: e.target.value })}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-          >
-            <option value="">Atanmadı</option>
-            {danismanOptions.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        )}
 
         <textarea
           value={form.aciklama}

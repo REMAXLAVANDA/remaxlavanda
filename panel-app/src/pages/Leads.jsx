@@ -274,7 +274,6 @@ export default function Leads() {
             kaynak: LEAD_TO_RECRUITING_KAYNAK[convertTarget.lead.kaynak] ?? 'diger',
             kaynakLeadId: convertTarget.lead.id,
           }}
-          hideAssignment
           existingCandidates={data?.recruitingCandidates ?? []}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleRecruitingSubmit}
