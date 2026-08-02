@@ -5,6 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import trLocale from '@fullcalendar/core/locales/tr'
 import { EVENT_TYPE_COLORS } from '../../lib/calendar'
+import './EventCalendar.css'
 
 // FullCalendar'ın varsayılan başlık çubuğu (title + Ay/Hafta/Gün geçiş
 // butonları) dar ekranlarda (< 640px) sarmıyor, "Temmuz 2026" yazısının
@@ -44,6 +45,7 @@ export default function EventCalendar({ events, onEventClick }) {
             : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }
         }
         height="auto"
+        eventDisplay="block"
         events={fcEvents}
         eventClick={(info) => onEventClick(info.event.id)}
       />

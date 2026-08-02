@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Takvim: renkli dolu kutucuklar + "Tüm Ofis" hızlı seçim
+
+İki küçük kullanılabilirlik isteği: (1) FullCalendar etkinlikleri artık
+ince nokta + düz yazı değil, tür rengiyle dolu kutucuk içinde beyaz yazı
+(`eventDisplay="block"` + yeni `EventCalendar.css`) — hangi rengin ne
+olduğu üstteki tür filtresi butonlarında zaten var (renkli nokta +
+etiket), ayrı bir lejant eklenmedi. (2) Yeni Etkinlik formunda "Tüm Ofis"
+butonu — herkesi tek tıkla işaretler, ardından mevcut Zorunlu/Önerilen/
+İsteğe Bağlı Yap toplu işlem butonlarından katılım tipi seçilir; tek tek
+seçim istenirse checkbox'lardan aynı akış zaten vardı, sadece "hepsini
+seç" kısayolu eklendi. DB değişikliği yok.
+
 ## 2026-08-02 — Yeni etkinlik türü: RE/MAX Türkiye
 
 `kocluk_gorusmesi` ile aynı desen (calendar_event_type enum'una yeni değer)

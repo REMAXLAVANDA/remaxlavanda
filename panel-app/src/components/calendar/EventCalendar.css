@@ -1,0 +1,22 @@
+/* Etkinlikler artık ince bir nokta + düz yazı değil, dolu renkli kutucuk
+   içinde yazı olarak gösteriliyor — hangi rengin hangi türü ifade ettiği
+   üstteki tür filtresi butonlarında zaten var (renkli nokta + etiket),
+   etkinliğin kendisi de tek bakışta türünü göstersin diye (bkz. "yazıyı
+   renkli kutucuk içine alalım" isteği). */
+.fc .fc-daygrid-event {
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.fc .fc-daygrid-event .fc-event-title,
+.fc .fc-daygrid-event .fc-event-time {
+  color: #fff;
+}
+.fc .fc-timegrid-event {
+  border-radius: 6px;
+}
+.fc .fc-timegrid-event .fc-event-title,
+.fc .fc-timegrid-event .fc-event-time {
+  color: #fff;
+  font-weight: 600;
+}

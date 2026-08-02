@@ -58,6 +58,15 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
     setCheckedIds((prev) => (prev.includes(userId) ? prev.filter((x) => x !== userId) : [...prev, userId]))
   }
 
+  // "Tüm Ofis" — herkesi tek tıkla işaretler, ardından mevcut toplu işlem
+  // butonlarından (Zorunlu/Önerilen/İsteğe Bağlı Yap) katılım tipi seçilir.
+  // Ayrı bir "hepsini zorunlu yap" kısayolu YOK — tek tek seçip aynı toplu
+  // işlemi kullanmakla aynı akış, sadece işaretleme adımı hızlanıyor (bkz.
+  // "hepsini seçeceksek tüm ofis diye bir seçim olsa" isteği).
+  function selectAllInvitees() {
+    setCheckedIds(inviteeOptions.map((u) => u.id))
+  }
+
   // Yönetici Deneyimi madde 4: "gerekirse toplu seçim yapabilir" — birden
   // fazla kişiyi işaretleyip tek tıkla aynı katılım tipine geçirir (ör.
   // önce yeni başlayanları işaretle → Zorunlu Yap, sonra ilk yılı
@@ -162,7 +171,7 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
             <p className="text-xs font-medium text-ink-400">
               Davetliler ve Katılım Tipi {inviteeCount > 0 && <span className="text-ink-300">({inviteeCount})</span>}
             </p>
-            {checkedIds.length > 0 && (
+            {checkedIds.length > 0 ? (
               <div className="flex flex-wrap items-center gap-1">
                 <span className="text-[11px] text-ink-400">{checkedIds.length} kişi seçili:</span>
                 {BULK_ACTIONS.map((a) => (
@@ -175,7 +184,22 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
                     {a.label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setCheckedIds([])}
+                  className="rounded-full bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-500 hover:bg-ink-100"
+                >
+                  Seçimi Temizle
+                </button>
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={selectAllInvitees}
+                className="rounded-full bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:bg-brand-100"
+              >
+                Tüm Ofis
+              </button>
             )}
           </div>
           <div className="max-h-56 space-y-0.5 overflow-y-auto rounded-lg border border-ink-100 p-1.5">
