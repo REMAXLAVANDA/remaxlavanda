@@ -5,8 +5,14 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { leads as leadsProvider, opportunities as opportunitiesProvider, recruiting as recruitingProvider } from '../lib/dataProvider'
+import {
+  leads as leadsProvider,
+  opportunities as opportunitiesProvider,
+  recruiting as recruitingProvider,
+  callLogs as callLogsProvider,
+} from '../lib/dataProvider'
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
+import { generateTalepKodu } from '../lib/callLogs'
 import { LEAD_TO_RECRUITING_KAYNAK, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES } from '../lib/recruiting'
 import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
 import { sortByName } from '../lib/format'
@@ -25,12 +31,24 @@ const INITIAL_FILTERS = { tip: 'tumu', durum: 'tumu' }
 // seferinde TAMAMEN client-side yükleniyor, kayıt sayısı arttıkça sunucu
 // taraflı sorguya çevrilmeli (bkz. AI_NOTLARI.md).
 async function loadAll() {
-  const [leadRows, opportunityRows, candidateRows] = await Promise.all([
+  const [leadRows, opportunityRows, candidateRows, callRows] = await Promise.all([
     leadsProvider.list(),
     opportunitiesProvider.list(),
     recruitingProvider.list(),
+    callLogsProvider.list(),
   ])
-  return { leads: leadRows, opportunities: opportunityRows, recruitingCandidates: candidateRows }
+  return { leads: leadRows, opportunities: opportunityRows, recruitingCandidates: candidateRows, calls: callRows }
+}
+
+// Operasyon'a düşen bir çağrının Lead Havuzu'ndaki "Süreç Durumu"
+// karşılığı — call_logs kendi durum enum'una sahip değil (bkz.
+// lib/callLogs.js), üç ayrı alandan (opportunityId/portfoyAlindiMi/
+// donusYapildiMi) tek bir rozet üretiyoruz.
+function callProcessLabel(call) {
+  if (call.opportunityId) return { label: 'Fırsata Dönüştü', style: 'bg-emerald-50 text-emerald-700' }
+  if (call.portfoyAlindiMi) return { label: 'Portföy Alındı', style: 'bg-emerald-50 text-emerald-700' }
+  if (call.donusYapildiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700' }
+  return { label: "Operasyon'da Bekliyor", style: 'bg-ink-100 text-ink-600' }
 }
 
 export default function Leads() {
@@ -74,6 +92,8 @@ export default function Leads() {
   // birlikte yüklüyor, burada sadece kaynak_lead_id ile eşleştiriliyor.
   function resolveProcessStatus(lead) {
     if (lead.durum !== 'atandi') return null
+    const call = (data?.calls ?? []).find((c) => c.kaynakLeadId === lead.id)
+    if (call) return callProcessLabel(call)
     const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === lead.id)
     if (opp) return { label: OPPORTUNITY_STATUS_LABELS[opp.status], style: OPPORTUNITY_STATUS_STYLES[opp.status] }
     const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === lead.id)
@@ -82,10 +102,14 @@ export default function Leads() {
   }
 
   // Dönüştürülmüş bir lead'in hangi kayda gittiğini bulur — ayrı bir FK
-  // yönü YOK, mevcut kaynak_lead_id yönü (opportunity/candidate -> lead)
-  // ters taranıyor (bkz. loadAll notu).
+  // yönü YOK, mevcut kaynak_lead_id yönü (call/opportunity/candidate ->
+  // lead) ters taranıyor (bkz. loadAll notu). Portföy'e yönlendirilenler
+  // artık ÖNCE call_logs'a düşüyor (bkz. handleAssignPortfolioLead notu),
+  // bu yüzden call önce kontrol ediliyor.
   const convertedTarget = useMemo(() => {
     if (!editingLead || editingLead.durum !== 'atandi') return null
+    const call = (data?.calls ?? []).find((c) => c.kaynakLeadId === editingLead.id)
+    if (call) return { type: 'call', record: call }
     const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === editingLead.id)
     if (opp) return { type: 'opportunity', record: opp }
     const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === editingLead.id)
@@ -132,24 +156,27 @@ export default function Leads() {
     else handleConvertToOpportunity(lead)
   }
 
-  // Broker'ın burada bildiği TEK şey hangi danışmanın reklamı olduğu —
-  // alıcı/satıcı ayrımını da kategoriyi de bilmiyor (bkz. AssignPortfolioLeadModal
-  // notu). Bu yüzden NewOpportunityModal'ın koca formu yerine minimal bir
-  // kayıt oluşturuluyor; tür/kategori varsayılan (danışman EditOpportunityModal'dan
-  // düzeltecek, artık ikisi de düzenlenebilir — bkz. AI_NOTLARI.md).
+  // Broker'ın burada bildiği TEK şey hangi danışmanın reklamı olduğu — alıcı/
+  // satıcı ayrımını da kategoriyi de bilmiyor (bkz. AssignPortfolioLeadModal
+  // notu). Bu yüzden direkt Fırsat oluşturmuyoruz — Operasyon'a, diğer
+  // reklam çağrıları gibi bir çağrı düşürüyoruz (kaynak='Reklam', reklam
+  // adı/kodu üzerinde). Danışman bu kişiyi Operasyon'da görüp Görüşüldü/
+  // Portföy Alındı'yı işaretliyor, hazır olunca kendisi "Müşterilerime
+  // Ekle" ile Fırsata çeviriyor — akış hiç değişmedi, sadece giriş noktası
+  // Lead Havuzu oldu (bkz. "operasyona uygulayalım" isteği, AI_NOTLARI.md).
   async function handleAssignPortfolioLead(assignToId) {
     const lead = convertTarget.lead
     setSubmitting(true)
     try {
-      const payload = {
-        type: 'satici',
-        category: 'diger',
-        leadAd: lead.adSoyad,
-        leadTelefon: lead.telefon ?? '',
-        konum: null,
+      const createdCall = await callLogsProvider.create({
+        kaynak: 'Reklam',
+        arayanAd: lead.adSoyad,
+        arayanTelefon: lead.telefon ?? '',
+        assignedTo: assignToId,
+        reklamKodu: lead.reklamAdi || lead.kampanyaKodu || null,
         kaynakLeadId: lead.id,
-      }
-      const createdOpportunity = await opportunitiesProvider.create(payload, assignToId, true)
+        portfoyNo: generateTalepKodu('Reklam'),
+      })
       const updatedLead = await leadsProvider.update(lead.id, {
         durum: 'atandi',
         ...computeAutoFields(lead, 'atandi'),
@@ -157,10 +184,10 @@ export default function Leads() {
       setData((prev) => ({
         ...prev,
         leads: prev.leads.map((l) => (l.id === lead.id ? updatedLead : l)),
-        opportunities: [createdOpportunity, ...prev.opportunities],
+        calls: [createdCall, ...prev.calls],
       }))
       setConvertTarget(null)
-      showToast("Danışmana atandı, Fırsatlar'a gönderildi.", 'success')
+      showToast("Danışmana atandı, Operasyon'a gönderildi.", 'success')
     } catch (err) {
       showToast(err.message ?? 'Atanamadı, tekrar dene.', 'error')
     } finally {
@@ -194,7 +221,8 @@ export default function Leads() {
   function handleViewTarget() {
     if (!convertedTarget) return
     setEditingLead(null)
-    navigate(convertedTarget.type === 'opportunity' ? '/firsatlar' : '/recruiting')
+    if (convertedTarget.type === 'call') navigate('/operasyon')
+    else navigate(convertedTarget.type === 'opportunity' ? '/firsatlar' : '/recruiting')
   }
 
   // Ofis/danışman ne menüde görür ne URL'den doğrudan girebilir (sadece

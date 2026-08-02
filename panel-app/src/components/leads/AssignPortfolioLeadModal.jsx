@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 
-// Lead Havuzu'ndan Portföy'e giden bir lead'i Fırsata dönüştürürken artık
-// NewOpportunityModal'ın koca formu AÇILMIYOR — broker property'i hiç
-// tanımıyor (mahalle/fiyat/m²/oda), hatta alıcı mı satıcı mı olduğunu bile
-// bilmiyor ("biz reklamlarda ikisini de topluyoruz"). Broker'ın burada tek
-// işi: reklam kampanya/reklam seti başlığına bakıp hangi danışmanın
-// reklamı olduğunu tanıyıp SEÇMEK. Geri kalan her şeyi (tür, kategori,
-// mahalle, fiyat...) danışman kendi Fırsatlar ekranında ilk incelediğinde
-// kendisi tamamlıyor (bkz. EditOpportunityModal — artık tür/kategori de
-// düzenlenebilir, AI_NOTLARI.md).
+// Lead Havuzu'ndan Portföy'e giden bir lead'i yönlendirirken NewOpportunityModal'ın
+// koca formu AÇILMIYOR — broker property'i hiç tanımıyor (mahalle/fiyat/m²/
+// oda), hatta alıcı mı satıcı mı olduğunu bile bilmiyor ("biz reklamlarda
+// ikisini de topluyoruz"). Broker'ın burada tek işi: reklam kampanya/reklam
+// seti başlığına bakıp hangi danışmanın reklamı olduğunu tanıyıp SEÇMEK.
+// Bu, doğrudan bir Fırsat DEĞİL, Operasyon'a diğer reklam çağrıları gibi
+// bir çağrı düşürür (bkz. Leads.jsx handleAssignPortfolioLead) — danışman
+// Operasyon'dan görüşüp işi netleştirdiğinde kendisi Fırsata çevirir.
 export default function AssignPortfolioLeadModal({ lead, assignableOptions, onClose, onSubmit, submitting }) {
   const [assignToId, setAssignToId] = useState('')
 
@@ -48,7 +47,7 @@ export default function AssignPortfolioLeadModal({ lead, assignableOptions, onCl
         </select>
 
         <p className="text-xs text-ink-400">
-          Tür, kategori, mahalle ve fiyat gibi detayları danışman kendi Fırsatlar ekranından tamamlayacak.
+          Operasyon'a reklam çağrısı olarak düşecek — danışman görüşüp portföyü aldığında kendisi Fırsata çevirecek.
         </p>
 
         <div className="flex justify-end gap-2 pt-2">

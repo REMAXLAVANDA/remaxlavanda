@@ -58,7 +58,12 @@ function ConvertedView({ lead, convertedTarget, onClose, onViewTarget }) {
             onClick={onViewTarget}
             className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
-            {convertedTarget.type === 'opportunity' ? 'Fırsatlarda Görüntüle' : 'Recruiting\'de Görüntüle'} <ArrowRight size={14} />
+            {convertedTarget.type === 'call'
+              ? "Operasyon'da Görüntüle"
+              : convertedTarget.type === 'opportunity'
+                ? 'Fırsatlarda Görüntüle'
+                : "Recruiting'de Görüntüle"}{' '}
+            <ArrowRight size={14} />
           </button>
         )}
       </div>

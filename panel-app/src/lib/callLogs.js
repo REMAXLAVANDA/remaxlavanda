@@ -112,13 +112,17 @@ export function computeSourceConversion(calls) {
 // portföyün alınıp alınmadığı kontrol edilmeli" isteği. reklamKodu elle
 // girilen bir isim/kod (Meta'daki kampanya adıyla aynı tutuluyor) — burada
 // sadece o isme göre gruplanıp dönüşüm sayılıyor, ayrı bir kampanya
-// yönetimi/listesi YOK.
+// yönetimi/listesi YOK. Lead Havuzu'ndan "Danışmana Ata" ile gelen çağrılar
+// da reklamKodu'nu (lead.reklamAdi/kampanyaKodu) taşıyarak buraya karışır
+// (bkz. Leads.jsx handleAssignPortfolioLead) — "Reklam Kaynakları" raporunun
+// Portföy tarafı bu fonksiyonu kullanır.
 export function computeReklamKoduConversion(calls) {
   const byKod = {}
   for (const c of calls) {
     if (c.kaynak !== 'Reklam' || !c.reklamKodu) continue
-    if (!byKod[c.reklamKodu]) byKod[c.reklamKodu] = { total: 0, converted: 0, sold: 0 }
+    if (!byKod[c.reklamKodu]) byKod[c.reklamKodu] = { total: 0, gorusuldu: 0, converted: 0, sold: 0 }
     byKod[c.reklamKodu].total += 1
+    if (c.donusYapildiMi) byKod[c.reklamKodu].gorusuldu += 1
     if (c.portfoyAlindiMi) byKod[c.reklamKodu].converted += 1
     if (c.satildiMi) byKod[c.reklamKodu].sold += 1
   }

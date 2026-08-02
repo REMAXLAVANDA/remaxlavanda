@@ -30,8 +30,19 @@ describe('computeReklamKoduConversion', () => {
     ]
     const result = computeReklamKoduConversion(calls)
     expect(result).toEqual([
-      { reklamKodu: 'Instagram-Temmuz', total: 2, converted: 1, sold: 0, rate: 50 },
-      { reklamKodu: 'Facebook-Yaz', total: 1, converted: 1, sold: 1, rate: 100 },
+      { reklamKodu: 'Instagram-Temmuz', total: 2, gorusuldu: 0, converted: 1, sold: 0, rate: 50 },
+      { reklamKodu: 'Facebook-Yaz', total: 1, gorusuldu: 0, converted: 1, sold: 1, rate: 100 },
+    ])
+  })
+
+  it('donusYapildiMi true olan çağrıları görüşüldü olarak sayar', () => {
+    const calls = [
+      { kaynak: 'Reklam', reklamKodu: 'Instagram-Temmuz', donusYapildiMi: true, portfoyAlindiMi: false, satildiMi: false },
+      { kaynak: 'Reklam', reklamKodu: 'Instagram-Temmuz', donusYapildiMi: false, portfoyAlindiMi: false, satildiMi: false },
+    ]
+    const result = computeReklamKoduConversion(calls)
+    expect(result).toEqual([
+      { reklamKodu: 'Instagram-Temmuz', total: 2, gorusuldu: 1, converted: 0, sold: 0, rate: 0 },
     ])
   })
 

@@ -432,6 +432,7 @@ function mapCallLog(row) {
     opportunityId: row.opportunity_id,
     notlar: row.notlar,
     reklamKodu: row.reklam_kodu,
+    kaynakLeadId: row.kaynak_lead_id,
     createdAt: row.created_at,
   }
 }
@@ -453,6 +454,7 @@ export const callLogs = {
           notlar: form.notlar || null,
           reklam_kodu: form.reklamKodu || null,
           portfoy_no: form.portfoyNo || null,
+          kaynak_lead_id: form.kaynakLeadId ?? null,
         })
         .select()
         .single(),

@@ -82,3 +82,26 @@ export const LEAD_TO_RECRUITING_KAYNAK = {
   meta_portfoy: 'diger',
   diger: 'diger',
 }
+
+// Reklam bazlı Recruiting dönüşümü — "Reklam Kaynakları" raporunun
+// Recruiting tarafı. lib/callLogs.js computeReklamKoduConversion ile aynı
+// desen: sadece reklamdan gelen (reklamAdi/kampanyaKodu dolu) adaylar
+// sayılır, manuel/ofis girişleri dışarıda kalır. "Birebir görüşme" tek bir
+// alanla tutulmadığı için mevcut durum aşamasından türetiliyor — ön
+// görüşme ve sonrası (olumsuz hariç) o kişiyle bire bir görüşüldüğü
+// anlamına gelir.
+const BIREBIR_GORUSME_ASAMALARI = ['on_gorusme', 'ofis_tanitimi', 'karar_bekliyor', 'evrak']
+export function computeRecruitingReklamConversion(candidates) {
+  const byAd = {}
+  for (const c of candidates) {
+    const key = c.reklamAdi || c.kampanyaKodu
+    if (!key) continue
+    if (!byAd[key]) byAd[key] = { total: 0, gorusme: 0, alindi: 0 }
+    byAd[key].total += 1
+    if (BIREBIR_GORUSME_ASAMALARI.includes(c.durum)) byAd[key].gorusme += 1
+    if (c.durum === 'evrak') byAd[key].alindi += 1
+  }
+  return Object.entries(byAd)
+    .map(([reklamAdi, v]) => ({ reklamAdi, ...v }))
+    .sort((a, b) => b.alindi - a.alindi)
+}

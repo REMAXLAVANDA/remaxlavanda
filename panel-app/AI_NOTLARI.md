@@ -3,6 +3,30 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — "Danışmana Ata" artık Operasyon'a çağrı düşürüyor + Reklam Kaynakları raporu
+
+Lead Havuzu'nda Portföy tipi bir lead'i "Danışmana Ata" ile yönlendirmek
+daha önce direkt bir Fırsat (opportunity) oluşturuyordu — bu, Operasyon'daki
+reklam takibiyle (Görüşüldü/Portföy Alındı/Satıldı) hiç kesişmiyordu ve
+akışa tersti. Şimdi bu işlem, diğer reklam çağrıları gibi Operasyon'a bir
+çağrı düşürüyor (`kaynak='Reklam'`, `reklamKodu` = lead'in reklam adı/
+kampanya kodu, danışman doğrudan atanmış). Danışman bunu Operasyon'dan
+işler, hazır olunca kendisi "Müşterilerime Ekle" ile Fırsata çevirir —
+akış hiç değişmedi, sadece giriş noktası Lead Havuzu oldu.
+
+Bunun için `call_logs`'a yeni `kaynak_lead_id` kolonu eklendi (migration
+`20260802120000_call_logs_reklam_baglantisi.sql`, opportunities/
+recruiting_candidates'taki aynı kolonla aynı desen) — Lead Havuzu'nun
+"Süreç Durumu" ve "nereye gitti" gösterimi artık call_logs'u da tarıyor.
+
+Bu değişiklik, uzun süredir hiç kullanılmayan `computeReklamKoduConversion()`
+fonksiyonunu (call_logs.reklamKodu bazlı dönüşüm) ilk kez canlıya çıkardı:
+Ayarlar > yeni "Reklam Kaynakları" sekmesi (broker/owner-only), reklam
+bazında iki tablo — Recruiting reklamları (`recruiting_candidates`'tan,
+yeni `computeRecruitingReklamConversion()`) ve Portföy reklamları
+(`call_logs`'tan). İkisi de kendi hedef tablosundaki veriyi okuyor, Lead
+Havuzu'na hiç geri dönmüyor.
+
 ## 2026-08-02 — Operasyon'da reklam kodu sadece broker/owner'a görünüyor
 
 Recruiting'deki AYNI kısıt Operasyon'a da uygulandı. `call_logs.reklam_kodu`
