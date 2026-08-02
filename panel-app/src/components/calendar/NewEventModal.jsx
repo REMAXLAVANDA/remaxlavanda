@@ -15,6 +15,10 @@ const EMPTY_FORM = {
   // sözlüğün anahtarları. "Davet Edilmedi" ayrı bir değer DEĞİL, burada hiç
   // olmamak demek (bkz. broker isteği: 4. seçenek aslında yokluk).
   katilimTipleri: {},
+  // 'davetliler': sadece aşağıda seçilenler görür/katılır (varsayılan).
+  // 'herkese_acik': davet edilmeyen danışmanlar da görüp isterse kendi
+  // kendine katılabilir (bkz. "bu bana mı özel, ofise mi özel..." isteği).
+  gorunurluk: 'davetliler',
 }
 
 // Select'in kendi rengi de katılım tipini yansıtsın diye (bkz. broker
@@ -141,6 +145,17 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
           rows={2}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
+
+        <label className="flex items-center gap-2 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-700">
+          <input
+            type="checkbox"
+            checked={form.gorunurluk === 'herkese_acik'}
+            onChange={(e) => set({ gorunurluk: e.target.checked ? 'herkese_acik' : 'davetliler' })}
+            className="h-3.5 w-3.5 rounded border-ink-300"
+          />
+          Herkese açık
+          <span className="text-xs text-ink-400">(davet edilmeyen danışmanlar da görüp katılabilir)</span>
+        </label>
 
         <div>
           <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1">

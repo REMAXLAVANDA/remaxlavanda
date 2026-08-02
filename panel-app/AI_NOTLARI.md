@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Etkinlikler: "Herkese Açık" görünürlük + serbest katılım
+
+Önceden davet edilmeyen bir danışman bir etkinliği Takvim'de HİÇ göremiyordu
+— "bu bana mı özel, ofise mi özel, yoksa başkalarına zorunlu ama ben de
+katılabiliyor muyum" sorusunu sormaya bile fırsat yoktu. Yeni
+`calendar_events.gorunurluk` alanı ('davetliler' varsayılan/mevcut davranış,
+'herkese_acik' yeni): açık bir etkinliği davetli olmayanlar da görür, Etkinlik
+Detayı'nda sağ üstte "Herkese Açık"/"Sadece Davetliler" rozeti + (davetli
+değilse) motivasyon cümlesi ve "Katılmak İstiyorum" butonu çıkar — tıklayınca
+kendini isteğe bağlı+onaylı olarak katılımcı listesine ekler.
+
+RLS: `calendar_events_select` danışman için artık `gorunurluk='herkese_acik'`
+olan satırları da geçiriyor; `event_attendance_insert` artık kendi satırını
+(SADECE istege_bagli+onayladi, SADECE açık bir etkinlikte) ekleyebiliyor —
+zorunlu/önerilen ataması hâlâ sadece yönetimin işi. NewEventModal/
+EditEventModal'a "Herkese açık" tikini ekledik.
+
 ## 2026-08-02 — Aylık Pano: lejant ve seçim menüsü kaldırıldı, etkinlik adları takvime yazıldı
 
 İki eleman kaldırıldı: sağ üstteki tür lejantı (Toplantı/Eğitim/Etkinlik/

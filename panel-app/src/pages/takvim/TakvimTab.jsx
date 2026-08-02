@@ -43,6 +43,7 @@ export default function TakvimTab() {
   const [deleteTargetId, setDeleteTargetId] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [showBoardModal, setShowBoardModal] = useState(false)
+  const [joining, setJoining] = useState(false)
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
   const events = data?.events ?? EMPTY
@@ -86,6 +87,23 @@ export default function TakvimTab() {
 
   async function handleSetAttendeeStatus(userId, status) {
     await updateAttendance(selectedEventId, userId, status)
+  }
+
+  // "Herkese açık" bir etkinliğe davet edilmemiş biri kendi kendine
+  // katılıyor — updateAttendance'ın aksine (mevcut satırı günceller) burada
+  // hiç satır yok, yeni bir tane oluşturuluyor (bkz. EventDetailModal
+  // "Katılmak İstiyorum" butonu).
+  async function handleJoin() {
+    setJoining(true)
+    try {
+      const created = await calendarProvider.joinEvent(selectedEventId, user.id)
+      setData((prev) => ({ ...prev, attendance: [...prev.attendance, created] }))
+      showToast('Katılımın eklendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Katılamadın, tekrar dene.', 'error')
+    } finally {
+      setJoining(false)
+    }
   }
 
   async function handleResolveMazeret(userId, decision) {
@@ -228,6 +246,8 @@ export default function TakvimTab() {
           onResolveMazeret={handleResolveMazeret}
           onEditRequest={() => setEditingEvent(true)}
           onDeleteRequest={() => setDeleteTargetId(selectedEvent.id)}
+          onJoin={handleJoin}
+          joining={joining}
           onClose={() => setSelectedEventId(null)}
         />
       )}

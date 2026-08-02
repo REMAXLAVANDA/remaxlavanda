@@ -180,6 +180,7 @@ export const calendarEvents = {
       startAt,
       endAt,
       creatorId,
+      gorunurluk: form.gorunurluk ?? 'davetliler',
     }
     MOCK_EVENTS.push(row)
     // form.katilimTipleri: { [userId]: 'zorunlu'|'onerilen'|'istege_bagli' }
@@ -238,6 +239,15 @@ export const calendarEvents = {
     if ('date' in patch || 'endTime' in patch) {
       row.endAt = patch.endTime ? new Date(`${patch.date}T${patch.endTime}`).toISOString() : null
     }
+    if ('gorunurluk' in patch) row.gorunurluk = patch.gorunurluk
+    return delay({ ...row })
+  },
+  // supabaseProvider.joinEvent() ile aynı davranış — "herkese açık" bir
+  // etkinliğe davet edilmemiş biri kendi kendine, sadece istege_bagli +
+  // onayladi olarak katılabilir.
+  async joinEvent(eventId, userId) {
+    const row = { eventId, userId, status: 'onayladi', katilimTipi: 'istege_bagli', mazeretText: null, mazeretStatus: null }
+    MOCK_ATTENDANCE.push(row)
     return delay({ ...row })
   },
   async remove(id) {

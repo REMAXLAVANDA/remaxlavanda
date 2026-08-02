@@ -11,6 +11,7 @@ import {
   KATILIM_TIPI_LABELS,
   KATILIM_TIPI_SELF_LABELS,
   KATILIM_TIPI_STYLES,
+  eventAudienceBadge,
   formatEventDate,
   formatEventTime,
 } from '../../lib/calendar'
@@ -61,10 +62,13 @@ export default function EventDetailModal({
   onResolveMazeret,
   onEditRequest,
   onDeleteRequest,
+  onJoin,
+  joining,
   onClose,
 }) {
   const [showMazeretForm, setShowMazeretForm] = useState(false)
   const [mazeretDraft, setMazeretDraft] = useState('')
+  const audience = eventAudienceBadge(event)
 
   function submitMazeret() {
     if (!mazeretDraft.trim()) return
@@ -75,9 +79,30 @@ export default function EventDetailModal({
 
   return (
     <Modal title={event.title} onClose={onClose} maxWidth="max-w-lg">
-      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${EVENT_TYPE_STYLES[event.type]}`}>
-        {EVENT_TYPE_LABELS[event.type]}
-      </span>
+      <div className="flex items-center justify-between gap-2">
+        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${EVENT_TYPE_STYLES[event.type]}`}>
+          {EVENT_TYPE_LABELS[event.type]}
+        </span>
+        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${audience.style}`}>
+          {audience.label}
+        </span>
+      </div>
+
+      {!myAttendance && event.gorunurluk === 'herkese_acik' && (
+        <div className="mt-3 rounded-xl bg-emerald-50 p-3">
+          <p className="text-sm text-emerald-800">
+            Bu etkinlik için zorunlu değilsin ama kapımız sana da açık — istersen sen de katıl, seni de aramızda
+            görmek isteriz! 🎉
+          </p>
+          <button
+            onClick={onJoin}
+            disabled={joining}
+            className="mt-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {joining ? 'Ekleniyor...' : 'Katılmak İstiyorum'}
+          </button>
+        </div>
+      )}
 
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-400">
         <span className="flex items-center gap-1">

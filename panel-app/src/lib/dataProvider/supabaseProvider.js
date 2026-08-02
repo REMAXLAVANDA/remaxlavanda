@@ -198,6 +198,7 @@ function mapEvent(row) {
     startAt: row.start_at,
     endAt: row.end_at,
     creatorId: row.creator_id,
+    gorunurluk: row.gorunurluk,
   }
 }
 
@@ -237,6 +238,7 @@ export const calendarEvents = {
           start_at: startAt,
           end_at: endAt,
           creator_id: creatorId,
+          gorunurluk: form.gorunurluk ?? 'davetliler',
         })
         .select()
         .single(),
@@ -312,8 +314,23 @@ export const calendarEvents = {
     if ('date' in patch || 'endTime' in patch) {
       updateRow.end_at = patch.endTime ? new Date(`${patch.date}T${patch.endTime}`).toISOString() : null
     }
+    if ('gorunurluk' in patch) updateRow.gorunurluk = patch.gorunurluk
     const data = await run(client().from('calendar_events').update(updateRow).eq('id', id).select().single())
     return mapEvent(data)
+  },
+  // "Herkese açık" bir etkinliğe davet edilmemiş biri kendi kendine
+  // katılır — event_attendance_insert RLS'i bunu sadece istege_bagli +
+  // onayladi olarak, ve sadece gorunurluk='herkese_acik' olan etkinlikte
+  // kabul ediyor (bkz. migration 20260802140000).
+  async joinEvent(eventId, userId) {
+    const data = await run(
+      client()
+        .from('event_attendance')
+        .insert({ event_id: eventId, user_id: userId, status: 'onayladi', katilim_tipi: 'istege_bagli' })
+        .select()
+        .single(),
+    )
+    return mapAttendance(data)
   },
   async remove(id) {
     const data = await run(client().from('calendar_events').delete().eq('id', id).select('id'))

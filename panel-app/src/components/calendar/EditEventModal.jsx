@@ -22,6 +22,7 @@ export default function EditEventModal({ event, onClose, onSubmit, submitting })
     date: toDateInput(event.startAt),
     startTime: toTimeInput(event.startAt),
     endTime: toTimeInput(event.endAt),
+    gorunurluk: event.gorunurluk ?? 'davetliler',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.title.trim().length > 0 && form.date
@@ -100,6 +101,17 @@ export default function EditEventModal({ event, onClose, onSubmit, submitting })
           rows={2}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
+
+        <label className="flex items-center gap-2 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-700">
+          <input
+            type="checkbox"
+            checked={form.gorunurluk === 'herkese_acik'}
+            onChange={(e) => set({ gorunurluk: e.target.checked ? 'herkese_acik' : 'davetliler' })}
+            className="h-3.5 w-3.5 rounded border-ink-300"
+          />
+          Herkese açık
+          <span className="text-xs text-ink-400">(davet edilmeyen danışmanlar da görüp katılabilir)</span>
+        </label>
 
         <div className="flex justify-end gap-2 pt-2">
           <button

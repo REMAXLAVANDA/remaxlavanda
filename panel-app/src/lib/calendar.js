@@ -95,10 +95,30 @@ export const KATILIM_TIPI_STYLES = {
 export const SELF_ATTENDANCE_OPTIONS = ['onayladi', 'mazeretli']
 
 // calendar_events_select RLS kuralının mock karşılığı: broker/owner/ofis
-// tüm etkinlikleri görür, danışman sadece davetli olduğu etkinlikleri görür.
+// tüm etkinlikleri görür; danışman ya davetli olmalı ya da etkinlik
+// "herkese açık" olmalı (bkz. gorunurluk alanı, migration
+// 20260802140000 — "bu bana mı özel, ofise mi özel, yoksa başkalarına
+// zorunlu ama ben de katılabiliyor muyum" sorusunun cevabını bulabilsin
+// isteği).
 export function canViewEvent(event, user, attendance) {
   if (user.role !== ROLES.DANISMAN) return true
+  if (event.gorunurluk === 'herkese_acik') return true
   return attendance.some((a) => a.eventId === event.id && a.userId === user.id)
+}
+
+export const EVENT_GORUNURLUK_LABELS = {
+  davetliler: 'Sadece Davetliler',
+  herkese_acik: 'Herkese Açık',
+}
+
+// Etkinlik Detayı'nda sağ üstte gösterilen rozet — davet durumundan
+// BAĞIMSIZ, etkinliğin kendi özelliği (davetli olmayan biri de bunu görüp
+// "bu ofise mi özel" sorusuna cevap bulabilsin diye).
+export function eventAudienceBadge(event) {
+  if (event.gorunurluk === 'herkese_acik') {
+    return { label: 'Herkese Açık', style: 'bg-emerald-50 text-emerald-700' }
+  }
+  return { label: 'Sadece Davetliler', style: 'bg-ink-100 text-ink-500' }
 }
 
 export function formatEventDate(iso) {
