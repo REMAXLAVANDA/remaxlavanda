@@ -62,6 +62,23 @@ metodolojisi: her modül için önce derin analiz + öneri + onay, sonra kod.
 ## Diğer kalıcı kurallar (önceki oturumlardan)
 
 - Asla onay almadan commit/push/deploy yapma.
-- Supabase SQL migration'larını asla doğrudan çalıştırma — her zaman tam
-  SQL'i broker'a ver, Supabase SQL Editor'e onun yapıştırmasını bekle.
 - Yapısal her değişikliği `AI_NOTLARI.md`'ye kısaca işle.
+
+## Migration Onay Kuralı (2026-08-02)
+
+Artık Supabase MCP araçları bağlı (`apply_migration` vb. çalıştırılabilir)
+— ama bu asla onaysız/otomatik migration çalıştırma anlamına gelmiyor.
+Kural:
+
+1. **HER DURUMDA önce migration dosyasını repoya commit et, SONRA uygula**
+   — sırayı bozma.
+2. **Doğrudan `apply_migration` çalıştırma, önce sor.** Onay isteği kısa
+   ve tek ekranda şunları içermeli: (a) ne yapıyor — bir cümle, (b) hangi
+   tablo/fonksiyon etkileniyor, (c) geri alınabilir mi, (d) geri alma
+   SQL'i.
+3. **Sadece onay yeterli** (broker "onaylıyorum"/"evet" derse
+   uygulanabilir): GRANT/REVOKE, search_path SET, RLS politikası
+   ekleme/kaldırma, index ekleme.
+4. **Onay yetmez** — broker açıkça **"bilgisayardayım, uygula"**
+   demeden dokunma: DROP, DELETE, UPDATE, kolon tipi değişikliği,
+   erişimi genişleten her değişiklik.
