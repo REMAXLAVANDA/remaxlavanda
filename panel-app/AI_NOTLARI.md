@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Operasyon'da "Müşterilerime Ekle" → "Fırsata Çevir"
+
+"Müşterilerime Ekle" ismi kafa karıştırıcı bulundu — uygulamada "Müşteri"
+diye bir menü/kavram yok, "Havuz" var; buton zaten `NewOpportunityModal`'ı
+açıyor (danışman kalan bilgileri girer, havuza atma tikini kendi seçer).
+İsim, gerçekte yaptığı işi (Fırsata çevirme) yansıtsın diye "Fırsata Çevir"
+olarak değiştirildi (`CallTable.jsx`, hem masaüstü hem mobil buton).
+
 ## 2026-08-02 — Broker'ın fiilen üstlendiği fırsatlar owner'dan gizlendi
 
 Broker da bir gayrimenkul danışmanı gibi kendi müşterilerini giriyor —

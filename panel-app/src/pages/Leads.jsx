@@ -161,8 +161,8 @@ export default function Leads() {
   // notu). Bu yüzden direkt Fırsat oluşturmuyoruz — Operasyon'a, diğer
   // reklam çağrıları gibi bir çağrı düşürüyoruz (kaynak='Reklam', reklam
   // adı/kodu üzerinde). Danışman bu kişiyi Operasyon'da görüp Görüşüldü/
-  // Portföy Alındı'yı işaretliyor, hazır olunca kendisi "Müşterilerime
-  // Ekle" ile Fırsata çeviriyor — akış hiç değişmedi, sadece giriş noktası
+  // Portföy Alındı'yı işaretliyor, hazır olunca kendisi "Fırsata Çevir"
+  // ile Fırsata çeviriyor — akış hiç değişmedi, sadece giriş noktası
   // Lead Havuzu oldu (bkz. "operasyona uygulayalım" isteği, AI_NOTLARI.md).
   async function handleAssignPortfolioLead(assignToId) {
     const lead = convertTarget.lead

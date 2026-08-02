@@ -317,9 +317,9 @@ export default function CallTable({
                           <button
                             onClick={() => onConvertToOpportunity(call)}
                             className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
-                            title="Müşterilerime Ekle"
+                            title="Fırsata Çevir"
                           >
-                            <Send size={13} /> Müşterilerime Ekle
+                            <Send size={13} /> Fırsata Çevir
                           </button>
                         )}
                         {canEditCallDetails(currentRole, call.createdAt) && (
@@ -399,9 +399,9 @@ export default function CallTable({
                     <button
                       onClick={() => onConvertToOpportunity(call)}
                       className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
-                      title="Müşterilerime Ekle"
+                      title="Fırsata Çevir"
                     >
-                      <Send size={13} /> Müşterilerime Ekle
+                      <Send size={13} /> Fırsata Çevir
                     </button>
                   )}
                   {canEditCallDetails(currentRole, call.createdAt) && (
