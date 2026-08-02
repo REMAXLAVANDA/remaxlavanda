@@ -6,10 +6,13 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 ## 2026-08-02 — Fırsatlar: Satıcılar/Alıcılar/Operasyon üç ayrı renk
 
 "Birbirinden daha çabuk ayırt edilebilir" isteği — üç bölüm artık üstte
-kalın renkli bir çizgiyle ayrışıyor: Satıcılar yeşil, Alıcılar mavi,
-Operasyon turuncu (yeni). Operasyon önceden kart bile değildi (sadece
-başlık + içerik) — artık diğer ikisiyle aynı görsel dilde (rounded-2xl
-border bg-white) bir kart. DB değişikliği yok.
+kalın renkli bir çizgiyle ayrışıyor. İlk halde emerald/blue/amber
+(Tailwind stok renkleri) kullanılmıştı, sonra "genel RE/MAX renkleri
+yapsak" isteğiyle index.css'teki marka tokenlarına (brand-600 kırmızı,
+remax-blue, remax-navy) çevrildi: Satıcılar kırmızı, Alıcılar mavi,
+Operasyon lacivert. Operasyon önceden kart bile değildi (sadece başlık +
+içerik) — artık diğer ikisiyle aynı görsel dilde (rounded-2xl border
+bg-white) bir kart. DB değişikliği yok.
 
 ## 2026-08-02 — Takvim: renkli dolu kutucuklar + "Tüm Ofis" hızlı seçim
 

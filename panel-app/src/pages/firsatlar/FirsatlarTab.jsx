@@ -236,9 +236,9 @@ export default function FirsatlarTab() {
       {!loading && !error && !odakActive && (
         <div className="space-y-4">
           <OpportunitySection
-            dotColor="bg-emerald-500"
-            borderColor="border-t-emerald-500"
-            label="🟢 Satıcılar"
+            dotColor="bg-brand-600"
+            borderColor="border-t-brand-600"
+            label="🔴 Satıcılar"
             total={satici.total}
             expanded={expanded.satici}
             onToggleExpanded={() => setExpanded((f) => ({ ...f, satici: !f.satici }))}
@@ -255,8 +255,8 @@ export default function FirsatlarTab() {
           />
 
           <OpportunitySection
-            dotColor="bg-blue-500"
-            borderColor="border-t-blue-500"
+            dotColor="bg-remax-blue"
+            borderColor="border-t-remax-blue"
             label="🔵 Alıcılar"
             total={alici.total}
             expanded={expanded.alici}
