@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Fırsatlar/Operasyon: widget renklendirmesi tamamen geri alındı
+
+"Sanki ilk renklendirmedeki hali daha şıktı, en başa dönelim" isteğiyle
+hem tam doygun hem de açık-tonlu widget renklendirmeleri geri alındı.
+`OpportunitySection.jsx` ve `StatsCards.jsx` artık ilk haline (03/2026-08-02
+öncesi, commit `04ec168`) birebir döndü: kategori/istatistik kutuları
+nötr beyaz zemin + ince kenarlık, sadece seçili kutuda `border-brand-400
+bg-brand-50`. Bölümleri ayırt eden renk artık yalnızca dış kartın üst
+kenarındaki kalın çizgide (`border-t-brand-600` / `border-t-remax-blue` /
+`border-t-remax-navy`) kalıyor. DB değişikliği yok.
+
 ## 2026-08-02 — Fırsatlar/Operasyon: widget renkleri yumuşatıldı
 
 "Dediğin gibi fazla koyu oldu" geri bildirimiyle bir önceki dolu-renk +

@@ -10,8 +10,6 @@ import OpportunityTable from './OpportunityTable'
 export default function OpportunitySection({
   dotColor,
   borderColor,
-  boxColor,
-  boxTextColor,
   label,
   total,
   expanded,
@@ -60,13 +58,15 @@ export default function OpportunitySection({
                 <button
                   key={b.category}
                   onClick={() => onSelectCategory(isActive ? null : b.category)}
-                  className={`rounded-2xl p-4 text-left transition-all ${boxColor} ${
-                    isActive ? 'ring-2 ring-ink-900' : 'hover:opacity-80'
+                  className={`rounded-2xl border p-4 text-left transition-colors ${
+                    isActive ? 'border-brand-400 bg-brand-50' : 'border-ink-100 bg-white hover:border-brand-200'
                   }`}
                 >
-                  <p className={`text-base font-bold ${boxTextColor}`}>{b.categoryLabel}</p>
-                  <p className={`mt-1 text-2xl font-semibold ${boxTextColor}`}>{b.total}</p>
-                  {b.today > 0 && <p className={`mt-0.5 text-xs font-medium ${boxTextColor}/70`}>Bugün +{b.today}</p>}
+                  <p className={`text-base font-bold ${isActive ? 'text-brand-700' : 'text-ink-700'}`}>
+                    {b.categoryLabel}
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold text-ink-900">{b.total}</p>
+                  {b.today > 0 && <p className="mt-0.5 text-xs font-medium text-emerald-600">Bugün +{b.today}</p>}
                 </button>
               )
             })}
