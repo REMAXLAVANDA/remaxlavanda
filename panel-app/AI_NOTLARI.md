@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Operasyon'da reklam kodu sadece broker/owner'a görünüyor
+
+Recruiting'deki AYNI kısıt Operasyon'a da uygulandı. `call_logs.reklam_kodu`
+(hangi reklamdan geldiği, ofis elle giriyor) `CallTable.jsx`'te KOŞULSUZ
+render ediliyordu — danışman/ofis dahil herkes görüyordu. Yeni
+`showReklamKodu = currentRole === broker || owner` hem masaüstü hem mobil
+görünümde bu satırı gizliyor, geri kalan bilgiler (isim, telefon, süreç,
+atanan) değişmedi.
+
 ## 2026-08-02 — Recruiting'de reklam/kampanya bilgisi sadece broker/owner'a görünüyor
 
 Broker: "danışman görmesine gerek yok, broker ve owner görebilsin".

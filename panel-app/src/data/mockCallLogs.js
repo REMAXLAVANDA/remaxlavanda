@@ -23,6 +23,7 @@ export const MOCK_CALLS = [
     donusAt: daysAgo(1),
     opportunityId: null,
     notlar: null,
+    reklamKodu: 'R-KX9P2',
     createdAt: daysAgo(2),
   },
   {

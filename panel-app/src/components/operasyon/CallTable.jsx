@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import { ChevronRight, Eye, EyeOff, Target, Send, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
 import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
 import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
+import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
 
@@ -234,6 +235,11 @@ export default function CallTable({
   onConvertToOpportunity,
   islemTipiByOpportunityId,
 }) {
+  // Reklam kodu (hangi reklamdan geldiği) sadece broker/owner'a görünsün
+  // — ofis/danışman girer ama bu bilgiyi görmesine gerek yok (bkz.
+  // Recruiting'deki AYNI kısıt, "broker ve owner görsün sadece" isteği).
+  const showReklamKodu = currentRole === ROLES.BROKER || currentRole === ROLES.OWNER
+
   if (calls.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
@@ -288,7 +294,7 @@ export default function CallTable({
                         <span className="truncate">{call.arayanAd}</span>
                         <ConvertedIcon opportunityId={call.opportunityId} islemTipiByOpportunityId={islemTipiByOpportunityId} />
                       </span>
-                      {call.reklamKodu && (
+                      {showReklamKodu && call.reklamKodu && (
                         <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-ink-500" title="Reklam kodu">
                           <Tag size={12} className="shrink-0 text-ink-400" />
                           {call.reklamKodu}
@@ -381,7 +387,7 @@ export default function CallTable({
                       <span>{call.notlar}</span>
                     </div>
                   )}
-                  {call.reklamKodu && (
+                  {showReklamKodu && call.reklamKodu && (
                     <div className="mt-1 flex items-center gap-1 text-xs text-ink-500">
                       <Tag size={12} className="shrink-0 text-ink-400" />
                       <span>{call.reklamKodu}</span>
