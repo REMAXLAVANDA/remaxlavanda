@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Fırsatlar: Satıcılar/Alıcılar/Operasyon üç ayrı renk
+
+"Birbirinden daha çabuk ayırt edilebilir" isteği — üç bölüm artık üstte
+kalın renkli bir çizgiyle ayrışıyor: Satıcılar yeşil, Alıcılar mavi,
+Operasyon turuncu (yeni). Operasyon önceden kart bile değildi (sadece
+başlık + içerik) — artık diğer ikisiyle aynı görsel dilde (rounded-2xl
+border bg-white) bir kart. DB değişikliği yok.
+
 ## 2026-08-02 — Takvim: renkli dolu kutucuklar + "Tüm Ofis" hızlı seçim
 
 İki küçük kullanılabilirlik isteği: (1) FullCalendar etkinlikleri artık

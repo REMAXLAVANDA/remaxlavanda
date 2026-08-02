@@ -237,6 +237,7 @@ export default function FirsatlarTab() {
         <div className="space-y-4">
           <OpportunitySection
             dotColor="bg-emerald-500"
+            borderColor="border-t-emerald-500"
             label="🟢 Satıcılar"
             total={satici.total}
             expanded={expanded.satici}
@@ -255,6 +256,7 @@ export default function FirsatlarTab() {
 
           <OpportunitySection
             dotColor="bg-blue-500"
+            borderColor="border-t-blue-500"
             label="🔵 Alıcılar"
             total={alici.total}
             expanded={expanded.alici}

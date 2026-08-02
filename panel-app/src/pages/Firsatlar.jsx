@@ -25,9 +25,12 @@ export default function Firsatlar() {
         <FirsatlarTab />
       </section>
 
-      <section id="operasyon-bolumu" className="mt-10 scroll-mt-6 border-t border-ink-100 pt-8">
+      <section
+        id="operasyon-bolumu"
+        className="mt-10 scroll-mt-6 rounded-2xl border border-t-4 border-ink-100 border-t-amber-500 bg-white p-5"
+      >
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
-          <Wrench size={16} className="text-brand-600" /> Operasyon
+          <Wrench size={16} className="text-amber-600" /> 🟠 Operasyon
         </h2>
         <OperasyonTab />
       </section>

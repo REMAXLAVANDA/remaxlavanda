@@ -3,9 +3,13 @@ import OpportunityTable from './OpportunityTable'
 
 // Bir "Satıcılar" veya "Alıcılar" akordeon bölümü: başlık (renk noktası +
 // toplam sayı) → 4 kategori kutusu (Konut/Ticari/Arsa/Diğer) → bir kutuya
-// tıklanınca altında filtreli tablo açılır/kapanır.
+// tıklanınca altında filtreli tablo açılır/kapanır. Üstteki renkli çizgi
+// (borderColor) Operasyon bölümüyle birlikte üç bölümün (Satıcılar/
+// Alıcılar/Operasyon) birbirinden tek bakışta ayırt edilmesi için (bkz.
+// "ayrı bir renk olursa daha çabuk ayırt edilebilir" isteği).
 export default function OpportunitySection({
   dotColor,
+  borderColor,
   label,
   total,
   expanded,
@@ -22,7 +26,7 @@ export default function OpportunitySection({
   onCreateClick,
 }) {
   return (
-    <div className="rounded-2xl border border-ink-100 bg-white">
+    <div className={`rounded-2xl border border-ink-100 bg-white border-t-4 ${borderColor}`}>
       <div className="flex w-full items-center justify-between px-5 py-4">
         <button onClick={onToggleExpanded} className="flex flex-1 items-center gap-2.5 text-left">
           <span className={`h-2.5 w-2.5 rounded-full ${dotColor}`} />
