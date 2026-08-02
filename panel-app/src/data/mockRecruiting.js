@@ -32,6 +32,8 @@ export const MOCK_RECRUITING_CANDIDATES = [
     kayitTipi: 'lead',
     yenidenAktifAt: null,
     aciklama: 'Başka bir ofisle anlaştı.',
+    reklamAdi: 'RECRUIT_BaseCamp_07-26 / Kreatif_A_Mentorluk / Ahmet Erdemir',
+    kampanyaKodu: 'RECRUIT',
   },
   {
     id: 3,

@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Recruiting listesinde de kampanya/reklam bilgisi (henüz canlı değil, migration bekliyor)
+
+Broker canlı Recruiting ekranını gösterip "hangi reklam üzerinden
+geldiğini göremez miyiz" dedi — `leads.reklam_adi`/`kampanya_kodu`
+sadece Lead Havuzu'nda duruyordu, Recruiting'e dönüşünce hiç
+taşınmıyordu (`recruiting_candidates`'ta bu kolonlar hiç yoktu).
+
+**Şema** (`20260802100000_recruiting_reklam_bilgisi.sql`, henüz
+çalıştırılmadı): `recruiting_candidates`'a `reklam_adi text` ve
+`kampanya_kodu text` eklendi — canlı join yerine denormalize edildi
+(call_logs.reklam_kodu ile aynı desen), lead kaydı silinse/arşivlense
+bile bilgi kalıcı kalsın diye.
+
+**Kod**: `recruiting.create()` (`supabaseProvider.js`/`mockProvider.js`)
+`kaynakLeadId` doluysa kaynak lead'in reklam bilgisini otomatik kopyalar
+— forma yeni alan eklenmedi, danışman/broker hiçbir şey yapmıyor.
+`RecruitingTable.jsx`'e `LeadTable.jsx` ile aynı desende gösterim
+eklendi (Kaynak hücresinin/satırının altında küçük gri metin).
+
 ## 2026-08-02 — Lead Havuzu listesi: kampanya/reklam bilgisi artık satırda, satıra girmeye gerek yok
 
 Broker geri bildirimi: "lead giren biri hiç içine girmeye gerek kalmasın"

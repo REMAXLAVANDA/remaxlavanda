@@ -1,5 +1,13 @@
 import { RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
+// Lead Havuzu'ndan dönüşen bir adayın hangi reklamdan geldiği — LeadTable.jsx
+// campaignLabel ile AYNI desen ("hangi reklam üzerinden geldiğini
+// göremez miyiz" isteği). Elle eklenen adaylarda (kaynakLeadId yok) bu
+// alanlar hiç dolmaz, null döner.
+function campaignLabel(c) {
+  return [c.kampanyaKodu, c.reklamAdi].filter(Boolean).join(' — ') || null
+}
+
 function candidateDateLabel(createdAt) {
   return new Date(createdAt).toLocaleString('tr-TR', {
     day: '2-digit',
@@ -53,7 +61,12 @@ export default function RecruitingTable({ candidates, resolveName, onRowClick })
                 <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{candidateDateLabel(c.createdAt)}</td>
                 <td className="px-3 py-3 font-medium text-ink-900">{c.adSoyad}</td>
                 <td className="px-3 py-3 text-ink-600">{c.telefon ?? '—'}</td>
-                <td className="px-3 py-3 text-ink-600">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</td>
+                <td className="px-3 py-3 text-ink-600">
+                  {RECRUITING_KAYNAK_LABELS[c.kaynak]}
+                  {campaignLabel(c) && (
+                    <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-ink-400">{campaignLabel(c)}</div>
+                  )}
+                </td>
                 <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-500">
                   {c.atananDanismanId ? resolveName(c.atananDanismanId) : 'Atanmadı'}
                 </td>
@@ -74,6 +87,7 @@ export default function RecruitingTable({ candidates, resolveName, onRowClick })
                 <p className="truncate font-medium text-ink-900">{c.adSoyad}</p>
                 <p className="mt-0.5 text-sm text-ink-600">{c.telefon ?? '—'}</p>
                 <p className="mt-1 text-xs text-ink-400">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</p>
+                {campaignLabel(c) && <p className="mt-0.5 truncate text-xs text-ink-400">{campaignLabel(c)}</p>}
               </div>
               <DurumBadge durum={c.durum} />
             </div>

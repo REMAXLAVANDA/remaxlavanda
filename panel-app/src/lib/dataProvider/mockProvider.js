@@ -386,6 +386,9 @@ export const recruiting = {
     return delay([...MOCK_RECRUITING_CANDIDATES].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
   },
   async create(form) {
+    // supabaseProvider.create() ile aynı: hangi reklamdan geldiği
+    // kaynak lead'den kopyalanır (bkz. o dosyadaki not).
+    const sourceLead = form.kaynakLeadId ? MOCK_LEADS.find((l) => l.id === form.kaynakLeadId) : null
     const row = {
       id: Date.now(),
       createdAt: new Date().toISOString(),
@@ -399,6 +402,8 @@ export const recruiting = {
       kayitTipi: form.kaynakLeadId ? 'lead' : 'manuel',
       yenidenAktifAt: null,
       aciklama: form.aciklama || null,
+      reklamAdi: sourceLead?.reklamAdi ?? null,
+      kampanyaKodu: sourceLead?.kampanyaKodu ?? null,
     }
     MOCK_RECRUITING_CANDIDATES.unshift(row)
     return delay(row)

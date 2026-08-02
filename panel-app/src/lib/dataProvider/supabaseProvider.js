@@ -580,6 +580,8 @@ function mapCandidate(row) {
     kayitTipi: row.kayit_tipi,
     yenidenAktifAt: row.yeniden_aktif_at,
     aciklama: row.aciklama,
+    reklamAdi: row.reklam_adi,
+    kampanyaKodu: row.kampanya_kodu,
   }
 }
 
@@ -594,6 +596,19 @@ export const recruiting = {
   // (bkz. lib/recruiting.js notu). 'gecmis' sadece arşiv taşımasıyla veya
   // "Yeniden Aktifleştir"in tersiyle set edilir, buradan asla.
   async create(form) {
+    // Hangi reklamdan geldiği leads.reklam_adi/kampanya_kodu'nda duruyor —
+    // dönüşüm anında recruiting_candidates'a kopyalanıyor (denormalize,
+    // bkz. migration notu) ki liste ekranında görünsün, aday elle
+    // eklendiyse (kaynakLeadId yok) bu adım atlanır.
+    let reklamAdi = null
+    let kampanyaKodu = null
+    if (form.kaynakLeadId) {
+      const leadRow = await run(
+        client().from('leads').select('reklam_adi, kampanya_kodu').eq('id', form.kaynakLeadId).single(),
+      )
+      reklamAdi = leadRow.reklam_adi
+      kampanyaKodu = leadRow.kampanya_kodu
+    }
     const data = await run(
       client()
         .from('recruiting_candidates')
@@ -607,6 +622,8 @@ export const recruiting = {
           durum: form.durum,
           kayit_tipi: form.kaynakLeadId ? 'lead' : 'manuel',
           aciklama: form.aciklama || null,
+          reklam_adi: reklamAdi,
+          kampanya_kodu: kampanyaKodu,
         })
         .select()
         .single(),
