@@ -5,15 +5,34 @@ export { relativeTime } from './format'
 export { DATE_RANGES, isWithinRange } from './dateRange'
 
 // Supabase RLS'teki (opportunities_select) kuralın birebir aynısı — bkz.
-// supabase/migrations/..._init_schema.sql. Mock aşamada aynı mantığı
-// istemci tarafında uyguluyoruz ki gerçek entegrasyona geçince davranış
-// değişmesin.
-export function canViewOpportunity(opp, user) {
+// supabase/migrations/..._call_logs_reklam_baglantisi.sql sonrası eklenen
+// broker-gizliliği migration'ı. Mock aşamada aynı mantığı istemci
+// tarafında uyguluyoruz ki gerçek entegrasyona geçince davranış değişmesin.
+//
+// İSTİSNA: broker de bir gayrimenkul danışmanı gibi kendi müşterilerini
+// giriyor ("ben de bir gayrimenkul danışmanıyım... bilgiler özel" isteği,
+// 2026-08-02) — bu yüzden owner artık broker'ın FİİLEN ÜSTLENDİĞİ (kendi
+// çalıştığı) fırsatları göremiyor. Bilerek claimer_id (kim şu an
+// üstleniyor) esas alınıyor, owner_id (kim eklemiş) değil — aksi halde
+// broker'ın havuza attığı ama BAŞKA bir danışmanın üstlendiği bir fırsat
+// da (ör. ownerId=broker, claimerId=başka danışman) owner'dan gizlenir,
+// bu da owner'ın o danışmanı denetleme yetkisini gereksiz yere keser.
+// Açık/sahipsiz havuz kayıtları zaten herkese görünür (bir alt satır),
+// gizlilik sadece broker'ın FİİLEN ÜSTLENDİĞİ ya da hiç kimsenin
+// üstlenmediği ama artık açık da olmayan (kapandı/iptal) kendi kayıtları
+// için geçerli. Owner'ın diğer her yetkisi AYNI kaldı. resolveHolderRole,
+// "fiilen üstlenen" kişinin (claimerId varsa o, yoksa ownerId) rolünü
+// döner — verilmezse (ör. eski çağrı yerleri) eski davranış korunur.
+export function canViewOpportunity(opp, user, resolveHolderRole) {
   if (!user) return false
-  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
+  if (user.role === ROLES.BROKER) return true
   if (opp.ownerId === user.id) return true
   if (opp.claimerId === user.id) return true
   if (!opp.claimerId && opp.status === 'acik') return true
+  if (user.role === ROLES.OWNER) {
+    const holderId = opp.claimerId ?? opp.ownerId
+    return resolveHolderRole?.(holderId) !== ROLES.BROKER
+  }
   return false
 }
 
@@ -31,15 +50,25 @@ export function canExpressInterest(opp, user) {
 // Kolon seviyesinde gizlilik: satır görünür olsa bile isim/telefon herkese
 // açık DEĞİL. Supabase tarafında bu, get_opportunity_contact() SECURITY
 // DEFINER fonksiyonuyla uygulanır (bkz. migration) — burada aynı kuralı
-// mock katmanında birebir uyguluyoruz. broker/owner her zaman görür;
-// diğerleri SADECE kendi girdiği (owner_id) kayıtta görür — ilgi göstermek
-// (İlgileniyorum) müşteri bilgisini ASLA açmaz, fırsatı giren kişi kendisi
-// arar. Not: gerçek şifreleme (phone_enc/pgcrypto) henüz bağlanmadı — bu şu
-// an için sadece erişim kontrolü katmanı.
-export function canRevealContact(opp, user) {
+// mock katmanında birebir uyguluyoruz. broker her zaman görür; owner SADECE
+// fiilen üstlenen broker değilse görür (bkz. canViewOpportunity'deki
+// claimer_id > owner_id önceliği notu); diğerleri SADECE kendi girdiği
+// (owner_id) kayıtta görür — ilgi göstermek (İlgileniyorum) müşteri
+// bilgisini ASLA açmaz, fırsatı giren kişi kendisi arar. Not: gerçek
+// şifreleme (phone_enc/pgcrypto) henüz bağlanmadı — bu şu an için sadece
+// erişim kontrolü katmanı. Bu fonksiyon UI'da gereksiz network isteğini
+// önleyen bir optimizasyondur — gerçek sınır sunucuda (RLS +
+// get_opportunity_contact), resolveHolderRole verilmezse en permissif
+// (eski) davranışa düşer, güvenlik açığı oluşturmaz.
+export function canRevealContact(opp, user, resolveHolderRole) {
   if (!user) return false
-  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
-  return opp.ownerId === user.id
+  if (opp.ownerId === user.id) return true
+  if (user.role === ROLES.BROKER) return true
+  if (user.role === ROLES.OWNER) {
+    const holderId = opp.claimerId ?? opp.ownerId
+    return resolveHolderRole?.(holderId) !== ROLES.BROKER
+  }
+  return false
 }
 
 // Silme, "admin her şeyi gözlemler isterse siler" tanımına göre SADECE

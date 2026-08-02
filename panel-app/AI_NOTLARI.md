@@ -3,6 +3,32 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Broker'ın fiilen üstlendiği fırsatlar owner'dan gizlendi
+
+Broker da bir gayrimenkul danışmanı gibi kendi müşterilerini giriyor —
+"bilgiler özel, owner ya da ofis görmesin" isteği. Önceden owner
+`is_manager()` üzerinden HER fırsatı görüyordu (broker'la aynı "denetim
+rolü" ilkesi); bu artık broker'ın FİİLEN ÜSTLENDİĞİ (claimer_id, yoksa
+owner_id) fırsatlar için bir istisnaya sahip. Owner'ın diğer her yetkisi
+(kullanıcı yönetimi, skor/ciro, log, diğer danışmanların/ofisin fırsatları)
+DEĞİŞMEDİ — sadece bu istisna eklendi. Ofis zaten genel kuralın (owner_id/
+claimer_id/açık havuz) dışına çıkamıyordu, ek bir şey gerekmedi.
+
+Bilerek claimer_id > owner_id önceliği kullanıldı: broker'ın havuza attığı
+ama BAŞKA bir danışmanın üstlendiği bir fırsat (ownerId=broker,
+claimerId=başka danışman) owner'dan gizlenMİYOR — aksi halde owner o
+danışmanı denetleyemezdi. Açık/sahipsiz havuz kayıtları zaten ayrı bir
+kuralla herkese görünüyor.
+
+Değişen yerler: `lib/opportunities.js` (canViewOpportunity/canRevealContact
+üçüncü parametre — resolveHolderRole, verilmezse eski davranış korunur),
+`FirsatlarTab.jsx` (resolver knownUsers'tan), `mockProvider.js` getContact,
+migration `20260802130000_broker_firsatlari_owner_gizliligi.sql`
+(opportunities_select RLS + get_opportunity_contact() RPC — RPC ayrıca
+güncellendi çünkü SECURITY DEFINER olduğu için RLS'i bypass ediyor, oradan
+da aynı istisna uygulanmazsa owner id'yi bilerek RPC'yi doğrudan çağırıp
+müşteri bilgisini çekebilirdi).
+
 ## 2026-08-02 — "Danışmana Ata" artık Operasyon'a çağrı düşürüyor + Reklam Kaynakları raporu
 
 Lead Havuzu'nda Portföy tipi bir lead'i "Danışmana Ata" ile yönlendirmek

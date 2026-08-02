@@ -58,9 +58,15 @@ export default function FirsatlarTab() {
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
+  // Owner'a broker'ın fiilen üstlendiği fırsatları gizlemek için hangi
+  // kullanıcının hangi rolde olduğunu bilmemiz lazım — knownUsers zaten
+  // Panel/Lig gibi her yerde yüklü, ek bir sorgu gerekmiyor (bkz.
+  // canViewOpportunity notu).
+  const resolveHolderRole = (id) => knownUsers[id]?.role
   const roleVisible = useMemo(
-    () => (opportunities ?? []).filter((o) => canViewOpportunity(o, user)),
-    [opportunities, user],
+    () => (opportunities ?? []).filter((o) => canViewOpportunity(o, user, resolveHolderRole)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [opportunities, user, knownUsers],
   )
 
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, normal

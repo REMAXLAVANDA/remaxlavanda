@@ -23,10 +23,30 @@ function makeOpp(overrides = {}) {
 }
 
 describe('canViewOpportunity', () => {
-  it('broker ve owner her zaman görür', () => {
+  it('broker her zaman görür', () => {
     const opp = makeOpp({ ownerId: 'baska-biri', claimerId: 'baska-biri-2', status: 'kapandi' })
     expect(canViewOpportunity(opp, broker)).toBe(true)
+  })
+
+  it('owner, resolveOwnerRole verilmemişse (eski davranış) her zaman görür', () => {
+    const opp = makeOpp({ ownerId: 'baska-biri', claimerId: 'baska-biri-2', status: 'kapandi' })
     expect(canViewOpportunity(opp, owner)).toBe(true)
+  })
+
+  it('owner, broker\'a ait fırsatı GÖREMEZ (kendi müşterileri özel)', () => {
+    const opp = makeOpp({ ownerId: 'u-broker', claimerId: 'u-broker', status: 'claimed' })
+    expect(canViewOpportunity(opp, owner, () => 'broker')).toBe(false)
+  })
+
+  it('owner, broker olmayan birinin fırsatını görür', () => {
+    const opp = makeOpp({ ownerId: 'u-ofis', claimerId: null, status: 'kapandi' })
+    expect(canViewOpportunity(opp, owner, () => 'ofis')).toBe(true)
+  })
+
+  it('owner, broker\'ın havuza attığı ama BAŞKA bir danışmanın üstlendiği fırsatı görür (denetim korunuyor)', () => {
+    const opp = makeOpp({ ownerId: 'u-broker', claimerId: 'ext-danisman-2', status: 'claimed' })
+    const resolveHolderRole = (id) => (id === 'u-broker' ? 'broker' : 'danisman')
+    expect(canViewOpportunity(opp, owner, resolveHolderRole)).toBe(true)
   })
 
   it('sahibi kendi kaydını görür', () => {
@@ -55,10 +75,19 @@ describe('canViewOpportunity', () => {
 })
 
 describe('canRevealContact', () => {
-  it('broker ve owner her zaman görür', () => {
+  it('broker her zaman görür', () => {
     const opp = makeOpp({ ownerId: 'baska', claimerId: 'baska2' })
     expect(canRevealContact(opp, broker)).toBe(true)
+  })
+
+  it('owner, resolveOwnerRole verilmemişse (eski davranış) her zaman görür', () => {
+    const opp = makeOpp({ ownerId: 'baska', claimerId: 'baska2' })
     expect(canRevealContact(opp, owner)).toBe(true)
+  })
+
+  it('owner, broker\'a ait fırsatın müşteri bilgisini GÖREMEZ', () => {
+    const opp = makeOpp({ ownerId: 'u-broker' })
+    expect(canRevealContact(opp, owner, () => 'broker')).toBe(false)
   })
 
   it('sahibi görür', () => {

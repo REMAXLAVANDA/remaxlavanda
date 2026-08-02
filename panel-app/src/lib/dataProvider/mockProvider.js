@@ -137,7 +137,10 @@ export const opportunities = {
   async getContact(id, user) {
     const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
     if (!row) return delay({ leadAd: null, leadTelefon: null })
-    if (canRevealContact(row, user)) {
+    // Owner'a broker'ın fiilen üstlendiği fırsatı gizleme kuralı burada da
+    // (gerçek güvenlik sınırında) uygulanıyor — bkz. lib/opportunities.js notu.
+    const resolveHolderRole = (holderId) => allMockUserRows().find((u) => u.id === holderId)?.role
+    if (canRevealContact(row, user, resolveHolderRole)) {
       return delay({ leadAd: row.leadAd, leadTelefon: row.leadTelefon })
     }
     return delay({ leadAd: null, leadTelefon: null })
