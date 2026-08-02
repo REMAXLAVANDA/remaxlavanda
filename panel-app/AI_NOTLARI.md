@@ -3,6 +3,30 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Aylık Etkinlik Panosu düzeltildi ve sadeleştirildi
+
+Bug: "Aylık Pano" açılınca hiçbir şey çıkmıyordu — pano SADECE elle
+"Panoda göster" işaretlenmiş etkinlikleri gösteriyordu (önceki brief:
+"yönetici sadece ... gibi etkinlikleri seçecek"), kimse bu kutuyu hiç
+işaretlememiş, pano hep boş kalmıştı. Kaldırıldı: artık o ayın Etkinlik/
+Eğitim/Toplantı türündeki TÜM etkinlikleri otomatik geliyor (broker_
+gorusmesi/kocluk_gorusmesi bilerek dışarıda — herkese açık paylaşımda
+birebir görüşmelerin yeri yok). "Bu Paylaşıma Dahil Et" alt seçimi kaldı
+(paylaşmadan önce istemeyeni çıkarabiliyor), sadece kaynak artık tür
+bazlı.
+
+Sadeleştirme: pano artık SADECE takvim ızgarasını gösteriyor — "Bu Ay
+Seni Neler Bekliyor?" (etkinlik listesi) ve "Bu Ayın Odak Noktaları"
+(eğitim eksiği/doğum günü/lig/en büyük etkinlik) sağ paneli tamamen
+kaldırıldı (bkz. "sadece takvim bölümü çıksın" isteği). Bu panel SADECE
+buradaki focusItems için eğitim/lig verisi çekiyordu — panel gidince o
+ekstra sorgu da (educationProvider/leagueProvider) kaldırıldı, modal artık
+anında açılıyor (ayrı bir loading/error adımı yok). `panoGoster` alanı
+(checkbox, form state, provider mapping) artık hiçbir yerde okunmadığı
+için New/Edit Etkinlik formlarından da kaldırıldı — DB'deki `pano_goster`
+kolonu dokunulmadan kaldı (kullanılmıyor ama zararsız, silme migration'ı
+gerekmiyor).
+
 ## 2026-08-02 — Takip: sağlık skoru artık tablo, metrikler açmadan görünüyor
 
 "Danışman Sağlık Skoru" listesi (Takip sayfası) önceden sadece isim +

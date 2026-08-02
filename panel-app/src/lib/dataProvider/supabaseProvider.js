@@ -198,10 +198,6 @@ function mapEvent(row) {
     startAt: row.start_at,
     endAt: row.end_at,
     creatorId: row.creator_id,
-    // Aylık Etkinlik Panosu'nda (WhatsApp/TV görseli) gösterilsin mi —
-    // yönetici Yeni/Düzenle Etkinlik formunda işaretliyor (bkz. migration
-    // 20260729210000).
-    panoGoster: row.pano_goster,
   }
 }
 
@@ -241,7 +237,6 @@ export const calendarEvents = {
           start_at: startAt,
           end_at: endAt,
           creator_id: creatorId,
-          pano_goster: form.panoGoster ?? false,
         })
         .select()
         .single(),
@@ -317,7 +312,6 @@ export const calendarEvents = {
     if ('date' in patch || 'endTime' in patch) {
       updateRow.end_at = patch.endTime ? new Date(`${patch.date}T${patch.endTime}`).toISOString() : null
     }
-    if ('panoGoster' in patch) updateRow.pano_goster = patch.panoGoster
     const data = await run(client().from('calendar_events').update(updateRow).eq('id', id).select().single())
     return mapEvent(data)
   },

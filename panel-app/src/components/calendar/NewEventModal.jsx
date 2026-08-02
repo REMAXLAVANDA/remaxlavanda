@@ -15,9 +15,6 @@ const EMPTY_FORM = {
   // sözlüğün anahtarları. "Davet Edilmedi" ayrı bir değer DEĞİL, burada hiç
   // olmamak demek (bkz. broker isteği: 4. seçenek aslında yokluk).
   katilimTipleri: {},
-  // Aylık Etkinlik Panosu'na (WhatsApp/TV görseli) dahil edilsin mi — bkz.
-  // brief: "yönetici sadece ... gibi etkinlikleri seçecek".
-  panoGoster: false,
 }
 
 // Select'in kendi rengi de katılım tipini yansıtsın diye (bkz. broker
@@ -144,17 +141,6 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
           rows={2}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
-
-        <label className="flex items-center gap-2 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-700">
-          <input
-            type="checkbox"
-            checked={form.panoGoster}
-            onChange={(e) => set({ panoGoster: e.target.checked })}
-            className="h-3.5 w-3.5 rounded border-ink-300"
-          />
-          Aylık Etkinlik Panosunda göster
-          <span className="text-xs text-ink-400">(WhatsApp/TV için indirilebilir görsel)</span>
-        </label>
 
         <div>
           <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1">

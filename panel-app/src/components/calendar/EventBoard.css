@@ -60,9 +60,9 @@
 .board-legend-dot { width: 0.95cqw; height: 0.95cqw; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; color: #fff; }
 .board-legend-dot svg { width: 62%; height: 62%; }
 
-.board-main { display: grid; grid-template-columns: 57.5cqw 1fr; gap: 2.4cqw; min-height: 0; }
+.board-main { display: flex; min-height: 0; }
 
-.board-cal-card { background: var(--glass); backdrop-filter: blur(14px) saturate(140%); border: 1px solid var(--line); border-radius: 1.3cqw; padding: 1.5cqw 1.5cqw 1.2cqw; display: flex; flex-direction: column; min-height: 0; }
+.board-cal-card { flex: 1; background: var(--glass); backdrop-filter: blur(14px) saturate(140%); border: 1px solid var(--line); border-radius: 1.3cqw; padding: 1.5cqw 1.5cqw 1.2cqw; display: flex; flex-direction: column; min-height: 0; }
 .board-cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 0.7cqh; }
 .board-cal-weekdays span { text-align: center; font-size: 0.78cqw; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-400); text-transform: uppercase; }
 .board-cal-days { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.55cqw; min-height: 0; }
@@ -74,27 +74,6 @@
 .board-day-icons { display: flex; gap: 0.32cqw; flex-wrap: wrap; }
 .board-badge { width: 1.5cqw; height: 1.5cqw; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 3px 6px -2px rgba(12, 39, 73, 0.35); flex: none; }
 .board-badge svg { width: 60%; height: 60%; }
-
-.board-side { display: flex; flex-direction: column; min-height: 0; gap: 1cqh; }
-.board-side-block { display: flex; flex-direction: column; min-height: 0; flex: none; }
-.board-side-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.32cqw; color: var(--navy); margin: 0 0 0.55cqh 0; letter-spacing: -0.005em; }
-
-.board-cards { display: flex; flex-direction: column; gap: 0.42cqh; }
-.board-ecard { display: flex; align-items: center; gap: 0.75cqw; background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 0.75cqw; padding: 0.42cqw 0.75cqw; }
-.board-ecard .board-badge { width: 1.85cqw; height: 1.85cqw; }
-.board-ecard-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 0.06cqh; }
-.board-ecard-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.88cqw; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.board-ecard-meta { font-size: 0.7cqw; color: var(--ink-500); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.board-pill { flex: none; font-size: 0.62cqw; font-weight: 700; letter-spacing: 0.02em; padding: 0.28cqh 0.58cqw; border-radius: 999px; white-space: nowrap; }
-.board-pill.zorunlu { background: rgba(220, 28, 46, 0.1); color: var(--red-dark); }
-.board-pill.onerilen { background: rgba(245, 158, 11, 0.12); color: #b45309; }
-
-.board-focus { display: flex; flex-direction: column; gap: 0.36cqh; padding-top: 0.6cqh; border-top: 1px solid var(--line); }
-.board-frow { display: flex; align-items: center; gap: 0.6cqw; }
-.board-frow .board-fico { width: 1.45cqw; height: 1.45cqw; border-radius: 0.45cqw; background: rgba(12, 39, 73, 0.07); color: var(--navy); display: flex; align-items: center; justify-content: center; flex: none; }
-.board-frow .board-fico svg { width: 58%; height: 58%; }
-.board-flabel { font-size: 0.76cqw; color: var(--ink-500); font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.board-fvalue { font-size: 0.82cqw; color: var(--navy); font-weight: 700; text-align: right; white-space: nowrap; flex: none; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
 
 .board-foot { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2cqw; padding-top: 1.6cqh; border-top: 1px solid var(--line); }
 .board-quote-block { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3cqh; }

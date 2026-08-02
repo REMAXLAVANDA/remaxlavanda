@@ -180,7 +180,6 @@ export const calendarEvents = {
       startAt,
       endAt,
       creatorId,
-      panoGoster: form.panoGoster ?? false,
     }
     MOCK_EVENTS.push(row)
     // form.katilimTipleri: { [userId]: 'zorunlu'|'onerilen'|'istege_bagli' }
@@ -239,7 +238,6 @@ export const calendarEvents = {
     if ('date' in patch || 'endTime' in patch) {
       row.endAt = patch.endTime ? new Date(`${patch.date}T${patch.endTime}`).toISOString() : null
     }
-    if ('panoGoster' in patch) row.panoGoster = patch.panoGoster
     return delay({ ...row })
   },
   async remove(id) {

@@ -250,9 +250,7 @@ export default function TakvimTab() {
         />
       )}
 
-      {showBoardModal && (
-        <EventBoardModal onClose={() => setShowBoardModal(false)} events={events} attendance={attendance} />
-      )}
+      {showBoardModal && <EventBoardModal onClose={() => setShowBoardModal(false)} events={events} />}
 
       {deleteTargetId && (
         <ConfirmDialog

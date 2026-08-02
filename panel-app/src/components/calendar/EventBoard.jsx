@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import { Users, GraduationCap, PartyPopper, Briefcase, MessageCircle } from 'lucide-react'
-import { EVENT_TYPE_LABELS, EVENT_TYPE_COLORS, formatEventTime } from '../../lib/calendar'
+import { EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from '../../lib/calendar'
 import './EventBoard.css'
 
 const TYPE_ICONS = {
@@ -39,12 +39,14 @@ function sameDay(a, b) {
 }
 
 // props.boardEvents: [{ id, type, title, startAt, endAt, location, katilimBadge: 'zorunlu'|'onerilen'|null }]
-// props.focusItems: [{ key, icon: LucideComponent, label, value }] — "Bu Ayın Odak Noktaları"
-// Kişiye özel katılım bilgisi (Senin için Zorunlu vb.) BİLEREK burada YOK —
-// pano herkese aynı görünen TEK görsel, broker'ın kararı: sadece genel bir
-// rozet ("Zorunlu"/"Önerilen") gösterilsin, kişisel durum Portal'da kalsın.
+// — sadece takvim ızgarasındaki gün ikonları için kullanılıyor, ayrı bir
+// liste/odak paneli YOK (bkz. "sadece takvim bölümü çıksın, sağında bu ay
+// seni ne bekliyor olmasın" isteği). Kişiye özel katılım bilgisi (Senin
+// için Zorunlu vb.) BİLEREK burada YOK — pano herkese aynı görünen TEK
+// görsel, broker'ın kararı: sadece genel bir rozet ("Zorunlu"/"Önerilen")
+// gösterilsin, kişisel durum Portal'da kalsın.
 const EventBoard = forwardRef(function EventBoard(
-  { monthDate, boardEvents, focusItems, qrDataUrl, updatedLabel, quote = 'Birlikte Daha *Yükseğe!*' },
+  { monthDate, boardEvents, qrDataUrl, updatedLabel, quote = 'Birlikte Daha *Yükseğe!*' },
   ref,
 ) {
   const { days, rows } = buildMonthGrid(monthDate)
@@ -125,59 +127,6 @@ const EventBoard = forwardRef(function EventBoard(
                 )
               })}
             </div>
-          </div>
-
-          <div className="board-side">
-            <div className="board-side-block">
-              <div className="board-side-title">Bu Ay Seni Neler Bekliyor?</div>
-              {boardEvents.length === 0 ? (
-                <p style={{ fontSize: '0.8cqw', color: 'var(--ink-400)' }}>Bu ay panoya işaretlenmiş etkinlik yok.</p>
-              ) : (
-                <div className="board-cards">
-                  {boardEvents.slice(0, 6).map((e) => {
-                    const Icon = TYPE_ICONS[e.type]
-                    const d = new Date(e.startAt)
-                    const dateLabel = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })
-                    return (
-                      <div className="board-ecard" key={e.id}>
-                        <span className="board-badge" style={{ background: EVENT_TYPE_COLORS[e.type] }}>
-                          <Icon size={11} strokeWidth={2.5} />
-                        </span>
-                        <div className="board-ecard-body">
-                          <span className="board-ecard-name">{e.title}</span>
-                          <span className="board-ecard-meta">
-                            {dateLabel} · {formatEventTime(e.startAt)}
-                            {e.location && ` · ${e.location}`}
-                          </span>
-                        </div>
-                        {e.katilimBadge && (
-                          <span className={`board-pill ${e.katilimBadge}`}>
-                            {e.katilimBadge === 'zorunlu' ? 'Zorunlu' : 'Önerilen'}
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {focusItems.length > 0 && (
-              <div className="board-side-block">
-                <div className="board-side-title">Bu Ayın Odak Noktaları</div>
-                <div className="board-focus">
-                  {focusItems.map((f) => (
-                    <div className="board-frow" key={f.key}>
-                      <span className="board-fico">
-                        <f.icon size={11} strokeWidth={2.25} />
-                      </span>
-                      <span className="board-flabel">{f.label}</span>
-                      <span className="board-fvalue">{f.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
