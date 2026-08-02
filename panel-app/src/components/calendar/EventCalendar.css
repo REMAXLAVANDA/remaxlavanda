@@ -12,11 +12,25 @@
 .fc .fc-daygrid-event .fc-event-time {
   color: #fff;
 }
+/* Saat aralığı ("10:00 - 11:00") başlığın önüne aynı ağırlıkta basılınca
+   başlığı eziyordu (bkz. "her şeyin başında saat yazıyor, çok baskın"
+   geri bildirimi) — artık küçük ve soluk, başlık asıl vurguyu taşıyor. */
+.fc .fc-daygrid-event .fc-event-time {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.8;
+}
 .fc .fc-timegrid-event {
   border-radius: 6px;
 }
-.fc .fc-timegrid-event .fc-event-title,
-.fc .fc-timegrid-event .fc-event-time {
+.fc .fc-timegrid-event .fc-event-title {
   color: #fff;
   font-weight: 600;
+}
+.fc .fc-timegrid-event .fc-event-time {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.8;
 }

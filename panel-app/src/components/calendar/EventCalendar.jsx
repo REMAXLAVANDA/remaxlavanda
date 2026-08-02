@@ -46,6 +46,8 @@ export default function EventCalendar({ events, onEventClick }) {
         }
         height="auto"
         eventDisplay="block"
+        displayEventEnd
+        eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
         events={fcEvents}
         eventClick={(info) => onEventClick(info.event.id)}
       />

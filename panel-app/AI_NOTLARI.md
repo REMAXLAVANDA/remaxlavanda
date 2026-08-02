@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Takvim: etkinlik saati küçültüldü, aralık olarak gösteriliyor
+
+Broker "her şeyin başında saat yazıyor, çok baskın" dedi — FullCalendar
+varsayılan olarak saat + başlığı aynı boyut/kalınlıkta basıyordu, saat
+başlığı eziyordu. `EventCalendar.jsx`'e `displayEventEnd` + `eventTimeFormat`
+(2 haneli, 24 saat) eklendi → artık "10:00 - 11:00" gibi tam aralık
+gösteriliyor. `EventCalendar.css`'te `.fc-event-time` küçültüldü (9-10px,
+%80 opaklık, normal kalınlık) — başlık kalın/net kalıyor, saat kendi satırında
+soluk bir ayrıntı. Aylık Pano (`EventBoard.jsx`) zaten hiç saat göstermiyordu,
+bu değişiklik sadece Planlama/Takvim sayfasındaki (FullCalendar) görünümü
+etkiliyor. DB değişikliği yok.
+
 ## 2026-08-02 — Lead Havuzu: yönlendirilen lead'de "Tip" artık gerçek hedefi gösteriyor
 
 Broker "Recruiting'e yönlendirmeme rağmen neden Portföy görünüyor" diye
