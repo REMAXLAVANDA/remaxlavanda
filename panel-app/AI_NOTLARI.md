@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Fırsatlar/Operasyon: widget'lar renkli dolu, yazılar beyaz
+
+Bölüm renklerinin (kırmızı/mavi/lacivert) sadece üst çizgide kalması
+yeterli bulunmadı — "widget'lar renkli olsun, içindeki yazılar beyaz
+olsun" isteğiyle kategori kutuları (Konut/Ticari/Arsa/Diğer,
+`OpportunitySection.jsx` yeni `boxColor` prop'u) ve Operasyon'un 4 istatistik
+kutusu (`StatsCards.jsx`) artık bölümün kendi rengiyle dolu, üzerlerindeki
+yazı beyaz. Seçili kategori kutusu koyu bir ring (`ring-2 ring-ink-900`)
+ile ayrışıyor. StatsCards'taki uyarı durumu (atanmamış/dönüş bekleyen > 0)
+artık amber-300 ile lacivert zemin üzerinde okunaklı kalıyor. DB
+değişikliği yok.
+
 ## 2026-08-02 — Fırsatlar: Satıcılar/Alıcılar/Operasyon üç ayrı renk
 
 "Birbirinden daha çabuk ayırt edilebilir" isteği — üç bölüm artık üstte
