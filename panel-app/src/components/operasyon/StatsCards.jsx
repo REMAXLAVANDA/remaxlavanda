@@ -1,3 +1,6 @@
+// Üst çizgi lacivert — Fırsatlar sayfasındaki Operasyon bölümüyle ve
+// Ofisin Nabzı'ndaki Operasyon kutusuyla aynı renk (bkz. o ikisinde de
+// Operasyon = lacivert kararı).
 export default function StatsCards({ stats }) {
   const items = [
     { label: 'Toplam Çağrı', value: stats.total },
@@ -9,7 +12,7 @@ export default function StatsCards({ stats }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {items.map((it) => (
-        <div key={it.label} className="rounded-2xl border border-ink-100 bg-white p-4">
+        <div key={it.label} className="rounded-2xl border border-ink-100 bg-white border-t-4 border-t-remax-navy p-4">
           <p className={`text-2xl font-semibold ${it.warn ? 'text-amber-600' : 'text-ink-900'}`}>{it.value}</p>
           <p className="mt-0.5 text-xs text-ink-400">{it.label}</p>
         </div>

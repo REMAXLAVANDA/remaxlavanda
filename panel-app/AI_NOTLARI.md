@@ -3,6 +3,31 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Renkli üst çizgi deseni diğer ekranlara da yayıldı
+
+Fırsatlar'daki "kenarları renkli, içi nötr" deseni (bkz. bir alt madde)
+broker isteğiyle ("hepsinin de premium görüntü olsun, okunaklı olsun...
+hepsini tek tek yap") diğer stat-kutusu ekranlarına da uygulandı, hepsi
+AYNI marka renk eşlemesini paylaşıyor (bir modül her sayfada hep aynı
+renk):
+
+- **Panel → Ofisin Nabzı** (`OfisinNabziGrid.jsx`, yeni `accent` prop'u):
+  Operasyon=lacivert, Portföy=kırmızı, Recruiting=mavi, Etkinlik=lacivert,
+  Eğitim=mavi, Kritik Uyarılar=kırmızı — ritim bozulmasın diye yan yana iki
+  kutu aynı renk gelmiyor.
+- **Panel → Dikkat Gerekiyor** (`DikkatGerekiyorList.jsx`): "kritik"
+  rengi stok `red-500`'den marka kırmızısı `brand-600`'e çevrildi (uyarı
+  sarısı semantik olduğu için aynen kaldı).
+- **Panel/Lig → Dönem Özeti podyumu** (`PeriodSummaryBoard.jsx`) ve **Lig
+  sekmeleri**: Ciro=kırmızı, Memnuniyet=mavi, Sosyal Medya=lacivert — tek
+  kaynak `lib/league.js`'teki yeni `LEAGUE_CATEGORY_COLORS` sabiti,
+  podyum kartları VE sekme aktif rengi aynı yerden besleniyor.
+- **Operasyon StatsCards**: 4 istatistik kutusu artık lacivert üst
+  çizgili — Fırsatlar'daki Operasyon bölümüyle ve Ofisin Nabzı'ndaki
+  Operasyon kutusuyla aynı renk.
+
+DB değişikliği yok.
+
 ## 2026-08-02 — Fırsatlar/Operasyon: widget renklendirmesi tamamen geri alındı
 
 "Sanki ilk renklendirmedeki hali daha şıktı, en başa dönelim" isteğiyle

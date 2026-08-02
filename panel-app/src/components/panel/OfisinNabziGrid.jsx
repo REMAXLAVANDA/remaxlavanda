@@ -6,7 +6,19 @@ import { Link } from 'react-router-dom'
 // (bkz. brief: "Lead Havuzu ayrı kart olmayacak, Operasyon'un içine
 // dahil edilecek"). Kritik Uyarılar kutusu `to` yerine `onClick` alır
 // (aynı sayfada Dikkat Gerekiyor bölümüne kaydırır, ayrı bir sayfası yok).
-function Tile({ icon: Icon, label, value, detail, to, onClick }) {
+//
+// Her kutu, Fırsatlar sayfasındaki renk mantığıyla aynı: üst kenarda
+// RE/MAX marka rengi, iç nötr beyaz kalıyor. Operasyon her yerde lacivert
+// (Fırsatlar'daki Operasyon bölümüyle aynı), Kritik Uyarılar her yerde
+// kırmızı (Dikkat Gerekiyor'daki "kritik" rengiyle aynı) — modül rengi
+// sayfa değiştikçe değişmiyor.
+const ACCENT_BORDER = {
+  red: 'border-t-brand-600',
+  blue: 'border-t-remax-blue',
+  navy: 'border-t-remax-navy',
+}
+
+function Tile({ icon: Icon, label, value, detail, to, onClick, accent = 'navy' }) {
   const inner = (
     <>
       <div className="mb-1.5 flex items-center gap-1.5 text-ink-400">
@@ -17,7 +29,7 @@ function Tile({ icon: Icon, label, value, detail, to, onClick }) {
       {detail && <p className="mt-1 text-xs leading-snug text-ink-400">{detail}</p>}
     </>
   )
-  const className = 'block w-full rounded-xl border border-ink-100 bg-white p-3.5 text-left transition-colors hover:border-brand-200 hover:bg-brand-50/30'
+  const className = `block w-full rounded-xl border border-ink-100 bg-white border-t-4 ${ACCENT_BORDER[accent]} p-3.5 text-left transition-colors hover:bg-ink-50`
   if (onClick) {
     return (
       <button type="button" onClick={onClick} className={className}>

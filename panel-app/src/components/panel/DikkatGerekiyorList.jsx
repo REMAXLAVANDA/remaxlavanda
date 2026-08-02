@@ -4,9 +4,11 @@ import { CheckCircle2 } from 'lucide-react'
 // Kırmızı SADECE kritik durumlar için — normal aksiyon linki ("İncele →")
 // kurumsal lacivert (ink-900), dekoratif olarak kırmızı kullanılmıyor
 // (bkz. brief madde 8). KRİTİK/UYARI ayrımı her item'ın kendi
-// severity'sinden geliyor (bkz. Panel.jsx attentionItems).
+// severity'sinden geliyor (bkz. Panel.jsx attentionItems). Kritik rengi
+// stok Tailwind kırmızısı değil, RE/MAX marka kırmızısı (brand-600) —
+// Fırsatlar/Ofisin Nabzı'ndaki aynı kırmızıyla tutarlı.
 const SEVERITY_STYLES = {
-  kritik: { border: 'border-l-red-500', badge: 'bg-red-50 text-red-600', label: 'KRİTİK' },
+  kritik: { border: 'border-l-brand-600', badge: 'bg-brand-50 text-brand-700', label: 'KRİTİK' },
   uyari: { border: 'border-l-amber-400', badge: 'bg-amber-50 text-amber-700', label: 'UYARI' },
 }
 

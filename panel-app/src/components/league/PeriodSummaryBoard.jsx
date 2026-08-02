@@ -1,5 +1,5 @@
 import { Crown, ArrowDown } from 'lucide-react'
-import { MEDALS, formatGap } from '../../lib/league'
+import { MEDALS, LEAGUE_CATEGORY_COLORS, formatGap } from '../../lib/league'
 
 // Sekmeler arasında geçmeden üç kategorinin ilk 3'ünü tek bakışta gösteren
 // "podyum" panosu — dönem sonunda ofiste paylaşılacak görüntü tam olarak bu.
@@ -12,9 +12,13 @@ export default function PeriodSummaryBoard({ categories, rankingsByCategory }) {
     <div className="mb-6 grid gap-3 sm:grid-cols-3">
       {categories.map((c) => {
         const top3 = (rankingsByCategory[c.key] ?? []).slice(0, 3)
+        const colors = LEAGUE_CATEGORY_COLORS[c.key]
         return (
-          <div key={c.key} className="rounded-2xl border border-ink-100 bg-white p-4">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-400">{c.label}</h3>
+          <div key={c.key} className={`rounded-2xl border border-ink-100 bg-white border-t-4 ${colors.border} p-4`}>
+            <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-400">
+              <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
+              {c.label}
+            </h3>
             {top3.length === 0 ? (
               <p className="py-6 text-center text-xs text-ink-400">Veri yok</p>
             ) : (

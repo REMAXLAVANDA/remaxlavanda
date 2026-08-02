@@ -612,6 +612,7 @@ export default function Panel() {
         to: '/operasyon',
         value: callStats.total,
         detail: `${leadStats.yeni} yeni lead · ${callStats.total - callStats.assigned} atanmamış`,
+        accent: 'navy',
       },
       {
         label: 'Portföy',
@@ -619,6 +620,7 @@ export default function Panel() {
         to: '/firsatlar',
         value: opportunityStats.acik,
         detail: 'açık fırsat',
+        accent: 'red',
       },
       {
         label: 'Recruiting',
@@ -626,6 +628,7 @@ export default function Panel() {
         to: '/recruiting',
         value: recruitingStats.yeniBasvuru,
         detail: 'yeni başvuru',
+        accent: 'blue',
       },
       {
         label: 'Etkinlik',
@@ -637,6 +640,7 @@ export default function Panel() {
         // aynı kavram için iki farklı sayı görünürdü.
         value: nextEventsAlways.length,
         detail: 'yaklaşan',
+        accent: 'navy',
       },
       {
         label: 'Eğitim',
@@ -644,6 +648,7 @@ export default function Panel() {
         to: '/egitim',
         value: educationGaps.length,
         detail: 'kişi eksik',
+        accent: 'blue',
       },
       {
         label: 'Kritik Uyarılar',
@@ -651,6 +656,7 @@ export default function Panel() {
         value: attentionItems.length,
         detail: 'dikkat gerekiyor',
         onClick: () => document.getElementById('dikkat-gerekiyor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        accent: 'red',
       },
     ],
     [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, educationGaps, attentionItems],

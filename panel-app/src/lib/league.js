@@ -8,6 +8,26 @@ export const LEAGUE_CATEGORIES = [
   { key: 'sosyal_medya', label: 'Sosyal Medya', unit: 'puan' },
 ]
 
+// Fırsatlar'daki Satıcılar/Alıcılar/Operasyon renk ayrımıyla aynı mantık —
+// üç kategori RE/MAX marka renkleriyle birbirinden ayrışıyor. Podyum
+// panosu (PeriodSummaryBoard) ve Lig sayfasındaki sekmeler AYNI eşlemeyi
+// kullanıyor, tek kaynak burası.
+export const LEAGUE_CATEGORY_COLORS = {
+  ciro: { border: 'border-t-brand-600', dot: 'bg-brand-600', tabBorder: 'border-brand-600', tabText: 'text-brand-700' },
+  memnuniyet: {
+    border: 'border-t-remax-blue',
+    dot: 'bg-remax-blue',
+    tabBorder: 'border-remax-blue',
+    tabText: 'text-remax-blue',
+  },
+  sosyal_medya: {
+    border: 'border-t-remax-navy',
+    dot: 'bg-remax-navy',
+    tabBorder: 'border-remax-navy',
+    tabText: 'text-remax-navy',
+  },
+}
+
 // Sosyal Medya puanlı aktivite kayıtlarından, Memnuniyet de Yorum
 // Hakkı'ndaki "kaç yorum alındı" sayısından otomatik hesaplanıyor — ikisi de
 // serbest sayı olarak elle girilmiyor artık. "Skor Gir" formunda elle

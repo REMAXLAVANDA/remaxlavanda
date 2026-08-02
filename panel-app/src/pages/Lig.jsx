@@ -5,7 +5,15 @@ import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { league as leagueProvider } from '../lib/dataProvider'
-import { LEAGUE_CATEGORIES, buildShareText, canManagePeriods, canManageScores, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
+import {
+  LEAGUE_CATEGORIES,
+  LEAGUE_CATEGORY_COLORS,
+  buildShareText,
+  canManagePeriods,
+  canManageScores,
+  rankingsFor,
+  wilsonScoreLowerBound,
+} from '../lib/league'
 import { sortByName } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
@@ -419,17 +427,20 @@ export default function Lig() {
       {isManager && !loading && !error && period && (
         <>
           <div className="mb-5 flex gap-1 border-b border-ink-100">
-            {LEAGUE_CATEGORIES.map((c) => (
-              <button
-                key={c.key}
-                onClick={() => setTab(c.key)}
-                className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                  tab === c.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-800'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
+            {LEAGUE_CATEGORIES.map((c) => {
+              const colors = LEAGUE_CATEGORY_COLORS[c.key]
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setTab(c.key)}
+                  className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                    tab === c.key ? `${colors.tabBorder} ${colors.tabText}` : 'border-transparent text-ink-500 hover:text-ink-800'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              )
+            })}
           </div>
           <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
         </>
