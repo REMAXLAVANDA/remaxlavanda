@@ -19,7 +19,8 @@ Durum (bu maddenin yazıldığı an itibarıyla):
    — `admin_reset_credentials`/`verify_pin`/`verify_login`/
    `change_own_credentials`'ın EXECUTE'u PUBLIC/anon/authenticated'ten
    kaldırılıyor (broker'ın "verify_login'i de ekle" güncellemesiyle 2'den
-   4 fonksiyona çıktı). **Onay bekliyor.**
+   4 fonksiyona çıktı). **Onaylandı, UYGULANDI** — sadece postgres/
+   service_role'de EXECUTE kaldı, doğrulandı.
 2. `20260802211000_..._kaldir.sql` — aynı 4 fonksiyonu DROP eder. Repo'da,
    Edge Function'larda, API loglarında kullanım yok; `app_credentials`
    artık `archive` şemasında olduğu için bu 4 fonksiyon zaten çalışmıyordu
