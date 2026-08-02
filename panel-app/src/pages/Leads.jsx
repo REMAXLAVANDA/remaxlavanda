@@ -45,10 +45,10 @@ async function loadAll() {
 // lib/callLogs.js), üç ayrı alandan (opportunityId/portfoyAlindiMi/
 // donusYapildiMi) tek bir rozet üretiyoruz.
 function callProcessLabel(call) {
-  if (call.opportunityId) return { label: 'Fırsata Dönüştü', style: 'bg-emerald-50 text-emerald-700' }
-  if (call.portfoyAlindiMi) return { label: 'Portföy Alındı', style: 'bg-emerald-50 text-emerald-700' }
-  if (call.donusYapildiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700' }
-  return { label: "Operasyon'da Bekliyor", style: 'bg-ink-100 text-ink-600' }
+  if (call.opportunityId) return { label: 'Fırsata Dönüştü', style: 'bg-emerald-50 text-emerald-700', module: 'operasyon' }
+  if (call.portfoyAlindiMi) return { label: 'Portföy Alındı', style: 'bg-emerald-50 text-emerald-700', module: 'operasyon' }
+  if (call.donusYapildiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700', module: 'operasyon' }
+  return { label: "Operasyon'da Bekliyor", style: 'bg-ink-100 text-ink-600', module: 'operasyon' }
 }
 
 export default function Leads() {
@@ -90,14 +90,20 @@ export default function Leads() {
   // durumunu gösterir (opportunities.status ya da recruiting_candidates.
   // durum), değilse boş. Ayrı bir sorgu YOK — loadAll zaten üç listeyi
   // birlikte yüklüyor, burada sadece kaynak_lead_id ile eşleştiriliyor.
+  // `module` alanı LeadTable'da "Tip" hücresini yönlendirme SONRASI gerçek
+  // hedefe çevirmek için kullanılıyor (bkz. "Recruiting'e yönlendirmeme
+  // rağmen neden Portföy görünüyor" — lead.tip SADECE giriş anındaki
+  // kaynak kampanyayı gösteriyordu, yönlendirme sonrasında güncellenmiyordu,
+  // kafa karıştırıyordu).
   function resolveProcessStatus(lead) {
     if (lead.durum !== 'atandi') return null
     const call = (data?.calls ?? []).find((c) => c.kaynakLeadId === lead.id)
     if (call) return callProcessLabel(call)
     const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === lead.id)
-    if (opp) return { label: OPPORTUNITY_STATUS_LABELS[opp.status], style: OPPORTUNITY_STATUS_STYLES[opp.status] }
+    if (opp) return { label: OPPORTUNITY_STATUS_LABELS[opp.status], style: OPPORTUNITY_STATUS_STYLES[opp.status], module: 'firsatlar' }
     const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === lead.id)
-    if (candidate) return { label: RECRUITING_DURUM_LABELS[candidate.durum], style: RECRUITING_DURUM_STYLES[candidate.durum] }
+    if (candidate)
+      return { label: RECRUITING_DURUM_LABELS[candidate.durum], style: RECRUITING_DURUM_STYLES[candidate.durum], module: 'recruiting' }
     return null
   }
 

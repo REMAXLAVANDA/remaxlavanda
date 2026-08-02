@@ -1,4 +1,12 @@
-import { LEAD_TIP_LABELS, LEAD_DURUM_LABELS, LEAD_DURUM_STYLES, isStaleLead } from '../../lib/leads'
+import { LEAD_TIP_LABELS, LEAD_HEDEF_MODUL_LABELS, LEAD_DURUM_LABELS, LEAD_DURUM_STYLES, isStaleLead } from '../../lib/leads'
+
+// Yönlendirilmemiş bir lead'de "Tip" giriş anındaki kampanya türünü
+// gösterir (LEAD_TIP_LABELS). Yönlendirildikten SONRA artık o etiket eski
+// bilgi sayılır — gerçek gittiği yeri gösteriyoruz (process.module).
+function tipOrHedefLabel(lead, process) {
+  if (lead.durum === 'atandi' && process?.module) return `→ ${LEAD_HEDEF_MODUL_LABELS[process.module]}`
+  return LEAD_TIP_LABELS[lead.tip]
+}
 
 // Kampanya/reklam bilgisi — daha önce sadece Lead Detayı'na girince
 // görünüyordu, broker Portföy/Recruiting'e yönlendirme kararını (hangi
@@ -100,6 +108,7 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
             {leads.map((lead) => {
               const stale = isStaleLead(lead)
               const campaign = campaignLabel(lead)
+              const process = resolveProcessStatus(lead)
               return (
                 <tr
                   key={lead.id}
@@ -112,14 +121,14 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
                   <td className="px-3 py-3 font-medium text-ink-900">{lead.adSoyad}</td>
                   <td className="px-3 py-3 text-ink-600">{lead.telefon ?? '—'}</td>
                   <td className="px-3 py-3 text-ink-600">
-                    {LEAD_TIP_LABELS[lead.tip]}
+                    {tipOrHedefLabel(lead, process)}
                     {campaign && <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-ink-400">{campaign}</div>}
                   </td>
                   <td className="px-3 py-3">
                     <DurumBadge durum={lead.durum} />
                   </td>
                   <td className="px-3 py-3">
-                    <ProcessStatusBadge process={resolveProcessStatus(lead)} />
+                    <ProcessStatusBadge process={process} />
                   </td>
                   <td className="px-3 py-3">
                     <QuickRouteButtons lead={lead} onQuickConvert={onQuickConvert} />
@@ -146,7 +155,7 @@ export default function LeadTable({ leads, resolveProcessStatus, onRowClick, onQ
                 <div className="min-w-0">
                   <p className="truncate font-medium text-ink-900">{lead.adSoyad}</p>
                   <p className="mt-0.5 text-sm text-ink-600">{lead.telefon ?? '—'}</p>
-                  <p className="mt-1 text-xs text-ink-400">{LEAD_TIP_LABELS[lead.tip]}</p>
+                  <p className="mt-1 text-xs text-ink-400">{tipOrHedefLabel(lead, process)}</p>
                   {campaign && <p className="mt-0.5 truncate text-xs text-ink-400">{campaign}</p>}
                 </div>
                 <DurumBadge durum={lead.durum} />

@@ -7,6 +7,17 @@ export const LEAD_TIP_LABELS = {
   portfoy: 'Portföy',
 }
 
+// Bir lead yönlendirildikten (durum='atandi') SONRA LeadTable'da "Tip"
+// yerine GERÇEK gittiği yer gösterilir — resolveProcessStatus'un döndürdüğü
+// `module` alanından besleniyor (bkz. Leads.jsx). LEAD_TIP_LABELS ise
+// SADECE henüz yönlendirilmemiş lead'lerde (giriş anındaki kampanya
+// türü) kullanılmaya devam ediyor.
+export const LEAD_HEDEF_MODUL_LABELS = {
+  operasyon: 'Operasyon',
+  firsatlar: 'Portföy',
+  recruiting: 'Recruiting',
+}
+
 export const LEAD_KAYNAKLARI = ['meta_recruiting', 'meta_portfoy', 'telefon', 'referans', 'web', 'tabela', 'diger']
 export const LEAD_KAYNAK_LABELS = {
   meta_recruiting: 'Meta (Recruiting)',

@@ -3,6 +3,24 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Lead Havuzu: yönlendirilen lead'de "Tip" artık gerçek hedefi gösteriyor
+
+Broker "Recruiting'e yönlendirmeme rağmen neden Portföy görünüyor" diye
+sordu — bug değildi ama gerçekten kafa karıştırıcıydı: `lead.tip` alanı
+SADECE giriş anındaki kampanya türünü tutuyor (`lib/leads.js`), yönlendirme
+aksiyonu (`Leads.jsx` handleAssignPortfolioLead/handleRecruitingSubmit) bu
+alana hiç dokunmuyor, sadece `durum='atandi'` yapıp hedef kaydı
+oluşturuyor. Sonuç: yönlendirilmiş bir lead'de LeadTable hâlâ eski/ilk
+"Tip" etiketini gösteriyordu.
+
+Düzeltme: `resolveProcessStatus()` (Leads.jsx) artık hedefin hangi modülde
+olduğunu da döndürüyor (`module: 'operasyon'|'firsatlar'|'recruiting'`).
+`LeadTable.jsx`'teki yeni `tipOrHedefLabel()` helper'ı, `durum='atandi'`
+olan satırlarda "Tip" yerine `→ Recruiting` / `→ Portföy` / `→ Operasyon`
+gösteriyor (yeni `LEAD_HEDEF_MODUL_LABELS`, lib/leads.js) — henüz
+yönlendirilmemiş lead'lerde eski davranış (giriş anındaki tip) aynen
+duruyor. DB değişikliği yok.
+
 ## 2026-08-02 — Tüm portaldaki mor/yeşil/amber/teal renkler RE/MAX paletine çevrildi
 
 Broker RE/MAX'ın resmi "2024 Marka Standartları" kılavuzunu (s.19) paylaştı
