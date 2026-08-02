@@ -24,8 +24,13 @@ Durum (bu maddenin yazıldığı an itibarıyla):
 2. `20260802211000_..._kaldir.sql` — aynı 4 fonksiyonu DROP eder. Repo'da,
    Edge Function'larda, API loglarında kullanım yok; `app_credentials`
    artık `archive` şemasında olduğu için bu 4 fonksiyon zaten çalışmıyordu
-   (broken/dead kod). **DROP içerdiği için beklemede — "bilgisayardayım,
-   uygula" onayı gerekiyor.**
+   (broken/dead kod). Broker "BİLGİSAYARDAYIM UYGULA" dedi. **UYGULANDI**
+   — `pg_proc`'ta artık hiçbiri yok, doğrulandı.
+
+Kapanış: `get_advisors(security)` tekrar çalıştırıldı, bu maddedeki 6
+bulgunun hepsi (4 fonksiyon + 2 search_path + avatars policy) artık
+listede yok. Kalan tek ilgili bulgu `auth_leaked_password_protection` —
+broker'ın Dashboard'dan manuel açacağı madde 6.
 3. `20260802212000_guvenlik_search_path_sabitleme.sql` —
    `set_updated_at`/`enforce_call_logs_detail_edit_window` search_path
    sabitlendi. **Onaylandı, UYGULANDI.**
