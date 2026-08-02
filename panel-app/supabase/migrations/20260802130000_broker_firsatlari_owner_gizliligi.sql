@@ -30,7 +30,7 @@ create policy opportunities_select on public.opportunities
         public.current_user_role() = 'owner'
         and not exists (
           select 1 from public.users u
-          where u.id = coalesce(opportunities.claimer_id, opportunities.owner_id) and u.role = 'broker'
+          where u.id = coalesce(opportunities.claimer_id, opportunities.owner_id) and u.rol = 'broker'
         )
       )
     )
@@ -66,7 +66,7 @@ begin
   end if;
 
   if public.current_user_role() = 'owner' then
-    select role into v_holder_role from public.users where id = coalesce(v_row.claimer_id, v_row.owner_id);
+    select rol into v_holder_role from public.users where id = coalesce(v_row.claimer_id, v_row.owner_id);
     if v_holder_role is distinct from 'broker' then
       return query select v_row.lead_ad, v_row.lead_telefon;
     end if;
