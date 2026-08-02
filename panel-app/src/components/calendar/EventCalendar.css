@@ -3,34 +3,34 @@
    üstteki tür filtresi butonlarında zaten var (renkli nokta + etiket),
    etkinliğin kendisi de tek bakışta türünü göstersin diye (bkz. "yazıyı
    renkli kutucuk içine alalım" isteği). */
-.fc .fc-daygrid-event {
+.fc .fc-daygrid-event,
+.fc .fc-timegrid-event {
   padding: 1px 6px;
   border-radius: 6px;
-  font-weight: 600;
 }
-.fc .fc-daygrid-event .fc-event-title,
-.fc .fc-daygrid-event .fc-event-time {
+
+/* Konu (title) saatten daha önemli (bkz. "toplantının konusu saatten daha
+   önemli, satıra sığmadığı için tam belli olmuyor" geri bildirimi) —
+   FullCalendar'ın varsayılan şablonu yerine kendi içeriğimizi basıyoruz
+   (bkz. EventCalendar.jsx renderEventContent): konu HER ZAMAN önce, tam ve
+   kalın; saat altında küçük/soluk bir ayrıntı, tek satıra sığmasa da
+   kesilmiyor (satır kayabiliyor).*/
+.fc-event-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.fc-event-custom-title {
   color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
-/* Saat aralığı ("10:00 - 11:00") başlığın önüne aynı ağırlıkta basılınca
-   başlığı eziyordu (bkz. "her şeyin başında saat yazıyor, çok baskın"
-   geri bildirimi) — artık küçük ve soluk, başlık asıl vurguyu taşıyor. */
-.fc .fc-daygrid-event .fc-event-time {
-  flex-shrink: 0;
+.fc-event-custom-time {
+  color: #fff;
   font-size: 9px;
   font-weight: 500;
-  opacity: 0.8;
-}
-.fc .fc-timegrid-event {
-  border-radius: 6px;
-}
-.fc .fc-timegrid-event .fc-event-title {
-  color: #fff;
-  font-weight: 600;
-}
-.fc .fc-timegrid-event .fc-event-time {
-  color: #fff;
-  font-size: 10px;
-  font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.75;
 }

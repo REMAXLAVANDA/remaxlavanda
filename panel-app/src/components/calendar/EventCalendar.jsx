@@ -22,6 +22,21 @@ function useIsMobile() {
   return isMobile
 }
 
+// FullCalendar'ın varsayılan şablonu saati başlıkla AYNI satıra, aynı
+// ağırlıkta basıyordu — dar günlerde konu ("Haftalık Ofis Toplantısı")
+// saatle yer kapışıp kırpılıyordu (bkz. "toplantının konusu saatten daha
+// önemli" geri bildirimi). Kendi içerik şablonumuzla konu HER ZAMAN önce
+// ve tam gösteriliyor (satır kaymasına izin var), saat altında küçük/soluk
+// bir ayrıntı olarak kalıyor.
+function renderEventContent(arg) {
+  return (
+    <div className="fc-event-custom">
+      <div className="fc-event-custom-title">{arg.event.title}</div>
+      {arg.timeText && <div className="fc-event-custom-time">{arg.timeText}</div>}
+    </div>
+  )
+}
+
 export default function EventCalendar({ events, onEventClick }) {
   const isMobile = useIsMobile()
   const fcEvents = events.map((e) => ({
@@ -48,6 +63,7 @@ export default function EventCalendar({ events, onEventClick }) {
         eventDisplay="block"
         displayEventEnd
         eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+        eventContent={renderEventContent}
         events={fcEvents}
         eventClick={(info) => onEventClick(info.event.id)}
       />

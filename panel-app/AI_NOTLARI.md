@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Takvim: etkinlik konusu artık saatten önce/önemli, kesilmiyor
+
+Bir önceki düzeltmeden (saatin küçültülmesi) sonra broker "konu satıra
+sığmadığı için tam belli olmuyor, konu saatten daha önemli" dedi —
+FullCalendar'ın varsayılan şablonu saat+konuyu aynı satırda tutup konuyu
+tek satırla kırpıyordu (`text-overflow: ellipsis`), saat küçülse de bu
+sorunu çözmüyordu. `EventCalendar.jsx`'e özel bir `eventContent` (React
+düğümü) eklendi: konu HER ZAMAN önce, tam ve kalın basılıyor (gerekirse 2.
+satıra sarıyor, artık hiç kesilmiyor), saat altında ayrı, küçük (9px) ve
+soluk (%75 opaklık) bir satır. `EventCalendar.css`'teki eski
+`.fc-event-title`/`.fc-event-time` kuralları kaldırılıp yeni
+`.fc-event-custom-*` sınıflarına taşındı. DB değişikliği yok.
+
 ## 2026-08-02 — Takvim: etkinlik saati küçültüldü, aralık olarak gösteriliyor
 
 Broker "her şeyin başında saat yazıyor, çok baskın" dedi — FullCalendar
