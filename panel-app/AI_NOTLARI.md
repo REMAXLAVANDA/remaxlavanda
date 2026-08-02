@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — DÜZELTME: event_attendance.katilim_tipi kolonu gerçekte "zorunluluk" imiş
+
+"Herkese Açık" migration'ı çalıştırılırken ortaya çıktı: `event_attendance`
+tablosundaki kolon `katilim_tipi` değil `zorunluluk` adıyla duruyordu —
+20260729190000 migration dosyası `katilim_tipi` diyor ama canlıda hiç bu
+isimle çalıştırılmamış/farklı isimle oluşturulmuş. Bu, Zorunlu/Önerilen/
+İsteğe Bağlı özelliğinin (davetli ekleme akışı) muhtemelen production'da
+hiç çalışmadığı anlamına geliyor — INSERT sırasında "column does not
+exist" hatası vermiş olmalı. `alter table event_attendance rename column
+zorunluluk to katilim_tipi;` ile düzeltildi, kod hiç değişmedi (zaten
+katilim_tipi bekliyordu). Bundan sonra migration dosyalarıyla canlı şema
+arasında böyle bir sapma şüphesi olursa önce information_schema.columns'a
+bakılacak, isim tahmin edilmeyecek.
+
 ## 2026-08-02 — Etkinlikler: "Herkese Açık" görünürlük + serbest katılım
 
 Önceden davet edilmeyen bir danışman bir etkinliği Takvim'de HİÇ göremiyordu
