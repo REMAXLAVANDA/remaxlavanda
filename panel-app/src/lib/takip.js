@@ -176,3 +176,25 @@ export const METRIC_LABELS = {
   customerReview: 'Müşteri Memnuniyeti',
   socialUsage: 'Sosyal Medya Kullanımı',
 }
+
+// Liste görünümünde (HealthScoreTable) sütun başlığı için kısa etiket —
+// tam adı METRIC_LABELS'ta, tooltip olarak kalıyor (bkz. "yan yana sütun
+// olsa, açmadan da %'si görsem" isteği — 7 metrik + isim + skor tek
+// tabloya sığsın diye kısaltıldı).
+export const METRIC_SHORT_LABELS = {
+  ciro: 'Ciro',
+  education: 'Eğitim',
+  meetingAttend: 'Toplantı',
+  leadResponse: 'Lead Dönüş',
+  portalUsage: 'Portal',
+  customerReview: 'Memnuniyet',
+  socialUsage: 'Sosyal Medya',
+}
+
+// Metrik hücrelerinde çubuk yerine sadece renkli % — aynı eşikler
+// STATUS_STYLES'ta skor için kullanılanla tutarlı (bkz. computeHealthScore).
+export function metricValueStyle(value) {
+  if (value >= 80) return 'text-emerald-700'
+  if (value >= 60) return 'text-amber-700'
+  return 'text-red-600'
+}

@@ -13,7 +13,7 @@ import {
 } from '../../lib/dataProvider'
 import { computeHealthScore } from '../../lib/takip'
 import { isInactiveAgent } from '../../lib/attention'
-import HealthScoreRow from '../../components/takip/HealthScoreRow'
+import HealthScoreTable from '../../components/takip/HealthScoreTable'
 import HealthDetailModal from '../../components/takip/HealthDetailModal'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
@@ -88,19 +88,7 @@ export default function TakipTab() {
         />
       )}
 
-      {!loading && !error && (
-        <div className="space-y-2">
-          {people.map((p) => (
-            <HealthScoreRow
-              key={p.user.id}
-              user={p.user}
-              score={p.score}
-              status={p.status}
-              onClick={() => setSelectedId(p.user.id)}
-            />
-          ))}
-        </div>
-      )}
+      {!loading && !error && <HealthScoreTable people={people} onRowClick={setSelectedId} />}
 
       {selected && (
         <HealthDetailModal

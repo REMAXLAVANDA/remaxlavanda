@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-02 — Takip: sağlık skoru artık tablo, metrikler açmadan görünüyor
+
+"Danışman Sağlık Skoru" listesi (Takip sayfası) önceden sadece isim +
+toplam skor gösteriyordu, 7 metriği (Ciro/Eğitim/Toplantı/Lead Dönüş/
+Portal/Memnuniyet/Sosyal Medya) görmek için satıra tıklayıp modalı açmak
+gerekiyordu. Yeni `HealthScoreTable.jsx`: masaüstünde her metrik kendi
+sütununda (başlık üstte, altında renkli % — çubuk YOK), mobilde 2 sütunlu
+kompakt kart grid'i. Satıra tıklamak hâlâ modalı açıyor (Broker Notları
+için). `HealthScoreRow.jsx` silinmedi — Panel.jsx'teki dashboard widget'ı
+hâlâ kullanıyor, sadece Takip sayfasındaki liste değişti.
+
 ## 2026-08-02 — Operasyon'da "Müşterilerime Ekle" → "Fırsata Çevir"
 
 "Müşterilerime Ekle" ismi kafa karıştırıcı bulundu — uygulamada "Müşteri"
