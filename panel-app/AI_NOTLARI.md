@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 2: Fırsatlar sayfası
+
+Aşama 1'in (kabuk + Panel) devamı, aynı adım-adım/onaylı süreç. Bu adımda:
+`OpportunitySection.jsx` (Satıcılar/Alıcılar akordeon kartı, kategori
+kutuları) ve `OpportunityTable.jsx` yeni design token'larına ve ortak
+`Table` bileşenine geçti; `common/Table.jsx`'in `Tr`'sine klavye erişilebilirliği
+(tabIndex/role/Enter-Space) eklendi ki OpportunityTable'ın eski davranışı
+kaybolmasın. Sayfadaki mantık/veri/gizlilik kuralları (müşteri bilgisi
+tabloda hiç görünmüyor, ilgi gösterme akışı vb.) değişmedi. Fırsatlar
+sayfasının altındaki **Operasyon bölümüne bilerek dokunulmadı** — ayrı bir
+bileşen ağacı (CallTable/StatsCards/CallFilters), kendi adımında ele
+alınacak.
+
 ## 2026-08-03 — Görsel yeniden tasarım başladı ("Sakin & Odaklı"), Aşama 1: kabuk + Panel
 
 Broker `design_handoff_portal_redesign` paketini (README + 9 ekran görseli +

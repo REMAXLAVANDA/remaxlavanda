@@ -26,13 +26,27 @@ export function Tbody({ children }) {
   return <tbody className="divide-y divide-border-subtle">{children}</tbody>
 }
 
-export function Tr({ children, urgent = false, onClick, className = '' }) {
+export function Tr({ children, urgent = false, onClick, ariaLabel, className = '' }) {
+  const interactive = Boolean(onClick)
   return (
     <tr
       onClick={onClick}
-      className={`transition-colors hover:bg-surface-sunken ${onClick ? 'cursor-pointer' : ''} ${
-        urgent ? 'shadow-[inset_3px_0_0_#DC1C2E]' : ''
-      } ${className}`}
+      onKeyDown={
+        interactive
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onClick()
+              }
+            }
+          : undefined
+      }
+      tabIndex={interactive ? 0 : undefined}
+      role={interactive ? 'button' : undefined}
+      aria-label={interactive ? ariaLabel : undefined}
+      className={`outline-none transition-colors hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400 ${
+        interactive ? 'cursor-pointer' : ''
+      } ${urgent ? 'shadow-[inset_3px_0_0_#DC1C2E]' : ''} ${className}`}
     >
       {children}
     </tr>
