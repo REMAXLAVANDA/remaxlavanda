@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 4: Giriş ekranı
+
+Aynı adım-adım süreç. `Login.jsx` iki panelli düzene geçti (sol 300px navy
+panel logo+başlık, sağda form) — masaüstünde yan yana, mobilde navy panel
+gizlenip form ortalanıyor. Tasarım paketindeki "Beni hatırla" ve "Şifremi
+unuttum" **bilerek eklenmedi** — ikisi de gerçek bir altyapıya dayanmıyor
+(oturum kalıcılığı seçilebilir değil, self-servis şifre sıfırlama akışı
+yok, şifre sıfırlama şu an sadece Ayarlar > Yetki'den admin tarafından
+yapılıyor) — sahte/işlevsiz bir buton koymak yerine broker'a soruldu,
+istenirse ayrı bir adımda gerçek işlevle eklenecek.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 3: Lead Havuzu
 
 Aynı adım-adım süreç. `LeadTable.jsx` ortak `Table` bileşenine ve yeni
