@@ -219,7 +219,7 @@ export default function EgitimTab() {
 
   return (
     <div className="space-y-8">
-      <p className="text-xs text-ink-400">Power Camp modülleri, rozetler ve checklist</p>
+      <p className="text-xs text-text-disabled">Power Camp modülleri, rozetler ve checklist</p>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
@@ -228,8 +228,8 @@ export default function EgitimTab() {
         <>
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-ink-900">Modüllerim</h2>
-              <span className="text-xs text-ink-400">
+              <h2 className="text-sm font-semibold text-text-primary">Modüllerim</h2>
+              <span className="text-xs text-text-disabled">
                 {myModuleProgress.completed}/{myModuleProgress.total} tamamlandı ({myModuleProgress.percent}%)
               </span>
             </div>
@@ -237,7 +237,7 @@ export default function EgitimTab() {
               <button
                 onClick={() => setModuleFilters((f) => ({ ...f, dateRange: 'tumu' }))}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  moduleFilters.dateRange === 'tumu' ? 'bg-remax-blue text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                  moduleFilters.dateRange === 'tumu' ? 'bg-remax-blue text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
                 }`}
               >
                 Tümü
@@ -253,7 +253,7 @@ export default function EgitimTab() {
 
           <section>
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-ink-900">Rozetlerim</h2>
+              <h2 className="text-sm font-semibold text-text-primary">Rozetlerim</h2>
               {isManager && (
                 <button
                   onClick={() => setShowAwardModal(true)}
@@ -269,7 +269,7 @@ export default function EgitimTab() {
           {showChecklistSection && (
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-ink-900">
+                <h2 className="text-sm font-semibold text-text-primary">
                   {isManager ? 'Süreç / Ayrılış Checklist' : 'Süreç Checklist — Eksiklerin'}
                 </h2>
                 <div className="flex items-center gap-2">
@@ -277,7 +277,7 @@ export default function EgitimTab() {
                     <select
                       value={checklistUserId}
                       onChange={(e) => setChecklistUserId(e.target.value)}
-                      className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+                      className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-secondary"
                     >
                       {teamMembers.map((u) => (
                         <option key={u.id} value={u.id}>
@@ -293,7 +293,7 @@ export default function EgitimTab() {
                           key={t.key}
                           onClick={() => setChecklistTip(t.key)}
                           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                            checklistTip === t.key ? 'bg-remax-blue text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                            checklistTip === t.key ? 'bg-remax-blue text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
                           }`}
                         >
                           {t.label}
@@ -312,7 +312,7 @@ export default function EgitimTab() {
                 </div>
               </div>
               {!isManager && (
-                <p className="mb-2 text-xs text-ink-400">
+                <p className="mb-2 text-xs text-text-disabled">
                   Bu liste yönetim tarafından işaretlenir, kendin değiştiremezsin.
                 </p>
               )}
@@ -328,7 +328,7 @@ export default function EgitimTab() {
 
           {isManager && (
             <section id="ekip-ilerlemesi" className="scroll-mt-6">
-              <h2 className="mb-3 text-sm font-semibold text-ink-900">Ekip İlerlemesi</h2>
+              <h2 className="mb-3 text-sm font-semibold text-text-primary">Ekip İlerlemesi</h2>
               {odakActive && (
                 <FocusBanner
                   text={`${teamRows.length} danışmanın eğitim/checklist oranı %50'nin altında — sadece bunlar gösteriliyor.`}

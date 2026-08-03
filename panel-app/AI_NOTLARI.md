@@ -3,6 +3,16 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 7: Takip (360° + Eğitim)
+
+Aynı adım-adım süreç. `HealthScoreTable.jsx` ortak `Table`/`Avatar`
+bileşenlerine geçti (avatar artık her yerdeki gibi navy), `TakipTab.jsx` ve
+`EgitimTab.jsx`'teki metin/kart renkleri yeni token'lara geçti. Bir yan not:
+sed ile toplu değişimde `bg-ink-50`/`bg-ink-100` ikisi de `surface-sunken`e
+eşlendiği için EgitimTab'daki bir filtre çipinin hover rengi kaybolmuştu
+(base ve hover aynı renk oldu) — fark edilip `hover:bg-border-subtle`
+olarak düzeltildi.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 6: Planlama (Takvim + Görevler)
 
 Aynı adım-adım süreç. `TakvimTab.jsx`'teki tür filtre çipleri ve "Aylık

@@ -25,8 +25,8 @@ export default function Takip() {
         <TakipTab />
       </section>
 
-      <section id="egitim-bolumu" className="mt-10 scroll-mt-6 border-t border-ink-100 pt-8">
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
+      <section id="egitim-bolumu" className="mt-10 scroll-mt-6 border-t border-border-default pt-8">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
           <GraduationCap size={16} className="text-brand-600" /> Eğitim
         </h2>
         <EgitimTab />
