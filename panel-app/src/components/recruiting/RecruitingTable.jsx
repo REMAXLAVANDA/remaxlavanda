@@ -1,4 +1,5 @@
 import { RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
+import { Table, Thead, Th, Tbody, Tr, Td } from '../common/Table'
 
 // Lead Havuzu'ndan dönüşen bir adayın hangi reklamdan geldiği — LeadTable.jsx
 // campaignLabel ile AYNI desen ("hangi reklam üzerinden geldiğini
@@ -34,7 +35,7 @@ function DurumBadge({ durum }) {
 export default function RecruitingTable({ candidates, resolveName, onRowClick, showCampaign }) {
   if (candidates.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
+      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
         Bu filtrelere uyan aday yok.
       </div>
     )
@@ -42,59 +43,59 @@ export default function RecruitingTable({ candidates, resolveName, onRowClick, s
 
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-2xl border border-ink-100 bg-white sm:block">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead>
-            <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
-              <th className="px-3 py-2.5">Tarih</th>
-              <th className="px-3 py-2.5">Ad Soyad</th>
-              <th className="px-3 py-2.5">Telefon</th>
-              <th className="px-3 py-2.5">Kaynak</th>
-              <th className="px-3 py-2.5">Atanan</th>
-              <th className="px-3 py-2.5">Durum</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="hidden sm:block">
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Tarih</Th>
+              <Th>Ad Soyad</Th>
+              <Th>Telefon</Th>
+              <Th>Kaynak</Th>
+              <Th>Atanan</Th>
+              <Th>Durum</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
             {candidates.map((c) => (
-              <tr
-                key={c.id}
-                onClick={() => onRowClick(c)}
-                className="cursor-pointer border-b border-ink-50 align-middle last:border-0 hover:bg-ink-50"
-              >
-                <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{candidateDateLabel(c.createdAt)}</td>
-                <td className="px-3 py-3 font-medium text-ink-900">{c.adSoyad}</td>
-                <td className="px-3 py-3 text-ink-600">{c.telefon ?? '—'}</td>
-                <td className="px-3 py-3 text-ink-600">
+              <Tr key={c.id} onClick={() => onRowClick(c)} ariaLabel={`${c.adSoyad} detayını aç`}>
+                <Td className="whitespace-nowrap text-xs text-text-disabled">{candidateDateLabel(c.createdAt)}</Td>
+                <Td className="font-medium text-text-primary">{c.adSoyad}</Td>
+                <Td className="text-text-secondary">{c.telefon ?? '—'}</Td>
+                <Td className="text-text-secondary">
                   {RECRUITING_KAYNAK_LABELS[c.kaynak]}
                   {showCampaign && campaignLabel(c) && (
-                    <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-ink-400">{campaignLabel(c)}</div>
+                    <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-text-disabled">{campaignLabel(c)}</div>
                   )}
-                </td>
-                <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-500">
+                </Td>
+                <Td className="whitespace-nowrap text-xs text-text-muted">
                   {c.atananDanismanId ? resolveName(c.atananDanismanId) : 'Atanmadı'}
-                </td>
-                <td className="px-3 py-3">
+                </Td>
+                <Td>
                   <DurumBadge durum={c.durum} />
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
+          </Tbody>
+        </Table>
       </div>
 
       <div className="space-y-2 sm:hidden">
         {candidates.map((c) => (
-          <div key={c.id} onClick={() => onRowClick(c)} className="cursor-pointer rounded-xl border border-ink-100 bg-white p-3.5">
+          <div
+            key={c.id}
+            onClick={() => onRowClick(c)}
+            className="cursor-pointer rounded-xl border border-border-default bg-surface-raised p-3.5"
+          >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate font-medium text-ink-900">{c.adSoyad}</p>
-                <p className="mt-0.5 text-sm text-ink-600">{c.telefon ?? '—'}</p>
-                <p className="mt-1 text-xs text-ink-400">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</p>
-                {showCampaign && campaignLabel(c) && <p className="mt-0.5 truncate text-xs text-ink-400">{campaignLabel(c)}</p>}
+                <p className="truncate font-medium text-text-primary">{c.adSoyad}</p>
+                <p className="mt-0.5 text-sm text-text-secondary">{c.telefon ?? '—'}</p>
+                <p className="mt-1 text-xs text-text-disabled">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</p>
+                {showCampaign && campaignLabel(c) && <p className="mt-0.5 truncate text-xs text-text-disabled">{campaignLabel(c)}</p>}
               </div>
               <DurumBadge durum={c.durum} />
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-ink-50 pt-2 text-xs text-ink-400">
+            <div className="mt-3 flex items-center justify-between border-t border-border-subtle pt-2 text-xs text-text-disabled">
               <span>{c.atananDanismanId ? resolveName(c.atananDanismanId) : 'Atanmadı'}</span>
               <span>{candidateDateLabel(c.createdAt)}</span>
             </div>

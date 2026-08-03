@@ -11,7 +11,7 @@ function Select({ value, onChange, children }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-600"
+      className="rounded-lg border border-border-default bg-surface-raised px-2.5 py-1.5 text-xs text-text-secondary"
     >
       {children}
     </select>
@@ -22,7 +22,7 @@ export default function RecruitingFilters({ filters, onChange, danismanOptions, 
   const set = (patch) => onChange({ ...filters, ...patch })
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-ink-100 bg-white p-4">
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border-default bg-surface-raised p-4">
       <div className="flex flex-wrap gap-2">
         <Select value={filters.durum} onChange={(v) => set({ durum: v })}>
           <option value="tumu">Tüm Durumlar</option>

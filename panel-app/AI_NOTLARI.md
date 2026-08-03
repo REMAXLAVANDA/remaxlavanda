@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 5: Recruiting
+
+Aynı adım-adım süreç. `RecruitingTable.jsx` ortak `Table` bileşenine ve
+yeni token'lara geçti (masaüstü + mobil), `RecruitingFilters.jsx`
+dropdown'ları güncellendi. Tasarım paketindeki 5 sütunlu sürükle-bırak
+pano **bilerek yapılmadı** — gerçek pipeline'da 7 aşama var
+(`RECRUITING_DURUMLARI`: yeni_başvuru/ilk_arama/ön_görüşme/ofis_tanıtımı/
+karar_bekliyor/evrak/olumsuz), tasarımın 5 aşaması (Başvuru/Ön görüşme/
+Kariyer sunumu/Evrak/Katılım) bunlarla birebir eşleşmiyor — "Katılım" diye
+bir durum bile yok. Zorla eşleştirirsem aşama bilgisi kaybolur/yanlış
+gösterilir, o yüzden mevcut filtrelenebilir tablo yapısı korunup sadece
+görsel dil güncellendi.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 4: Giriş ekranı
 
 Aynı adım-adım süreç. `Login.jsx` iki panelli düzene geçti (sol 300px navy
