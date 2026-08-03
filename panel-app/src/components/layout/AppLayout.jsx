@@ -17,12 +17,28 @@ function useCurrentTitle() {
   return active?.label ?? 'RE/MAX Lavanda'
 }
 
+const TODAY_LABEL = new Intl.DateTimeFormat('tr-TR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  weekday: 'long',
+}).format(new Date())
+
+function useCurrentSubtitle() {
+  const { pathname } = useLocation()
+  // Sadece Panel'de tarih alt satırı var (bkz. tasarım referansı) — diğer
+  // sayfalarda başlık zaten kendini açıklıyor.
+  if (pathname.startsWith('/panel')) return TODAY_LABEL
+  return undefined
+}
+
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const title = useCurrentTitle()
+  const subtitle = useCurrentSubtitle()
 
   return (
-    <div className="h-screen overflow-hidden bg-canvas lg:flex">
+    <div className="h-screen overflow-hidden bg-surface-page lg:flex">
       <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
       {sidebarOpen && (
@@ -33,7 +49,7 @@ export default function AppLayout() {
       )}
 
       <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-        <Topbar title={title} onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar title={title} subtitle={subtitle} onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8">
           <NotificationPrompt />
           <Outlet />

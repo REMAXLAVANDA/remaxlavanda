@@ -73,6 +73,32 @@
      çünkü ink-50 badge/hover gibi 50+ başka yerde de kullanılıyor; sadece
      zemini koyulaştırmak istediğimizde onları etkilememesi için. */
   --color-canvas: #e5e9f1;
+
+  /* 2026-08 görsel yeniden tasarımı ("Sakin & Odaklı") — design-handoff
+     paketindeki semantik token seti. brand-* / ink-* / remax-* üstteki eski
+     sistem SİLİNMEDİ (henüz yeniden tasarlanmamış ekranlar kullanıyor);
+     bunlar üstündeki tonlarla hizalı yeni isimler, kademeli geçiş için. */
+  --color-surface-page: #eef1f6;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f4f6f9;
+
+  --color-border-default: #e6eaf0;
+  --color-border-subtle: #eff2f6;
+  --color-border-danger: #f5aeb6;
+
+  --color-tint-red: #fbd6da;
+  --color-tint-blue: #dbe7ff;
+  --color-tint-amber: #fdf0d5;
+  --color-tint-amber-text: #8a6100;
+
+  --color-text-primary: #1b2534;
+  --color-text-secondary: #4c5361;
+  --color-text-muted: #6b7280;
+  --color-text-disabled: #9aa1ad;
+
+  --color-chart-track: #e2e8f0;
+  --color-chart-warn: #e2394c;
+  /* brand.redDark (#B01522) zaten --color-brand-700 ile birebir aynı — text-brand-700 kullanılır. */
 }
 
 * {

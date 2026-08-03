@@ -21,6 +21,11 @@ const MANAGE_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS]
 // ofis) kalıyor, ikisi artık farklı yetki seviyeleri.
 const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 
+export const MODULE_GROUPS = {
+  operasyon: 'Operasyon',
+  takip: 'Takip & Gelişim',
+}
+
 export const MODULES = [
   {
     key: 'panel',
@@ -29,6 +34,7 @@ export const MODULES = [
     description: 'Bugün yapman gerekenler',
     icon: LayoutDashboard,
     roles: ALL_ROLES,
+    group: 'operasyon',
   },
   {
     key: 'firsatlar',
@@ -37,6 +43,7 @@ export const MODULES = [
     description: 'Satıcı / Alıcı adayları ve operasyon çağrıları',
     icon: Target,
     roles: ALL_ROLES,
+    group: 'operasyon',
   },
   {
     key: 'leads',
@@ -47,6 +54,7 @@ export const MODULES = [
     // Sadece broker/owner — ofis/danışman ne menüde görür ne route'a
     // girebilir (bkz. lib/roles.js canManageLeads, pages/Leads.jsx guard).
     roles: LEADS_ROLES,
+    group: 'operasyon',
   },
   {
     key: 'recruiting',
@@ -57,6 +65,7 @@ export const MODULES = [
     // broker/owner/ofis — Lead Havuzu'ndan daha geniş (o sadece broker/
     // owner'a daraltıldı, bkz. lib/recruiting.js canManageRecruiting).
     roles: MANAGE_ROLES,
+    group: 'operasyon',
   },
   {
     key: 'takvim',
@@ -67,6 +76,7 @@ export const MODULES = [
     // Görevler artık ayrı bir menü değil, bu sayfanın alt bölümü (bkz.
     // pages/Takvim.jsx) — /gorevler linki hâlâ çalışır.
     roles: ALL_ROLES,
+    group: 'takip',
   },
   {
     key: 'takip',
@@ -79,6 +89,7 @@ export const MODULES = [
     // görür. Eğitim artık ayrı bir menü değil, bu sayfanın alt bölümü
     // (bkz. pages/Takip.jsx) — /egitim linki hâlâ çalışır.
     roles: ALL_ROLES,
+    group: 'takip',
   },
   {
     key: 'lig',
@@ -87,6 +98,7 @@ export const MODULES = [
     description: '4 aylık ödül sıralaması',
     icon: Trophy,
     roles: ALL_ROLES,
+    group: 'takip',
   },
   {
     key: 'rehber',
@@ -95,6 +107,7 @@ export const MODULES = [
     description: 'Ofis dokümanları ve hazır metinler',
     icon: BookOpen,
     roles: ALL_ROLES,
+    group: 'takip',
   },
 ]
 

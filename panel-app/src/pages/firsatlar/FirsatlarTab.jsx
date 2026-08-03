@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -202,6 +202,19 @@ export default function FirsatlarTab() {
   }
 
   const canCreate = CAN_CREATE_ROLES.includes(role)
+
+  // Üst çubuktaki "Hızlı kayıt" menüsünden ?yeni=firsat ile gelindiğinde
+  // yeni fırsat formu otomatik açılır (satıcı varsayılan) — parametre
+  // hemen temizlenir ki sayfa yenilenince tekrar açılmasın.
+  useEffect(() => {
+    if (searchParams.get('yeni') === 'firsat' && canCreate) {
+      setCreateType('satici')
+      const next = new URLSearchParams(searchParams)
+      next.delete('yeni')
+      setSearchParams(next, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
   const canDelete = canDeleteOpportunity(role)
   const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
   const deleteOpp = deleteTargetId ? (opportunities ?? []).find((o) => o.id === deleteTargetId) : null

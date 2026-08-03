@@ -5,7 +5,7 @@ function Chip({ active, children, ...props }) {
     <button
       {...props}
       className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-        active ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+        active ? 'bg-brand-600 text-white' : 'bg-surface-sunken text-ink-600 hover:bg-ink-100'
       }`}
     >
       {children}
@@ -33,7 +33,7 @@ export default function DateRangeFilter({ value, onChange }) {
             onChange={(e) => set({ dateRange: 'ozel', customFrom: e.target.value })}
             className="rounded-lg border border-ink-200 px-2 py-1 text-xs text-ink-600"
           />
-          <span className="text-xs text-ink-400">—</span>
+          <span className="text-xs text-text-disabled">—</span>
           <input
             type="date"
             value={value.customTo}

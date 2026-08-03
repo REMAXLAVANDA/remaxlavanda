@@ -1,44 +1,63 @@
 import { NavLink } from 'react-router-dom'
-import { getModulesForRole } from '../../lib/modules'
+import { getModulesForRole, MODULE_GROUPS } from '../../lib/modules'
 import { useAuth } from '../../context/AuthContext'
+import ProfileMenu from './ProfileMenu'
+
+function groupModules(modules) {
+  const order = Object.keys(MODULE_GROUPS)
+  return order
+    .map((key) => ({ key, label: MODULE_GROUPS[key], items: modules.filter((m) => m.group === key) }))
+    .filter((g) => g.items.length > 0)
+}
 
 export default function Sidebar({ open, onNavigate }) {
   const { role } = useAuth()
-  const modules = getModulesForRole(role)
+  const groups = groupModules(getModulesForRole(role))
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 w-64 shrink-0 overflow-y-auto bg-remax-navy
+      className={`fixed inset-y-0 left-0 z-30 flex w-[236px] shrink-0 flex-col overflow-y-auto bg-remax-navy
         transition-transform duration-200 lg:static lg:h-screen lg:translate-x-0
         ${open ? 'translate-x-0' : '-translate-x-full'}`}
     >
-      <div className="flex h-16 items-center gap-2 px-6">
+      <div className="flex h-16 shrink-0 items-center gap-2.5 px-5">
         <img src="/panel/remax-balloon.png" alt="RE/MAX Lavanda" className="h-9 w-9 shrink-0 object-contain" />
         <div className="leading-tight">
           <p className="text-sm font-semibold text-white">RE/MAX Lavanda</p>
-          <p className="text-xs text-white/50">Portal</p>
+          <p className="text-xs text-white/50">Ofis Portalı</p>
         </div>
       </div>
 
-      <nav className="flex flex-col gap-0.5 px-3 py-2">
-        {modules.map((m) => (
-          <NavLink
-            key={m.key}
-            to={m.path}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-brand-600 text-white'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
-              }`
-            }
-          >
-            <m.icon size={18} strokeWidth={2} />
-            {m.label}
-          </NavLink>
+      <nav className="flex flex-1 flex-col gap-4 px-3 py-2">
+        {groups.map((group) => (
+          <div key={group.key} className="flex flex-col gap-0.5">
+            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+              {group.label}
+            </p>
+            {group.items.map((m) => (
+              <NavLink
+                key={m.key}
+                to={m.path}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-brand-600 text-white'
+                      : 'text-white/70 hover:bg-white/[0.07] hover:text-white'
+                  }`
+                }
+              >
+                <m.icon size={18} strokeWidth={2} />
+                {m.label}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
+
+      <div className="shrink-0 p-3">
+        <ProfileMenu variant="sidebar" />
+      </div>
     </aside>
   )
 }

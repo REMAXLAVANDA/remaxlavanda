@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -71,8 +72,21 @@ export default function GorevlerTab() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const isManager = canManageTasks(role)
+
+  // Üst çubuktaki "Hızlı kayıt" menüsünden ?yeni=gorev ile /gorevler'e
+  // gelindiğinde görev formu otomatik açılır — parametre hemen temizlenir.
+  useEffect(() => {
+    if (searchParams.get('yeni') === 'gorev' && isManager) {
+      setShowModal(true)
+      const next = new URLSearchParams(searchParams)
+      next.delete('yeni')
+      setSearchParams(next, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isManager])
   const userName = (id) => knownUsers[id]?.name ?? '—'
   // Broker de görev alabiliyor — atanabilir listede danışman + broker + ofis
   // hepsi var, kimin kime görev verdiği önemli değil.

@@ -131,16 +131,16 @@ async function loadAll() {
 // vb.) yerleşik kırmızı-link kuralıyla tutarlı, sadece bu yeni dashboard
 // bölümü farklı bir kural izliyor.
 function Widget({ icon: Icon, title, count, description, to, linkLabel, className = '', accent = 'red', children }) {
-  const iconColor = accent === 'navy' ? 'text-ink-900' : 'text-brand-600'
-  const linkColor = accent === 'navy' ? 'text-ink-900 hover:text-brand-700' : 'text-brand-600 hover:text-brand-700'
+  const iconColor = accent === 'navy' ? 'text-text-primary' : 'text-brand-600'
+  const linkColor = accent === 'navy' ? 'text-text-primary hover:text-brand-700' : 'text-brand-600 hover:text-brand-700'
   return (
-    <div className={`min-w-0 rounded-2xl border border-ink-100 bg-white p-5 ${className}`}>
+    <div className={`min-w-0 rounded-2xl border border-border-default bg-surface-raised p-5 ${className}`}>
       <div className="mb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={16} strokeWidth={1.75} className={iconColor} />
-          <h2 className="text-sm font-semibold text-ink-900">{title}</h2>
+          <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
           {count > 0 && (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">{count}</span>
+            <span className="rounded-full bg-tint-red px-2 py-0.5 text-xs font-semibold text-brand-700">{count}</span>
           )}
         </div>
         {to && (
@@ -149,7 +149,7 @@ function Widget({ icon: Icon, title, count, description, to, linkLabel, classNam
           </Link>
         )}
       </div>
-      {description && <p className="mb-4 text-xs text-ink-400">{description}</p>}
+      {description && <p className="mb-4 text-xs text-text-disabled">{description}</p>}
       {children}
     </div>
   )
@@ -157,7 +157,7 @@ function Widget({ icon: Icon, title, count, description, to, linkLabel, classNam
 
 function EmptyRow({ text }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-ink-50 px-4 py-6 text-sm text-ink-400">
+    <div className="flex items-center gap-2 rounded-xl bg-surface-sunken px-4 py-6 text-sm text-text-disabled">
       <Inbox size={16} /> {text}
     </div>
   )
@@ -188,7 +188,7 @@ function ProgressRing({ percent, size = 88, strokeWidth = 8, color = '#003da5', 
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-bold text-ink-900" style={{ fontSize: fontSize ?? size * 0.24 }}>
+        <span className="font-bold text-text-primary" style={{ fontSize: fontSize ?? size * 0.24 }}>
           %{clamped}
         </span>
       </div>
@@ -237,19 +237,19 @@ function OpportunityMiniRow({ o }) {
       : formatPrice(o.fiyat)
   const detailBits = [o.odaSayisi, o.m2 ? `${o.m2} m²` : null].filter(Boolean)
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-ink-100 px-3 py-2">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border-default px-3 py-2">
       <div className="flex min-w-0 items-center gap-2">
         <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
           {categoryLabel(o.category)}
         </span>
-        <span className="truncate text-sm font-medium text-ink-900">{o.konum ?? '—'}</span>
+        <span className="truncate text-sm font-medium text-text-primary">{o.konum ?? '—'}</span>
         {detailBits.length > 0 && (
-          <span className="shrink-0 text-xs text-ink-400">{detailBits.join(' · ')}</span>
+          <span className="shrink-0 text-xs text-text-disabled">{detailBits.join(' · ')}</span>
         )}
       </div>
       <div className="shrink-0 whitespace-nowrap text-right text-xs">
-        <span className="font-medium text-ink-700">{priceLabel}</span>
-        <span className="ml-2 text-ink-400">{relativeTime(o.createdAt)}</span>
+        <span className="font-medium text-text-secondary">{priceLabel}</span>
+        <span className="ml-2 text-text-disabled">{relativeTime(o.createdAt)}</span>
       </div>
     </div>
   )
@@ -261,18 +261,18 @@ function OpportunityMiniBlock({ dotColor, label, items }) {
     <div>
       <div className="mb-2 flex items-center gap-1.5">
         <span className={`h-2 w-2 rounded-full ${dotColor}`} />
-        <h3 className="text-xs font-semibold text-ink-500">
+        <h3 className="text-xs font-semibold text-text-muted">
           {label} <span className="font-normal text-ink-300">({items.length})</span>
         </h3>
       </div>
       {items.length === 0 ? (
-        <p className="rounded-lg bg-ink-50 px-3 py-4 text-center text-xs text-ink-400">Yok</p>
+        <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
       ) : (
         <div className="space-y-1.5">
           {items.slice(0, 4).map((o) => (
             <OpportunityMiniRow key={o.id} o={o} />
           ))}
-          {items.length > 4 && <p className="pt-0.5 text-center text-xs text-ink-400">+{items.length - 4} tane daha</p>}
+          {items.length > 4 && <p className="pt-0.5 text-center text-xs text-text-disabled">+{items.length - 4} tane daha</p>}
         </div>
       )}
     </div>
@@ -741,18 +741,18 @@ export default function Panel() {
       ) : (
         <div className="space-y-2">
           {pendingCalls.slice(0, 5).map((call) => (
-            <div key={call.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+            <div key={call.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
               <div>
-                <p className="text-sm font-medium text-ink-900">{call.arayanAd}</p>
-                <p className="text-xs text-ink-400">
+                <p className="text-sm font-medium text-text-primary">{call.arayanAd}</p>
+                <p className="text-xs text-text-disabled">
                   {call.kaynak} · {maskPhone(call.arayanTelefon)}
                 </p>
               </div>
-              <span className="text-xs text-ink-400">{relativeTime(call.createdAt)}</span>
+              <span className="text-xs text-text-disabled">{relativeTime(call.createdAt)}</span>
             </div>
           ))}
           {pendingCalls.length > 5 && (
-            <p className="pt-1 text-center text-xs text-ink-400">+{pendingCalls.length - 5} tane daha</p>
+            <p className="pt-1 text-center text-xs text-text-disabled">+{pendingCalls.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -773,8 +773,8 @@ export default function Panel() {
         <EmptyRow text="Havuzda bekleyen fırsat yok." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          <OpportunityMiniBlock dotColor="bg-emerald-500" label="Satıcılar" items={openSatici} />
-          <OpportunityMiniBlock dotColor="bg-blue-500" label="Alıcılar" items={openAlici} />
+          <OpportunityMiniBlock dotColor="bg-brand-600" label="Satıcılar" items={openSatici} />
+          <OpportunityMiniBlock dotColor="bg-remax-blue" label="Alıcılar" items={openAlici} />
         </div>
       )}
     </Widget>
@@ -794,20 +794,20 @@ export default function Panel() {
       ) : (
         <div className="space-y-2">
           {openOpportunities.slice(0, 5).map((o) => (
-            <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
+            <div key={o.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
               <div>
-                <p className="text-sm font-medium text-ink-900">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
-                <p className="text-xs text-ink-400">
+                <p className="text-sm font-medium text-text-primary">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
+                <p className="text-xs text-text-disabled">
                   {categoryLabel(o.category)} · {o.konum}
                   {(o.fiyatMin != null || o.fiyatMax != null) &&
                     ` · ${formatPrice(o.type === 'alici' ? o.fiyatMin : o.fiyat ?? o.fiyatMin)}`}
                 </p>
               </div>
-              <span className="text-xs text-ink-400">{relativeTime(o.createdAt)}</span>
+              <span className="text-xs text-text-disabled">{relativeTime(o.createdAt)}</span>
             </div>
           ))}
           {openOpportunities.length > 5 && (
-            <p className="pt-1 text-center text-xs text-ink-400">+{openOpportunities.length - 5} tane daha</p>
+            <p className="pt-1 text-center text-xs text-text-disabled">+{openOpportunities.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -832,11 +832,11 @@ export default function Panel() {
             const needsResponse = myAttendance?.status === 'davetli'
             const busy = rsvpBusyEventId === e.id
             return (
-              <div key={e.id} className="rounded-xl border border-ink-100 px-3 py-2">
+              <div key={e.id} className="rounded-xl border border-border-default px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate text-sm font-medium text-ink-900">{e.title}</p>
+                      <p className="truncate text-sm font-medium text-text-primary">{e.title}</p>
                       {myAttendance && (
                         <span
                           className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${KATILIM_TIPI_STYLES[myAttendance.katilimTipi]}`}
@@ -845,7 +845,7 @@ export default function Panel() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-ink-400">
+                    <p className="text-xs text-text-disabled">
                       {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
                     </p>
                   </div>
@@ -878,7 +878,7 @@ export default function Panel() {
                       <button
                         disabled={busy}
                         onClick={() => setMazeretOpenEventId((v) => (v === e.id ? null : e.id))}
-                        className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
+                        className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-medium text-text-secondary hover:bg-border-subtle disabled:opacity-50"
                       >
                         Mazeretim Var, Katılamayacağım
                       </button>
@@ -891,7 +891,7 @@ export default function Panel() {
                           onBlur={(ev) => setMazeretDraft(capitalizeFirst(ev.target.value))}
                           placeholder="Neden katılamıyorsun?"
                           rows={2}
-                          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
                         />
                         <button
                           disabled={busy || !mazeretDraft.trim()}
@@ -930,15 +930,15 @@ export default function Panel() {
       ) : (
         <div className="space-y-2">
           {educationGaps.slice(0, 5).map((r) => (
-            <div key={r.id} className="flex items-center justify-between rounded-xl border border-ink-100 px-3 py-2">
-              <p className="text-sm font-medium text-ink-900">{r.name}</p>
-              <span className="text-xs text-ink-400">
+            <div key={r.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
+              <p className="text-sm font-medium text-text-primary">{r.name}</p>
+              <span className="text-xs text-text-disabled">
                 Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
               </span>
             </div>
           ))}
           {educationGaps.length > 5 && (
-            <p className="pt-1 text-center text-xs text-ink-400">+{educationGaps.length - 5} tane daha</p>
+            <p className="pt-1 text-center text-xs text-text-disabled">+{educationGaps.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -952,7 +952,7 @@ export default function Panel() {
   const ligDurumuBlock = (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Trophy size={16} className="text-brand-600" /> Lig Durumu
         </h2>
         <Link to="/lig" className="text-xs font-medium text-brand-600 hover:text-brand-700">
@@ -964,7 +964,7 @@ export default function Panel() {
       ) : (
         <>
           <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
-          <p className="-mt-3 text-xs text-ink-400">
+          <p className="-mt-3 text-xs text-text-disabled">
             {lastLeagueUpdate ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}` : 'Bu dönemde henüz veri girilmedi.'}
           </p>
         </>
@@ -1048,10 +1048,10 @@ export default function Panel() {
                     const people = usageBuckets[b.key]
                     const percent = activityRanking.length ? (people.length / activityRanking.length) * 100 : 0
                     return (
-                      <div key={b.key} className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                      <div key={b.key} className="flex items-center gap-3 rounded-xl border border-border-default px-3 py-2.5">
                         <ProgressRing percent={percent} size={34} strokeWidth={4} color={b.color} fontSize={9} />
-                        <span className="min-w-0 flex-1 text-sm text-ink-700">{b.label}</span>
-                        <span className="shrink-0 text-sm font-semibold text-ink-900">{people.length}</span>
+                        <span className="min-w-0 flex-1 text-sm text-text-secondary">{b.label}</span>
+                        <span className="shrink-0 text-sm font-semibold text-text-primary">{people.length}</span>
                       </div>
                     )
                   })}
@@ -1072,22 +1072,22 @@ export default function Panel() {
                 <EmptyRow text="Yaklaşan etkinlik yok." />
               ) : (
                 <>
-                  <div className="flex items-center gap-3 rounded-xl border border-ink-100 p-3">
-                    <div className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-red-50 py-1 text-red-600">
+                  <div className="flex items-center gap-3 rounded-xl border border-border-default p-3">
+                    <div className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-tint-red py-1 text-brand-700">
                       <span className="text-base font-bold leading-none">{new Date(nextEventAlways.startAt).getDate()}</span>
                       <span className="text-[9px] font-medium uppercase">
                         {new Date(nextEventAlways.startAt).toLocaleDateString('tr-TR', { month: 'short' })}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-ink-900">{nextEventAlways.title}</p>
-                      <p className="mt-0.5 text-xs text-ink-400">
+                      <p className="truncate text-sm font-semibold text-text-primary">{nextEventAlways.title}</p>
+                      <p className="mt-0.5 text-xs text-text-disabled">
                         {EVENT_TYPE_LABELS[nextEventAlways.type]} · {formatEventDate(nextEventAlways.startAt)} {formatEventTime(nextEventAlways.startAt)}
                       </p>
                     </div>
                   </div>
                   {nextEventsAlways.length > 1 && (
-                    <p className="mt-2 text-center text-xs text-ink-400">+{nextEventsAlways.length - 1} etkinlik daha</p>
+                    <p className="mt-2 text-center text-xs text-text-disabled">+{nextEventsAlways.length - 1} etkinlik daha</p>
                   )}
                 </>
               )}
@@ -1110,10 +1110,10 @@ export default function Panel() {
                       <InitialsBadge name={r.name} size={28} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-medium text-ink-900">{r.name}</span>
-                          <span className="shrink-0 text-xs font-semibold text-ink-500">%{r.overallPercent}</span>
+                          <span className="truncate text-sm font-medium text-text-primary">{r.name}</span>
+                          <span className="shrink-0 text-xs font-semibold text-text-muted">%{r.overallPercent}</span>
                         </div>
-                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ink-100">
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-chart-track">
                           <div
                             className="h-full rounded-full"
                             style={{ width: `${r.overallPercent}%`, backgroundColor: ringColorFor(r.overallPercent) }}
@@ -1123,7 +1123,7 @@ export default function Panel() {
                     </div>
                   ))}
                   {educationGaps.length > 3 && (
-                    <Link to="/egitim" className="block pt-1 text-center text-xs font-medium text-ink-900 hover:text-brand-700">
+                    <Link to="/egitim" className="block pt-1 text-center text-xs font-medium text-text-primary hover:text-brand-700">
                       +{educationGaps.length - 3} kişi daha →
                     </Link>
                   )}
@@ -1138,7 +1138,7 @@ export default function Panel() {
               genişlik (bkz. brief desktop notu). */}
           {sourceFunnelTotals.cagri > 0 && (
             <Widget icon={Megaphone} title="Reklam Kaynakları" to="/operasyon" linkLabel="Operasyon'a git" accent="navy">
-              <div className="flex items-center justify-center gap-2 py-1 text-sm font-semibold text-ink-900">
+              <div className="flex items-center justify-center gap-2 py-1 text-sm font-semibold text-text-primary">
                 <span>{sourceFunnelTotals.cagri} Çağrı</span>
                 <span className="text-ink-300">→</span>
                 <span>{sourceFunnelTotals.yetki} Yetki</span>
@@ -1172,17 +1172,17 @@ export default function Panel() {
             <EmptyRow text="Henüz danışman yok." />
           ) : (
             <div className="space-y-1.5">
-              <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+              <div className="flex items-center gap-3 rounded-xl border border-border-default px-3 py-2.5">
                 <span className="shrink-0 text-lg">🏆</span>
-                <span className="min-w-0 flex-1 text-sm text-ink-700">{bestHealth.user.name}</span>
+                <span className="min-w-0 flex-1 text-sm text-text-secondary">{bestHealth.user.name}</span>
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[bestHealth.status]}`}>
                   {bestHealth.score} · {STATUS_LABELS[bestHealth.status]}
                 </span>
               </div>
               {worstHealth && (
-                <div className="flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5">
+                <div className="flex items-center gap-3 rounded-xl border border-border-default px-3 py-2.5">
                   <span className="shrink-0 text-lg">⚠️</span>
-                  <span className="min-w-0 flex-1 text-sm text-ink-700">{worstHealth.user.name}</span>
+                  <span className="min-w-0 flex-1 text-sm text-text-secondary">{worstHealth.user.name}</span>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[worstHealth.status]}`}>
                     {worstHealth.score} · {STATUS_LABELS[worstHealth.status]}
                   </span>

@@ -21,15 +21,15 @@ const ACCENT_BORDER = {
 function Tile({ icon: Icon, label, value, detail, to, onClick, accent = 'navy' }) {
   const inner = (
     <>
-      <div className="mb-1.5 flex items-center gap-1.5 text-ink-400">
+      <div className="mb-1.5 flex items-center gap-1.5 text-text-disabled">
         <Icon size={14} strokeWidth={1.75} />
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <p className="text-2xl font-bold leading-none text-ink-900">{value}</p>
-      {detail && <p className="mt-1 text-xs leading-snug text-ink-400">{detail}</p>}
+      <p className="text-2xl font-bold leading-none text-text-primary">{value}</p>
+      {detail && <p className="mt-1 text-xs leading-snug text-text-disabled">{detail}</p>}
     </>
   )
-  const className = `block w-full rounded-xl border border-ink-100 bg-white border-t-4 ${ACCENT_BORDER[accent]} p-3.5 text-left transition-colors hover:bg-ink-50`
+  const className = `block w-full rounded-xl border border-border-default bg-surface-raised border-t-4 ${ACCENT_BORDER[accent]} p-3.5 text-left transition-colors hover:bg-surface-sunken`
   if (onClick) {
     return (
       <button type="button" onClick={onClick} className={className}>
@@ -47,7 +47,7 @@ function Tile({ icon: Icon, label, value, detail, to, onClick, accent = 'navy' }
 export default function OfisinNabziGrid({ tiles }) {
   return (
     <div>
-      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Ofisin Nabzı</h2>
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">Ofisin Nabzı</h2>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
         {tiles.map((t) => (
           <Tile key={t.label} {...t} />

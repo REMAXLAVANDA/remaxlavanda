@@ -3,6 +3,43 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım başladı ("Sakin & Odaklı"), Aşama 1: kabuk + Panel
+
+Broker `design_handoff_portal_redesign` paketini (README + 9 ekran görseli +
+tam kural seti) yükleyip "oku ve uygula" dedi — daha önce başlayıp "geri al
+şimdilik" denen aynı işin çok daha olgun/tam bir versiyonu. Bu kez adım adım,
+her sayfadan sonra ekran görüntüsü gösterip onay alarak ilerleniyor
+("canlıya al yavaş yavaş yapalım").
+
+**Bu adımda canlıya çıkanlar:**
+- `index.css`'e yeni semantik token seti eklendi (`surface-*`, `border-*`,
+  `tint-*`, `text-*`, `chart-*`) — ESKİ `brand-*`/`ink-*`/`remax-*` sistemi
+  SİLİNMEDİ, henüz yeniden tasarlanmamış sayfalar onu kullanmaya devam
+  ediyor. İki sistem birbirine hex düzeyinde yakın, kademeli geçiş için.
+- `components/common/` altına 9 yeni paylaşılan bileşen (Badge, Button,
+  Card, Avatar, ListRow, MetricCard, ProgressBar, SegmentedControl, Table,
+  Toggle).
+- **Kabuk yeniden tasarımı**: Sol menü artık gruplu (Operasyon / Takip &
+  Gelişim), navy zemin + kırmızı aktif rota; profil menüsü Topbar'dan sol
+  menünün altına taşındı (ProfileMenu artık `variant="sidebar"` alıyor).
+  Üst çubuğa **gerçek işlevli** arama kutusu (Fırsatlar'da `ozet`/`konum`
+  üzerinden — müşteri adı/telefonu zaten `list()`'te hiç dönmüyor, o yüzden
+  aranamıyor; Lead Havuzu'nda `adSoyad`/`telefon`, sadece broker/owner) ve
+  "+ Hızlı kayıt" (Fırsat ekle / Görev ekle — Lead ekle YOK, lead'ler elle
+  girilmiyor) eklendi. Hızlı kayıt `?yeni=firsat` / `?yeni=gorev` query
+  parametresiyle ilgili sayfanın MEVCUT ekleme modalını otomatik açıyor —
+  yeni bir oluşturma akışı YAZILMADI. Bildirim zili bilerek eklenmedi
+  (broker kararı — bildirim geçmişi ayrı bir özellik).
+- **Panel.jsx**: sadece görsel katman (renk/kart/tipografi token'ları)
+  değişti — Ofisin Nabzı, Dikkat Gerekiyor, Portal Kullanımı, Haftanın
+  Liderleri, ciro/skor mahremiyeti dahil TÜM mevcut mantık ve 3 rol
+  varyantı (broker/owner, danışman, ofis) birebir korundu.
+
+**Kapsam dışı (henüz):** Fırsatlar, Lead Havuzu, Login, Recruiting,
+Planlama, Takip, Lig, Rehber+Ayarlar sayfalarının kendisi, responsive
+kırılımlar, ve Etkinlik Panosu'nun (TV) yeni `/pano` görünümü — bunlar
+README'nin önerdiği sırayla, her biri onaylandıkça devam edecek.
+
 ## 2026-08-03 — Profil menüsüne kalıcı "Bildirimleri Aç" seçeneği
 
 Broker "bildirim tarafı çalışmıyor, danışmanlar ana ekrana ekliyor ama
