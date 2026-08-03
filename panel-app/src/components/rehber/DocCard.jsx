@@ -46,7 +46,7 @@ export default function DocCard({
   }
 
   return (
-    <div className="rounded-2xl border border-ink-100 bg-white p-4">
+    <div className="rounded-2xl border border-border-default bg-surface-raised p-4">
       <div className="flex items-start gap-3">
         {canManage && (
           <div className="flex shrink-0 flex-col">
@@ -54,7 +54,7 @@ export default function DocCard({
               onClick={() => onMove('up')}
               disabled={isFirst}
               aria-label="Yukarı taşı"
-              className="rounded p-0.5 text-ink-300 hover:bg-ink-50 hover:text-ink-700 disabled:opacity-30"
+              className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
             >
               <ChevronUp size={16} />
             </button>
@@ -62,7 +62,7 @@ export default function DocCard({
               onClick={() => onMove('down')}
               disabled={isLast}
               aria-label="Aşağı taşı"
-              className="rounded p-0.5 text-ink-300 hover:bg-ink-50 hover:text-ink-700 disabled:opacity-30"
+              className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
             >
               <ChevronDown size={16} />
             </button>
@@ -72,14 +72,14 @@ export default function DocCard({
           <FileText size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-ink-900">{doc.baslik}</p>
+          <p className="text-sm font-semibold text-text-primary">{doc.baslik}</p>
           {current ? (
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-text-disabled">
               v{current.versionNo} · {current.filename} · {resolveName(current.uploadedBy)} tarafından{' '}
               {relativeTime(current.uploadedAt)}
             </p>
           ) : doc.contentText ? null : (
-            <p className="text-xs text-ink-400">Henüz dosya yüklenmedi</p>
+            <p className="text-xs text-text-disabled">Henüz dosya yüklenmedi</p>
           )}
         </div>
         {canManage && (
@@ -87,14 +87,14 @@ export default function DocCard({
             <button
               onClick={onEdit}
               title="Düzenle"
-              className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+              className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-600"
             >
               <Pencil size={15} />
             </button>
             <button
               onClick={onDeleteRequest}
               title="Sil"
-              className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+              className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-700"
             >
               <Trash2 size={15} />
             </button>
@@ -104,13 +104,13 @@ export default function DocCard({
 
       {doc.contentText && (
         <div className="relative mt-3">
-          <p className="whitespace-pre-line rounded-xl bg-ink-50 p-3 pr-16 text-sm text-ink-700">
+          <p className="whitespace-pre-line rounded-xl bg-surface-sunken p-3 pr-16 text-sm text-text-secondary">
             {doc.contentText}
           </p>
           <button
             onClick={handleCopy}
             title="Kopyala"
-            className="absolute right-2 top-2 flex items-center gap-1 rounded-lg bg-white px-2 py-1 text-xs font-medium text-ink-500 shadow-sm hover:bg-ink-100"
+            className="absolute right-2 top-2 flex items-center gap-1 rounded-lg bg-surface-raised px-2 py-1 text-xs font-medium text-text-muted shadow-sm hover:bg-surface-sunken"
           >
             {copied ? (
               <>
@@ -129,21 +129,21 @@ export default function DocCard({
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             onClick={() => onPreview(current)}
-            className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100"
+            className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-border-subtle"
           >
             <Eye size={13} /> Önizle
           </button>
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-border-subtle disabled:opacity-50"
           >
             <Download size={13} /> İndir
           </button>
           {history.length > 1 && (
             <button
               onClick={() => setShowHistory((v) => !v)}
-              className="ml-auto flex items-center gap-1 text-xs text-ink-400 hover:text-ink-600"
+              className="ml-auto flex items-center gap-1 text-xs text-text-disabled hover:text-text-secondary"
             >
               Geçmiş ({history.length})
               <ChevronDown size={13} className={`transition-transform ${showHistory ? 'rotate-180' : ''}`} />
@@ -153,9 +153,9 @@ export default function DocCard({
       )}
 
       {showHistory && (
-        <div className="mt-3 space-y-1.5 border-t border-ink-50 pt-3">
+        <div className="mt-3 space-y-1.5 border-t border-border-subtle pt-3">
           {history.map((v) => (
-            <div key={v.id} className="flex items-center justify-between text-xs text-ink-500">
+            <div key={v.id} className="flex items-center justify-between text-xs text-text-muted">
               <span>
                 v{v.versionNo} · {v.filename}
               </span>

@@ -289,17 +289,17 @@ export default function Ayarlar() {
 
   if (!canManage) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center">
-        <Lock size={28} className="text-ink-300" />
-        <p className="text-sm font-medium text-ink-600">Bu sayfaya erişim yetkin yok.</p>
-        <p className="text-xs text-ink-400">Ayarlar sadece broker ve owner rollerine açıktır.</p>
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center">
+        <Lock size={28} className="text-text-disabled" />
+        <p className="text-sm font-medium text-text-secondary">Bu sayfaya erişim yetkin yok.</p>
+        <p className="text-xs text-text-disabled">Ayarlar sadece broker ve owner rollerine açıktır.</p>
       </div>
     )
   }
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-ink-100">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border-default">
         <div className="flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
             <button
@@ -308,7 +308,7 @@ export default function Ayarlar() {
               className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                 tab === t.key
                   ? 'border-brand-600 text-brand-700'
-                  : 'border-transparent text-ink-500 hover:text-ink-800'
+                  : 'border-transparent text-text-muted hover:text-text-primary'
               }`}
             >
               <t.icon size={16} />
@@ -351,7 +351,7 @@ export default function Ayarlar() {
           {!loadingCategories && categoriesError && <ErrorState error={categoriesError} onRetry={reloadCategories} />}
           {!loadingCategories && !categoriesError && (
             <>
-              <p className="mb-4 text-xs text-ink-400">
+              <p className="mb-4 text-xs text-text-disabled">
                 Rehber sayfasındaki klasörler — ekle, yeniden adlandır, sil veya sırasını değiştir.
               </p>
               <CategoryManager
@@ -370,7 +370,7 @@ export default function Ayarlar() {
 
       {tab === 'log' && (
         <>
-          <p className="mb-4 text-xs text-ink-400">
+          <p className="mb-4 text-xs text-text-disabled">
             Kullanıcı, fırsat ve skor değişiklikleri — en son 200 kayıt.
           </p>
           {loadingAudit && <LoadingState />}
@@ -381,7 +381,7 @@ export default function Ayarlar() {
 
       {tab === 'webhook' && (
         <>
-          <p className="mb-4 text-xs text-ink-400">
+          <p className="mb-4 text-xs text-text-disabled">
             Meta (Facebook/Instagram) Lead Ads webhook'unun işleyemediği kayıtlar — son 100 hata. "Lead kaybolmuş
             olabilir" etiketli kayıtlar en öncelikli: Meta lead verisini sınırlı süre saklıyor, gecikmeden
             incelenmeli.
@@ -396,7 +396,7 @@ export default function Ayarlar() {
 
       {tab === 'reklam' && (
         <>
-          <p className="mb-4 text-xs text-ink-400">
+          <p className="mb-4 text-xs text-text-disabled">
             Her satır bir reklam — Recruiting ve Portföy tarafında ayrı ayrı, başvurudan sonuca kaç kişinin ilerlediğini
             gösterir. Veri, o reklamdan gelen kayıtların zaten bulunduğu Recruiting ve Operasyon ekranlarından okunur.
           </p>

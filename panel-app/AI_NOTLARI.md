@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 9: Rehber + Ayarlar
+
+Aynı adım-adım süreç. `Rehber.jsx`, `FolderList.jsx`, `DocCard.jsx` yeni
+token'lara geçti. `Ayarlar.jsx`'te sadece sekme çubuğu ve erişim-yok ekranı
+güncellendi — sayfanın altındaki 6 alt tablo (Kullanıcılar/Yetki/Kategori/
+Log/Webhook Hataları/Reklam Kaynakları, her biri kendi bileşeni) bilerek bu
+adımın kapsamı dışında bırakıldı, zaten nötr renklerle çakışmıyorlar,
+istenirse ayrı bir adımda ele alınabilir.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 8: Lig
 
 Aynı adım-adım süreç. `Lig.jsx`, `LeagueBoard.jsx`, `ReviewCreditsPanel.jsx`,
