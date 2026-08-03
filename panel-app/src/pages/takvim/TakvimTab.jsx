@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Image } from 'lucide-react'
+import { Plus, Image, Tv } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -191,6 +191,15 @@ export default function TakvimTab() {
           >
             <Image size={16} /> Aylık Pano
           </button>
+          <a
+            href="#/pano"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Ofis TV'sinde sürekli açık kalacak, kendini otomatik yenileyen görünüm"
+            className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
+          >
+            <Tv size={16} /> TV'de Aç
+          </a>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"

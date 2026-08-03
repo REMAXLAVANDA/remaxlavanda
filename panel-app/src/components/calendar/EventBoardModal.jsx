@@ -13,7 +13,7 @@ const PORTAL_URL = 'https://panel.remaxlavanda.com.tr'
 // seçince çıkmalı" isteği). remax_turkiye dahil — RE/MAX Türkiye'nin
 // ulusal etkinlikleri de paylaşıma değer (bkz. "buraya ekle ve takvim
 // panosunda görülsün" isteği).
-const BOARD_TYPES = ['etkinlik', 'egitim', 'toplanti', 'remax_turkiye']
+export const BOARD_TYPES = ['etkinlik', 'egitim', 'toplanti', 'remax_turkiye']
 
 function isSameMonth(iso, monthDate) {
   const d = new Date(iso)

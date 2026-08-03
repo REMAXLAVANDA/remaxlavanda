@@ -3,6 +3,32 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 11 (son): Etkinlik Panosu /pano
+
+`design_handoff_portal_redesign` paketindeki son ekran. Yeni `Pano.jsx` —
+`/pano` rotası, `ProtectedRoute` içinde ama `AppLayout` (sidebar/topbar)
+DIŞINDA, kabuksuz tam ekran. Mevcut `EventBoard.jsx` bileşenini aynen
+kullanıyor (zaten container query birimleriyle — cqw/cqh — inşa edilmiş
+olduğu için herhangi bir ekran boyutuna otomatik ölçekleniyor, 16:9 dışı
+ekranlarda siyah/navy bant bırakarak orantıyı koruyor). Veri 60 saniyede
+bir kendiliğinden yenileniyor, ay otomatik güncelleniyor, hiçbir
+etkileşim yok (tasarım paketinin belirttiği gibi). **Bilerek eklenmeyen:**
+tasarımdaki "SIRADAKİ"/"DEVAMINDA" yan kronolojik liste — bu daha önce
+Aşama'da (2026-08-03, Aylık Etkinlik Panosu redesign) broker'ın "bunu
+kaldır" dediği AYNI liste, karar hâlâ geçerli (bkz. EventBoard.jsx içindeki
+not). Takvim sayfasına mevcut "Aylık Pano" (PNG indirme/paylaşma modalı)
+butonunun yanına "TV'de Aç" bağlantısı eklendi — ikisi farklı amaçlara
+hizmet ediyor (biri anlık görsel üretimi, diğeri sürekli açık TV ekranı).
+
+Bu, `design_handoff_portal_redesign` paketinin **11 aşamalı** (kabuk +
+9 sayfa + responsive + pano), her adımda ekran görüntüsü gösterilip onay
+alınarak yürütülen görsel yeniden tasarımının SON adımıdır. Kapsam dışı
+bırakılanlar (broker isterse ayrı brief'ler): Operasyon bölümünün kendi
+bileşenleri (CallTable/StatsCards/CallFilters), Recruiting'in sürükle-
+bırak pano görünümü (gerçek 7 aşama tasarımın 5'iyle eşleşmiyor), Login'de
+"Beni hatırla"/"Şifremi unuttum" (gerçek altyapı yok), Ayarlar'ın 6 alt
+tablosu (Kullanıcılar/Yetki/Kategori/Log/Webhook/Reklam Kaynakları).
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 10: Mobil alt navigasyon
 
 Yeni `MobileBottomNav.jsx` — sadece <1024px'de görünen sabit alt çubuk

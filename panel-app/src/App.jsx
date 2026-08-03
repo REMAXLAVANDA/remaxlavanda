@@ -24,6 +24,8 @@ import KartvizitPublic from './pages/KartvizitPublic'
 // Takvim, FullCalendar gibi ağır bir kütüphane taşıdığı için ana paketi
 // şişirmemesi adına lazy-load ediliyor — sadece Takvim'e girilince indirilir.
 const Takvim = lazy(() => import('./pages/Takvim'))
+// Ofis TV'sindeki Etkinlik Panosu — nadiren açılan, kabuksuz ayrı bir görünüm.
+const Pano = lazy(() => import('./pages/Pano'))
 
 function PageLoading() {
   return <div className="py-16 text-center text-sm text-ink-400">Yükleniyor...</div>
@@ -62,6 +64,14 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/k/:userId" element={<KartvizitPublic />} />
               <Route element={<ProtectedRoute />}>
+                <Route
+                  path="/pano"
+                  element={
+                    <Suspense fallback={<PageLoading />}>
+                      <Pano />
+                    </Suspense>
+                  }
+                />
                 <Route element={<AppLayout />}>
                   <Route index element={<Navigate to="/panel" replace />} />
                   <Route path="/panel" element={<Panel />} />
