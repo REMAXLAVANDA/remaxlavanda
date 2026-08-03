@@ -3,6 +3,35 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Profil menüsüne kalıcı "Bildirimleri Aç" seçeneği
+
+Broker "bildirim tarafı çalışmıyor, danışmanlar ana ekrana ekliyor ama
+bildirim sorusu sorulmuyor" dedi. Kontrol ettim — manifest/service worker/
+VAPID anahtarı doğru deploy edilmiş, kod tarafında kırık bir şey yok. İki
+gerçek sebep var:
+1. **iOS platform kısıtı** (Apple'ın kuralı): Push SADECE ana ekrana
+   eklenen ikondan (standalone modda) açılan sayfada çalışır, Safari
+   sekmesinde asla — danışman eklemeli VE Safari'yi kapatıp ikondan
+   açmalı. iOS 16.4 altında hiç desteklenmiyor.
+2. **Gerçek eksik**: `NotificationPrompt` banner'ı SADECE bir kez
+   görünüyordu — "X" ile kapatılırsa ya da tarayıcı izni reddedilirse bir
+   daha asla görünmüyordu, tekrar denemek için uygulamada hiçbir yer
+   yoktu.
+
+Madde 2 için `ProfileMenu.jsx`'e kalıcı bir "Bildirimleri Aç" seçeneği
+eklendi (Kartvizitim/Ayarlar'ın üstünde, herkese açık) — izin durumuna
+göre 3 hal: `default` → tıklanabilir "Bildirimleri Aç" (banner'daki
+`handleEnable` ile aynı akış, ayrıca `push-prompt-dismissed`
+localStorage'ını temizliyor), `granted` → yeşil "Bildirimler açık"
+(bilgilendirme, tıklanamaz), `denied` → "Bildirimler kapalı" (tıklanınca
+tarayıcı/telefon ayarlarından açması gerektiğini söyleyen bir toast —
+JS'ten zorla açılamıyor, bu tarayıcı güvenlik kısıtı). Push
+desteklenmeyen tarayıcılarda (`isPushSupported()` false) seçenek hiç
+görünmüyor. Ayrıca `index.html`'deki favicon/apple-touch-icon/manifest
+linkleri `/panel/` öneki eklenerek netleştirildi (davranış değişikliği
+yok — Vite zaten build'de doğru yola çeviriyordu, sadece kaynak kodu
+üretimdekiyle birebir tutarlı hale geldi). DB değişikliği yok.
+
 ## 2026-08-03 — Haftanın Liderleri: mutlak değer yerine her kategoride "fark"
 
 Bir önceki maddede Ciro rakamını tamamen gizlemiştim; broker daha genel bir

@@ -1,16 +1,56 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings, LogOut, ChevronDown, Check, CreditCard } from 'lucide-react'
+import { Settings, LogOut, ChevronDown, Check, CreditCard, Bell, BellOff, BellRing } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { users as usersProvider } from '../../lib/dataProvider'
+import { isPushSupported, getNotificationPermission, subscribeToPush } from '../../lib/push'
 import { ROLE_LABELS, ROLE_ORDER, canManageUsers } from '../../lib/roles'
 import { hasKartvizit } from '../../lib/kartvizit'
 
+const DISMISS_KEY = 'push-prompt-dismissed'
+
 export default function ProfileMenu() {
   const { user, role, setRole, isMock, signOut } = useAuth()
+  const { showToast } = useToast()
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  // Sadece menü her açıldığında okunuyor — Notification.permission tarayıcı
+  // durumu, render arasında kendiliğinden değişmez (bkz. handleEnable
+  // sonrası elle güncelleme).
+  const [permission, setPermission] = useState(() => getNotificationPermission())
+  const [subscribing, setSubscribing] = useState(false)
   const ref = useRef(null)
   const navigate = useNavigate()
+
+  // Ana banner (NotificationPrompt) SADECE ilk seferde görünüyor — biri
+  // "X" ile kapatırsa ya da tarayıcı iznini reddederse bir daha hiç
+  // görünmüyordu, tekrar açmak için uygulamada hiçbir yer yoktu (bkz.
+  // "danışmanlar ekliyor ama bildirim sorusu sorulmuyor" geri bildirimi).
+  // Profil menüsü her zaman erişilebilir olduğu için kalıcı bir "tekrar
+  // dene" yolu burası.
+  async function handleEnableNotifications() {
+    if (permission === 'denied') {
+      showToast(
+        'Tarayıcı/telefon ayarlarından bu site için bildirim izni vermen gerekiyor — uygulama içinden açılamıyor.',
+        'error',
+      )
+      return
+    }
+    setSubscribing(true)
+    try {
+      const subscription = await subscribeToPush()
+      await usersProvider.savePushSubscription(subscription, user.id)
+      localStorage.removeItem(DISMISS_KEY)
+      setPermission(getNotificationPermission())
+      showToast('Bildirimler açıldı.', 'success')
+    } catch (err) {
+      setPermission(getNotificationPermission())
+      showToast(err.message ?? 'Bildirim açılamadı, tekrar dene.', 'error')
+    } finally {
+      setSubscribing(false)
+    }
+  }
 
   useEffect(() => {
     function onClickOutside(e) {
@@ -87,6 +127,22 @@ export default function ProfileMenu() {
           )}
 
           <div className="p-2">
+            {isPushSupported() && permission === 'granted' && (
+              <div className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-500">
+                <BellRing size={16} className="text-emerald-600" />
+                Bildirimler açık
+              </div>
+            )}
+            {isPushSupported() && permission !== 'granted' && (
+              <button
+                onClick={handleEnableNotifications}
+                disabled={subscribing}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50 disabled:opacity-50"
+              >
+                {permission === 'denied' ? <BellOff size={16} /> : <Bell size={16} />}
+                {subscribing ? 'Açılıyor...' : permission === 'denied' ? 'Bildirimler kapalı' : 'Bildirimleri Aç'}
+              </button>
+            )}
             {hasKartvizit(role) && (
               <button
                 onClick={() => {
