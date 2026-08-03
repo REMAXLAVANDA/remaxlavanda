@@ -3,7 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-08-03 — Haftanın Liderleri: Ciro rakamı artık gösterilmiyor
+## 2026-08-03 — Haftanın Liderleri: mutlak değer yerine her kategoride "fark"
+
+Bir önceki maddede Ciro rakamını tamamen gizlemiştim; broker daha genel bir
+kural hatırlattı — "her zaman 1.-2. arasındaki fark (puansa puan, cirosa
+ciro), mutlak değer asla". Bu zaten Lig sayfasının kuralıydı
+(`lib/league.js` `rankingsFor` yorumu) ama `WeeklyLeadersCard` Memnuniyet/
+Sosyal Medya için mutlak yüzde gösteriyordu — tutarsızlık düzeltildi.
+Artık üç kategori de aynı `formatLeadMargin(leader.diff, unit)` ile
+"+X TL/puan önde" gösteriyor (fark yoksa/tekse "Lider" yazıyor). Ciro dahil
+— çünkü bu zaten mutlak tutar değil, sadece FARK, mahremiyet kuralını da
+karşılıyor. DB değişikliği yok.
+
+## 2026-08-03 — Haftanın Liderleri: Ciro rakamı artık gösterilmiyor (bkz. üstteki madde — SONRADAN GENELLEŞTİRİLDİ)
 
 Broker "ciro bizde mahremdir, sadece 1. olmalı" dedi — Panel'deki
 "Haftanın Liderleri" kartında Ciro kategorisinin lideri artık sadece isim

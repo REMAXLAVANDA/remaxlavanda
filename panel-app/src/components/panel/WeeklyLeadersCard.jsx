@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Trophy } from 'lucide-react'
+import { formatLeadMargin } from '../../lib/league'
 
 // Uygulamada profil fotoğrafı YOK (bkz. Panel.jsx/ProfileMenu/HealthScoreRow
 // aynı kural, her yerde ayrı ayrı tanımlı — bilerek paylaşılan tek bir
@@ -20,12 +21,6 @@ function InitialsBadge({ name, size = 32 }) {
       {initials}
     </div>
   )
-}
-
-function formatLeaderValue(value, unit) {
-  if (unit === 'tl') return `${value.toLocaleString('tr-TR')} TL`
-  if (unit === 'puan' && value <= 100) return `%${value}`
-  return `${value} puan`
 }
 
 // Eskiden 3 ayrı kart (Ciro/Memnuniyet/Sosyal Medya) — çok yer kaplıyordu.
@@ -63,15 +58,15 @@ export default function WeeklyLeadersCard({ categories, rankingsByCategory }) {
                 <p className="truncate text-sm font-medium text-ink-900">{leader.name}</p>
                 <p className="text-xs text-ink-400">{category.label}</p>
               </div>
-              {/* Ciro rakamı burada BİLEREK gösterilmiyor — ciro mahrem
-                  bilgi, sadece kimin 1. olduğu görünür (bkz. "ciro bizde
-                  mahremdir" kararı). Diğer kategoriler (Memnuniyet %,
-                  Sosyal Medya puan) mali bilgi olmadığı için değişmedi. */}
-              {category.key !== 'ciro' && (
-                <span className="shrink-0 text-sm font-semibold text-ink-900">
-                  {formatLeaderValue(leader.value, category.unit)}
-                </span>
-              )}
+              {/* Mutlak değer (ne kadar ciro/puan yaptığı) HİÇBİR kategoride
+                  gösterilmiyor — Lig sayfasıyla aynı kural (bkz.
+                  lib/league.js rankingsFor yorumu): sadece liderin 2.
+                  sıradakine göre ne kadar önde olduğu ("+X TL/puan önde").
+                  Kimse yoksa/eşitse (diff=0) sadece "Lider" yazar — ciro
+                  için bu zaten hiçbir zaman mutlak tutar sızdırmaz. */}
+              <span className="shrink-0 text-sm font-semibold text-ink-900">
+                {formatLeadMargin(leader.diff, category.unit) ?? 'Lider'}
+              </span>
             </div>
           ))}
         </div>
