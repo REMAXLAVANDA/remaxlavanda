@@ -8,14 +8,14 @@ export default function CriteriaPanel({ title, children }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="mb-6 rounded-2xl border border-ink-100 bg-white p-4">
+    <div className="mb-6 rounded-2xl border border-border-default bg-surface-raised p-4">
       <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between text-left">
-        <span className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+        <span className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Settings2 size={16} className="text-brand-600" /> {title}
         </span>
-        <span className="text-xs text-ink-400">{open ? 'Gizle' : 'Nasıl hesaplanır?'}</span>
+        <span className="text-xs text-text-disabled">{open ? 'Gizle' : 'Nasıl hesaplanır?'}</span>
       </button>
-      {open && <div className="mt-3 border-t border-ink-50 pt-3 text-sm text-ink-700">{children}</div>}
+      {open && <div className="mt-3 border-t border-border-subtle pt-3 text-sm text-text-secondary">{children}</div>}
     </div>
   )
 }

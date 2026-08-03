@@ -3,6 +3,16 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 8: Lig
+
+Aynı adım-adım süreç. `Lig.jsx`, `LeagueBoard.jsx`, `ReviewCreditsPanel.jsx`,
+`CriteriaPanel.jsx`, `ActivityPointsSettings.jsx` yeni token'lara geçti.
+Yine sed ile toplu değişimde birkaç yerde base/hover rengi aynı token'a
+düşüp hover görsel geri bildirimi kaybolmuştu (Lig.jsx'teki 3 üst buton,
+aynı Aşama 7'deki gibi) — fark edilip `hover:bg-border-subtle` olarak
+düzeltildi. Podyum/sıralama/Yorum Hakkı'ndaki ciro-mahremiyeti mantığı
+(sadece fark gösterme, mutlak değer yok) dokunulmadı.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 7: Takip (360° + Eğitim)
 
 Aynı adım-adım süreç. `HealthScoreTable.jsx` ortak `Table`/`Avatar`

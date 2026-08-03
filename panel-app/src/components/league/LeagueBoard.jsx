@@ -14,7 +14,7 @@ export default function LeagueBoard({ rankings, unit, historyByUser }) {
   const [expandedId, setExpandedId] = useState(null)
 
   if (rankings.length === 0) {
-    return <p className="py-8 text-center text-sm text-ink-400">Bu kategoride henüz veri yok.</p>
+    return <p className="py-8 text-center text-sm text-text-disabled">Bu kategoride henüz veri yok.</p>
   }
 
   return (
@@ -26,7 +26,7 @@ export default function LeagueBoard({ rankings, unit, historyByUser }) {
         return (
           <div
             key={r.userId}
-            className={`rounded-xl border ${r.isLeader ? 'border-brand-200 bg-brand-50' : 'border-ink-100 bg-white'}`}
+            className={`rounded-xl border ${r.isLeader ? 'border-brand-200 bg-brand-50' : 'border-border-default bg-surface-raised'}`}
           >
             <div
               role={canExpand ? 'button' : undefined}
@@ -35,36 +35,36 @@ export default function LeagueBoard({ rankings, unit, historyByUser }) {
             >
               {canExpand &&
                 (isExpanded ? (
-                  <ChevronDown size={14} className="shrink-0 text-ink-400" />
+                  <ChevronDown size={14} className="shrink-0 text-text-disabled" />
                 ) : (
-                  <ChevronRight size={14} className="shrink-0 text-ink-400" />
+                  <ChevronRight size={14} className="shrink-0 text-text-disabled" />
                 ))}
               <span className="w-7 shrink-0 text-center text-lg">{MEDALS[r.rank - 1] ?? r.rank}</span>
-              <span className="min-w-0 flex-1 text-sm font-medium text-ink-900">{r.name}</span>
+              <span className="min-w-0 flex-1 text-sm font-medium text-text-primary">{r.name}</span>
               {r.isLeader ? (
                 <span className="flex items-center gap-1.5">
                   {formatLeadMargin(r.diff, unit) && (
-                    <span className="text-xs font-medium text-ink-500">{formatLeadMargin(r.diff, unit)}</span>
+                    <span className="text-xs font-medium text-text-muted">{formatLeadMargin(r.diff, unit)}</span>
                   )}
                   <span className="flex items-center gap-1 rounded-full bg-brand-600 px-2.5 py-1 text-xs font-medium text-white">
                     <Crown size={12} /> Lider
                   </span>
                 </span>
               ) : (
-                <span className="text-xs font-medium text-ink-500">{formatDiff(r.diff, unit)}</span>
+                <span className="text-xs font-medium text-text-muted">{formatDiff(r.diff, unit)}</span>
               )}
             </div>
 
             {isExpanded && (
-              <div className="border-t border-ink-100 px-4 py-2">
+              <div className="border-t border-border-default px-4 py-2">
                 {history.length === 0 ? (
-                  <p className="py-1 text-xs text-ink-400">Bu dönem için giriş kaydı yok.</p>
+                  <p className="py-1 text-xs text-text-disabled">Bu dönem için giriş kaydı yok.</p>
                 ) : (
                   <div className="space-y-1">
                     {history.map((h) => (
-                      <div key={h.id} className="flex items-center justify-between text-xs text-ink-600">
+                      <div key={h.id} className="flex items-center justify-between text-xs text-text-secondary">
                         <span>{formatDate(h.tarih)}</span>
-                        <span className="font-medium text-ink-800">{Number(h.value).toLocaleString('tr-TR')} TL</span>
+                        <span className="font-medium text-text-primary">{Number(h.value).toLocaleString('tr-TR')} TL</span>
                       </div>
                     ))}
                   </div>

@@ -277,7 +277,7 @@ export default function Lig() {
           <select
             value={periodId ?? ''}
             onChange={(e) => setPeriodId(e.target.value)}
-            className="rounded-md border border-ink-200 bg-white px-2 py-1.5 text-sm text-ink-700"
+            className="rounded-md border border-border-default bg-surface-raised px-2 py-1.5 text-sm text-text-secondary"
           >
             {data.periods.map((p) => (
               <option key={p.id} value={p.id}>
@@ -286,13 +286,13 @@ export default function Lig() {
             ))}
           </select>
         ) : (
-          <p className="text-xs text-ink-400">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
+          <p className="text-xs text-text-disabled">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
         )}
         <div className="flex flex-wrap items-center gap-2">
           {!loading && !error && period && (
             <button
               onClick={() => setShowShareModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
+              className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
               title="Sosyal medyada paylaşılabilir görsel — sadece isim/sıra, mali bilgi yok"
             >
               <Eye size={16} /> Görseli Göster
@@ -301,7 +301,7 @@ export default function Lig() {
           {!loading && !error && period && (
             <button
               onClick={handleCopySummary}
-              className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
+              className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
             >
               <Copy size={16} /> Kopyala
             </button>
@@ -309,7 +309,7 @@ export default function Lig() {
           {isBroker && !loading && (
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100"
+              className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
             >
               <CalendarPlus size={16} /> Yeni Dönem
             </button>
@@ -369,10 +369,10 @@ export default function Lig() {
               değil, kaç işlemden kaç yorum alındığı BİRLİKTE değerlendirilerek yapılır — az işlemden gelen yüksek
               yüzde, çok işlemden gelen sağlam bir sonucun önüne geçmez.
             </p>
-            <div className="overflow-x-auto rounded-lg border border-ink-100">
+            <div className="overflow-x-auto rounded-lg border border-border-default">
               <table className="w-full min-w-[420px] text-left text-xs">
                 <thead>
-                  <tr className="border-b border-ink-100 bg-ink-50 text-ink-400">
+                  <tr className="border-b border-border-default bg-surface-sunken text-text-disabled">
                     <th className="px-3 py-2 font-medium">İşlem</th>
                     <th className="px-3 py-2 font-medium">Alınan</th>
                     <th className="px-3 py-2 font-medium">Ham yüzde</th>
@@ -380,28 +380,28 @@ export default function Lig() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-ink-50">
+                  <tr className="border-b border-border-subtle">
                     <td className="px-3 py-2">1</td>
                     <td className="px-3 py-2">1</td>
                     <td className="px-3 py-2">%100</td>
-                    <td className="px-3 py-2 font-medium text-ink-800">21</td>
+                    <td className="px-3 py-2 font-medium text-text-primary">21</td>
                   </tr>
-                  <tr className="border-b border-ink-50">
+                  <tr className="border-b border-border-subtle">
                     <td className="px-3 py-2">5</td>
                     <td className="px-3 py-2">3</td>
                     <td className="px-3 py-2">%60</td>
-                    <td className="px-3 py-2 font-medium text-ink-800">23</td>
+                    <td className="px-3 py-2 font-medium text-text-primary">23</td>
                   </tr>
                   <tr>
                     <td className="px-3 py-2">17</td>
                     <td className="px-3 py-2">12</td>
                     <td className="px-3 py-2">%71</td>
-                    <td className="px-3 py-2 font-medium text-ink-800">47</td>
+                    <td className="px-3 py-2 font-medium text-text-primary">47</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-text-disabled">
               1 işlemden %100 alan, 17 işlemden %71 alandan (12 yorum) daha az puan alır — çünkü ikincisinin arkasında
               çok daha fazla kanıt var. İşlem sayısı arttıkça puan gerçek yüzdene yaklaşır.
             </p>
@@ -416,7 +416,7 @@ export default function Lig() {
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
       {!loading && !error && !period && (
-        <p className="py-8 text-center text-sm text-ink-400">
+        <p className="py-8 text-center text-sm text-text-disabled">
           Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
         </p>
       )}
@@ -426,7 +426,7 @@ export default function Lig() {
           ilk 3'ü ve kendi Yorum Hakkı satırını görür. */}
       {isManager && !loading && !error && period && (
         <>
-          <div className="mb-5 flex gap-1 border-b border-ink-100">
+          <div className="mb-5 flex gap-1 border-b border-border-default">
             {LEAGUE_CATEGORIES.map((c) => {
               const colors = LEAGUE_CATEGORY_COLORS[c.key]
               return (
@@ -434,7 +434,7 @@ export default function Lig() {
                   key={c.key}
                   onClick={() => setTab(c.key)}
                   className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                    tab === c.key ? `${colors.tabBorder} ${colors.tabText}` : 'border-transparent text-ink-500 hover:text-ink-800'
+                    tab === c.key ? `${colors.tabBorder} ${colors.tabText}` : 'border-transparent text-text-muted hover:text-text-primary'
                   }`}
                 >
                   {c.label}
