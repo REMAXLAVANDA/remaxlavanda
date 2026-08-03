@@ -187,7 +187,7 @@ export default function TakvimTab() {
         <div className="mb-4 flex flex-wrap justify-end gap-2">
           <button
             onClick={() => setShowBoardModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100"
+            className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
           >
             <Image size={16} /> Aylık Pano
           </button>
@@ -209,7 +209,7 @@ export default function TakvimTab() {
             <button
               onClick={() => setTypeFilter('tumu')}
               className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                typeFilter === 'tumu' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                typeFilter === 'tumu' ? 'bg-brand-600 text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
               }`}
             >
               Tümü
@@ -219,7 +219,7 @@ export default function TakvimTab() {
                 key={key}
                 onClick={() => setTypeFilter(key)}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  typeFilter === key ? 'text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                  typeFilter === key ? 'text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
                 }`}
                 style={typeFilter === key ? { backgroundColor: EVENT_TYPE_COLORS[key] } : undefined}
               >

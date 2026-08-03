@@ -155,7 +155,7 @@ export default function GorevlerTab() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-ink-500">
+        <p className="text-sm text-text-muted">
           {isManager ? 'Ekibe verilen görev ve sorumluluklar' : 'Sana atanan görevler'}
         </p>
         {isManager && (
@@ -172,7 +172,7 @@ export default function GorevlerTab() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && visible.length === 0 && (
-        <p className="rounded-xl bg-ink-50 px-4 py-6 text-center text-sm text-ink-400">Henüz görev yok.</p>
+        <p className="rounded-xl bg-surface-sunken px-4 py-6 text-center text-sm text-text-disabled">Henüz görev yok.</p>
       )}
 
       {!loading && !error && visible.length > 0 && (
@@ -180,11 +180,11 @@ export default function GorevlerTab() {
           {groups.map((g) => {
             const colors = ROLE_WIDGET_COLORS[g.key]
             return (
-            <div key={g.key} className={`rounded-2xl border border-ink-100 bg-white border-t-4 ${colors.border} p-4`}>
-              <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+            <div key={g.key} className={`rounded-2xl border border-border-default bg-surface-raised border-t-4 ${colors.border} p-4`}>
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">
                 <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
                 {g.label}
-                <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium text-ink-500">
+                <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-[11px] font-medium text-text-muted">
                   {g.tasks.length}
                 </span>
               </h3>

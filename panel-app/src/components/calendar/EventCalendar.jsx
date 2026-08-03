@@ -49,7 +49,7 @@ export default function EventCalendar({ events, onEventClick }) {
   }))
 
   return (
-    <div className="rounded-2xl border border-ink-100 bg-white p-3 sm:p-4">
+    <div className="rounded-2xl border border-border-default bg-surface-raised p-3 sm:p-4">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"

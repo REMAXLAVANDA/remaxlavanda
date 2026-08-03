@@ -12,7 +12,11 @@ export default function TaskRow({ task, assigneeName, canToggle, canManage, onTo
   const dueLabel = formatDueDate(task.dueDate)
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-ink-100 bg-white p-3.5">
+    <div
+      className={`flex items-start gap-3 rounded-xl border border-border-default bg-surface-raised p-3.5 ${
+        overdue ? 'shadow-[inset_3px_0_0_#DC1C2E]' : ''
+      }`}
+    >
       <button
         onClick={() => canToggle && onToggle(task.id, done ? 'bekliyor' : 'tamamlandi')}
         disabled={!canToggle}
@@ -22,17 +26,17 @@ export default function TaskRow({ task, assigneeName, canToggle, canManage, onTo
         {done ? (
           <CheckCircle2 size={20} className="text-emerald-600" />
         ) : (
-          <Circle size={20} className={overdue ? 'text-red-400' : 'text-ink-300'} />
+          <Circle size={20} className={overdue ? 'text-brand-500' : 'text-text-disabled'} />
         )}
       </button>
 
       <div className="min-w-0 flex-1">
-        <p className={`text-sm font-medium ${done ? 'text-ink-400 line-through' : 'text-ink-900'}`}>{task.title}</p>
-        {task.description && <p className="mt-0.5 text-xs text-ink-500">{task.description}</p>}
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-400">
+        <p className={`text-sm font-medium ${done ? 'text-text-disabled line-through' : 'text-text-primary'}`}>{task.title}</p>
+        {task.description && <p className="mt-0.5 text-xs text-text-muted">{task.description}</p>}
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-disabled">
           <span>{assigneeName}</span>
           {dueLabel && (
-            <span className={overdue ? 'font-medium text-red-600' : ''}>
+            <span className={overdue ? 'font-medium text-brand-700' : ''}>
               {overdue ? 'Süresi geçti · ' : 'Son tarih: '}
               {dueLabel}
             </span>
@@ -45,14 +49,14 @@ export default function TaskRow({ task, assigneeName, canToggle, canManage, onTo
           <button
             onClick={() => onEdit(task)}
             title="Düzenle"
-            className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+            className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-600"
           >
             <Pencil size={15} />
           </button>
           <button
             onClick={() => onDeleteRequest(task)}
             title="Sil"
-            className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+            className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-700"
           >
             <Trash2 size={15} />
           </button>

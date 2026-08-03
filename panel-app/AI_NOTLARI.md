@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 6: Planlama (Takvim + Görevler)
+
+Aynı adım-adım süreç. `TakvimTab.jsx`'teki tür filtre çipleri ve "Aylık
+Pano" butonu, `EventCalendar.jsx`'in dış çerçevesi, `GorevlerTab.jsx`'in
+rol bazlı kart kabukları ve `TaskRow.jsx` yeni token'lara geçti. Geciken
+görevlerde artık sol kırmızı şerit (inset shadow) var — Fırsatlar/Lead
+Havuzu'ndaki "geciken kayıt" görsel diliyle tutarlı. FullCalendar'ın kendi
+ızgara çizgileri (kütüphanenin varsayılanı) değiştirilmedi, zaten nötr.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 5: Recruiting
 
 Aynı adım-adım süreç. `RecruitingTable.jsx` ortak `Table` bileşenine ve
