@@ -247,14 +247,18 @@ export default function Leads() {
           {staleLeads.length > 0 && (
             <button
               onClick={() => setStaleFocus((v) => !v)}
-              className={`mb-4 flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-white transition-colors ${
-                staleFocus ? 'bg-brand-700' : 'bg-brand-600 hover:bg-brand-700'
+              className={`mb-4 flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
+                staleFocus
+                  ? 'border-brand-600 bg-brand-600 text-white'
+                  : 'border-border-danger bg-tint-red text-brand-700 hover:brightness-95'
               }`}
             >
               <span className="flex items-center gap-2">
                 <AlertTriangle size={16} /> 24 saattir işlenmemiş: {staleLeads.length} lead
               </span>
-              <span className="text-xs font-normal text-white/80">{staleFocus ? 'Filtreyi kaldır' : 'Sadece bunları göster'}</span>
+              <span className={`text-xs font-normal ${staleFocus ? 'text-white/80' : 'text-brand-600'}`}>
+                {staleFocus ? 'Filtreyi kaldır' : 'Sadece bunları göster'}
+              </span>
             </button>
           )}
 

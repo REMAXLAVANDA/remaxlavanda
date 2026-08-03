@@ -3,6 +3,16 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 3: Lead Havuzu
+
+Aynı adım-adım süreç. `LeadTable.jsx` ortak `Table` bileşenine ve yeni
+token'lara geçti (masaüstü + mobil kart görünümü), `LeadFilters.jsx`
+dropdown'ları güncellendi. `Leads.jsx`'teki "24 saattir işlenmemiş" uyarı
+çubuğu düz kırmızı dolgudan `tint-red`/`border-danger` kart diline geçti —
+tıklanınca filtre açma davranışı (aktifken dolu kırmızı, "Filtreyi kaldır")
+aynen korundu. Veri/yetki mantığı değişmedi (leads_manage RLS'i, süreç
+durumu hesaplama vb.).
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 2: Fırsatlar sayfası
 
 Aşama 1'in (kabuk + Panel) devamı, aynı adım-adım/onaylı süreç. Bu adımda:
