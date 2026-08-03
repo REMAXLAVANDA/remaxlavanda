@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Megaphone } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -12,8 +12,13 @@ import {
   callLogs as callLogsProvider,
 } from '../lib/dataProvider'
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
-import { generateTalepKodu } from '../lib/callLogs'
-import { LEAD_TO_RECRUITING_KAYNAK, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES } from '../lib/recruiting'
+import { generateTalepKodu, computeReklamKoduConversion } from '../lib/callLogs'
+import {
+  LEAD_TO_RECRUITING_KAYNAK,
+  RECRUITING_DURUM_LABELS,
+  RECRUITING_DURUM_STYLES,
+  computeRecruitingReklamConversion,
+} from '../lib/recruiting'
 import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
 import { sortByName } from '../lib/format'
 import LeadTable from '../components/leads/LeadTable'
@@ -21,6 +26,7 @@ import LeadFilters from '../components/leads/LeadFilters'
 import LeadDetailModal from '../components/leads/LeadDetailModal'
 import AssignPortfolioLeadModal from '../components/leads/AssignPortfolioLeadModal'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
+import ReklamKaynaklariTable from '../components/settings/ReklamKaynaklariTable'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const INITIAL_FILTERS = { tip: 'tumu', durum: 'tumu' }
@@ -272,6 +278,21 @@ export default function Leads() {
             onRowClick={setEditingLead}
             onQuickConvert={handleQuickConvert}
           />
+
+          {/* Reklam Kaynakları artık Ayarlar'da değil, burada — leadler zaten
+              reklamdan geliyor, kaynak performansını görmek için ayrı bir
+              menüye gitmeye gerek olmasın diye (bkz. "ayarlardaki detayların
+              özetini panele taşı, tüm detayları lead menüsünün altına
+              yerleştir" isteği). Panel'deki widget bunun sadece özeti. */}
+          <section className="mt-10 border-t border-border-default pt-8">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+              <Megaphone size={16} className="text-brand-600" /> Reklam Kaynakları
+            </h2>
+            <ReklamKaynaklariTable
+              recruitingRows={computeRecruitingReklamConversion(data?.recruitingCandidates ?? [])}
+              portfoyRows={computeReklamKoduConversion(data?.calls ?? [])}
+            />
+          </section>
         </>
       )}
 

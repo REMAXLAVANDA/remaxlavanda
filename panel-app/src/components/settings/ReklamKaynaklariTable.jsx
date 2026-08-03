@@ -1,8 +1,9 @@
-// Ayarlar > Reklam Kaynakları — "her açtığımız reklam için bir satır"
+import { Table, Thead, Th, Tbody, Tr, Td } from '../common/Table'
+
+// Lead Havuzu > Reklam Kaynakları — "her açtığımız reklam için bir satır"
 // isteği. Recruiting ve Portföy ayrı huniler kullandığı (recruiting_candidates.
 // durum / call_logs donusYapildiMi+portfoyAlindiMi+satildiMi) için iki ayrı
-// tablo olarak gösteriliyor, SourceConversionBoard (Panel'deki "Reklamlardan
-// kaç yetki aldık" tablosu) ile aynı sade görsel dilde. Veri lib/recruiting.js
+// tablo olarak gösteriliyor. Veri lib/recruiting.js
 // computeRecruitingReklamConversion ve lib/callLogs.js computeReklamKoduConversion'dan
 // gelir — ikisi de zaten reklamdan gelen kayıtları kendi hedef tablosunda
 // (Recruiting/Operasyon) tutuyor, Lead Havuzu'na hiç geri dönülmüyor.
@@ -10,43 +11,39 @@ function ReklamTable({ title, columns, rows, emptyText }) {
   if (rows.length === 0) {
     return (
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-ink-800">{title}</h3>
-        <p className="rounded-xl border border-dashed border-ink-200 py-6 text-center text-sm text-ink-400">{emptyText}</p>
+        <h3 className="mb-2 text-sm font-semibold text-text-primary">{title}</h3>
+        <p className="rounded-xl border border-dashed border-border-default py-6 text-center text-sm text-text-disabled">{emptyText}</p>
       </div>
     )
   }
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold text-ink-800">{title}</h3>
-      <div className="overflow-x-auto rounded-2xl border border-ink-100 bg-white">
-        <table className="w-full min-w-[520px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
-              {columns.map((c) => (
-                <th key={c} className="px-4 py-2.5">
-                  {c}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.key} className="border-b border-ink-50 last:border-0">
-                <td className="max-w-[220px] px-4 py-2.5 font-medium text-ink-900">
-                  <span className="block truncate" title={r.key}>
-                    {r.key}
-                  </span>
-                </td>
-                {r.values.map((v, i) => (
-                  <td key={i} className="px-4 py-2.5 text-ink-600">
-                    {v}
-                  </td>
-                ))}
-              </tr>
+      <h3 className="mb-2 text-sm font-semibold text-text-primary">{title}</h3>
+      <Table>
+        <Thead>
+          <Tr>
+            {columns.map((c) => (
+              <Th key={c}>{c}</Th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {rows.map((r) => (
+            <Tr key={r.key}>
+              <Td className="max-w-[220px] font-medium text-text-primary">
+                <span className="block truncate" title={r.key}>
+                  {r.key}
+                </span>
+              </Td>
+              {r.values.map((v, i) => (
+                <Td key={i} className="text-text-secondary">
+                  {v}
+                </Td>
+              ))}
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
     </div>
   )
 }

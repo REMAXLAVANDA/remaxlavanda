@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus, Lock, Webhook, Megaphone } from 'lucide-react'
+import { Users, Shield, Tag, ScrollText, Plus, Lock, Webhook } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -10,14 +10,10 @@ import {
   calendarEvents as calendarProvider,
   auditLog as auditLogProvider,
   metaWebhookErrors as metaWebhookErrorsProvider,
-  callLogs as callLogsProvider,
-  recruiting as recruitingProvider,
 } from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
-import { computeReklamKoduConversion } from '../lib/callLogs'
-import { computeRecruitingReklamConversion } from '../lib/recruiting'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import EditUserModal from '../components/settings/EditUserModal'
@@ -26,7 +22,6 @@ import CategoryManager from '../components/settings/CategoryManager'
 import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
 import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
-import ReklamKaynaklariTable from '../components/settings/ReklamKaynaklariTable'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -36,7 +31,6 @@ const TABS = [
   { key: 'kategori', label: 'Kategori', icon: Tag },
   { key: 'log', label: 'Log', icon: ScrollText },
   { key: 'webhook', label: 'Webhook Hataları', icon: Webhook },
-  { key: 'reklam', label: 'Reklam Kaynakları', icon: Megaphone },
 ]
 
 export default function Ayarlar() {
@@ -75,21 +69,6 @@ export default function Ayarlar() {
     reload: reloadWebhookErrors,
   } = useAsyncList(
     () => (canManage && tab === 'webhook' ? metaWebhookErrorsProvider.list() : Promise.resolve([])),
-    [canManage, tab],
-  )
-  const {
-    data: reklamData,
-    loading: loadingReklam,
-    error: reklamError,
-    reload: reloadReklam,
-  } = useAsyncList(
-    () =>
-      canManage && tab === 'reklam'
-        ? Promise.all([recruitingProvider.list(), callLogsProvider.list()]).then(([candidates, calls]) => ({
-            candidates,
-            calls,
-          }))
-        : Promise.resolve(null),
     [canManage, tab],
   )
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -391,23 +370,6 @@ export default function Ayarlar() {
             <ErrorState error={webhookErrorsError} onRetry={reloadWebhookErrors} />
           )}
           {!loadingWebhookErrors && !webhookErrorsError && <WebhookErrorsTable rows={webhookErrorRows ?? []} />}
-        </>
-      )}
-
-      {tab === 'reklam' && (
-        <>
-          <p className="mb-4 text-xs text-text-disabled">
-            Her satır bir reklam — Recruiting ve Portföy tarafında ayrı ayrı, başvurudan sonuca kaç kişinin ilerlediğini
-            gösterir. Veri, o reklamdan gelen kayıtların zaten bulunduğu Recruiting ve Operasyon ekranlarından okunur.
-          </p>
-          {loadingReklam && <LoadingState />}
-          {!loadingReklam && reklamError && <ErrorState error={reklamError} onRetry={reloadReklam} />}
-          {!loadingReklam && !reklamError && (
-            <ReklamKaynaklariTable
-              recruitingRows={computeRecruitingReklamConversion(reklamData?.candidates ?? [])}
-              portfoyRows={computeReklamKoduConversion(reklamData?.calls ?? [])}
-            />
-          )}
         </>
       )}
 

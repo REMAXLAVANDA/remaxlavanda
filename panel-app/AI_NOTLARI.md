@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Reklam Kaynakları: Ayarlar'dan Panel özeti + Lead Havuzu detayına taşındı
+
+Broker: "ayarlarda bulunan reklam kaynakları panelde olması gereken bir
+widget" → netleştirme sonrası: "ayarlardaki detayların özetini panele
+taşı, ayrıca lead menüsünün altına tüm detayları yerleştir".
+
+- **Ayarlar**: "Reklam Kaynakları" sekmesi tamamen kaldırıldı (6 sekmeden
+  5'e düştü) — artık burada gösterilmiyor.
+- **Panel**: Reklam Kaynakları kartı tek satırlık huni özetinden (Çağrı →
+  Yetki → Satış toplamı) **en iyi 3 Portföy + en iyi 3 Recruiting
+  reklamı** özetine geçti (`computeReklamKoduConversion`/
+  `computeRecruitingReklamConversion`, zaten yüklü `data.calls`/
+  `data.recruitingCandidates`'tan — yeni bir sorgu yok). "Tümünü gör"
+  artık Operasyon'a değil Lead Havuzu'na gidiyor.
+- **Lead Havuzu**: Tablonun altına yeni bir "Reklam Kaynakları" bölümü
+  eklendi — Ayarlar'da olan `ReklamKaynaklariTable` bileşeni (Recruiting +
+  Portföy, her reklam kendi satırında) birebir buraya taşındı, ayrıca yeni
+  design token'larına geçirildi (ortak `Table` bileşeni).
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 11 (son): Etkinlik Panosu /pano
 
 `design_handoff_portal_redesign` paketindeki son ekran. Yeni `Pano.jsx` —

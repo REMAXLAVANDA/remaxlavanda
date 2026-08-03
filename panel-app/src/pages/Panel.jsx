@@ -27,8 +27,8 @@ import {
   leads as leadsProvider,
   recruiting as recruitingProvider,
 } from '../lib/dataProvider'
-import { canManageCalls, computeSourceConversion, maskPhone } from '../lib/callLogs'
-import { matchesKayitTipiFilter } from '../lib/recruiting'
+import { canManageCalls, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
+import { matchesKayitTipiFilter, computeRecruitingReklamConversion } from '../lib/recruiting'
 import { ROLES } from '../lib/roles'
 import {
   canViewEvent,
@@ -435,28 +435,15 @@ export default function Panel() {
     return { total, assigned, donusYapildi, donusYapilmadi }
   }, [data, filters])
 
-  // --- Broker raporu: "Reklamlardan kaç yetki aldık" — kaynak bazında
-  // çağrı/portföy/satış dökümü. Operasyon'da (veri girişi sayfası) DEĞİL,
-  // sadece burada (rapor sayfası) gösteriliyor.
-  const sourceStats = useMemo(() => {
-    if (!data) return []
-    const inRange = data.calls.filter((c) =>
-      isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo),
-    )
-    return computeSourceConversion(inRange)
-  }, [data, filters])
-
-  // --- Broker raporu: Reklam Kaynakları artık Panel'de detay tablo değil,
-  // TEK bir huni özeti (Çağrı → Yetki → Satış) — sourceStats'ın (kaynak
-  // bazlı satırlar) toplamı. Detay isteyen Operasyon'a gidiyor (bkz.
-  // brief: "Dashboard'da detay tablo istemiyorum, sadece özet KPI").
-  const sourceFunnelTotals = useMemo(
-    () =>
-      sourceStats.reduce(
-        (acc, r) => ({ cagri: acc.cagri + r.total, yetki: acc.yetki + r.converted, satis: acc.satis + r.sold }),
-        { cagri: 0, yetki: 0, satis: 0 },
-      ),
-    [sourceStats],
+  // --- Broker raporu: Reklam Kaynakları artık tek satır huni özeti DEĞİL —
+  // en iyi 3 Portföy + en iyi 3 Recruiting reklamı (tam liste artık Lead
+  // Havuzu'nun altında, bkz. "ayarlardaki detayların özetini panele taşı"
+  // isteği). Tarih filtresinden BAĞIMSIZ (tüm zamanların en iyi reklamları,
+  // Dikkat Gerekiyor gibi diğer "durum" kartlarıyla tutarlı).
+  const topPortfoyReklamlari = useMemo(() => computeReklamKoduConversion(data?.calls ?? []).slice(0, 3), [data])
+  const topRecruitingReklamlari = useMemo(
+    () => computeRecruitingReklamConversion(data?.recruitingCandidates ?? []).slice(0, 3),
+    [data],
   )
 
   const opportunityStats = useMemo(() => {
@@ -1132,18 +1119,48 @@ export default function Panel() {
             </Widget>
           </div>
 
-          {/* Reklam Kaynakları: detay tablo YOK, tek satır huni özeti —
-              detay isteyen Operasyon'a gidiyor (bkz. brief). Hiç çağrı
-              yoksa kart tamamen gizli (boş kart gösterme kuralı). Tam
-              genişlik (bkz. brief desktop notu). */}
-          {sourceFunnelTotals.cagri > 0 && (
-            <Widget icon={Megaphone} title="Reklam Kaynakları" to="/operasyon" linkLabel="Operasyon'a git" accent="navy">
-              <div className="flex items-center justify-center gap-2 py-1 text-sm font-semibold text-text-primary">
-                <span>{sourceFunnelTotals.cagri} Çağrı</span>
-                <span className="text-ink-300">→</span>
-                <span>{sourceFunnelTotals.yetki} Yetki</span>
-                <span className="text-ink-300">→</span>
-                <span>{sourceFunnelTotals.satis} Satış</span>
+          {/* Reklam Kaynakları: en iyi 3 Portföy + en iyi 3 Recruiting
+              reklamı — tam liste artık Lead Havuzu'nun altında (bkz.
+              "ayarlardaki detayların özetini panele taşı, tüm detayları
+              lead menüsünün altına yerleştir" isteği). İkisi de boşsa kart
+              tamamen gizli (boş kart gösterme kuralı). */}
+          {(topPortfoyReklamlari.length > 0 || topRecruitingReklamlari.length > 0) && (
+            <Widget icon={Megaphone} title="Reklam Kaynakları" to="/leads" linkLabel="Tümünü gör" accent="navy">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold text-text-muted">Portföy</h3>
+                  {topPortfoyReklamlari.length === 0 ? (
+                    <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {topPortfoyReklamlari.map((r) => (
+                        <div key={r.reklamKodu} className="flex items-center justify-between gap-2 rounded-lg border border-border-default px-3 py-2">
+                          <span className="min-w-0 truncate text-sm text-text-primary">{r.reklamKodu}</span>
+                          <span className="shrink-0 text-xs text-text-muted">
+                            {r.total} → {r.converted} → {r.sold}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="mb-2 text-xs font-semibold text-text-muted">Recruiting</h3>
+                  {topRecruitingReklamlari.length === 0 ? (
+                    <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {topRecruitingReklamlari.map((r) => (
+                        <div key={r.reklamAdi} className="flex items-center justify-between gap-2 rounded-lg border border-border-default px-3 py-2">
+                          <span className="min-w-0 truncate text-sm text-text-primary">{r.reklamAdi}</span>
+                          <span className="shrink-0 text-xs text-text-muted">
+                            {r.total} → {r.gorusme} → {r.alindi}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </Widget>
           )}
