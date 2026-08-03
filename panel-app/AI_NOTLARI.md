@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Görsel yeniden tasarım Aşama 10: Mobil alt navigasyon
+
+Yeni `MobileBottomNav.jsx` — sadece <1024px'de görünen sabit alt çubuk
+(Panel · Fırsat · + kırmızı FAB · Plan · Lig). Yeni bir özellik/rota
+DEĞİL, mevcut sol menüyle aynı 4 sayfaya gidiyor; ortadaki "+" Hızlı
+kayıt'ın Fırsat seçeneğiyle aynı hedefe (`/firsatlar?yeni=firsat`) gidip
+formu otomatik açıyor. `AppLayout.jsx`'e eklendi, ana içerik alanına
+mobilde alt boşluk (`pb-24`) eklendi ki içerik çubuğun altında kalmasın.
+1024-1279px aralığında sayfa grid'leri zaten kendiliğinden daralıyordu
+(önceki "Mobil uyumluluk denetimi" görevinden), ek bir değişiklik
+gerekmedi.
+
 ## 2026-08-03 — Görsel yeniden tasarım Aşama 9: Rehber + Ayarlar
 
 Aynı adım-adım süreç. `Rehber.jsx`, `FolderList.jsx`, `DocCard.jsx` yeni

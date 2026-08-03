@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import NotificationPrompt from './NotificationPrompt'
+import MobileBottomNav from './MobileBottomNav'
 import { MODULES } from '../../lib/modules'
 
 function useCurrentTitle() {
@@ -50,11 +51,13 @@ export default function AppLayout() {
 
       <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar title={title} subtitle={subtitle} onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 lg:py-8">
+        <main className="flex-1 overflow-y-auto px-4 py-6 pb-24 lg:px-8 lg:py-8 lg:pb-8">
           <NotificationPrompt />
           <Outlet />
         </main>
       </div>
+
+      <MobileBottomNav />
     </div>
   )
 }
