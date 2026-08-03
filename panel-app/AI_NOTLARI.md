@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Haftanın Liderleri: Ciro rakamı artık gösterilmiyor
+
+Broker "ciro bizde mahremdir, sadece 1. olmalı" dedi — Panel'deki
+"Haftanın Liderleri" kartında Ciro kategorisinin lideri artık sadece isim
++ "Ciro" etiketiyle görünüyor, yanındaki TL tutarı kaldırıldı
+(`WeeklyLeadersCard.jsx`). Memnuniyet/Sosyal Medya kategorileri mali bilgi
+olmadığı için değişmedi. DB değişikliği yok.
+
 ## 2026-08-02 — GÜVENLİK: Supabase advisor bulguları — kademeli onayla uygulanıyor
 
 Broker, Supabase'in kendi security advisor çıktısını referans alarak bir

@@ -63,7 +63,15 @@ export default function WeeklyLeadersCard({ categories, rankingsByCategory }) {
                 <p className="truncate text-sm font-medium text-ink-900">{leader.name}</p>
                 <p className="text-xs text-ink-400">{category.label}</p>
               </div>
-              <span className="shrink-0 text-sm font-semibold text-ink-900">{formatLeaderValue(leader.value, category.unit)}</span>
+              {/* Ciro rakamı burada BİLEREK gösterilmiyor — ciro mahrem
+                  bilgi, sadece kimin 1. olduğu görünür (bkz. "ciro bizde
+                  mahremdir" kararı). Diğer kategoriler (Memnuniyet %,
+                  Sosyal Medya puan) mali bilgi olmadığı için değişmedi. */}
+              {category.key !== 'ciro' && (
+                <span className="shrink-0 text-sm font-semibold text-ink-900">
+                  {formatLeaderValue(leader.value, category.unit)}
+                </span>
+              )}
             </div>
           ))}
         </div>
