@@ -3,6 +3,27 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Takvim: genel türler (Toplantı/Eğitim/Etkinlik/RE MAX Türkiye) danışmana otomatik görünür
+
+Broker: "gd takvimi göremiyor mu" (Test danışman hesabının boş takvim
+göstermesi üzerine) → kök neden "Herkese Açık" işaretlenmemiş etkinliklerin
+davetsiz danışmana hiç görünmemesiydi. Broker'ın çözümü: "toplantı eğitim
+etkinlik remax turkiye ve o danışmana yönlendirilenler görünmeli" — yani
+manuel "herkese açık" işaretlemeye bağlı kalmadan, TÜRÜNE göre otomatik
+görünürlük.
+
+`lib/calendar.js`'e `ALWAYS_VISIBLE_EVENT_TYPES = ['toplanti', 'egitim',
+'etkinlik', 'remax_turkiye']` eklendi, `canViewEvent()`/`eventAudienceBadge()`
+bunu kontrol ediyor. Broker/Koçluk/Recruiting Görüşmesi BİLEREK bu listede
+yok — bunlar 1-1 kişisel görüşmeler, sadece davetli (o danışmana
+yönlendirilen) görür. Eski manuel "herkese açık" toggle'ı kaldırılmadı,
+kişisel görüşme türlerinde hâlâ kullanılabilir (istisnai durumda bir
+görüşmeyi de herkese açmak isterlerse) — sadece genel türlerde artık
+gereksiz olduğu için yerine bilgilendirme metni gösteriliyor
+(NewEventModal/EditEventModal). EventDetailModal'daki "Katılmak
+İstiyorum" self-join butonu da aynı kurala bağlandı. Migration/DB
+değişikliği YOK, saf JS mantık değişikliği.
+
 ## 2026-08-04 — Görevler: ofis artık herkesi değil, sadece kendiyle ilgili olanı görür (DEPLOY BEKLİYOR — migration onayı gerekiyor)
 
 Broker: "danışman veya ofis kendi oluşturdukları hariç görevleri

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { Calendar, Clock, MapPin, Pencil, Trash2 } from 'lucide-react'
 import {
+  ALWAYS_VISIBLE_EVENT_TYPES,
   ATTENDANCE_STATUS_LABELS,
   ATTENDANCE_STATUS_STYLES,
   MAZERET_STATUS_LABELS,
@@ -88,7 +89,7 @@ export default function EventDetailModal({
         </span>
       </div>
 
-      {!myAttendance && event.gorunurluk === 'herkese_acik' && (
+      {!myAttendance && (ALWAYS_VISIBLE_EVENT_TYPES.includes(event.type) || event.gorunurluk === 'herkese_acik') && (
         <div className="mt-3 rounded-xl bg-emerald-50 p-3">
           <p className="text-sm text-emerald-800">
             Bu etkinlik için zorunlu değilsin ama kapımız sana da açık — istersen sen de katıl, seni de aramızda

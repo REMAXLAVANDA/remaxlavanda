@@ -107,14 +107,21 @@ export const KATILIM_TIPI_STYLES = {
 // kabul/red'ini yönetim (broker/owner/ofis) Katılımcılar listesinden verir.
 export const SELF_ATTENDANCE_OPTIONS = ['onayladi', 'mazeretli']
 
+// Genel/duyuru niteliğindeki türler — davet edilmeden, manuel "Herkese
+// Açık" işaretlenmeden, TÜRÜNDEN dolayı her danışmana otomatik görünür
+// (bkz. broker isteği: "toplantı eğitim etkinlik remax türkiye ... ve o
+// danışmana yönlendirilenler görünmeli"). Broker/Koçluk/Recruiting
+// Görüşmesi BİLEREK bu listede yok — bunlar doğası gereği kişiye özel
+// (1-1) görüşmeler, sadece davet edilen (o danışmana yönlendirilen) görür.
+export const ALWAYS_VISIBLE_EVENT_TYPES = ['toplanti', 'egitim', 'etkinlik', 'remax_turkiye']
+
 // calendar_events_select RLS kuralının mock karşılığı: broker/owner/ofis
-// tüm etkinlikleri görür; danışman ya davetli olmalı ya da etkinlik
-// "herkese açık" olmalı (bkz. gorunurluk alanı, migration
-// 20260802140000 — "bu bana mı özel, ofise mi özel, yoksa başkalarına
-// zorunlu ama ben de katılabiliyor muyum" sorusunun cevabını bulabilsin
-// isteği).
+// tüm etkinlikleri görür; danışman için üç yol var — türü zaten genel
+// (ALWAYS_VISIBLE_EVENT_TYPES), etkinlik manuel "herkese açık" işaretli
+// (gorunurluk alanı, migration 20260802140000), ya da davetli.
 export function canViewEvent(event, user, attendance) {
   if (user.role !== ROLES.DANISMAN) return true
+  if (ALWAYS_VISIBLE_EVENT_TYPES.includes(event.type)) return true
   if (event.gorunurluk === 'herkese_acik') return true
   return attendance.some((a) => a.eventId === event.id && a.userId === user.id)
 }
@@ -128,7 +135,7 @@ export const EVENT_GORUNURLUK_LABELS = {
 // BAĞIMSIZ, etkinliğin kendi özelliği (davetli olmayan biri de bunu görüp
 // "bu ofise mi özel" sorusuna cevap bulabilsin diye).
 export function eventAudienceBadge(event) {
-  if (event.gorunurluk === 'herkese_acik') {
+  if (ALWAYS_VISIBLE_EVENT_TYPES.includes(event.type) || event.gorunurluk === 'herkese_acik') {
     return { label: 'Herkese Açık', style: 'bg-emerald-50 text-emerald-700' }
   }
   return { label: 'Sadece Davetliler', style: 'bg-ink-100 text-ink-500' }
