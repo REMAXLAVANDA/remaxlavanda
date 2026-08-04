@@ -6,6 +6,11 @@
 // için true=Alındı/false=Almadık (bkz. lib/callLogs.js GORUSULDU_CYCLE/
 // PORTFOY_CYCLE). "sonuc" kolonu artık UI'da kullanılmıyor ama geçmiş veri
 // kaybolmasın diye burada da (gerçek DB'deki gibi) duruyor.
+//
+// portfoyTalebiMi: sadece kaynak='Santral' olan çağrılarda anlamlı — bkz.
+// migration 20260804130000/lib/callLogs.js callNeedsTracking. Diğer
+// kaynaklarda (Reklam/Web Sitesi/Diğer) hiç okunmuyor, yine de gerçek
+// DB'deki gibi (not null default false) her satırda duruyor.
 
 const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
@@ -19,6 +24,7 @@ export const MOCK_CALLS = [
     assignedTo: 'ext-danisman-2',
     sonuc: 'ulasildi',
     portfoyAlindiMi: null,
+    portfoyTalebiMi: false,
     donusYapildiMi: true,
     donusAt: daysAgo(1),
     opportunityId: null,
@@ -34,6 +40,7 @@ export const MOCK_CALLS = [
     assignedTo: null,
     sonuc: null,
     portfoyAlindiMi: null,
+    portfoyTalebiMi: false,
     donusYapildiMi: null,
     donusAt: null,
     opportunityId: null,
@@ -48,6 +55,7 @@ export const MOCK_CALLS = [
     assignedTo: 'u-danisman',
     sonuc: 'ulasildi',
     portfoyAlindiMi: true,
+    portfoyTalebiMi: false,
     donusYapildiMi: true,
     donusAt: daysAgo(4),
     opportunityId: 'opp-1',
@@ -62,6 +70,7 @@ export const MOCK_CALLS = [
     assignedTo: 'u-danisman',
     sonuc: 'ulasilamadi',
     portfoyAlindiMi: null,
+    portfoyTalebiMi: false,
     donusYapildiMi: false,
     donusAt: null,
     opportunityId: null,
@@ -76,6 +85,7 @@ export const MOCK_CALLS = [
     assignedTo: 'ext-danisman-2',
     sonuc: 'ilgilenmiyor',
     portfoyAlindiMi: false,
+    portfoyTalebiMi: false,
     donusYapildiMi: true,
     donusAt: daysAgo(10),
     opportunityId: null,
@@ -90,6 +100,7 @@ export const MOCK_CALLS = [
     assignedTo: null,
     sonuc: null,
     portfoyAlindiMi: null,
+    portfoyTalebiMi: false,
     donusYapildiMi: null,
     donusAt: null,
     opportunityId: null,
@@ -104,6 +115,7 @@ export const MOCK_CALLS = [
     assignedTo: 'u-danisman',
     sonuc: 'ulasildi',
     portfoyAlindiMi: true,
+    portfoyTalebiMi: false,
     donusYapildiMi: true,
     donusAt: daysAgo(35),
     opportunityId: null,
@@ -118,10 +130,45 @@ export const MOCK_CALLS = [
     assignedTo: 'ext-danisman-2',
     sonuc: 'ulasildi',
     portfoyAlindiMi: null,
+    portfoyTalebiMi: false,
     donusYapildiMi: true,
     donusAt: daysAgo(2),
     opportunityId: null,
     notlar: null,
     createdAt: daysAgo(2),
+  },
+  // Santral çağrıları — Telsam entegrasyonuyla otomatik düşen çağrıları
+  // temsil eder. call-9: ofis incelemiş, gerçek bir portföy talebi
+  // olduğunu işaretlemiş (danışman takip etmeli). call-10: bilgi/alıcı
+  // görüşmesi, portföy talebi değil (danışman sadece görür, işlem yok).
+  {
+    id: 'call-9',
+    kaynak: 'Santral',
+    arayanAd: 'Murat Yalçın',
+    arayanTelefon: '0555 789 01 23',
+    assignedTo: 'u-danisman',
+    sonuc: null,
+    portfoyAlindiMi: null,
+    portfoyTalebiMi: true,
+    donusYapildiMi: null,
+    donusAt: null,
+    opportunityId: null,
+    notlar: 'Evini satmak istiyor, bölgeyi merak ediyor',
+    createdAt: daysAgo(1),
+  },
+  {
+    id: 'call-10',
+    kaynak: 'Santral',
+    arayanAd: 'Ayşe Korkmaz',
+    arayanTelefon: '0555 890 12 34',
+    assignedTo: 'u-danisman',
+    sonuc: null,
+    portfoyAlindiMi: null,
+    portfoyTalebiMi: false,
+    donusYapildiMi: null,
+    donusAt: null,
+    opportunityId: null,
+    notlar: 'Genel bilgi almak istedi, ilan sorusu',
+    createdAt: daysAgo(0),
   },
 ]

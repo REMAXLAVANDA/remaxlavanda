@@ -5,7 +5,15 @@ import { CALL_SOURCES } from '../../lib/callLogs'
 import { capitalizeFirst, capitalizeWords, formatDateOnly } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
-const EMPTY_FORM = { kaynak: CALL_SOURCES[0], arayanAd: '', arayanTelefon: '', assignedTo: '', notlar: '', reklamKodu: '' }
+const EMPTY_FORM = {
+  kaynak: CALL_SOURCES[0],
+  arayanAd: '',
+  arayanTelefon: '',
+  assignedTo: '',
+  notlar: '',
+  reklamKodu: '',
+  portfoyTalebiMi: false,
+}
 
 const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
 
@@ -69,6 +77,25 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
             placeholder="Reklam kodu (hangi Sponsorlu reklamdan geldi)"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
+        )}
+
+        {/* Sadece Santral'da görünür — Telsam'dan otomatik düşen çağrıların
+            çoğu portföy talebi değil (bilgi/alıcı görüşmesi vb.), o zaman
+            danışmanın Görüşüldü/Portföy zincirini işaretlemesine gerek yok
+            (bkz. "portföy çağrısı değilse danışman bilgi girmesi gerekmesin"
+            isteği, migration 20260804130000). */}
+        {form.kaynak === 'Santral' && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-600">Bu çağrı portföy talebi mi?</label>
+            <select
+              value={form.portfoyTalebiMi ? 'evet' : 'hayir'}
+              onChange={(e) => set({ portfoyTalebiMi: e.target.value === 'evet' })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            >
+              <option value="hayir">Hayır — bilgi amaçlı, danışman işlem yapmaz</option>
+              <option value="evet">Evet — danışman takip etmeli</option>
+            </select>
+          </div>
         )}
 
         <input

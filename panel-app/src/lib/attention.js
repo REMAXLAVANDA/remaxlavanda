@@ -4,11 +4,13 @@
 // İkisi ayrı ayrı yazılırsa (bkz. geçmişte 528 fırsat kafa karışıklığı)
 // sayılar er ya da geç birbirinden sapar.
 import { isLegacyRecord } from './dateRange'
+import { callNeedsTracking } from './callLogs'
 
 export function isStaleReturn(call, now = Date.now()) {
   return Boolean(
     call.assignedTo &&
       !call.donusYapildiMi &&
+      callNeedsTracking(call) &&
       !isLegacyRecord(call.createdAt) &&
       now - new Date(call.createdAt).getTime() > 2 * 24 * 60 * 60 * 1000,
   )

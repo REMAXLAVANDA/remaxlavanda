@@ -35,6 +35,18 @@ export function cycleValue(current, order) {
   return order[(idx + 1) % order.length]
 }
 
+// Telsam entegrasyonuyla gelen HER Santral çağrısı call_logs'a otomatik
+// düşüyor ama çoğu portföy talebi değil (bilgi/alıcı görüşmesi vb.) —
+// bu fonksiyon "danışman bu çağrı için Görüşüldü/Portföy zincirini
+// işaretlemek zorunda mı" sorusuna cevap verir (bkz. migration
+// 20260804130000, broker: "portföy çağrısı değilse danışman bilgi girmesi
+// gerekmesin"). Santral DIŞINDAKİ kaynaklar (Reklam/Web Sitesi/Diğer) bu
+// alandan etkilenmiyor, her zaman takip edilir — broker: "reklamlardan
+// gelenler sağlıklı ilerlesin".
+export function callNeedsTracking(call) {
+  return call.kaynak !== 'Santral' || call.portfoyTalebiMi
+}
+
 // Her yeni çağrı oluşturulduğunda (portföy alınmasını beklemeden) otomatik
 // verilen talep numarası — müşteriden gelen tapu vs. belgeleri danışmana
 // yönlendirirken "şu numaralı talep" diye referans verilebilsin diye
@@ -85,7 +97,10 @@ export function maskPhone(phone) {
 export function computeCallStats(calls) {
   const total = calls.length
   const unassigned = calls.filter((c) => !c.assignedTo).length
-  const pendingReturn = calls.filter((c) => c.assignedTo && !c.donusYapildiMi).length
+  // İşlem gerektirmeyen (Santral, portföy talebi değil) çağrılar "dönüş
+  // bekliyor" sayılmaz — kimseden bir aksiyon beklenmiyor (bkz.
+  // callNeedsTracking).
+  const pendingReturn = calls.filter((c) => c.assignedTo && !c.donusYapildiMi && callNeedsTracking(c)).length
   const converted = calls.filter((c) => c.portfoyAlindiMi).length
   const conversionRate = total === 0 ? 0 : Math.round((converted / total) * 100)
   return { total, unassigned, pendingReturn, converted, conversionRate }

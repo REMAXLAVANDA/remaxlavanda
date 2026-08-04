@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeReklamKoduConversion, generateTalepKodu } from './callLogs'
+import { callNeedsTracking, computeCallStats, computeReklamKoduConversion, generateTalepKodu } from './callLogs'
 
 describe('generateTalepKodu', () => {
   it('kaynağa göre önek + 5 haneli bir kod üretir', () => {
@@ -48,5 +48,32 @@ describe('computeReklamKoduConversion', () => {
 
   it('hiç reklam çağrısı yoksa boş dizi döner', () => {
     expect(computeReklamKoduConversion([])).toEqual([])
+  })
+})
+
+describe('callNeedsTracking', () => {
+  it('Santral kaynaklı, portföy talebi olmayan çağrı için false döner', () => {
+    expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: false })).toBe(false)
+  })
+
+  it('Santral kaynaklı, portföy talebi olan çağrı için true döner', () => {
+    expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: true })).toBe(true)
+  })
+
+  it('Santral dışındaki kaynaklarda portfoyTalebiMi ne olursa olsun true döner', () => {
+    expect(callNeedsTracking({ kaynak: 'Reklam', portfoyTalebiMi: false })).toBe(true)
+    expect(callNeedsTracking({ kaynak: 'Web Sitesi', portfoyTalebiMi: false })).toBe(true)
+    expect(callNeedsTracking({ kaynak: 'Diğer', portfoyTalebiMi: false })).toBe(true)
+  })
+})
+
+describe('computeCallStats — pendingReturn işlem gerekmeyen çağrıları hariç tutar', () => {
+  it('Santral + portföy talebi olmayan, atanmış ve dönüş yapılmamış çağrı dönüş bekleyen sayılmaz', () => {
+    const calls = [
+      { assignedTo: 'u1', donusYapildiMi: null, portfoyAlindiMi: null, kaynak: 'Santral', portfoyTalebiMi: false },
+      { assignedTo: 'u1', donusYapildiMi: null, portfoyAlindiMi: null, kaynak: 'Santral', portfoyTalebiMi: true },
+      { assignedTo: 'u1', donusYapildiMi: null, portfoyAlindiMi: null, kaynak: 'Reklam', portfoyTalebiMi: false },
+    ]
+    expect(computeCallStats(calls).pendingReturn).toBe(2)
   })
 })

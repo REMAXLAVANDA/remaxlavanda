@@ -9,6 +9,7 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
     arayanAd: call.arayanAd ?? '',
     arayanTelefon: formatPhoneInput(call.arayanTelefon ?? ''),
     kaynak: call.kaynak,
+    portfoyTalebiMi: call.portfoyTalebiMi ?? false,
     portfoyNo: call.portfoyNo ?? '',
     satildiMi: call.satildiMi ?? false,
     notlar: call.notlar ?? '',
@@ -58,6 +59,24 @@ export default function EditCallDetailsModal({ call, onClose, onSubmit, submitti
             placeholder="Reklam kodu (hangi Sponsorlu reklamdan geldi)"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
+        )}
+
+        {/* Telsam'dan otomatik düşen Santral çağrılarının çoğu portföy
+            talebi değil — ofis inceleyip burada işaretler (bkz.
+            "portföy çağrısı değilse danışman bilgi girmesi gerekmesin"
+            isteği, migration 20260804130000). */}
+        {form.kaynak === 'Santral' && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-600">Bu çağrı portföy talebi mi?</label>
+            <select
+              value={form.portfoyTalebiMi ? 'evet' : 'hayir'}
+              onChange={(e) => set({ portfoyTalebiMi: e.target.value === 'evet' })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            >
+              <option value="hayir">Hayır — bilgi amaçlı, danışman işlem yapmaz</option>
+              <option value="evet">Evet — danışman takip etmeli</option>
+            </select>
+          </div>
         )}
 
         <input

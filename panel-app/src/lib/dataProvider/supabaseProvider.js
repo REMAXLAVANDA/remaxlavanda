@@ -440,6 +440,7 @@ function mapCallLog(row) {
     satisTarihi: row.satis_tarihi,
     donusYapildiMi: row.donus_yapildi_mi,
     donusAt: row.donus_at,
+    portfoyTalebiMi: row.portfoy_talebi_mi,
     opportunityId: row.opportunity_id,
     notlar: row.notlar,
     reklamKodu: row.reklam_kodu,
@@ -465,6 +466,7 @@ export const callLogs = {
           notlar: form.notlar || null,
           reklam_kodu: form.reklamKodu || null,
           portfoy_no: form.portfoyNo || null,
+          portfoy_talebi_mi: form.portfoyTalebiMi ?? false,
           kaynak_lead_id: form.kaynakLeadId ?? null,
         })
         .select()
@@ -482,6 +484,7 @@ export const callLogs = {
     if ('satisTarihi' in patch) dbPatch.satis_tarihi = patch.satisTarihi
     if ('donusYapildiMi' in patch) dbPatch.donus_yapildi_mi = patch.donusYapildiMi
     if ('donusAt' in patch) dbPatch.donus_at = patch.donusAt
+    if ('portfoyTalebiMi' in patch) dbPatch.portfoy_talebi_mi = patch.portfoyTalebiMi
     // Arayan detayları — sadece son 7 gündeki kayıtlarda owner/ofis
     // düzenleyebilir, broker sınırsız (bkz. trg_call_logs_detail_edit_window).
     if ('arayanAd' in patch) dbPatch.arayan_ad = patch.arayanAd

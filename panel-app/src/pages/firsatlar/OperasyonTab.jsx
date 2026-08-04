@@ -184,9 +184,13 @@ export default function OperasyonTab() {
       const created = await opportunitiesProvider.create(payload, targetOwnerId, selfClaim)
       // Çağrı zaten portföye dönüştüğü için "Portföy" durumu da otomatik
       // "Alındı" oluyor — Fırsat oluşup Portföy hâlâ "Bekliyor" görünmesin diye.
+      // portfoyTalebiMi de true'ya çekilir — "bilgi amaçlı" işaretlenmiş bir
+      // Santral çağrısı fiilen portföye dönüşürse Süreç zinciri (Portföy/
+      // Satış) artık görünmeli, "Bilgi amaçlı" rozetinde takılı kalmamalı.
       const updated = await callLogsProvider.update(convertingCall.id, {
         opportunityId: created.id,
         portfoyAlindiMi: true,
+        portfoyTalebiMi: true,
       })
       // İkon hemen görünsün diye yeni fırsat da lokal listeye ekleniyor —
       // sayfa yenilenmeden (bkz. islemTipiByOpportunityId).

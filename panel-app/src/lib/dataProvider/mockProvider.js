@@ -332,6 +332,7 @@ export const callLogs = {
       kaynakLeadId: form.kaynakLeadId ?? null,
       sonuc: null,
       portfoyAlindiMi: null,
+      portfoyTalebiMi: form.portfoyTalebiMi ?? false,
       portfoyNo: form.portfoyNo || null,
       satildiMi: false,
       satisTarihi: null,

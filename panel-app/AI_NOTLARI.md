@@ -3,6 +3,47 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Santral çağrısı portföy talebi değilse danışman işlem yapmaz (DEPLOY BEKLİYOR — migration onayı gerekiyor)
+
+Broker: "santraldan gelen çağrı eğer portföy çağrısı değilse danışman bu
+müşteri ile ilgili bir bilgi girmesi gerekmesin. Biz ona sadece aktarmış
+çağrıları görsün istiyoruz. ondan bir bildirim yapmasına gerek yok. Ama
+bazen portföy de geliyor sadece o zaman işaretlemeler yapmalı, bir de
+reklamlardan gelenler. bizim isteğimiz bunların sağlıklı ilerlemesi."
+
+Telsam entegrasyonuyla gelen HER Santral çağrısı call_logs'a otomatik
+düşüyor (migration 20260724090000) ama şimdiye kadar hepsi aynı
+Görüşüldü/Portföy takip zincirini danışmana işaretletiyordu — oysa
+çoğu bilgi/alıcı görüşmesi, portföy talebi değil.
+
+**Yeni alan:** `call_logs.portfoy_talebi_mi` (boolean, varsayılan false —
+hem eski Santral kayıtları hem Telsam'dan yeni düşen henüz incelenmemiş
+çağrılar "Diğer/bilgi amaçlı" sayılır, broker'ın seçtiği varsayılan).
+Sadece kaynak='Santral' olduğunda anlamlı/görünür — Reklam/Web
+Sitesi/Diğer'e hiç dokunmuyor, onlar zaten tam takip ediliyor (broker:
+"reklamlardan gelenler sağlıklı ilerlesin").
+
+**Davranış:** `lib/callLogs.js`'e `callNeedsTracking(call)` eklendi.
+`false` dönerse (`Santral` + `portfoyTalebiMi=false`):
+- `CallTable.jsx`'te Görüşüldü/Portföy zinciri yerine tıklanamaz
+  "Bilgi amaçlı" rozeti gösterilir (danışman dahil kimse işaretleyemez).
+- `computeCallStats`'taki "Dönüş Bekleyen" sayısına girmez.
+- `isStaleReturn` (Panel'deki "Dikkat Gerekiyor") bu çağrılar için hiç
+  tetiklenmez.
+- Fırsata dönüştürülürse (`handleOpportunitySubmit`) `portfoyTalebiMi`
+  de otomatik `true`'ya çekilir — sonradan gerçekten portföye dönüşen bir
+  çağrı "Bilgi amaçlı" rozetinde takılı kalmasın diye.
+
+Ofis, "Bilgileri Düzenle"den (ya da manuel Santral girişinde "Yeni
+Çağrı"dan) "Bu çağrı portföy talebi mi?" seçeneğiyle işaretler.
+
+**DEPLOY DURUMU:** Migration dosyası commit edildi
+(`20260804130000_santral_cagri_portfoy_talebi_mi.sql`) ama henüz
+uygulanmadı — broker'dan onay bekleniyor. Kod tarafı feature branch'te
+hazır, main'e migration uygulanmadan merge edilmeyecek (bkz. standart
+kural: migration DB'de çalışmadan yeni alanı okuyan/yazan kod canlıya
+çıkarsa `portfoy_talebi_mi` kolonu olmadığı için hata verir).
+
 ## 2026-08-04 — Esra Sever Ayrılış checklist'te hâlâ görünmüyordu (2. kök neden: yanlış "Test hesabı" etiketi)
 
 Bir önceki notta (aşağıda) `listAll()` düzeltmesi yapıldıktan sonra

@@ -1,6 +1,14 @@
 import { Fragment, useState } from 'react'
-import { ChevronRight, Eye, EyeOff, Target, Send, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle } from 'lucide-react'
-import { CALL_SOURCE_CODES, GORUSULDU_CYCLE, PORTFOY_CYCLE, canEditCallDetails, cycleValue, maskPhone } from '../../lib/callLogs'
+import { ChevronRight, Eye, EyeOff, Target, Send, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle, Info } from 'lucide-react'
+import {
+  CALL_SOURCE_CODES,
+  GORUSULDU_CYCLE,
+  PORTFOY_CYCLE,
+  callNeedsTracking,
+  canEditCallDetails,
+  cycleValue,
+  maskPhone,
+} from '../../lib/callLogs'
 import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
@@ -144,7 +152,23 @@ function portfoyVariant(value) {
 // üç-durumlu döngü mantığını aynen kullanır, Satış sadece portföy
 // alındıktan sonra zincire eklenen bilgi amaçlı bir adımdır (kendi
 // düzenleme akışı zaten EditCallDetailsModal'da).
+//
+// Santral çağrısı portföy talebi değilse (callNeedsTracking=false) zincir
+// hiç gösterilmez — danışmandan hiçbir işaretleme beklenmiyor, sadece
+// kendisine aktarılmış çağrıyı bilgi amaçlı görüyor (bkz. "portföy çağrısı
+// değilse danışman bilgi girmesi gerekmesin" isteği).
 function CallProgressSteps({ call, canEdit, onToggle }) {
+  if (!callNeedsTracking(call)) {
+    return (
+      <span
+        title="Bu çağrı portföy talebi değil — bilgi amaçlı aktarıldı, işlem yapman gerekmiyor"
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-ink-200 px-2.5 py-1 text-xs text-ink-400"
+      >
+        <Info size={12} /> Bilgi amaçlı
+      </span>
+    )
+  }
+
   const gorusuldu = gorusuldeVariant(call.donusYapildiMi)
   const portfoy = portfoyVariant(call.portfoyAlindiMi)
   return (
