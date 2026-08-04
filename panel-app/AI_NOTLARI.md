@@ -24,7 +24,7 @@ gereksiz olduğu için yerine bilgilendirme metni gösteriliyor
 İstiyorum" self-join butonu da aynı kurala bağlandı. Migration/DB
 değişikliği YOK, saf JS mantık değişikliği.
 
-## 2026-08-04 — Görevler: ofis artık herkesi değil, sadece kendiyle ilgili olanı görür (DEPLOY BEKLİYOR — migration onayı gerekiyor)
+## 2026-08-04 — Görevler: ofis artık herkesi değil, sadece kendiyle ilgili olanı görür
 
 Broker: "danışman veya ofis kendi oluşturdukları hariç görevleri
 göremesin. owner brokeri de görsün. broker hepsini görsün" — soru-cevapla
@@ -40,9 +40,8 @@ broker/owner "hepsini görür" grubunda). `tasks_insert/update/delete`
 RLS'lerine BİLEREK dokunulmadı — bu sadece GÖRME kuralı, ofisin görev
 oluşturma/yönetme yetkisi aynı kalıyor.
 
-**DEPLOY DURUMU:** Migration commit edildi
-(`20260804140000_gorevler_ofis_gorunurlugu_daralt.sql`), broker'dan onay
-bekleniyor.
+Migration (`20260804140000_gorevler_ofis_gorunurlugu_daralt.sql`) broker
+tarafından uygulandı — RLS ve UI tarafı artık ikisi de canlıda.
 
 ## 2026-08-04 — Santral çağrısı portföy talebi değilse danışman işlem yapmaz
 
