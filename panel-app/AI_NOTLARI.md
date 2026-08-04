@@ -3,6 +3,34 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Lig: "Son İşlemler" + tek "Veri Gir" girişi
+
+Broker: "lig konusunda en son hangi ciroyu veya en son hangi müşteri
+memnuniyetini veya hangi sosyal medya verisi girdiğimiz nasıl anlayacağız.
+ayrıca lige veri giriş biraz karışık" — sonra netleştirme: "hangi kategori
+seçerse onunla ilgili son 3 yapılan işlemi ve tarihini gösterse yeterli" +
+"Tek Veri Gir butonu".
+
+**Son İşlemler:** `score_entries` skoru tek satırda tutup üstüne yazdığı
+için "en son ne girildi" sorusuna cevap veremiyordu — ama `ciro_girisleri`,
+`ciro_musterileri`, `social_activity_log` zaten ayrı geçmiş tabloları
+olarak duruyordu (hepsinde `entered_by`+`created_at` var), migration
+gerekmedi. `social_activity_log` için okuma tarafı hiç yoktu (sadece
+yazılıyordu) — `listSocialActivityLog()` iki provider'a da eklendi.
+Seçili kategori sekmesinde son 3 işlem (`RecentEntriesPanel.jsx`) kim/ne/
+ne zaman gösteriyor — **tutar/puan YOK** (Lig'in her yerindeki "mutlak
+rakam gösterilmez" kuralıyla tutarlı, broker'a soruldu, aynı yönde
+netleşti).
+
+**Tek "Veri Gir" girişi:** Eskiden "Ciro Gir"/"Aktivite Ekle" butonları
+sadece o an açık sekmede görünüyordu, Memnuniyet'in ise hiç butonu yoktu
+(doğrudan Yorum Hakkı panelinden ekleniyordu) — yeni kullanıcı nereden
+başlayacağını bulamıyordu. Artık tek, her zaman görünür "Veri Gir" butonu
+var (`AddEntryChooserModal.jsx`): kategori seçilir, Ciro/Sosyal Medya
+ilgili modalı açar, Müşteri Memnuniyeti seçilince Yorum Hakkı paneline
+kaydırıp yönlendirici bir bilgi mesajı gösterir (ayrı bir modalı yok,
+akış zaten o panelde).
+
 ## 2026-08-04 — "Dönem Liderleri" kartı: sadece lider değil, ilk 3
 
 Broker: "panelde ilk 3 her kategoride görebilelim. kalanları görmek için

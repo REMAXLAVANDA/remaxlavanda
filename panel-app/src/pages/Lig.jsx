@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Plus, Copy, CalendarPlus, Megaphone, Eye } from 'lucide-react'
+import { Plus, Copy, CalendarPlus, Eye } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -14,28 +14,35 @@ import {
   rankingsFor,
   wilsonScoreLowerBound,
 } from '../lib/league'
-import { sortByName } from '../lib/format'
+import { sortByName, relativeTime } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
+import RecentEntriesPanel from '../components/league/RecentEntriesPanel'
 import ActivityPointsSettings from '../components/league/ActivityPointsSettings'
 import CriteriaPanel from '../components/league/CriteriaPanel'
 import ShareCardModal from '../components/league/ShareCardModal'
 import AddScoreModal from '../components/league/AddScoreModal'
 import AddSocialActivityModal from '../components/league/AddSocialActivityModal'
+import AddEntryChooserModal from '../components/league/AddEntryChooserModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
+const sortByCreatedDesc = (rows) => [...rows].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+const EMPTY_ARR = []
+
 async function loadAll() {
-  const [periods, scores, activityTypes, ciroMusterileri, ciroGirisleri, musteriReviewCounts] = await Promise.all([
-    leagueProvider.listPeriods(),
-    leagueProvider.listScores(),
-    leagueProvider.listActivityTypes(),
-    leagueProvider.listCiroMusterileri(),
-    leagueProvider.listCiroGirisleri(),
-    leagueProvider.listMusteriReviewCounts(),
-  ])
-  return { periods, scores, activityTypes, ciroMusterileri, ciroGirisleri, musteriReviewCounts }
+  const [periods, scores, activityTypes, ciroMusterileri, ciroGirisleri, musteriReviewCounts, socialActivityLog] =
+    await Promise.all([
+      leagueProvider.listPeriods(),
+      leagueProvider.listScores(),
+      leagueProvider.listActivityTypes(),
+      leagueProvider.listCiroMusterileri(),
+      leagueProvider.listCiroGirisleri(),
+      leagueProvider.listMusteriReviewCounts(),
+      leagueProvider.listSocialActivityLog(),
+    ])
+  return { periods, scores, activityTypes, ciroMusterileri, ciroGirisleri, musteriReviewCounts, socialActivityLog }
 }
 
 export default function Lig() {
@@ -49,6 +56,7 @@ export default function Lig() {
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showActivityModal, setShowActivityModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showChooserModal, setShowChooserModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   // ReviewCreditsPanel'in kendi state'i değil, burada tutuluyor — isim
   // ekleme/silme/işaretleme her seferinde reload() tetikleyip paneli kısa
@@ -76,7 +84,7 @@ export default function Lig() {
   // Test hesabı Lig sıralamalarına/Yorum Hakkı listesine karışmasın diye
   // hariç tutuluyor (bkz. Panel.jsx'teki aynı filtre).
   const danismanOptions = sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi))
-  const activityTypes = data?.activityTypes ?? []
+  const activityTypes = data?.activityTypes ?? EMPTY_ARR
 
   // Ciro'ya dönen müşteriler isim isim burada — yorum hakkı (kaç isim
   // girildi) ve alınan yorum sayısı (kaçının alindiMi'si işaretli) artık
@@ -146,6 +154,32 @@ export default function Lig() {
   }, [periodScores, userName, data, periodId, danismanOptions])
 
   const rankings = rankingsByCategory[tab] ?? []
+
+  // "En son hangi ciroyu/memnuniyeti/sosyal medya verisini girdik" sorusuna
+  // cevap — seçili kategorideki son 3 giriş, tutar/puan olmadan (bkz.
+  // RecentEntriesPanel). Üç kaynak da zaten geçmiş amaçlı tutulan ayrı
+  // tablolardan geliyor (score_entries tek satırı üstüne yazdığı için
+  // geçmiş kalmıyordu).
+  const recentEntriesByCategory = useMemo(() => {
+    if (!periodId) return {}
+    const activityTypeName = (id) => activityTypes.find((t) => t.id === id)?.ad ?? 'aktivite'
+    return {
+      ciro: sortByCreatedDesc((data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId))
+        .slice(0, 3)
+        .map((g) => ({ id: g.id, danismanName: userName(g.userId), detail: 'yeni ciro girişi', when: relativeTime(g.createdAt) })),
+      memnuniyet: sortByCreatedDesc((data?.ciroMusterileri ?? []).filter((m) => m.periodId === periodId))
+        .slice(0, 3)
+        .map((m) => ({ id: m.id, danismanName: userName(m.userId), detail: `"${m.adSoyad}" eklendi`, when: relativeTime(m.createdAt) })),
+      sosyal_medya: sortByCreatedDesc((data?.socialActivityLog ?? []).filter((l) => l.periodId === periodId))
+        .slice(0, 3)
+        .map((l) => ({
+          id: l.id,
+          danismanName: userName(l.userId),
+          detail: `${l.adet}x ${activityTypeName(l.activityTypeId)}`,
+          when: relativeTime(l.createdAt),
+        })),
+    }
+  }, [data, periodId, userName, activityTypes])
 
   // Ciro sekmesindeki sıralama satırına tıklayınca "sonradan kontrol"
   // amaçlı girilen ciro geçmişi (tarih + tutar) görülebilsin diye —
@@ -256,6 +290,28 @@ export default function Lig() {
     }
   }
 
+  // Tek "Veri Gir" girişi, üç dağınık buton/panel yerine — hangi kategori
+  // seçilirse ilgili yere yönlendirir (bkz. "veri giriş biraz karışık"
+  // isteği). Memnuniyet için ayrı bir modal yok, Yorum Hakkı paneli zaten
+  // isim ekleme akışını içeriyor — o yüzden sadece o panele kaydırıp
+  // yönlendiriyoruz.
+  function handleChooseEntryType(key) {
+    setShowChooserModal(false)
+    if (key === 'ciro') {
+      setTab('ciro')
+      setShowScoreModal(true)
+    } else if (key === 'sosyal_medya') {
+      setTab('sosyal_medya')
+      setShowActivityModal(true)
+    } else {
+      setTab('memnuniyet')
+      requestAnimationFrame(() => {
+        document.getElementById('yorum-hakki-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+      showToast('Danışmanı seç, açılan satırdan müşteri adını ekle.', 'info')
+    }
+  }
+
   function handleCopySummary() {
     if (!period) return
     const summaries = LEAGUE_CATEGORIES.map((c) => ({
@@ -314,20 +370,12 @@ export default function Lig() {
               <CalendarPlus size={16} /> Yeni Dönem
             </button>
           )}
-          {isManager && !loading && !error && period && tab === 'sosyal_medya' && (
+          {isManager && !loading && !error && period && (
             <button
-              onClick={() => setShowActivityModal(true)}
+              onClick={() => setShowChooserModal(true)}
               className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
             >
-              <Megaphone size={16} /> Aktivite Ekle
-            </button>
-          )}
-          {isManager && !loading && !error && period && tab === 'ciro' && (
-            <button
-              onClick={() => setShowScoreModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
-            >
-              <Plus size={16} /> Ciro Gir
+              <Plus size={16} /> Veri Gir
             </button>
           )}
         </div>
@@ -340,15 +388,17 @@ export default function Lig() {
       )}
 
       {!loading && !error && period && (
-        <ReviewCreditsPanel
-          rows={visibleReviewCreditRows}
-          isManager={isManager}
-          onAddMusteri={handleAddCiroMusteri}
-          onRemoveMusteri={handleRemoveCiroMusteri}
-          onToggleAlindi={handleToggleAlindi}
-          expandedId={expandedCiroUserId}
-          onToggleExpand={setExpandedCiroUserId}
-        />
+        <div id="yorum-hakki-panel">
+          <ReviewCreditsPanel
+            rows={visibleReviewCreditRows}
+            isManager={isManager}
+            onAddMusteri={handleAddCiroMusteri}
+            onRemoveMusteri={handleRemoveCiroMusteri}
+            onToggleAlindi={handleToggleAlindi}
+            expandedId={expandedCiroUserId}
+            onToggleExpand={setExpandedCiroUserId}
+          />
+        </div>
       )}
 
       {!loading && !error && period && (
@@ -442,8 +492,13 @@ export default function Lig() {
               )
             })}
           </div>
+          <RecentEntriesPanel entries={recentEntriesByCategory[tab] ?? []} />
           <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
         </>
+      )}
+
+      {showChooserModal && (
+        <AddEntryChooserModal onClose={() => setShowChooserModal(false)} onChoose={handleChooseEntryType} />
       )}
 
       {showScoreModal && (

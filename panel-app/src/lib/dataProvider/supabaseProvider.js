@@ -957,6 +957,7 @@ export const league = {
       periodId: r.period_id,
       adSoyad: r.ad_soyad,
       alindiMi: r.alindi_mi,
+      enteredBy: r.entered_by,
       createdAt: r.created_at,
     }))
   },
@@ -995,6 +996,23 @@ export const league = {
   async updateActivityTypePoint(id, puan) {
     await run(client().from('social_activity_types').update({ puan }).eq('id', id))
     return { id, puan: Number(puan) }
+  },
+  // "Son Girişler" (bkz. Lig.jsx) — score_entries.value toplamı üstüne
+  // yazıldığı için tek başına "en son ne girildi" sorusuna cevap vermiyor,
+  // bu da ciro_girisleri/ciro_musterileri gibi ayrı bir geçmiş satırı.
+  async listSocialActivityLog() {
+    const data = await run(
+      client().from('social_activity_log').select('*').order('created_at', { ascending: false }),
+    )
+    return data.map((r) => ({
+      id: r.id,
+      userId: r.user_id,
+      periodId: r.period_id,
+      activityTypeId: r.activity_type_id,
+      adet: Number(r.adet),
+      enteredBy: r.entered_by,
+      createdAt: r.created_at,
+    }))
   },
   // Aktivite kaydı eklenir VE o danışman/dönem için toplam sosyal medya
   // puanı yeniden hesaplanıp score_entries'e (type='sosyal_medya') yazılır —

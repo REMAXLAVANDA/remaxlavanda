@@ -591,8 +591,8 @@ export const league = {
     }
     return delay(Object.values(counts))
   },
-  async addCiroMusteri({ userId, periodId, adSoyad }) {
-    const row = { id: `ciro-musteri-${Date.now()}`, userId, periodId, adSoyad, alindiMi: false, createdAt: new Date().toISOString() }
+  async addCiroMusteri({ userId, periodId, adSoyad }, enteredBy) {
+    const row = { id: `ciro-musteri-${Date.now()}`, userId, periodId, adSoyad, alindiMi: false, enteredBy, createdAt: new Date().toISOString() }
     MOCK_CIRO_MUSTERILERI.unshift(row)
     return delay(row)
   },
@@ -614,10 +614,21 @@ export const league = {
     if (type) type.puan = Number(puan)
     return delay({ id, puan: Number(puan) })
   },
-  async logSocialActivity({ userId, activityTypeId, adet, tarih }) {
+  async listSocialActivityLog() {
+    return delay([...MOCK_ACTIVITY_LOG].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  },
+  async logSocialActivity({ userId, activityTypeId, adet, tarih }, enteredBy) {
     const period = MOCK_PERIODS.find((p) => p.baslangic <= tarih && p.bitis >= tarih)
     if (!period) throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
-    MOCK_ACTIVITY_LOG.push({ userId, periodId: period.id, activityTypeId, adet: Number(adet) })
+    MOCK_ACTIVITY_LOG.push({
+      id: `activity-${Date.now()}`,
+      userId,
+      periodId: period.id,
+      activityTypeId,
+      adet: Number(adet),
+      enteredBy,
+      createdAt: new Date().toISOString(),
+    })
 
     const total = MOCK_ACTIVITY_LOG.filter((l) => l.userId === userId && l.periodId === period.id).reduce(
       (sum, l) => sum + l.adet * (MOCK_ACTIVITY_TYPES.find((t) => t.id === l.activityTypeId)?.puan ?? 0),
