@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Fırsatlar: "Üstlenen" ismi detay ekranında görünmüyordu
+
+Broker ekran görüntüsü attı: "Üstlenildi" durumundaki bir fırsatta
+"İlgilenen danışmanlar" boş görünüyor, "isimler yok" dedi. Kök neden: bu
+fırsat broker tarafından bir danışmana DOĞRUDAN atanmış (assignTo/
+`claimerId`) — "İlgileniyorum" (opportunity_interest) hiç kullanılmamış,
+bu ikisi ayrı mekanizma. Modal `claimerId`'yi (kimin üstlendiğini) hiçbir
+yerde göstermiyordu, sadece "Kaydeden"i gösteriyordu — bu yüzden atanan
+kişi "kayıp" gibi görünüyordu. `OpportunityDetailModal.jsx`'e
+`opp.claimerId` varsa "Üstlenen: {isim}" satırı eklendi (İlgilenen
+danışmanlar panelinin üstünde, sadece isOwnerOrManager görür). Migration
+gerekmedi, claimer_id zaten payload'daydı.
+
 ## 2026-08-04 — Takvim: zorunlu toplantı/eğitime sonradan davetli eklenebiliyor
 
 Broker: "toplantı/eğitim zorunlu olabiliyor, ama danışman tarafında

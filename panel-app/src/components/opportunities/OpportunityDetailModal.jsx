@@ -195,6 +195,16 @@ export default function OpportunityDetailModal({
           <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-500">
             <Users size={14} /> İlgilenen danışmanlar
           </p>
+          {opp.claimerId && (
+            // "Üstlenildi" durumu broker'ın danışmana DOĞRUDAN ataması
+            // (assignTo) ile oluşur — bu, "İlgileniyorum" (opportunity_interest)
+            // ile ayrı bir mekanizma, o yüzden üstlenen kişi ilgi listesinde
+            // görünmeyebilir. Kim üstlendiğini burada ayrıca gösteriyoruz ki
+            // liste boş görününce "kimse ilgilenmedi" sanılmasın.
+            <p className="mb-2 flex items-center gap-1.5 text-sm text-ink-700">
+              <CheckCircle2 size={14} className="text-emerald-600" /> Üstlenen: {resolveName(opp.claimerId)}
+            </p>
+          )}
           {interestList == null ? (
             <p className="text-xs text-ink-400">Yükleniyor...</p>
           ) : interestList.length === 0 ? (
