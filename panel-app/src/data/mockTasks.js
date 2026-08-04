@@ -36,4 +36,30 @@ export const MOCK_TASKS = [
     completedAt: new Date(Date.now() - 1 * day).toISOString(),
     createdAt: new Date(Date.now() - 6 * day).toISOString(),
   },
+  // Ofis görünürlük daralması testi için (bkz. lib/tasks.js canViewTask) —
+  // task-4 ofise ATANMIŞ (broker vermiş), task-5 ofisin KENDİ oluşturduğu.
+  // İkisi de ofise görünmeli; task-1/2/3 (ofisle hiç ilgisi olmayan
+  // broker→danışman görevleri) artık ofise görünmemeli.
+  {
+    id: 'task-4',
+    title: 'Aylık gider evrakları muhasebeye teslim edilecek',
+    description: null,
+    assigneeId: 'u-ofis',
+    createdBy: 'u-broker',
+    dueDate: daysFromNow(3),
+    status: 'bekliyor',
+    completedAt: null,
+    createdAt: new Date(Date.now() - 1 * day).toISOString(),
+  },
+  {
+    id: 'task-5',
+    title: 'Vitrin ilanları güncellenecek',
+    description: 'Satılan portföyler vitrinden kaldırılsın.',
+    assigneeId: 'ext-danisman-2',
+    createdBy: 'u-ofis',
+    dueDate: daysFromNow(1),
+    status: 'bekliyor',
+    completedAt: null,
+    createdAt: new Date(Date.now() - 1 * day).toISOString(),
+  },
 ]

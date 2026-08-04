@@ -4,11 +4,15 @@ import { ROLES } from './roles'
 
 export const TASK_STATUS_LABELS = { bekliyor: 'Bekliyor', tamamlandi: 'Tamamlandı' }
 
-// Atanan kişi kendi görevini her zaman görür; yönetim (broker/owner/ofis)
-// verdiği/aldığı fark etmeksizin tüm görevleri görür (tasks_select RLS'iyle
-// aynı kural).
+// Atanan kişi kendi görevini her zaman görür; broker/owner verdiği/aldığı
+// fark etmeksizin tüm görevleri görür (tasks_select RLS'iyle aynı kural).
+// Ofis BİLEREK bu "hepsini gör" grubunda değil — danışmanla aynı kurala
+// tabi (sadece kendi oluşturduğu veya kendisine atanan görevleri görür),
+// broker: "danışman veya ofis kendi oluşturdukları hariç görevleri
+// göremesin ... owner ofisi ve brokeri de görsün ... broker hepsini
+// görsün" (owner zaten is_manager() ile "hepsini gör" grubunda).
 export function canViewTask(task, user) {
-  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER || user.role === ROLES.OFIS) return true
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
   return task.assigneeId === user.id || task.createdBy === user.id
 }
 

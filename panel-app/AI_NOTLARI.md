@@ -3,6 +3,26 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Görevler: ofis artık herkesi değil, sadece kendiyle ilgili olanı görür (DEPLOY BEKLİYOR — migration onayı gerekiyor)
+
+Broker: "danışman veya ofis kendi oluşturdukları hariç görevleri
+göremesin. owner brokeri de görsün. broker hepsini görsün" — soru-cevapla
+netleştirildi: danışman kuralı zaten "kendi oluşturduğu VEYA kendisine
+atanan" idi (değişmedi). Asıl değişen: ofis eskiden broker/owner ile
+birlikte HERKESİN görevini görüyordu, artık danışmanla aynı kurala tabi
+— sadece kendi oluşturduğu veya kendisine atanan görevleri görür. Owner
+"herkesi görsün" dedi (danışman dahil), yani owner hâlâ broker'la aynı
+"hepsini gör" grubunda — değişmedi.
+
+`lib/tasks.js` `canViewTask()`'tan `ROLES.OFIS` çıkarıldı (artık sadece
+broker/owner "hepsini görür" grubunda). `tasks_insert/update/delete`
+RLS'lerine BİLEREK dokunulmadı — bu sadece GÖRME kuralı, ofisin görev
+oluşturma/yönetme yetkisi aynı kalıyor.
+
+**DEPLOY DURUMU:** Migration commit edildi
+(`20260804140000_gorevler_ofis_gorunurlugu_daralt.sql`), broker'dan onay
+bekleniyor.
+
 ## 2026-08-04 — Santral çağrısı portföy talebi değilse danışman işlem yapmaz
 
 Broker: "santraldan gelen çağrı eğer portföy çağrısı değilse danışman bu
