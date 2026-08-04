@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
 import Modal from '../common/Modal'
+import RecentEntriesPanel from './RecentEntriesPanel'
 import { capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -13,7 +14,7 @@ const today = () => new Date().toISOString().slice(0, 10)
 // menüsüne gitmeye gerek kalmasın diye. Sadece isim eklemek (yeni bir satış
 // olmadan) için Yorum Hakkı panelindeki "isim ekle" kullanılmalı — buradan
 // 0 tutarla göndermek satış sayısını bozar.
-export default function AddScoreModal({ onClose, onSubmit, submitting, danismanOptions }) {
+export default function AddScoreModal({ onClose, onSubmit, submitting, danismanOptions, recentEntries = [] }) {
   const [form, setForm] = useState({ userId: '', value: '', tarih: today() })
   const [musteriler, setMusteriler] = useState([])
   const [nameDraft, setNameDraft] = useState('')
@@ -35,6 +36,7 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
 
   return (
     <Modal title="Ciro Gir" onClose={onClose}>
+      <RecentEntriesPanel entries={recentEntries} />
       <form
         onSubmit={(e) => {
           e.preventDefault()

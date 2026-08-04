@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Son İşlemler: sayfadan modala taşındı + rakam eklendi
+
+Broker iki ayrı düzeltme istedi:
+1. "son işlemler veri gir butonundan ilgili kategoriyi seçince o ekranda
+   yani veri girdiğimiz ekranda açılsın ayrıca sayfada görünmesin" —
+   `RecentEntriesPanel` Lig sayfasından kaldırıldı, `AddScoreModal` ve
+   `AddSocialActivityModal`'ın İÇİNE taşındı (`recentEntries` prop'u ile).
+2. "anlaşılmıyor önceki girdiğimiz veriler, detayları görebilelim. RAKAM
+   DA DAHİL YOKSA anlaşılmıyor" — ciro girişlerinde artık TL tutarı da
+   yazıyor ("1.250.000 TL ciro girişi"). Aşağıdaki ilk yazıdaki "tutar
+   YOK" kararı bu mesajla tersine döndü: bu panel sadece yöneticiye
+   (isManager) açık bir denetim akışı olduğu için Lig'in podyum/sıralama
+   ekranlarındaki mahremiyet kuralı (danışmanlar birbirinin cirosunu
+   görmesin) burada geçerli değil — zaten LeagueBoard'daki ciro geçmişi de
+   aynı sebeple tutarı gösteriyor. Sosyal medya zaten adet (rakam)
+   içeriyordu, değişmedi.
+
 ## 2026-08-04 — Lig: "Son İşlemler" + tek "Veri Gir" girişi
 
 Broker: "lig konusunda en son hangi ciroyu veya en son hangi müşteri

@@ -1,10 +1,13 @@
 import { History } from 'lucide-react'
 
-// "Lig'e en son hangi ciroyu/memnuniyeti/sosyal medya verisini girdik"
-// sorusuna cevap — kategori sekmesi değiştirilince o kategorideki son 3
-// giriş (kim için, ne, ne zaman) burada görünür. Tutar/puan BİLEREK
-// gösterilmiyor (bkz. Lig'in her yerinde geçerli "mutlak rakam yok"
-// kuralı) — sadece işlem türü ve tarih.
+// "Lig'e en son hangi ciroyu/sosyal medya verisini girdik" sorusuna
+// cevap — AddScoreModal/AddSocialActivityModal içinde, "Veri Gir" ile o
+// kategori seçilince açılır (broker: "veri girdiğimiz ekranda açılsın,
+// sayfada görünmesin"). `detail` metni tutarı/adedi İÇERİR (broker: "RAKAM
+// DA DAHİL YOKSA anlaşılmıyor") — bu panel sadece yöneticiye (isManager)
+// açık bir denetim akışı olduğu için Lig'in podyum/sıralama
+// ekranlarındaki "mutlak rakam yok" mahremiyet kuralı burada geçerli
+// değil.
 export default function RecentEntriesPanel({ entries }) {
   if (entries.length === 0) return null
 

@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
+import RecentEntriesPanel from './RecentEntriesPanel'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-export default function AddSocialActivityModal({ onClose, onSubmit, submitting, danismanOptions, activityTypes }) {
+export default function AddSocialActivityModal({
+  onClose,
+  onSubmit,
+  submitting,
+  danismanOptions,
+  activityTypes,
+  recentEntries = [],
+}) {
   const [form, setForm] = useState({
     userId: '',
     activityTypeId: activityTypes[0]?.id ?? '',
@@ -15,6 +23,7 @@ export default function AddSocialActivityModal({ onClose, onSubmit, submitting, 
 
   return (
     <Modal title="Sosyal Medya Aktivitesi Ekle" onClose={onClose}>
+      <RecentEntriesPanel entries={recentEntries} />
       <form
         onSubmit={(e) => {
           e.preventDefault()

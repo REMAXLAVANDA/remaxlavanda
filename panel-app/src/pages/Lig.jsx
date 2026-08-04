@@ -18,7 +18,6 @@ import { sortByName, relativeTime } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
-import RecentEntriesPanel from '../components/league/RecentEntriesPanel'
 import ActivityPointsSettings from '../components/league/ActivityPointsSettings'
 import CriteriaPanel from '../components/league/CriteriaPanel'
 import ShareCardModal from '../components/league/ShareCardModal'
@@ -155,21 +154,30 @@ export default function Lig() {
 
   const rankings = rankingsByCategory[tab] ?? []
 
-  // "En son hangi ciroyu/memnuniyeti/sosyal medya verisini girdik" sorusuna
-  // cevap — seçili kategorideki son 3 giriş, tutar/puan olmadan (bkz.
-  // RecentEntriesPanel). Üç kaynak da zaten geçmiş amaçlı tutulan ayrı
-  // tablolardan geliyor (score_entries tek satırı üstüne yazdığı için
-  // geçmiş kalmıyordu).
+  // "En son hangi ciroyu/sosyal medya verisini girdik" sorusuna cevap —
+  // kategori bazında son 3 giriş. Sayfada DEĞİL, ilgili "Veri Gir"
+  // modalının içinde gösteriliyor (bkz. AddScoreModal/
+  // AddSocialActivityModal'daki recentEntries prop'u) — broker: "veri
+  // girdiğimiz ekranda açılsın, sayfada görünmesin". Ciro tutarı BİLEREK
+  // gösteriliyor (broker: "RAKAM DA DAHİL YOKSA anlaşılmıyor") — burası
+  // zaten sadece yöneticiye (isManager) açık bir denetim akışı, Lig'in
+  // podyum/sıralama ekranlarındaki "mutlak rakam yok" kuralı (danışmanlar
+  // arası mahremiyet için) burada geçerli değil; LeagueBoard'daki ciro
+  // geçmişi de aynı nedenle zaten tutarı gösteriyor.
+  // Memnuniyet burada YOK — Müşteri Memnuniyeti "Veri Gir"den kaldırıldı
+  // (ciro girilirken müşteri adı zaten aynı formda ekleniyor).
   const recentEntriesByCategory = useMemo(() => {
     if (!periodId) return {}
     const activityTypeName = (id) => activityTypes.find((t) => t.id === id)?.ad ?? 'aktivite'
     return {
       ciro: sortByCreatedDesc((data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId))
         .slice(0, 3)
-        .map((g) => ({ id: g.id, danismanName: userName(g.userId), detail: 'yeni ciro girişi', when: relativeTime(g.createdAt) })),
-      memnuniyet: sortByCreatedDesc((data?.ciroMusterileri ?? []).filter((m) => m.periodId === periodId))
-        .slice(0, 3)
-        .map((m) => ({ id: m.id, danismanName: userName(m.userId), detail: `"${m.adSoyad}" eklendi`, when: relativeTime(m.createdAt) })),
+        .map((g) => ({
+          id: g.id,
+          danismanName: userName(g.userId),
+          detail: `${Number(g.value).toLocaleString('tr-TR')} TL ciro girişi`,
+          when: relativeTime(g.createdAt),
+        })),
       sosyal_medya: sortByCreatedDesc((data?.socialActivityLog ?? []).filter((l) => l.periodId === periodId))
         .slice(0, 3)
         .map((l) => ({
@@ -484,7 +492,6 @@ export default function Lig() {
               )
             })}
           </div>
-          <RecentEntriesPanel entries={recentEntriesByCategory[tab] ?? []} />
           <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
         </>
       )}
@@ -499,6 +506,7 @@ export default function Lig() {
           onSubmit={handleAddScore}
           submitting={submitting}
           danismanOptions={danismanOptions}
+          recentEntries={recentEntriesByCategory.ciro ?? []}
         />
       )}
 
@@ -513,6 +521,7 @@ export default function Lig() {
           submitting={submitting}
           danismanOptions={danismanOptions}
           activityTypes={activityTypes}
+          recentEntries={recentEntriesByCategory.sosyal_medya ?? []}
         />
       )}
 
