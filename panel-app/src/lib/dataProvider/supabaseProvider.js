@@ -595,6 +595,7 @@ function mapCandidate(row) {
     aciklama: row.aciklama,
     reklamAdi: row.reklam_adi,
     kampanyaKodu: row.kampanya_kodu,
+    gorusmeEventId: row.gorusme_event_id,
   }
 }
 
@@ -654,6 +655,7 @@ export const recruiting = {
     if ('kayitTipi' in patch) dbPatch.kayit_tipi = patch.kayitTipi
     if ('yenidenAktifAt' in patch) dbPatch.yeniden_aktif_at = patch.yenidenAktifAt
     if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null
+    if ('gorusmeEventId' in patch) dbPatch.gorusme_event_id = patch.gorusmeEventId || null
     const data = await run(client().from('recruiting_candidates').update(dbPatch).eq('id', id).select().single())
     return mapCandidate(data)
   },

@@ -1,11 +1,23 @@
 import { useMemo, useState } from 'react'
-import { RotateCcw, Info } from 'lucide-react'
+import { RotateCcw, Info, CalendarClock } from 'lucide-react'
 import Modal from '../common/Modal'
 import { formatPhoneInput } from '../../lib/phone'
 import { capitalizeWords, capitalizeFirst, formatDateOnly } from '../../lib/format'
 import { RECRUITING_DURUMLARI, RECRUITING_DURUM_LABELS, RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
 const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
+
+// interviewEvent.startAt (ISO) -> ayrı date/time input değerleri. Yeni
+// aday ya da henüz görüşme tarihi girilmemiş adayda ikisi de boş.
+function toDateTimeParts(iso) {
+  if (!iso) return { date: '', time: '' }
+  const d = new Date(iso)
+  const pad = (n) => String(n).padStart(2, '0')
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  }
+}
 
 // Hem "+ Yeni Aday" (candidate=null) hem satır tıklaması (candidate=mevcut
 // kayıt) AYNI paneli açar — Lead Havuzu'ndaki LeadDetailModal ile aynı
@@ -22,11 +34,13 @@ export default function RecruitingDetailModal({
   candidate,
   initialValues,
   existingCandidates = [],
+  interviewEvent,
   onClose,
   onSubmit,
   onReactivate,
   submitting,
 }) {
+  const interviewParts = toDateTimeParts(interviewEvent?.startAt)
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
@@ -34,6 +48,8 @@ export default function RecruitingDetailModal({
     email: candidate?.email ?? initialValues?.email ?? '',
     durum: candidate?.durum ?? 'yeni_basvuru',
     aciklama: candidate?.aciklama ?? '',
+    gorusmeTarih: interviewParts.date,
+    gorusmeSaat: interviewParts.time,
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.adSoyad.trim().length > 0
@@ -59,6 +75,11 @@ export default function RecruitingDetailModal({
       email: form.email.trim(),
       aciklama: capitalizeFirst(form.aciklama.trim()),
       kaynakLeadId: candidate ? undefined : (initialValues?.kaynakLeadId ?? null),
+      // Saat girilmeden tarih anlamsız — ikisi birlikte doluysa Takvim'e
+      // işleniyor (bkz. Recruiting.jsx handleSave), biri eksikse hiç
+      // gönderilmiyor.
+      gorusmeTarih: form.gorusmeTarih && form.gorusmeSaat ? form.gorusmeTarih : '',
+      gorusmeSaat: form.gorusmeTarih && form.gorusmeSaat ? form.gorusmeSaat : '',
     })
   }
 
@@ -136,6 +157,27 @@ export default function RecruitingDetailModal({
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-ink-500">
+            <CalendarClock size={13} /> Görüşme / Randevu Tarihi
+            <span className="font-normal text-ink-400">(opsiyonel — Takvim'e işlenir)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="date"
+              value={form.gorusmeTarih}
+              onChange={(e) => set({ gorusmeTarih: e.target.value })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            />
+            <input
+              type="time"
+              value={form.gorusmeSaat}
+              onChange={(e) => set({ gorusmeSaat: e.target.value })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            />
+          </div>
         </div>
 
         <textarea

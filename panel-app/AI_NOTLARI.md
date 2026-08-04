@@ -3,6 +3,46 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-03 — Recruiting görüşme/randevu tarihi → Takvim entegrasyonu (kod tarafı, DEPLOY BEKLİYOR)
+
+Broker: "Recruiting için ilk görüşme veya randevu oluşturunca tarih seçimi
+yapıp takvime ekleyebilelim. Orada eğitim toplantı gibi Recruiting planı
+da olsun."
+
+**Migration (broker'ın kendisi Supabase Dashboard'dan uyguladı/uygulayacak
+— `20260803235900_recruiting_gorusme_etkinlik_turu.sql`):**
+- `calendar_event_type` enum'una `recruiting_gorusmesi` eklendi.
+- `recruiting_candidates` tablosuna `gorusme_event_id` (nullable, `calendar_
+  events`'e FK, `on delete set null`) eklendi — aynı adayın tarihi
+  sonradan değişince mükerrer etkinlik açılmasın diye.
+
+**Kod tarafı:**
+- `lib/calendar.js`: yeni tür `recruiting_gorusmesi` — Broker/Koçluk
+  Görüşmesi gibi içeriye özel, **Aylık Pano'da (TV) görünmüyor**
+  (`EventBoardModal.jsx`'in `BOARD_TYPES` listesine bilerek eklenmedi).
+  Renk: markadaki 6 canlı ton (2 kırmızı + 4 mavi) diğer 6 türe zaten
+  dağıtılmış olduğu için, 7. tür paletteki "Gray"i (#949CA1) kullanıyor.
+- `RecruitingDetailModal.jsx`: opsiyonel "Görüşme / Randevu Tarihi"
+  (tarih+saat) alanı — durum aşamasına bağlı değil, istenildiği an
+  doldurulabilir. Var olan bir görüşme tarihini düzenlerken alan otomatik
+  önceden dolu gelir (`interviewEvent` prop, `Recruiting.jsx`'te
+  `candidate.gorusmeEventId` ile eşleştiriliyor).
+- `Recruiting.jsx`: aday kaydedilince `syncInterviewEvent()` — tarih
+  doluysa etkinlik oluşturur/günceller (aynı etkinliği, mükerrer değil),
+  tarih temizlenirse etkinliği siler ve bağlantıyı temizler. Davetli
+  listesi boş bırakıldı (atananDanismanId zaten bu formdan hiç
+  set edilmiyor, bkz. önceki karar) — broker/owner/ofis zaten TÜM
+  etkinlikleri görüyor (`canViewEvent`), ayrıca davet gerekmiyor.
+- Mock modda uçtan uca test edildi (oluşturma → Takvim'de görünüyor,
+  tarih değiştirme → aynı etkinlik güncelleniyor mükerrer açılmıyor, tarih
+  temizleme → etkinlik siliniyor).
+
+**ÖNEMLİ — bu commit main'e henüz alınmadı / canlıya deploy edilmedi.**
+Migration production'da uygulanmadan bu kod deploy edilirse (yeni enum
+değeri / yeni sütun DB'de yokken) hem Recruiting'den etkinlik oluşturma
+hem de tür dropdown'ları çalışırken hata verir. Broker migration'ı
+uyguladığını onayladıktan SONRA build+sync+merge yapılacak.
+
 ## 2026-08-03 — Reklam Kaynakları: Ayarlar'dan Panel özeti + Lead Havuzu detayına taşındı
 
 Broker: "ayarlarda bulunan reklam kaynakları panelde olması gereken bir

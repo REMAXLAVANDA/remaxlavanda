@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { recruiting as recruitingProvider } from '../lib/dataProvider'
+import { recruiting as recruitingProvider, calendarEvents as calendarProvider } from '../lib/dataProvider'
 import { canManageRecruiting, matchesKayitTipiFilter } from '../lib/recruiting'
 import { sortByName } from '../lib/format'
 import { ROLES } from '../lib/roles'
@@ -18,14 +18,22 @@ import { LoadingState, ErrorState } from '../components/common/AsyncState'
 // matchesKayitTipiFilter, AI_NOTLARI.md).
 const INITIAL_FILTERS = { durum: 'tumu', atananId: 'tumu', kayitTipi: 'aktif' }
 
+// Adayın "Görüşme / Randevu Tarihi" alanı doldurulunca Takvim'de bir
+// 'recruiting_gorusmesi' etkinliği oluşuyor/güncelleniyor — candidate +
+// events BİRLİKTE yükleniyor ki düzenlerken var olan tarih önceden dolu
+// gelsin (bkz. RecruitingDetailModal interviewEvent notu).
+async function loadAll() {
+  const [candidates, events] = await Promise.all([recruitingProvider.list(), calendarProvider.list()])
+  return { candidates, events }
+}
+
 export default function Recruiting() {
-  const { role } = useAuth()
+  const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
-  const { data: candidates, setData: setCandidates, loading, error, reload } = useAsyncList(
-    () => recruitingProvider.list(),
-    [],
-  )
+  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  const candidates = data?.candidates ?? []
+  const events = data?.events ?? []
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
   const [editingCandidate, setEditingCandidate] = useState(null)
@@ -40,8 +48,7 @@ export default function Recruiting() {
   const danismanOptions = sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi))
 
   const visible = useMemo(() => {
-    const list = candidates ?? []
-    return list
+    return candidates
       .filter((c) => filters.durum === 'tumu' || c.durum === filters.durum)
       .filter((c) => {
         if (filters.atananId === 'tumu') return true
@@ -49,20 +56,74 @@ export default function Recruiting() {
         return c.atananDanismanId === filters.atananId
       })
       .filter((c) => matchesKayitTipiFilter(c, filters.kayitTipi))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidates, filters])
+
+  const editingInterviewEvent = editingCandidate
+    ? events.find((e) => e.id === editingCandidate.gorusmeEventId)
+    : null
+
+  // Adayın kendi görüşme etkinliğini oluşturur/günceller/siler — candidate
+  // kaydının kendisinden AYRI bir adım, çünkü etkinlik id'si ancak
+  // oluşturulduktan sonra belli olur (bkz. Migration Onay Kuralı notu:
+  // recruiting_candidates.gorusme_event_id, calendar_events'e FK).
+  async function syncInterviewEvent(savedCandidate, form) {
+    const hasNewSchedule = Boolean(form.gorusmeTarih && form.gorusmeSaat)
+    const existingEventId = savedCandidate.gorusmeEventId
+
+    if (!hasNewSchedule) {
+      if (existingEventId) {
+        await calendarProvider.remove(existingEventId)
+        const cleared = await recruitingProvider.update(savedCandidate.id, { gorusmeEventId: null })
+        setData((prev) => ({
+          candidates: prev.candidates.map((c) => (c.id === cleared.id ? cleared : c)),
+          events: prev.events.filter((e) => e.id !== existingEventId),
+        }))
+        return cleared
+      }
+      return savedCandidate
+    }
+
+    const eventForm = {
+      type: 'recruiting_gorusmesi',
+      title: `Görüşme — ${savedCandidate.adSoyad}`,
+      date: form.gorusmeTarih,
+      startTime: form.gorusmeSaat,
+      endTime: null,
+      gorunurluk: 'davetliler',
+    }
+
+    if (existingEventId) {
+      const updatedEvent = await calendarProvider.update(existingEventId, eventForm)
+      setData((prev) => ({
+        ...prev,
+        events: prev.events.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)),
+      }))
+      return savedCandidate
+    }
+
+    const createdEvent = await calendarProvider.create(eventForm, user.id)
+    const linked = await recruitingProvider.update(savedCandidate.id, { gorusmeEventId: createdEvent.id })
+    setData((prev) => ({
+      candidates: prev.candidates.map((c) => (c.id === linked.id ? linked : c)),
+      events: [...prev.events, createdEvent],
+    }))
+    return linked
+  }
 
   async function handleSave(form) {
     setSubmitting(true)
     try {
+      let saved
       if (editingCandidate) {
-        const updated = await recruitingProvider.update(editingCandidate.id, form)
-        setCandidates((prev) => prev.map((c) => (c.id === editingCandidate.id ? updated : c)))
-        showToast('Aday güncellendi.', 'success')
+        saved = await recruitingProvider.update(editingCandidate.id, form)
+        setData((prev) => ({ ...prev, candidates: prev.candidates.map((c) => (c.id === saved.id ? saved : c)) }))
       } else {
-        const created = await recruitingProvider.create(form)
-        setCandidates((prev) => [created, ...prev])
-        showToast('Aday eklendi.', 'success')
+        saved = await recruitingProvider.create(form)
+        setData((prev) => ({ ...prev, candidates: [saved, ...prev.candidates] }))
       }
+      await syncInterviewEvent(saved, form)
+      showToast(editingCandidate ? 'Aday güncellendi.' : 'Aday eklendi.', 'success')
       setEditingCandidate(null)
       setShowModal(false)
     } catch (err) {
@@ -85,7 +146,7 @@ export default function Recruiting() {
       }
       if (candidate.durum === 'olumsuz') patch.durum = 'yeni_basvuru'
       const updated = await recruitingProvider.update(candidate.id, patch)
-      setCandidates((prev) => prev.map((c) => (c.id === candidate.id ? updated : c)))
+      setData((prev) => ({ ...prev, candidates: prev.candidates.map((c) => (c.id === candidate.id ? updated : c)) }))
       setEditingCandidate(null)
       showToast('Aday yeniden aktifleştirildi.', 'success')
     } catch (err) {
@@ -122,7 +183,8 @@ export default function Recruiting() {
       {(showModal || editingCandidate) && (
         <RecruitingDetailModal
           candidate={editingCandidate}
-          existingCandidates={candidates ?? []}
+          existingCandidates={candidates}
+          interviewEvent={editingInterviewEvent}
           onClose={() => {
             setShowModal(false)
             setEditingCandidate(null)
