@@ -423,6 +423,48 @@ export default function Lig() {
         />
       )}
 
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
+      {!loading && !error && !period && (
+        <p className="py-8 text-center text-sm text-text-disabled">
+          Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
+        </p>
+      )}
+
+      {/* Detaylı sıralama listesi (herkesin adı + görece farkı) sadece
+          yönetime (broker/owner/ofis) açık — danışman sadece podyumdaki
+          ilk 3'ü ve kendi Yorum Hakkı satırını görür. */}
+      {isManager && !loading && !error && period && (
+        <>
+          <div className="mb-5 flex gap-1 border-b border-border-default">
+            {LEAGUE_CATEGORIES.map((c) => {
+              const colors = LEAGUE_CATEGORY_COLORS[c.key]
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setTab(c.key)}
+                  className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                    tab === c.key ? `${colors.tabBorder} ${colors.tabText}` : 'border-transparent text-text-muted hover:text-text-primary'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              )
+            })}
+          </div>
+          <LeagueBoard
+            rankings={rankings}
+            unit={category.unit}
+            historyByUser={tab === 'ciro' ? ciroHistoryByUser : null}
+            reviewByUser={tab === 'memnuniyet' ? reviewByUser : null}
+            onAddMusteri={handleAddCiroMusteri}
+            onRemoveMusteri={handleRemoveCiroMusteri}
+            onToggleAlindi={handleToggleAlindi}
+          />
+        </>
+      )}
+
+      {/* Hesaplama açıklamaları en altta — broker: "bunu en alta alalım". */}
       {!loading && !error && period && (
         <CriteriaPanel title="Ciro Nasıl Hesaplanır?">
           <p>
@@ -483,47 +525,6 @@ export default function Lig() {
 
       {!loading && !error && period && (
         <ActivityPointsSettings activityTypes={activityTypes} onUpdatePoint={handleUpdatePoint} editable={isBroker} />
-      )}
-
-      {loading && <LoadingState />}
-      {!loading && error && <ErrorState error={error} onRetry={reload} />}
-      {!loading && !error && !period && (
-        <p className="py-8 text-center text-sm text-text-disabled">
-          Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
-        </p>
-      )}
-
-      {/* Detaylı sıralama listesi (herkesin adı + görece farkı) sadece
-          yönetime (broker/owner/ofis) açık — danışman sadece podyumdaki
-          ilk 3'ü ve kendi Yorum Hakkı satırını görür. */}
-      {isManager && !loading && !error && period && (
-        <>
-          <div className="mb-5 flex gap-1 border-b border-border-default">
-            {LEAGUE_CATEGORIES.map((c) => {
-              const colors = LEAGUE_CATEGORY_COLORS[c.key]
-              return (
-                <button
-                  key={c.key}
-                  onClick={() => setTab(c.key)}
-                  className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                    tab === c.key ? `${colors.tabBorder} ${colors.tabText}` : 'border-transparent text-text-muted hover:text-text-primary'
-                  }`}
-                >
-                  {c.label}
-                </button>
-              )
-            })}
-          </div>
-          <LeagueBoard
-            rankings={rankings}
-            unit={category.unit}
-            historyByUser={tab === 'ciro' ? ciroHistoryByUser : null}
-            reviewByUser={tab === 'memnuniyet' ? reviewByUser : null}
-            onAddMusteri={handleAddCiroMusteri}
-            onRemoveMusteri={handleRemoveCiroMusteri}
-            onToggleAlindi={handleToggleAlindi}
-          />
-        </>
       )}
 
       {showChooserModal && (
