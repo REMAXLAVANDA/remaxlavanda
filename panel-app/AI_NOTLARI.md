@@ -3,7 +3,7 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-08-04 — Takvim genel türler: RLS'te de aynı kural gerekiyormuş (DEPLOY BEKLİYOR — migration onayı gerekiyor)
+## 2026-08-04 — Takvim genel türler: RLS'te de aynı kural gerekiyormuş
 
 Bir önceki maddedeki düzeltme sadece uygulama (JS) tarafındaydı — broker
 "hala görülmüyor" deyince kontrol edilince asıl engelin veritabanı
