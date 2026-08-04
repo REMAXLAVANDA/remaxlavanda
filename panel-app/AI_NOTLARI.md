@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — "Dönem Liderleri" kartı: sadece lider değil, ilk 3
+
+Broker: "panelde ilk 3 her kategoride görebilelim. kalanları görmek için
+lig'e git seçersek detayları görebilelim" + "farklar yazmasın panelde".
+
+`WeeklyLeadersCard.jsx` artık her kategoride (Ciro/Memnuniyet/Sosyal
+Medya) sadece rank 1'i değil ilk 3'ü gösteriyor (`PeriodSummaryBoard`'daki
+gibi `.slice(0, 3)`) — ama PeriodSummaryBoard'ın aksine **hiçbir sayısal
+fark/mesafe yazmıyor** (madalya + isim, o kadar). Tam detay (mesafe/fark
+dahil) isteyen zaten "Lig'e git" ile Lig sayfasına gidiyor, orada
+PeriodSummaryBoard + LeagueBoard bunu zaten gösteriyor. Ciro/skor
+mahremiyeti kuralı (mutlak değer asla yok) burada zaten otomatik
+korunuyor çünkü artık hiç sayı basılmıyor.
+
 ## 2026-08-04 — "Haftanın Liderleri" → "Dönem Liderleri" (isim düzeltmesi)
 
 Broker: "panelde gerçekten haftanın lideri mi var yoksa dönem lideri mi" —
