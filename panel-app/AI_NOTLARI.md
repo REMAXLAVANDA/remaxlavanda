@@ -3,6 +3,24 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Esra Sever Ayrılış checklist'te hâlâ görünmüyordu (2. kök neden: yanlış "Test hesabı" etiketi)
+
+Bir önceki notta (aşağıda) `listAll()` düzeltmesi yapıldıktan sonra
+Esra Sever HÂLÂ görünmedi — ekran görüntüsüyle kontrol edilince ikinci bir
+sorun çıktı: kaydında "Pasif"in yanında yanlışlıkla **"Test hesabı"**
+etiketi de açıktı (Lig/Takip/Panel listelerinden bilerek çıkarılan,
+broker'ın kendi deneme hesabı için var olan bir bayrak). Broker'ın asıl
+niyeti sadece `test@remaxlavanda.com.tr` hesabının test hesabı kalması
+— diğer tüm kullanıcılarda yanlışlıkla açık kalmış. Bu bir kod hatası
+değil, veri hatasıydı; broker'ın kendisi Supabase Dashboard'dan şu SQL'i
+çalıştırdı (kayıt siliniyor değil, sadece bayrak kapatılıyor):
+
+```sql
+update public.users
+set test_hesabi = false
+where email <> 'test@remaxlavanda.com.tr' and test_hesabi = true;
+```
+
 ## 2026-08-04 — Takip: Ayrılış checklist'e ayrılan danışman düşmüyordu + checklist satırları küçültüldü
 
 Broker: "esra sever ayrıldı diye portaldan kapattık sistemini ama ayrılış
