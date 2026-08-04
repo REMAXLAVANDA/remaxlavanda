@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Yorum Hakkı, Memnuniyet sekmesinin içine taşındı
+
+Broker: "yorum hakkı bölümünü aşağıdaki müşteri memnuniyet alanının içine
+aynı cirodaki gibi gömelim". Eskiden `ReviewCreditsPanel` sayfanın üstünde,
+hangi sekme seçili olursa olsun her zaman görünüyordu — artık sadece
+Memnuniyet sekmesi seçiliyken, sıralama tablosunun hemen üstünde görünüyor
+(Ciro'nun kendi geçmişinin sadece Ciro sekmesinde kalması gibi).
+**İstisna:** danışman rolünde sekme değiştirme arayüzü hiç yok (tab state
+hep varsayılan 'ciro'da kalır, o blok isManager'a özel) — panel oraya
+taşınsaydı danışman kendi Yorum Hakkı satırını hiç göremezdi, o yüzden
+danışman için panel eski konumunda (üstte, her zaman görünür) bırakıldı.
+
 ## 2026-08-04 — Son İşlemler: göreceli tarih yerine net tarih
 
 Broker: "hala tarihler kısmında gün önce gibi ibareler var, işlem tarihi

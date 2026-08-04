@@ -395,7 +395,15 @@ export default function Lig() {
         </div>
       )}
 
-      {!loading && !error && period && (
+      {/* Yönetici (broker/owner/ofis) için Yorum Hakkı artık burada değil,
+          Memnuniyet sekmesinin İÇİNDE (bkz. aşağıdaki isManager bloğu) —
+          Ciro'daki gibi kategoriye özel içerik kendi sekmesinde kalsın diye
+          (broker: "yorum hakkı bölümünü müşteri memnuniyet alanının içine
+          aynı cirodaki gibi gömelim"). Danışmanın sekme değiştirme UI'ı hiç
+          yok (tab state hep varsayılan 'ciro'da kalır) — o yüzden danışman
+          için eski konumunda (üstte, her zaman görünür) kalmaya devam
+          ediyor, yoksa kendi Yorum Hakkı satırını hiç göremezdi. */}
+      {!loading && !error && period && !isManager && (
         <ReviewCreditsPanel
           rows={visibleReviewCreditRows}
           isManager={isManager}
@@ -498,6 +506,17 @@ export default function Lig() {
               )
             })}
           </div>
+          {tab === 'memnuniyet' && (
+            <ReviewCreditsPanel
+              rows={visibleReviewCreditRows}
+              isManager={isManager}
+              onAddMusteri={handleAddCiroMusteri}
+              onRemoveMusteri={handleRemoveCiroMusteri}
+              onToggleAlindi={handleToggleAlindi}
+              expandedId={expandedCiroUserId}
+              onToggleExpand={setExpandedCiroUserId}
+            />
+          )}
           <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
         </>
       )}
