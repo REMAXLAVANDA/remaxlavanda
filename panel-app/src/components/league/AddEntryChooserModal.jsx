@@ -1,4 +1,4 @@
-import { TrendingUp, Megaphone, MessageSquareText, ChevronRight } from 'lucide-react'
+import { TrendingUp, Megaphone, ChevronRight } from 'lucide-react'
 import Modal from '../common/Modal'
 
 const OPTIONS = [
@@ -6,7 +6,7 @@ const OPTIONS = [
     key: 'ciro',
     icon: TrendingUp,
     label: 'Ciro Girişi',
-    desc: 'Bir danışmanın kapattığı satış',
+    desc: 'Bir danışmanın kapattığı satış (müşteri adı da burada eklenir)',
   },
   {
     key: 'sosyal_medya',
@@ -14,20 +14,16 @@ const OPTIONS = [
     label: 'Sosyal Medya Aktivitesi',
     desc: 'Instagram, LinkedIn, Google Yorumu vb.',
   },
-  {
-    key: 'memnuniyet',
-    icon: MessageSquareText,
-    label: 'Müşteri Memnuniyeti',
-    desc: 'Ciroya dönen müşterinin adı (Yorum Hakkı)',
-  },
 ]
 
-// Eskiden 3 ayrı yerden başlıyordu: "Ciro Gir"/"Aktivite Ekle" butonları
-// sadece o an açık olan sekmede görünüyordu, Memnuniyet'in ise hiç butonu
-// yoktu (doğrudan Yorum Hakkı panelinden ekleniyordu) — yeni kullanıcı
-// nereden başlayacağını bulamıyordu (bkz. "veri giriş biraz karışık"
-// isteği). Şimdi TEK, her zaman görünür "Veri Gir" girişi var; burada
-// kategori seçilir, sonra ilgili yere yönlendirilir.
+// Eskiden "Ciro Gir"/"Aktivite Ekle" butonları sadece o an açık olan
+// sekmede görünüyordu — yeni kullanıcı nereden başlayacağını bulamıyordu
+// (bkz. "veri giriş biraz karışık" isteği). Şimdi TEK, her zaman görünür
+// "Veri Gir" girişi var. Müşteri Memnuniyeti BİLEREK burada YOK — ayrı bir
+// giriş noktası değil, ciro girilirken müşteri adı zaten aynı formda
+// ekleniyor (bkz. AddScoreModal); "isim düzelt/işaretle" ihtiyacı için
+// Yorum Hakkı paneli zaten sayfada duruyor (broker: "veri gir butonunda
+// müşteri memnuniyeti olmasın zaten ciro girerken otomatik giriliyor").
 export default function AddEntryChooserModal({ onClose, onChoose }) {
   return (
     <Modal title="Veri Gir" onClose={onClose}>

@@ -23,13 +23,14 @@ rakam gösterilmez" kuralıyla tutarlı, broker'a soruldu, aynı yönde
 netleşti).
 
 **Tek "Veri Gir" girişi:** Eskiden "Ciro Gir"/"Aktivite Ekle" butonları
-sadece o an açık sekmede görünüyordu, Memnuniyet'in ise hiç butonu yoktu
-(doğrudan Yorum Hakkı panelinden ekleniyordu) — yeni kullanıcı nereden
+sadece o an açık sekmede görünüyordu — yeni kullanıcı nereden
 başlayacağını bulamıyordu. Artık tek, her zaman görünür "Veri Gir" butonu
-var (`AddEntryChooserModal.jsx`): kategori seçilir, Ciro/Sosyal Medya
-ilgili modalı açar, Müşteri Memnuniyeti seçilince Yorum Hakkı paneline
-kaydırıp yönlendirici bir bilgi mesajı gösterir (ayrı bir modalı yok,
-akış zaten o panelde).
+var (`AddEntryChooserModal.jsx`): Ciro Girişi / Sosyal Medya Aktivitesi
+seçilir, ilgili modal açılır. **Müşteri Memnuniyeti bilerek burada YOK**
+(broker: "veri gir butonunda müşteri memnuniyeti olmasın zaten ciro
+girerken otomatik giriliyor") — AddScoreModal'da ciro girilirken müşteri
+adı zaten aynı formda ekleniyor, ayrı bir giriş noktası gereksizmiş; isim
+düzeltme/işaretleme ihtiyacı için Yorum Hakkı paneli sayfada zaten duruyor.
 
 ## 2026-08-04 — "Dönem Liderleri" kartı: sadece lider değil, ilk 3
 

@@ -290,25 +290,19 @@ export default function Lig() {
     }
   }
 
-  // Tek "Veri Gir" girişi, üç dağınık buton/panel yerine — hangi kategori
-  // seçilirse ilgili yere yönlendirir (bkz. "veri giriş biraz karışık"
-  // isteği). Memnuniyet için ayrı bir modal yok, Yorum Hakkı paneli zaten
-  // isim ekleme akışını içeriyor — o yüzden sadece o panele kaydırıp
-  // yönlendiriyoruz.
+  // Tek "Veri Gir" girişi, dağınık sekme-bazlı butonlar yerine — hangi
+  // kategori seçilirse ilgili modalı açar (bkz. "veri giriş biraz
+  // karışık" isteği). Müşteri Memnuniyeti burada YOK — ciro girilirken
+  // müşteri adı zaten aynı formda ekleniyor, ayrı bir giriş noktasına
+  // gerek yok (broker kararı).
   function handleChooseEntryType(key) {
     setShowChooserModal(false)
     if (key === 'ciro') {
       setTab('ciro')
       setShowScoreModal(true)
-    } else if (key === 'sosyal_medya') {
+    } else {
       setTab('sosyal_medya')
       setShowActivityModal(true)
-    } else {
-      setTab('memnuniyet')
-      requestAnimationFrame(() => {
-        document.getElementById('yorum-hakki-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-      showToast('Danışmanı seç, açılan satırdan müşteri adını ekle.', 'info')
     }
   }
 
@@ -388,17 +382,15 @@ export default function Lig() {
       )}
 
       {!loading && !error && period && (
-        <div id="yorum-hakki-panel">
-          <ReviewCreditsPanel
-            rows={visibleReviewCreditRows}
-            isManager={isManager}
-            onAddMusteri={handleAddCiroMusteri}
-            onRemoveMusteri={handleRemoveCiroMusteri}
-            onToggleAlindi={handleToggleAlindi}
-            expandedId={expandedCiroUserId}
-            onToggleExpand={setExpandedCiroUserId}
-          />
-        </div>
+        <ReviewCreditsPanel
+          rows={visibleReviewCreditRows}
+          isManager={isManager}
+          onAddMusteri={handleAddCiroMusteri}
+          onRemoveMusteri={handleRemoveCiroMusteri}
+          onToggleAlindi={handleToggleAlindi}
+          expandedId={expandedCiroUserId}
+          onToggleExpand={setExpandedCiroUserId}
+        />
       )}
 
       {!loading && !error && period && (
