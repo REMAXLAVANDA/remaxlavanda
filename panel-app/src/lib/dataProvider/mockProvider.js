@@ -242,6 +242,20 @@ export const calendarEvents = {
     if ('gorunurluk' in patch) row.gorunurluk = patch.gorunurluk
     return delay({ ...row })
   },
+  // Daha önce davetsiz kurulmuş bir etkinliğe (ör. "otomatik görünür" diye
+  // davet edilmemiş zorunlu toplantı/eğitim) yönetim sonradan davetli
+  // ekleyebilsin diye — create()'teki davetli ekleme mantığıyla aynı, sadece
+  // mevcut bir etkinliğe uygulanıyor (bkz. Düzenle ekranı "Davetli Ekle").
+  async addInvitees(eventId, katilimTipleri) {
+    const rows = Object.entries(katilimTipleri ?? {}).map(([userId, katilimTipi]) => ({
+      eventId,
+      userId,
+      status: 'davetli',
+      katilimTipi,
+    }))
+    MOCK_ATTENDANCE.push(...rows)
+    return delay(rows.map((r) => ({ ...r })))
+  },
   // supabaseProvider.joinEvent() ile aynı davranış — "herkese açık" bir
   // etkinliğe davet edilmemiş biri kendi kendine, sadece istege_bagli +
   // onayladi olarak katılabilir.

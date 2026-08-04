@@ -44,6 +44,7 @@ export default function TakvimTab() {
   const [deleting, setDeleting] = useState(false)
   const [showBoardModal, setShowBoardModal] = useState(false)
   const [joining, setJoining] = useState(false)
+  const [addingInvitees, setAddingInvitees] = useState(false)
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
   const events = data?.events ?? EMPTY
@@ -159,6 +160,23 @@ export default function TakvimTab() {
     }
   }
 
+  // Daha önce davetsiz kurulmuş bir etkinliğe (ör. "otomatik görünür" diye
+  // davet edilmemiş zorunlu toplantı/eğitim) sonradan davetli eklemek için
+  // — bkz. EditEventModal "Davetli Ekle" bölümü.
+  async function handleAddInvitees(katilimTipleri) {
+    if (!selectedEventId) return
+    setAddingInvitees(true)
+    try {
+      const created = await calendarProvider.addInvitees(selectedEventId, katilimTipleri)
+      setData((prev) => ({ ...prev, attendance: [...prev.attendance, ...created] }))
+      showToast(`${created.length} kişi davet edildi.`, 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Davetli eklenemedi, tekrar dene.', 'error')
+    } finally {
+      setAddingInvitees(false)
+    }
+  }
+
   async function handleDelete(id) {
     setDeleting(true)
     try {
@@ -180,6 +198,7 @@ export default function TakvimTab() {
   const selectedAttendance = selectedEventId ? attendance.filter((a) => a.eventId === selectedEventId) : []
   const selectedAttendees = selectedAttendance.map((a) => ({ ...a, name: userName(a.userId) }))
   const myAttendance = selectedAttendance.find((a) => a.userId === user.id)
+  const inviteeOptions = sortByName(Object.values(knownUsers).filter((u) => u.id !== user.id))
 
   return (
     <div>
@@ -264,9 +283,13 @@ export default function TakvimTab() {
       {selectedEvent && editingEvent && (
         <EditEventModal
           event={selectedEvent}
+          attendees={selectedAttendees}
+          inviteeOptions={inviteeOptions}
           onClose={() => setEditingEvent(false)}
           onSubmit={handleUpdate}
           submitting={submitting}
+          onAddInvitees={handleAddInvitees}
+          addingInvitees={addingInvitees}
         />
       )}
 
@@ -275,7 +298,7 @@ export default function TakvimTab() {
           onClose={() => setShowModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
-          inviteeOptions={sortByName(Object.values(knownUsers).filter((u) => u.id !== user.id))}
+          inviteeOptions={inviteeOptions}
         />
       )}
 

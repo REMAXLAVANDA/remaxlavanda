@@ -157,7 +157,9 @@ export default function NewEventModal({ onClose, onSubmit, submitting, inviteeOp
 
         {ALWAYS_VISIBLE_EVENT_TYPES.includes(form.type) ? (
           <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-500">
-            {EVENT_TYPE_LABELS[form.type]} türü zaten her danışmana otomatik görünür — davet etmesen bile herkes görür.
+            {EVENT_TYPE_LABELS[form.type]} türü zaten her danışmana otomatik görünür (bilgi amaçlı okunabilir). Ama
+            mazeret bildirme ve puanlamaya yansıması için katılması gereken kişileri yine de aşağıdan davet et
+            (Zorunlu/Önerilen yap) — davet edilmeyen sadece görür, mazeret hakkı ve puanlaması oluşmaz.
           </p>
         ) : (
           <label className="flex items-center gap-2 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-700">

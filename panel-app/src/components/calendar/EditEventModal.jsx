@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
-import { ALWAYS_VISIBLE_EVENT_TYPES, EVENT_TYPE_LABELS } from '../../lib/calendar'
+import {
+  ALWAYS_VISIBLE_EVENT_TYPES,
+  ATTENDANCE_STATUS_LABELS,
+  EVENT_TYPE_LABELS,
+  KATILIM_TIPI_LABELS,
+  KATILIM_TIPI_OPTIONS,
+} from '../../lib/calendar'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
 
 function toDateInput(iso) {
@@ -10,10 +16,35 @@ function toTimeInput(iso) {
   return iso ? new Date(iso).toTimeString().slice(0, 5) : ''
 }
 
-// Yeni Etkinlik formunun aksine davetli listesi burada değiştirilemez —
-// kimlerin davetli olduğunu değiştirmek ayrı bir işlem sayılır, bu form
-// sadece etkinliğin kendi alanlarını (başlık/tarih/konum vb.) düzeltir.
-export default function EditEventModal({ event, onClose, onSubmit, submitting }) {
+const SELECT_TEXT_STYLES = {
+  yok: 'text-ink-400',
+  zorunlu: 'text-red-600',
+  onerilen: 'text-amber-700',
+  istege_bagli: 'text-ink-600',
+}
+
+const BULK_ACTIONS = [
+  { value: 'zorunlu', label: 'Zorunlu Yap', className: 'bg-red-50 text-red-600 hover:bg-red-100' },
+  { value: 'onerilen', label: 'Önerilen Yap', className: 'bg-amber-50 text-amber-700 hover:bg-amber-100' },
+  { value: 'istege_bagli', label: 'İsteğe Bağlı Yap', className: 'bg-ink-100 text-ink-600 hover:bg-ink-200' },
+]
+
+// Yeni Etkinlik formunun aksine burada davetli SİLİNEMEZ/değiştirilemez —
+// zaten yanıt vermiş biri için katılım tipini geriye almak veri
+// tutarsızlığına yol açar. Sadece henüz davet edilmemiş kişileri EKLEMEK
+// mümkün — broker'ın asıl ihtiyacı buydu: "otomatik görünür" diye davetsiz
+// kurulmuş zorunlu toplantı/eğitime sonradan davetli eklenebilsin ki
+// mazeret bildirme + puanlama o kişi için de çalışsın.
+export default function EditEventModal({
+  event,
+  attendees,
+  inviteeOptions,
+  onClose,
+  onSubmit,
+  submitting,
+  onAddInvitees,
+  addingInvitees,
+}) {
   const [form, setForm] = useState({
     type: event.type,
     title: event.title,
@@ -24,8 +55,45 @@ export default function EditEventModal({ event, onClose, onSubmit, submitting })
     endTime: toTimeInput(event.endAt),
     gorunurluk: event.gorunurluk ?? 'davetliler',
   })
+  const [newKatilimTipleri, setNewKatilimTipleri] = useState({})
+  const [checkedIds, setCheckedIds] = useState([])
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.title.trim().length > 0 && form.date
+
+  const addableOptions = inviteeOptions.filter((u) => !attendees.some((a) => a.userId === u.id))
+  const newInviteeCount = Object.keys(newKatilimTipleri).length
+
+  function setKatilimTipi(userId, value) {
+    setNewKatilimTipleri((prev) => {
+      const next = { ...prev }
+      if (value === 'yok') delete next[userId]
+      else next[userId] = value
+      return next
+    })
+  }
+
+  function toggleChecked(userId) {
+    setCheckedIds((prev) => (prev.includes(userId) ? prev.filter((x) => x !== userId) : [...prev, userId]))
+  }
+
+  function selectAllAddable() {
+    setCheckedIds(addableOptions.map((u) => u.id))
+  }
+
+  function applyBulk(value) {
+    setNewKatilimTipleri((prev) => {
+      const next = { ...prev }
+      for (const userId of checkedIds) next[userId] = value
+      return next
+    })
+    setCheckedIds([])
+  }
+
+  async function handleAddInvitees() {
+    if (newInviteeCount === 0) return
+    await onAddInvitees(newKatilimTipleri)
+    setNewKatilimTipleri({})
+  }
 
   return (
     <Modal title="Etkinliği Düzenle" onClose={onClose}>
@@ -104,7 +172,8 @@ export default function EditEventModal({ event, onClose, onSubmit, submitting })
 
         {ALWAYS_VISIBLE_EVENT_TYPES.includes(form.type) ? (
           <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-500">
-            {EVENT_TYPE_LABELS[form.type]} türü zaten her danışmana otomatik görünür — davet etmesen bile herkes görür.
+            {EVENT_TYPE_LABELS[form.type]} türü zaten her danışmana otomatik görünür (bilgi amaçlı okunabilir). Ama
+            mazeret bildirme ve puanlamaya yansıması için katılması gereken kişileri aşağıdan davet et.
           </p>
         ) : (
           <label className="flex items-center gap-2 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-700">
@@ -136,6 +205,111 @@ export default function EditEventModal({ event, onClose, onSubmit, submitting })
           </button>
         </div>
       </form>
+
+      <div className="mt-4 border-t border-ink-100 pt-3">
+        {attendees.length > 0 && (
+          <div className="mb-3">
+            <p className="mb-1.5 text-xs font-medium text-ink-400">Davetliler ({attendees.length})</p>
+            <div className="max-h-32 space-y-0.5 overflow-y-auto rounded-lg border border-ink-100 p-1.5">
+              {attendees.map((a) => (
+                <div key={a.userId} className="flex items-center justify-between gap-2 px-1.5 py-1 text-sm">
+                  <span className="min-w-0 flex-1 truncate text-ink-700">{a.name}</span>
+                  <span className={`shrink-0 text-xs font-medium ${SELECT_TEXT_STYLES[a.katilimTipi] ?? SELECT_TEXT_STYLES.yok}`}>
+                    {KATILIM_TIPI_LABELS[a.katilimTipi] ?? '—'}
+                  </span>
+                  <span className="shrink-0 text-xs text-ink-400">{ATTENDANCE_STATUS_LABELS[a.status] ?? a.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1">
+          <p className="text-xs font-medium text-ink-400">
+            Davetli Ekle {newInviteeCount > 0 && <span className="text-ink-300">({newInviteeCount})</span>}
+          </p>
+          {checkedIds.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[11px] text-ink-400">{checkedIds.length} kişi seçili:</span>
+              {BULK_ACTIONS.map((a) => (
+                <button
+                  key={a.value}
+                  type="button"
+                  onClick={() => applyBulk(a.value)}
+                  className={`rounded-full px-2 py-1 text-[11px] font-medium transition-colors ${a.className}`}
+                >
+                  {a.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCheckedIds([])}
+                className="rounded-full bg-ink-50 px-2 py-1 text-[11px] font-medium text-ink-500 hover:bg-ink-100"
+              >
+                Seçimi Temizle
+              </button>
+            </div>
+          ) : (
+            addableOptions.length > 0 && (
+              <button
+                type="button"
+                onClick={selectAllAddable}
+                className="rounded-full bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:bg-brand-100"
+              >
+                Tüm Ofis
+              </button>
+            )
+          )}
+        </div>
+
+        {addableOptions.length === 0 ? (
+          <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-400">
+            Eklenebilecek herkes zaten davetli.
+          </p>
+        ) : (
+          <div className="max-h-56 space-y-0.5 overflow-y-auto rounded-lg border border-ink-100 p-1.5">
+            {addableOptions.map((u) => {
+              const value = newKatilimTipleri[u.id] ?? 'yok'
+              return (
+                <div key={u.id} className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-ink-50">
+                  <input
+                    type="checkbox"
+                    checked={checkedIds.includes(u.id)}
+                    onChange={() => toggleChecked(u.id)}
+                    className="h-3.5 w-3.5 shrink-0 rounded border-ink-300"
+                  />
+                  <span className="min-w-0 flex-1 truncate text-sm text-ink-700">{u.name}</span>
+                  <select
+                    value={value}
+                    onChange={(e) => setKatilimTipi(u.id, e.target.value)}
+                    className={`shrink-0 rounded-lg border border-ink-200 px-2 py-1 text-xs font-medium ${SELECT_TEXT_STYLES[value]}`}
+                  >
+                    <option value="yok">Davet Edilmedi</option>
+                    {KATILIM_TIPI_OPTIONS.map((key) => (
+                      <option key={key} value={key}>
+                        {KATILIM_TIPI_LABELS[key]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {newInviteeCount > 0 && (
+          <div className="mt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={handleAddInvitees}
+              disabled={addingInvitees}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              {addingInvitees ? 'Ekleniyor...' : `${newInviteeCount} kişiyi davet et`}
+            </button>
+          </div>
+        )}
+      </div>
     </Modal>
   )
 }

@@ -318,6 +318,30 @@ export const calendarEvents = {
     const data = await run(client().from('calendar_events').update(updateRow).eq('id', id).select().single())
     return mapEvent(data)
   },
+  // Daha önce davetsiz kurulmuş bir etkinliğe (ör. "otomatik görünür" diye
+  // davet edilmemiş zorunlu toplantı/eğitim) yönetim sonradan davetli
+  // ekleyebilsin diye — create()'teki davetli ekleme mantığıyla aynı, sadece
+  // mevcut bir etkinliğe uygulanıyor (bkz. Düzenle ekranı "Davetli Ekle").
+  // event_attendance_insert RLS'i broker/owner/ofis'e bunu koşulsuz
+  // tanıyor, ayrı bir migration gerekmiyor.
+  async addInvitees(eventId, katilimTipleri) {
+    const invitees = Object.entries(katilimTipleri ?? {})
+    if (!invitees.length) return []
+    const data = await run(
+      client()
+        .from('event_attendance')
+        .insert(
+          invitees.map(([userId, katilimTipi]) => ({
+            event_id: eventId,
+            user_id: userId,
+            status: 'davetli',
+            katilim_tipi: katilimTipi,
+          })),
+        )
+        .select(),
+    )
+    return data.map(mapAttendance)
+  },
   // "Herkese açık" bir etkinliğe davet edilmemiş biri kendi kendine
   // katılır — event_attendance_insert RLS'i bunu sadece istege_bagli +
   // onayladi olarak, ve sadece gorunurluk='herkese_acik' olan etkinlikte

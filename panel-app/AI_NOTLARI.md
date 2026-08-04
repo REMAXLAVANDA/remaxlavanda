@@ -3,6 +3,32 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Takvim: zorunlu toplantı/eğitime sonradan davetli eklenebiliyor
+
+Broker: "toplantı/eğitim zorunlu olabiliyor, ama danışman tarafında
+mazeret bildir çıkmıyor". Kök neden: "Mazeret Bildir" butonu sadece
+kişinin kendi katılım kaydı (event_attendance satırı) varsa görünüyor —
+oysa Yeni Etkinlik ekranındaki metin "bu tür zaten otomatik görünür,
+davet etmesen de olur" diyerek görünürlük ile zorunlu takip/mazeret/
+puanlamayı birbirine karıştırıyordu. Bu yüzden zorunlu toplantı/eğitimler
+davetsiz kurulmuş, danışman etkinliği görebiliyor ama mazeret bildiremiyor
+ve puanlamaya hiç yansımıyordu. Ayrıca Düzenle ekranında davetli ekleme
+özelliği hiç yoktu (bilerek yapılmamıştı) — geçmişte davetsiz kurulmuş
+etkinlikler düzeltilemiyordu.
+
+Çözüm (migration gerekmedi — event_attendance_insert RLS zaten broker/
+owner/ofis'e koşulsuz izin veriyordu):
+- Yeni Etkinlik + Düzenle ekranındaki yanıltıcı metin netleştirildi.
+- Düzenle ekranına "Davetli Ekle" bölümü eklendi (Tüm Ofis + Zorunlu/
+  Önerilen/İsteğe Bağlı Yap ile aynı akış) — sadece henüz davet
+  edilmemiş kişileri ekler, yanıt vermiş davetlilerin durumu değişmez.
+- Yeni provider fonksiyonu: `calendarEvents.addInvitees(eventId,
+  katilimTipleri)` (hem mock hem supabase).
+- RE/MAX Türkiye türüne dokunulmadı — "bilgi amaçlı" kalıyor, davetli
+  gerektirmiyor. Kişiye özel zorunlu eğitimde davetli olmayanların
+  "Katılmak İstiyorum" ile isteğe bağlı katılması zaten çalışıyordu,
+  değişmedi.
+
 ## 2026-08-04 — Fırsatlar: "Kaydeden" ilk etapta gizlendi
 
 Broker: "Havuzda ... danışman alıcı ya da satıcı fırsatını oluşturmalı
