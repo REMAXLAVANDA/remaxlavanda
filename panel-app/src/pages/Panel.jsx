@@ -463,7 +463,7 @@ export default function Panel() {
   // (bkz. AI_NOTLARI.md) uyarınca Lead Havuzu/Recruiting artık Operasyon/
   // Recruiting'in bir parçası olarak üstteki tarih filtresini dinliyor
   // (önceki "her zaman anlık durum" kararı bilerek tersine çevrildi —
-  // Dikkat Gerekiyor/Portal Kullanımı/Haftanın Liderleri/Yaklaşan Etkinlik
+  // Dikkat Gerekiyor/Portal Kullanımı/Dönem Liderleri/Yaklaşan Etkinlik
   // gibi "durum" kartlarından farklı olarak bunlar "kaç yeni kayıt girildi"
   // türünden bir AKIŞ metriği, dolayısıyla filtreye göre anlamlı şekilde
   // hesaplanabiliyor).
@@ -971,7 +971,7 @@ export default function Panel() {
       {/* Broker/owner yönetim merkezi — "panele girer girmez 30 saniyede
           ofisin durumuna hakim olmak" isteği (bkz. AI_NOTLARI.md). Sabit
           sıra: Ofisin Nabzı → Dikkat Gerekiyor → Portal Kullanımı →
-          Haftanın Liderleri → Yaklaşan Etkinlik → Eğitim → Reklam
+          Dönem Liderleri → Yaklaşan Etkinlik → Eğitim → Reklam
           Kaynakları. Kartlar arası boşluk bilerek dar (space-y-3) —
           "aynı ekranda daha fazla bilgi görülsün" isteği. */}
       {!loading && !error && isBrokerOrOwner && (
@@ -1007,11 +1007,11 @@ export default function Panel() {
       )}
 
       {/* Broker/owner yönetim merkezinin devamı — sabit sıra: Portal
-          Kullanımı → Haftanın Liderleri → Yaklaşan Etkinlik → Eğitim →
+          Kullanımı → Dönem Liderleri → Yaklaşan Etkinlik → Eğitim →
           Reklam Kaynakları (bkz. brief "Nihai sıralama"). */}
       {!loading && !error && isBrokerOrOwner && (
         <div className="mt-3 space-y-3">
-          {/* Desktop'ta Portal Kullanımı + Haftanın Liderleri yan yana
+          {/* Desktop'ta Portal Kullanımı + Dönem Liderleri yan yana
               (bkz. brief "Mobil Öncelik" > Desktop notu), mobilde alt
               alta (grid-cols-1). */}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

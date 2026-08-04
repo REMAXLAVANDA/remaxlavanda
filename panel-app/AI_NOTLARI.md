@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — "Haftanın Liderleri" → "Dönem Liderleri" (isim düzeltmesi)
+
+Broker: "panelde gerçekten haftanın lideri mi var yoksa dönem lideri mi" —
+kontrol edilince kartın verisi hep `activePeriod` (Lig'in aktif 4 aylık
+dönemi) üzerinden hesaplandığı, haftalık bir pencere hiç olmadığı
+görüldü — başlık yanıltıcıydı (alt yazı zaten "Aktif lig dönemi" diyordu).
+Gerçek haftalık hesap kurmak yerine (broker'ın seçtiği) başlık gerçek
+veriyle eşleşecek şekilde "Dönem Liderleri" yapıldı
+(`WeeklyLeadersCard.jsx` + `Panel.jsx` içindeki ilgili yorumlar). Component/
+dosya adı (`WeeklyLeadersCard`) bilerek değiştirilmedi — sadece kullanıcıya
+görünen metin ve kod yorumları düzeltildi, davranış/veri aynı kaldı.
+
 ## 2026-08-03 — Recruiting görüşme/randevu tarihi → Takvim entegrasyonu (kod tarafı, DEPLOY BEKLİYOR)
 
 Broker: "Recruiting için ilk görüşme veya randevu oluşturunca tarih seçimi

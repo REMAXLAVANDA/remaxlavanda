@@ -37,7 +37,7 @@ export default function WeeklyLeadersCard({ categories, rankingsByCategory }) {
       <div className="mb-3 flex items-center justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-            <Trophy size={16} strokeWidth={1.75} className="text-brand-600" /> Haftanın Liderleri
+            <Trophy size={16} strokeWidth={1.75} className="text-brand-600" /> Dönem Liderleri
           </h2>
           {/* Üstteki tarih filtresinden BAĞIMSIZ — Lig'in kendi aktif
               dönemini gösterir (bkz. "Tarih Filtresi Kararları"). */}
