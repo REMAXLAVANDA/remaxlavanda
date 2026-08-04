@@ -242,7 +242,14 @@ export default function OpportunityDetailModal({
       )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink-50 pt-3 text-xs text-ink-400">
-        <span>Kaydeden: {ownerName ?? '—'}</span>
+        {/* Havuzda kaydeden kişinin adı BİLEREK gizli — ilk bakışta kim
+            girdiğini görmek yerine, ilgilenen danışman "İlgileniyorum"
+            dedikten SONRA görmeli (bkz. broker isteği: "havuzda ismi
+            görünmemeli ... ilgileniyorum diyen danışman açtığında kime ait
+            olduğunu görmeli"). canEdit/canDelete zaten aynı owner/manager
+            koşuluna bağlı, o yüzden bu satırın boş kalması bir tutarsızlık
+            yaratmıyor — o durumda ikisi de zaten görünmüyor. */}
+        {(isOwnerOrManager || alreadyInterested) && <span>Kaydeden: {ownerName ?? '—'}</span>}
         <div className="flex items-center gap-1">
           {canEdit && (
             <button

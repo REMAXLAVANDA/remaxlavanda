@@ -3,6 +3,24 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Fırsatlar: "Kaydeden" ilk etapta gizlendi
+
+Broker: "Havuzda ... danışman alıcı ya da satıcı fırsatını oluşturmalı
+havuzda ismi görünmemeli, ilgileniyorum diyen danışman açtığında kime ait
+olduğunu görmeli" + "kaydeden ilk etapta görünemmeli". Pool tablosu zaten
+kaydedeni göstermiyordu ama `OpportunityDetailModal.jsx` detay
+görünümünde "Kaydeden: ..." satırı KOŞULSUZ gösteriliyordu — asıl
+sızıntı buradaymış. Artık sadece `isOwnerOrManager || alreadyInterested`
+iken görünüyor (kaydeden/yönetim her zaman görür, ilgi göstermemiş
+danışman görmez, ilgi gösterince açılır). Migration gerekmedi — saf
+render koşulu, `owner_id` zaten payload'daydı.
+
+Not: Broker'ın aynı istekteki "kimler ilgilenmiş kimler bakmış kontrol
+etmiş" maddesinden "kimler ilgilenmiş" kısmı zaten vardı
+(`interestList`); "kimler bakmış/görüntülemiş" (view-tracking) ise henüz
+YAPILMADI — ayrı bir tablo/migration gerektiren yeni bir özellik, analiz
++ onay bekliyor.
+
 ## 2026-08-04 — Takvim genel türler: RLS'te de aynı kural gerekiyormuş
 
 Bir önceki maddedeki düzeltme sadece uygulama (JS) tarafındaydı — broker
