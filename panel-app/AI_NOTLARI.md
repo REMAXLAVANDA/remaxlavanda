@@ -3,7 +3,7 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-08-04 — Santral çağrısı portföy talebi değilse danışman işlem yapmaz (DEPLOY BEKLİYOR — migration onayı gerekiyor)
+## 2026-08-04 — Santral çağrısı portföy talebi değilse danışman işlem yapmaz
 
 Broker: "santraldan gelen çağrı eğer portföy çağrısı değilse danışman bu
 müşteri ile ilgili bir bilgi girmesi gerekmesin. Biz ona sadece aktarmış
