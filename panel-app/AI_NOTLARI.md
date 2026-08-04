@@ -3,17 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
-## 2026-08-04 — Yorum Hakkı, Memnuniyet sekmesinin içine taşındı
+## 2026-08-04 — Yorum Hakkı: Ciro'daki gibi satır-içi açılır pencere
 
-Broker: "yorum hakkı bölümünü aşağıdaki müşteri memnuniyet alanının içine
-aynı cirodaki gibi gömelim". Eskiden `ReviewCreditsPanel` sayfanın üstünde,
-hangi sekme seçili olursa olsun her zaman görünüyordu — artık sadece
-Memnuniyet sekmesi seçiliyken, sıralama tablosunun hemen üstünde görünüyor
-(Ciro'nun kendi geçmişinin sadece Ciro sekmesinde kalması gibi).
-**İstisna:** danışman rolünde sekme değiştirme arayüzü hiç yok (tab state
-hep varsayılan 'ciro'da kalır, o blok isManager'a özel) — panel oraya
-taşınsaydı danışman kendi Yorum Hakkı satırını hiç göremezdi, o yüzden
-danışman için panel eski konumunda (üstte, her zaman görünür) bırakıldı.
+Broker önceki adımı beğenmedi: "hayır her danışmanın ciroda açılrı bir
+pencere olduğu gibi memnunşyette de yapalım" — yani ayrı bir panel değil,
+Ciro sekmesindeki gibi LeagueBoard'da her danışman satırına tıklayınca
+İÇİNDE açılsın istedi. `LeagueBoard.jsx` genelleştirildi:
+`historyByUser` (Ciro, salt-okunur tarih+tutar geçmişi) ile aynı desende
+yeni bir `reviewByUser` prop'u eklendi (Memnuniyet, interaktif — müşteri
+ekle/sil/işaretle + "X hak · Y alındı · %Z" özeti). Standalone
+`ReviewCreditsPanel` artık sadece yönetici DIŞI (danışman) görünümünde
+kullanılıyor — danışmanın sekme değiştirme arayüzü hiç olmadığı için
+LeagueBoard'a hiç erişemiyor, kendi satırını orada eskisi gibi görüyor.
 
 ## 2026-08-04 — Son İşlemler: göreceli tarih yerine net tarih
 

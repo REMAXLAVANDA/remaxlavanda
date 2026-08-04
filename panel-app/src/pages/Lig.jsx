@@ -116,6 +116,14 @@ export default function Lig() {
   // sıralaması) kullanılıyor — burada sadece PANELE gidecek liste kısıtlanıyor.
   const visibleReviewCreditRows = isManager ? reviewCreditRows : reviewCreditRows.filter((r) => r.userId === user.id)
 
+  // LeagueBoard'un Memnuniyet sekmesinde her satırı "Ciro'daki gibi" açıp
+  // müşteri listesini gösterebilmesi için userId -> satır eşlemesi (bkz.
+  // LeagueBoard'daki reviewByUser prop'u).
+  const reviewByUser = useMemo(
+    () => Object.fromEntries(reviewCreditRows.map((r) => [r.userId, r])),
+    [reviewCreditRows],
+  )
+
   // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
   // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
   // Memnuniyet artık serbest bir puan değil — Wilson skoru (bkz. lib/league)
@@ -506,18 +514,15 @@ export default function Lig() {
               )
             })}
           </div>
-          {tab === 'memnuniyet' && (
-            <ReviewCreditsPanel
-              rows={visibleReviewCreditRows}
-              isManager={isManager}
-              onAddMusteri={handleAddCiroMusteri}
-              onRemoveMusteri={handleRemoveCiroMusteri}
-              onToggleAlindi={handleToggleAlindi}
-              expandedId={expandedCiroUserId}
-              onToggleExpand={setExpandedCiroUserId}
-            />
-          )}
-          <LeagueBoard rankings={rankings} unit={category.unit} historyByUser={tab === 'ciro' ? ciroHistoryByUser : null} />
+          <LeagueBoard
+            rankings={rankings}
+            unit={category.unit}
+            historyByUser={tab === 'ciro' ? ciroHistoryByUser : null}
+            reviewByUser={tab === 'memnuniyet' ? reviewByUser : null}
+            onAddMusteri={handleAddCiroMusteri}
+            onRemoveMusteri={handleRemoveCiroMusteri}
+            onToggleAlindi={handleToggleAlindi}
+          />
         </>
       )}
 
