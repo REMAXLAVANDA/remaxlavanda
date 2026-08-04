@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Takvim genel türler: RLS'te de aynı kural gerekiyormuş (DEPLOY BEKLİYOR — migration onayı gerekiyor)
+
+Bir önceki maddedeki düzeltme sadece uygulama (JS) tarafındaydı — broker
+"hala görülmüyor" deyince kontrol edilince asıl engelin veritabanı
+seviyesinde (`calendar_events_select` RLS politikası) olduğu ortaya
+çıktı: danışman için satır, davetli değilse ve "herkese açık"
+işaretlenmemişse API'den HİÇ dönmüyordu, uygulama göstermek istese bile
+eline hiç ulaşmıyordu. Yeni migration RLS'i de tip bazlı kurala getiriyor
++ "Katılmak İstiyorum" (event_attendance_insert) politikasını da aynı
+şekilde güncelliyor (yoksa görülebilen bir etkinliğe katılma isteği RLS'te
+sessizce reddedilirdi).
+
 ## 2026-08-04 — Takvim: genel türler (Toplantı/Eğitim/Etkinlik/RE MAX Türkiye) danışmana otomatik görünür
 
 Broker: "gd takvimi göremiyor mu" (Test danışman hesabının boş takvim
