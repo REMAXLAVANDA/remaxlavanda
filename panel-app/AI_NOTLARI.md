@@ -3,6 +3,14 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Nasıl Hesaplanır bloğu ile LeagueBoard arasına boşluk
+
+Broker (ekran görüntüsüyle): "çok yakın kaldı dip dibe girdi" — bir önceki
+taşımadan sonra LeagueBoard'un son sıralama satırı ile "Ciro Nasıl
+Hesaplanır?" akordeonu bitişik duruyordu (CriteriaPanel'in `mb-6`'sı sadece
+altına boşluk bırakıyor, üstüne değil). `CriteriaPanel`e `className` prop'u
+eklendi, ilk kullanımına `mt-6` verildi.
+
 ## 2026-08-04 — "Nasıl Hesaplanır?" açıklamaları en alta taşındı
 
 Broker (ekran görüntüsüyle): "bunu en alta alalım" — "Ciro Nasıl

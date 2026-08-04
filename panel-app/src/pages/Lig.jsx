@@ -464,9 +464,12 @@ export default function Lig() {
         </>
       )}
 
-      {/* Hesaplama açıklamaları en altta — broker: "bunu en alta alalım". */}
+      {/* Hesaplama açıklamaları en altta — broker: "bunu en alta alalım".
+          mt-6: LeagueBoard'un son satırına "dip dibe" yapışmasın diye
+          (broker: "çok yakın kaldı dip dibe girdi") — CriteriaPanel'in
+          kendi mb-6'sı sadece ALTINDA boşluk bırakıyor, üstünde değil. */}
       {!loading && !error && period && (
-        <CriteriaPanel title="Ciro Nasıl Hesaplanır?">
+        <CriteriaPanel title="Ciro Nasıl Hesaplanır?" className="mt-6">
           <p>
             "Ciro Gir" ile eklediğin her satışın tutarı dönem boyunca toplanır — üstüne yazılmaz, birikir. Örnek:
             dönem içinde 500.000 TL, 300.000 TL ve 200.000 TL'lik 3 satış girersen, dönem toplamın 1.000.000 TL olur.
