@@ -3,6 +3,16 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Son İşlemler: göreceli tarih yerine net tarih
+
+Broker: "hala tarihler kısmında gün önce gibi ibareler var, işlem tarihi
+olmalı her yerde". `RecentEntriesPanel`'deki `when` alanı `relativeTime()`
+("dün"/"2 gün önce") yerine `formatDateOnly()` (net GG.AA.YYYY) kullanıyor.
+Ciro'da işlem tarihi olarak `ciro_girisleri.tarih` (satışın gerçek
+tarihi) kullanılıyor, `created_at` (sisteme giriş anı) değil — geriye
+tarihli girişlerde ikisi farklı olabiliyor. Sosyal medyada ayrı bir işlem
+tarihi kolonu DB'de yok, `created_at` kullanıldı.
+
 ## 2026-08-04 — Son İşlemler: sayfadan modala taşındı + rakam eklendi
 
 Broker iki ayrı düzeltme istedi:

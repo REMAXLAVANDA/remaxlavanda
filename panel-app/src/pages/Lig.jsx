@@ -14,7 +14,7 @@ import {
   rankingsFor,
   wilsonScoreLowerBound,
 } from '../lib/league'
-import { sortByName, relativeTime } from '../lib/format'
+import { sortByName, formatDateOnly } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
 import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
@@ -166,6 +166,12 @@ export default function Lig() {
   // geçmişi de aynı nedenle zaten tutarı gösteriyor.
   // Memnuniyet burada YOK — Müşteri Memnuniyeti "Veri Gir"den kaldırıldı
   // (ciro girilirken müşteri adı zaten aynı formda ekleniyor).
+  // "when" alanı net TARİH gösterir ("dün"/"2 gün önce" DEĞİL — broker:
+  // "işlem tarihi olmalı her yerde", bkz. formatDateOnly). Ciro'da
+  // sistemin işlem yapıldığı tarih olan `tarih` alanı kullanılıyor
+  // (`createdAt` girişin sisteme kaydedildiği an, geriye tarihli
+  // girişlerde ikisi farklı olabilir) — sosyal medyada ayrı bir işlem
+  // tarihi kolonu DB'de yok, en yakın karşılığı `createdAt`.
   const recentEntriesByCategory = useMemo(() => {
     if (!periodId) return {}
     const activityTypeName = (id) => activityTypes.find((t) => t.id === id)?.ad ?? 'aktivite'
@@ -176,7 +182,7 @@ export default function Lig() {
           id: g.id,
           danismanName: userName(g.userId),
           detail: `${Number(g.value).toLocaleString('tr-TR')} TL ciro girişi`,
-          when: relativeTime(g.createdAt),
+          when: formatDateOnly(g.tarih),
         })),
       sosyal_medya: sortByCreatedDesc((data?.socialActivityLog ?? []).filter((l) => l.periodId === periodId))
         .slice(0, 3)
@@ -184,7 +190,7 @@ export default function Lig() {
           id: l.id,
           danismanName: userName(l.userId),
           detail: `${l.adet}x ${activityTypeName(l.activityTypeId)}`,
-          when: relativeTime(l.createdAt),
+          when: formatDateOnly(l.createdAt),
         })),
     }
   }, [data, periodId, userName, activityTypes])
