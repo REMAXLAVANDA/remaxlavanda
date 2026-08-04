@@ -5,10 +5,11 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { education as educationProvider } from '../../lib/dataProvider'
+import { education as educationProvider, users as usersProvider } from '../../lib/dataProvider'
 import { badgesFor, checklistFor, checklistProgress, isModuleDone, moduleProgressFor } from '../../lib/education'
 import { isWithinRange } from '../../lib/dateRange'
 import { isBehindEducation } from '../../lib/attention'
+import { sortByName } from '../../lib/format'
 import ModuleProgressList from '../../components/education/ModuleProgressList'
 import BadgeGrid from '../../components/education/BadgeGrid'
 import AwardBadgeModal from '../../components/education/AwardBadgeModal'
@@ -33,15 +34,16 @@ const CHECKLIST_TABS = [
 const EMPTY = []
 
 async function loadAll() {
-  const [modules, progress, badges, userBadges, checklistItems, checklistStatus] = await Promise.all([
+  const [modules, progress, badges, userBadges, checklistItems, checklistStatus, allUsers] = await Promise.all([
     educationProvider.listModules(),
     educationProvider.listProgress(),
     educationProvider.listBadges(),
     educationProvider.listUserBadges(),
     educationProvider.listChecklistItems(),
     educationProvider.listChecklistStatus(),
+    usersProvider.listAll(),
   ])
-  return { modules, progress, badges, userBadges, checklistItems, checklistStatus }
+  return { modules, progress, badges, userBadges, checklistItems, checklistStatus, allUsers }
 }
 
 export default function EgitimTab() {
@@ -73,10 +75,23 @@ export default function EgitimTab() {
   const userBadges = data?.userBadges ?? EMPTY
   const checklistItems = data?.checklistItems ?? EMPTY
   const checklistStatus = data?.checklistStatus ?? EMPTY
+  const allUsers = data?.allUsers ?? EMPTY
 
   // Test hesabı ekip listelerine karışmasın diye hariç tutuluyor (bkz.
-  // Panel.jsx'teki aynı filtre).
+  // Panel.jsx'teki aynı filtre). knownUsers sadece durum='aktif' kullanıcıyı
+  // içeriyor (bkz. usersProvider.listKnown) — Rozet Ver / Ekip İlerlemesi
+  // için doğru davranış bu (ayrılmış birine rozet verilmez).
   const teamMembers = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
+
+  // Checklist danışman seçimi teamMembers'tan AYRI: "Ayrılış" checklist'i
+  // tam olarak az önce durumu pasif yapılmış birinin listesi (bkz. "esra
+  // sever ayrıldı diye kapattık ama ayrılış menüsünde çıkmıyor") — teamMembers
+  // pasif olanı tamamen listeden düşürdüğü için o kişinin ayrılış checklist'i
+  // hiç işaretlenemiyordu. allUsers (durum filtresi olmayan listAll()) kullanılıyor.
+  const checklistUserOptions = useMemo(() => {
+    const rows = allUsers.filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
+    return sortByName(rows).sort((a, b) => (a.durum === b.durum ? 0 : a.durum === 'aktif' ? -1 : 1))
+  }, [allUsers])
 
   // Eğitim modülleri eklendikleri tarihe göre filtrelenebilir (ör. "sadece bu
   // dönem eklenen eğitimler"). Varsayılan "tümü" — hiçbir modül sessizce
@@ -279,9 +294,10 @@ export default function EgitimTab() {
                       onChange={(e) => setChecklistUserId(e.target.value)}
                       className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-secondary"
                     >
-                      {teamMembers.map((u) => (
+                      {checklistUserOptions.map((u) => (
                         <option key={u.id} value={u.id}>
                           {u.name}
+                          {u.durum !== 'aktif' ? ' (ayrıldı)' : ''}
                         </option>
                       ))}
                     </select>

@@ -3,6 +3,29 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-04 — Takip: Ayrılış checklist'e ayrılan danışman düşmüyordu + checklist satırları küçültüldü
+
+Broker: "esra sever ayrıldı diye portaldan kapattık sistemini ama ayrılış
+menüsünde kişi çıkmıyor. Bir de menüler [checklist satırları] çok büyük
+çok yer kaplıyor".
+
+**Kök neden:** `usersProvider.listKnown()` sadece `durum='aktif'`
+kullanıcıları döner (RLS: `users_select_all`, bilerek böyle — Panel/Lig
+gibi ekranlarda ayrılmış biri görünmesin diye). `EgitimTab.jsx`'teki
+Süreç/Ayrılış checklist danışman seçici de aynı `knownUsers`'dan
+besleniyordu — birini pasif yapmak onu bu seçiciden de anında
+düşürüyordu, oysa "Ayrılış" checklist'i TAM OLARAK az önce pasif
+yapılmış biri için var. Düzeltme: `usersProvider.listAll()` (durum
+filtresi yok) ile ayrı bir `checklistUserOptions` listesi oluşturuldu —
+sadece bu seçici için, "Rozet Ver"/"Ekip İlerlemesi" hâlâ aktif-only
+`teamMembers`'ı kullanıyor (ayrılmışa rozet verilmemeli). Pasif
+kullanıcılar listede "(ayrıldı)" etiketiyle, en altta gösteriliyor.
+
+**Boyut:** `ChecklistPanel.jsx` satırları küçültüldü (padding p-3.5→py-2,
+checkbox 24px→20px, satır arası boşluk azaltıldı) ve eski `ink-*`
+tokenlerden güncel tasarım sistemine (`text-*`/`border-*`/`surface-*`)
+geçirildi.
+
 ## 2026-08-04 — Nasıl Hesaplanır bloğu ile LeagueBoard arasına boşluk
 
 Broker (ekran görüntüsüyle): "çok yakın kaldı dip dibe girdi" — bir önceki
