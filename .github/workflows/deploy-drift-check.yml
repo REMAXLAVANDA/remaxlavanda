@@ -1,0 +1,57 @@
+name: Yayın sürümü kontrolü
+
+# Deploy elle "npm run build -> panel/ klasörüne kopyala -> main'e push"
+# adımına bağlı — biri unutursa canlı site sessizce eskide kalır, bunu
+# yakalayan hiçbir kontrol yoktu (bkz. AI_NOTLARI.md, broker isteği
+# 2026-08-05). Bu iş günde bir kere panel.remaxlavanda.com.tr'nin yayınladığı
+# BUILD_INFO.txt'teki commit hash'ini kontrol eder.
+#
+# NOT: BUILD_INFO.txt'teki commit, build ALINIRKEN geçerli olan HEAD'i
+# yazar — ama panel/ klasörü SONRADAN ayrı bir commit'le depoya girer, yani
+# canlıdaki commit her zaman "deploy commit'i"nden bir öncekini gösterir.
+# Bu yüzden burada birebir eşitlik ARANMIYOR — asıl soru "canlıdaki
+# sürümden SONRA uygulama kaynak kodunda (panel-app/src, package.json,
+# vite.config.js) yeni bir değişiklik main'e girmiş mi, girmişse deploy
+# unutulmuş demektir".
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Canlı BUILD_INFO.txt'i çek
+        id: live
+        run: |
+          set -e
+          BODY=$(curl -fsS "https://panel.remaxlavanda.com.tr/panel/BUILD_INFO.txt")
+          echo "$BODY"
+          LIVE_COMMIT=$(echo "$BODY" | grep '^commit=' | cut -d= -f2)
+          if [ -z "$LIVE_COMMIT" ]; then
+            echo "BUILD_INFO.txt'te commit satırı bulunamadı" >&2
+            exit 1
+          fi
+          if ! git cat-file -e "$LIVE_COMMIT" 2>/dev/null; then
+            echo "Canlıdaki commit ($LIVE_COMMIT) bu depoda hiç bulunamadı." >&2
+            exit 1
+          fi
+          echo "commit=$LIVE_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Canlıdan sonra kaynak kodda değişiklik var mı kontrol et
+        run: |
+          CHANGED=$(git log "${{ steps.live.outputs.commit }}..HEAD" --name-only --pretty=format: -- \
+            panel-app/src panel-app/package.json panel-app/vite.config.js panel-app/index.html \
+            | sort -u | sed '/^$/d')
+          if [ -n "$CHANGED" ]; then
+            echo "Canlı sürümden (${{ steps.live.outputs.commit }}) sonra şu dosyalarda değişiklik var ama panel/ hâlâ eski görünüyor:" >&2
+            echo "$CHANGED" >&2
+            echo "Deploy adımı (build -> panel/ kopyala -> push) unutulmuş olabilir." >&2
+            exit 1
+          fi
+          echo "Canlı sürüm güncel — ${{ steps.live.outputs.commit }}'ten sonra ilgili kaynak dosyalarda değişiklik yok."

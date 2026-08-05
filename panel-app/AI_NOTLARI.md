@@ -3,6 +3,67 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-05 — Operasyonel dayanıklılık paketi (Meta/Santral hata görünürlüğü + yayın kontrolü)
+
+Broker'ın PORTAL-HARITASI.md denetiminden çıkan 9 maddelik listesine karşılık
+— DURUM: kısmen commit edildi, migration'lar UYGULANMADI (broker onayı/
+"bilgisayardayım uygula"sı bekliyor), Edge Function'lar DEPLOY EDİLMEDİ
+(broker'ın `supabase functions deploy` çalıştırması gerekiyor).
+
+1. **Meta lead kaybı + token uyarısı (madde 1+2)** — `meta_webhook_errors`
+   zaten leadgen_id dahil ham payload'ı saklıyordu (eksik olan "saklama"
+   değil "haber verme"ydi). Yeni: `notify-webhook-error` Edge Function
+   (`supabase/functions/notify-webhook-error/`) + `trg_notify_meta_webhook_error`
+   trigger'ı (`20260805100000_meta_webhook_hata_bildirimi.sql`) — her yeni
+   hata satırında broker/owner'a push bildirim. Reaktif (token öldükten
+   SONRA ilk başarısız lead'de tetiklenir), proaktif debug_token cron'u
+   İSTENMEDİ, yapılmadı.
+2. **Santral hata logu (madde 3, öncelik yüksek)** — Canlı veri (1253
+   çağrının tamamında `telsam_chanid` boş, `telsam_sync_state` 24 Temmuz'dan
+   beri donuk) teyit edildi. Kök neden hipotezi: `telsam-cdr-sync`'i tetikleyen
+   pg_cron job'ı muhtemelen `<CRON_SECRET>` yer tutucusuyla (gerçek değer
+   yazılmadan) kurulmuş — broker'dan `select jobname, command from cron.job
+   where jobname = 'telsam-cdr-sync'` sonucunu bekliyoruz, DOĞRULANMADI.
+   Yeni: `telsam_webhook_errors` tablosu (`meta_webhook_errors` ile birebir
+   aynı desen, `20260805110000_telsam_webhook_hata_log.sql`) + aynı
+   `notify-webhook-error` fonksiyonuna bağlı trigger. `telsam-webhook` ve
+   `telsam-cdr-sync` Edge Function'ları hata anında (yetkilendirme/API/kayıt)
+   artık bu tabloya yazıyor. Ayarlar > Webhook Hataları'na "Santral (Telsam)"
+   bölümü eklendi (`TelsamWebhookErrorsTable.jsx`, `telsamWebhookErrors`
+   provider fonksiyonu).
+3. **Meta reklam bilgisi çekilememesi (madde 4)** — Araştırma: `field_data`
+   çalışıp `/{ad_id}` "Unsupported get request" vermesi, Sayfa (Page) token'ı
+   ile Marketing API (Ad/Campaign) nesnelerine erişilemeyeceğinin klasik
+   işareti — izin eklemek yetmeyebilir, ayrı bir Sistem Kullanıcısı (System
+   User) `ads_read` token'ı gerekebilir. Kod değişikliği YAPILMADI, broker'ın
+   Meta Business Manager tarafında token oluşturması bekleniyor.
+4. **Kayıp lead kurtarma (madde 5)** — `recover-meta-lead` Edge Function'ı
+   yazıldı (`supabase/functions/recover-meta-lead/`) — `?leadgen_id=...&key=
+   <WEBHOOK_SECRET>` ile tek seferlik Graph API'den çekip `leads`'e yazar,
+   idempotent (tekrar çağrılırsa dokunmaz). leadgen_id 1073507478692140 için
+   HENÜZ ÇAĞRILMADI — deploy + çağırma broker onayı bekliyor.
+5. **Yayına alma kontrolü (madde 6)** — `vite.config.js`'e `buildInfoPlugin`
+   eklendi, her build'de `dist/BUILD_INFO.txt`'e o anki git commit hash +
+   build zamanı yazılıyor, deploy adımında `panel/BUILD_INFO.txt` olarak
+   kopyalanıyor. `.github/workflows/deploy-drift-check.yml` günde bir kere
+   canlıdaki BUILD_INFO.txt'i çekip, o commit'ten SONRA `panel-app/src`'te
+   değişiklik var mı diye bakıyor (birebir hash eşitliği DEĞİL — build,
+   deploy commit'inden önce alındığı için canlı her zaman bir commit geride
+   görünür, asıl soru "deploy'dan sonra kaynak değişti mi").
+6. **review_credits DROP (madde 9)** — `20260805190000_review_credits_drop.sql`
+   commit edildi, UYGULANMADI (DROP — "bilgisayardayım, uygula" bekliyor).
+7. **Madde 7 (verify_login/change_own_credentials EXECUTE) ve madde 8
+   (avatars bucket precheck)** — repo incelemesi bu ikisinin 2026-08-02'de
+   ZATEN uygulandığını gösteriyor (bkz. o tarihli not) — broker'dan canlı
+   DB'de tekrar doğrulama isteniyor, çelişki varsa ayrıca ele alınacak.
+
+DEPLOY EDİLMESİ GEREKENLER (broker tarafında): `supabase functions deploy
+notify-webhook-error --no-verify-jwt`, `... recover-meta-lead ...`, güncellenmiş
+`telsam-webhook` ve `telsam-cdr-sync` fonksiyonlarının yeniden deploy'u,
+3 migration dosyasının SQL Editor'den çalıştırılması (2'si sadece trigger/
+tablo ekliyor — onay yeterli; review_credits DROP'u "bilgisayardayım uygula"
+gerektiriyor).
+
 ## 2026-08-04 — Fırsatlar: "Üstlenen" ismi detay ekranında görünmüyordu
 
 Broker ekran görüntüsü attı: "Üstlenildi" durumundaki bir fırsatta

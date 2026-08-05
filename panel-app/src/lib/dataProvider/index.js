@@ -23,6 +23,7 @@ export const users = provider.users
 export const auditLog = provider.auditLog
 export const tasks = provider.tasks
 export const metaWebhookErrors = provider.metaWebhookErrors
+export const telsamWebhookErrors = provider.telsamWebhookErrors
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

@@ -39,51 +39,74 @@ function normalizePhone(raw: string) {
   return `${withZero.slice(0, 4)} ${withZero.slice(4, 7)} ${withZero.slice(7, 9)} ${withZero.slice(9)}`
 }
 
+// deno-lint-ignore no-explicit-any
+async function logError(admin: any, tur: string, rawPayload: unknown, hataMesaji: string) {
+  await admin.from('telsam_webhook_errors').insert({ kaynak: 'cdr_sync', tur, raw_payload: rawPayload, hata_mesaji: hataMesaji })
+}
+
 Deno.serve(async (req) => {
+  const admin = createClient(SB_URL, SERVICE_ROLE_KEY)
+
   if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
+    // pg_cron'un çağırdığı x-cron-secret migration'daki placeholder'la
+    // (gerçek değerle değiştirilmemiş) uyuşmuyor olabilir — bu durumda cron
+    // "çalışıyor" ama her dakika sessizce 403 alıyor, telsam_sync_state hiç
+    // ilerlemiyordu. Artık bu da loglanıyor (dakikada bir tekrarlanabilir,
+    // bilerek — sorun düzelene kadar görünür kalması daha önemli).
+    await logError(admin, 'yetkilendirme_hatasi', null, 'x-cron-secret CRON_SECRET ile eşleşmedi')
     return new Response('forbidden', { status: 403 })
   }
 
-  const admin = createClient(SB_URL, SERVICE_ROLE_KEY)
+  try {
+    const { data: state } = await admin
+      .from('telsam_sync_state')
+      .select('last_synced_at')
+      .eq('id', true)
+      .single()
 
-  const { data: state } = await admin
-    .from('telsam_sync_state')
-    .select('last_synced_at')
-    .eq('id', true)
-    .single()
+    const date1 = new Date(state?.last_synced_at ?? Date.now() - 10 * 60 * 1000)
+    const date2 = new Date()
 
-  const date1 = new Date(state?.last_synced_at ?? Date.now() - 10 * 60 * 1000)
-  const date2 = new Date()
+    const cdrUrl =
+      `http://${TELSAM_HOST}/?username=${encodeURIComponent(TELSAM_USER)}&password=${encodeURIComponent(TELSAM_PASS)}` +
+      `&action=cdr&date1=${formatTelsamDate(date1)}&date2=${formatTelsamDate(date2)}&number=&uf=yes`
 
-  const cdrUrl =
-    `http://${TELSAM_HOST}/?username=${encodeURIComponent(TELSAM_USER)}&password=${encodeURIComponent(TELSAM_PASS)}` +
-    `&action=cdr&date1=${formatTelsamDate(date1)}&date2=${formatTelsamDate(date2)}&number=&uf=yes`
+    const res = await fetch(cdrUrl)
+    const body = await res.json().catch(() => null)
 
-  const res = await fetch(cdrUrl)
-  const body = await res.json().catch(() => null)
+    if (!body?.success) {
+      await logError(admin, 'api_hatasi', { status: res.status, body }, 'Telsam CDR isteği success=false döndü veya JSON değil')
+      return Response.json({ ok: false, error: 'telsam cdr isteği başarısız' }, { status: 502 })
+    }
 
-  if (!body?.success) {
-    return Response.json({ ok: false, error: 'telsam cdr isteği başarısız' }, { status: 502 })
+    const calls = (body.data ?? []) as TelsamCall[]
+    const incoming = calls.filter((c) => c.calltype === 'incoming')
+
+    if (incoming.length > 0) {
+      const rows = incoming.map((c) => ({
+        telsam_chanid: c.id,
+        kaynak: 'Santral',
+        arayan_telefon: normalizePhone(c.src),
+        telsam_sonuc: c.disposition,
+        telsam_sure_sn: Math.round(Number(String(c.duration).replace(',', '.'))) || null,
+      }))
+      const { error } = await admin
+        .from('call_logs')
+        .upsert(rows, { onConflict: 'telsam_chanid', ignoreDuplicates: true })
+      if (error) {
+        await logError(admin, 'kayit_hatasi', { rows }, error.message)
+        return Response.json({ ok: false, error: error.message }, { status: 500 })
+      }
+    }
+
+    await admin.from('telsam_sync_state').update({ last_synced_at: date2.toISOString() }).eq('id', true)
+
+    return Response.json({ ok: true, checked: calls.length, inserted: incoming.length })
+  } catch (err) {
+    // Telsam host'a hiç ulaşılamaması (ağ hatası, DNS, timeout) gibi
+    // beklenmeyen durumlar — öncesinde hiç yakalanmıyordu, sync_state
+    // sessizce donuyordu.
+    await logError(admin, 'api_hatasi', null, String(err instanceof Error ? err.message : err))
+    return Response.json({ ok: false, error: 'beklenmeyen hata' }, { status: 500 })
   }
-
-  const calls = (body.data ?? []) as TelsamCall[]
-  const incoming = calls.filter((c) => c.calltype === 'incoming')
-
-  if (incoming.length > 0) {
-    const rows = incoming.map((c) => ({
-      telsam_chanid: c.id,
-      kaynak: 'Santral',
-      arayan_telefon: normalizePhone(c.src),
-      telsam_sonuc: c.disposition,
-      telsam_sure_sn: Math.round(Number(String(c.duration).replace(',', '.'))) || null,
-    }))
-    const { error } = await admin
-      .from('call_logs')
-      .upsert(rows, { onConflict: 'telsam_chanid', ignoreDuplicates: true })
-    if (error) return Response.json({ ok: false, error: error.message }, { status: 500 })
-  }
-
-  await admin.from('telsam_sync_state').update({ last_synced_at: date2.toISOString() }).eq('id', true)
-
-  return Response.json({ ok: true, checked: calls.length, inserted: incoming.length })
 })

@@ -35,17 +35,26 @@ function normalizePhone(raw: string) {
   return `${withZero.slice(0, 4)} ${withZero.slice(4, 7)} ${withZero.slice(7, 9)} ${withZero.slice(9)}`
 }
 
+// deno-lint-ignore no-explicit-any
+async function logError(admin: any, tur: string, chanid: string | null, rawPayload: unknown, hataMesaji: string) {
+  await admin.from('telsam_webhook_errors').insert({ kaynak: 'webhook', tur, chanid, raw_payload: rawPayload, hata_mesaji: hataMesaji })
+}
+
 Deno.serve(async (req) => {
   const params = new URL(req.url).searchParams
+  const admin = createClient(SB_URL, SERVICE_ROLE_KEY)
 
   if (params.get('key') !== TELSAM_WEBHOOK_KEY) {
+    // Yetkilendirme hatası da loglanıyor — Telsam paneli yanlış anahtarla
+    // ayarlanmışsa (ör. rotasyon sonrası unutulmuşsa) bu hiç fark
+    // edilmeden sürebilirdi.
+    await logError(admin, 'yetkilendirme_hatasi', params.get('chan'), Object.fromEntries(params), 'key parametresi TELSAM_WEBHOOK_KEY ile eşleşmedi')
     return new Response('forbidden', { status: 403 })
   }
 
   const chan = params.get('chan')
   if (!chan) return Response.json({ ok: true, skipped: 'chan yok' })
 
-  const admin = createClient(SB_URL, SERVICE_ROLE_KEY)
   const event = params.get('event')
 
   if (event === 'start') {
@@ -63,7 +72,10 @@ Deno.serve(async (req) => {
         { onConflict: 'telsam_chanid', ignoreDuplicates: true },
       )
 
-    if (error) return Response.json({ ok: false, error: error.message }, { status: 500 })
+    if (error) {
+      await logError(admin, 'kayit_hatasi', chan, Object.fromEntries(params), error.message)
+      return Response.json({ ok: false, error: error.message }, { status: 500 })
+    }
     return Response.json({ ok: true })
   }
 
@@ -76,7 +88,10 @@ Deno.serve(async (req) => {
       .update({ telsam_sonuc: status, telsam_sure_sn: duration ? Math.round(Number(duration)) : null })
       .eq('telsam_chanid', chan)
 
-    if (error) return Response.json({ ok: false, error: error.message }, { status: 500 })
+    if (error) {
+      await logError(admin, 'kayit_hatasi', chan, Object.fromEntries(params), error.message)
+      return Response.json({ ok: false, error: error.message }, { status: 500 })
+    }
     return Response.json({ ok: true })
   }
 

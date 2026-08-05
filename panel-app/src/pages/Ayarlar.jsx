@@ -10,6 +10,7 @@ import {
   calendarEvents as calendarProvider,
   auditLog as auditLogProvider,
   metaWebhookErrors as metaWebhookErrorsProvider,
+  telsamWebhookErrors as telsamWebhookErrorsProvider,
 } from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
@@ -22,6 +23,7 @@ import CategoryManager from '../components/settings/CategoryManager'
 import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
 import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
+import TelsamWebhookErrorsTable from '../components/settings/TelsamWebhookErrorsTable'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -69,6 +71,15 @@ export default function Ayarlar() {
     reload: reloadWebhookErrors,
   } = useAsyncList(
     () => (canManage && tab === 'webhook' ? metaWebhookErrorsProvider.list() : Promise.resolve([])),
+    [canManage, tab],
+  )
+  const {
+    data: telsamWebhookErrorRows,
+    loading: loadingTelsamWebhookErrors,
+    error: telsamWebhookErrorsError,
+    reload: reloadTelsamWebhookErrors,
+  } = useAsyncList(
+    () => (canManage && tab === 'webhook' ? telsamWebhookErrorsProvider.list() : Promise.resolve([])),
     [canManage, tab],
   )
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -360,16 +371,32 @@ export default function Ayarlar() {
 
       {tab === 'webhook' && (
         <>
-          <p className="mb-4 text-xs text-text-disabled">
-            Meta (Facebook/Instagram) Lead Ads webhook'unun işleyemediği kayıtlar — son 100 hata. "Lead kaybolmuş
-            olabilir" etiketli kayıtlar en öncelikli: Meta lead verisini sınırlı süre saklıyor, gecikmeden
-            incelenmeli.
-          </p>
-          {loadingWebhookErrors && <LoadingState />}
-          {!loadingWebhookErrors && webhookErrorsError && (
-            <ErrorState error={webhookErrorsError} onRetry={reloadWebhookErrors} />
-          )}
-          {!loadingWebhookErrors && !webhookErrorsError && <WebhookErrorsTable rows={webhookErrorRows ?? []} />}
+          <div>
+            <p className="mb-1 text-sm font-semibold text-text-primary">Meta (Facebook/Instagram) Lead Ads</p>
+            <p className="mb-4 text-xs text-text-disabled">
+              Webhook'un işleyemediği kayıtlar — son 100 hata. "Lead kaybolmuş olabilir" etiketli kayıtlar en
+              öncelikli: Meta lead verisini sınırlı süre saklıyor, gecikmeden incelenmeli.
+            </p>
+            {loadingWebhookErrors && <LoadingState />}
+            {!loadingWebhookErrors && webhookErrorsError && (
+              <ErrorState error={webhookErrorsError} onRetry={reloadWebhookErrors} />
+            )}
+            {!loadingWebhookErrors && !webhookErrorsError && <WebhookErrorsTable rows={webhookErrorRows ?? []} />}
+          </div>
+
+          <div className="mt-8 border-t border-border-subtle pt-6">
+            <p className="mb-1 text-sm font-semibold text-text-primary">Santral (Telsam)</p>
+            <p className="mb-4 text-xs text-text-disabled">
+              Santral webhook'u ve dakikalık CDR senkronizasyonunun hataları — son 100 hata.
+            </p>
+            {loadingTelsamWebhookErrors && <LoadingState />}
+            {!loadingTelsamWebhookErrors && telsamWebhookErrorsError && (
+              <ErrorState error={telsamWebhookErrorsError} onRetry={reloadTelsamWebhookErrors} />
+            )}
+            {!loadingTelsamWebhookErrors && !telsamWebhookErrorsError && (
+              <TelsamWebhookErrorsTable rows={telsamWebhookErrorRows ?? []} />
+            )}
+          </div>
         </>
       )}
 

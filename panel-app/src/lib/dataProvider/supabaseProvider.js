@@ -1277,6 +1277,26 @@ export const metaWebhookErrors = {
   },
 }
 
+// telsam_webhook_errors_select RLS'i sadece broker/owner'a okuma izni veriyor
+// — meta_webhook_errors ile birebir aynı desen, telsam-webhook (push) ve
+// telsam-cdr-sync (pull/cron) entegrasyonlarının hatalarını tutar.
+export const telsamWebhookErrors = {
+  async list() {
+    const data = await run(
+      client().from('telsam_webhook_errors').select('*').order('created_at', { ascending: false }).limit(100),
+    )
+    return data.map((r) => ({
+      id: r.id,
+      createdAt: r.created_at,
+      kaynak: r.kaynak,
+      tur: r.tur,
+      chanid: r.chanid,
+      rawPayload: r.raw_payload,
+      hataMesaji: r.hata_mesaji,
+    }))
+  },
+}
+
 // --- Görevler (Planlama > Görevler) -------------------------------------------
 function mapTask(row) {
   return {

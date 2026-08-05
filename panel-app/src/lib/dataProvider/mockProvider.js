@@ -837,6 +837,23 @@ export const metaWebhookErrors = {
   },
 }
 
+const MOCK_TELSAM_WEBHOOK_ERRORS = [
+  {
+    id: 'twe-1',
+    kaynak: 'cdr_sync',
+    tur: 'yetkilendirme_hatasi',
+    chanid: null,
+    hataMesaji: 'x-cron-secret CRON_SECRET ile eşleşmedi',
+    createdAt: usersDaysAgo(1),
+  },
+]
+
+export const telsamWebhookErrors = {
+  async list() {
+    return delay([...MOCK_TELSAM_WEBHOOK_ERRORS])
+  },
+}
+
 // --- Görevler (Planlama > Görevler) ------------------------------------------
 export const tasks = {
   async list() {
