@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-06 — Panel: Reklam Kaynakları uzun isimler mobilde tüm sayfayı kaydırıyordu
+
+Broker ekran görüntüsü attı — Panel'de sadece bu widget değil, TÜM sayfa
+mobilde sola/sağa kaymış görünüyordu (diğer kartların yazıları da kenardan
+kesik). Kök neden iki katmanlıydı:
+1. `Panel.jsx`'teki Reklam Kaynakları widget'ında `grid sm:grid-cols-2`
+   hücrelerinin (Portföy/Recruiting sarmalayıcıları) `min-w-0` eksikti —
+   uzun reklam adları (kampanya/reklam seti/reklam isminin " / " ile
+   birleşimi, meta-leads-webhook'ta üretiliyor) grid hücresini değil,
+   sayfayı genişletiyordu.
+2. Daha genel/tehlikeli olan: `AppLayout.jsx`'teki `<main>` sadece
+   `overflow-y-auto` kullanıyordu — CSS kuralı gereği bir eksen `auto`
+   olunca diğeri de (varsayılan `visible` yerine) `auto` oluyor, yani
+   `<main>` kendi başına yatay kaydırılabilir hale geliyordu. Bu yüzden BU
+   TÜR bir taşma HER YERDE tüm sayfayı kaydırabilirdi, sadece bu widget'a
+   özgü değildi. `overflow-x-hidden` eklendi — artık tek bir widget'taki
+   olası gelecekteki bir taşma hatası bile sayfayı kaydıramaz. DB
+   değişikliği yok, sadece CSS/JSX.
+
 ## 2026-08-05 — Operasyonel dayanıklılık paketi (Meta/Santral hata görünürlüğü + yayın kontrolü)
 
 Broker'ın PORTAL-HARITASI.md denetiminden çıkan 9 maddelik listesine karşılık

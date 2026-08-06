@@ -1127,7 +1127,7 @@ export default function Panel() {
           {(topPortfoyReklamlari.length > 0 || topRecruitingReklamlari.length > 0) && (
             <Widget icon={Megaphone} title="Reklam Kaynakları" to="/leads" linkLabel="Tümünü gör" accent="navy">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
+                <div className="min-w-0">
                   <h3 className="mb-2 text-xs font-semibold text-text-muted">Portföy</h3>
                   {topPortfoyReklamlari.length === 0 ? (
                     <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
@@ -1144,7 +1144,7 @@ export default function Panel() {
                     </div>
                   )}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="mb-2 text-xs font-semibold text-text-muted">Recruiting</h3>
                   {topRecruitingReklamlari.length === 0 ? (
                     <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
