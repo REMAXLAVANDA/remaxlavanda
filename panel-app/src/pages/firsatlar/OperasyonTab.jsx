@@ -16,6 +16,7 @@ import CallFilters from '../../components/operasyon/CallFilters'
 import StatsCards from '../../components/operasyon/StatsCards'
 import NewCallModal from '../../components/operasyon/NewCallModal'
 import EditCallDetailsModal from '../../components/operasyon/EditCallDetailsModal'
+import CallNoteModal from '../../components/operasyon/CallNoteModal'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -61,6 +62,7 @@ export default function OperasyonTab() {
   const [onlyMine, setOnlyMine] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingCall, setEditingCall] = useState(null)
+  const [notingCall, setNotingCall] = useState(null)
   const [convertingCall, setConvertingCall] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -150,6 +152,22 @@ export default function OperasyonTab() {
       showToast('Çağrı bilgileri güncellendi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Danışman kendine atanan çağrıda müşteriyle ilgili not tutabilsin diye —
+  // "Bilgileri Düzenle"nin (kaynak/portföy no gibi ofis alanları içerdiği
+  // için sadece yönetime açık) dar bir versiyonu, SADECE notlar günceller
+  // (bkz. CallNoteModal notu).
+  async function handleEditNote(notlar) {
+    if (!notingCall) return
+    setSubmitting(true)
+    try {
+      await updateCall(notingCall.id, { notlar })
+      setNotingCall(null)
+      showToast('Not kaydedildi.', 'success')
     } finally {
       setSubmitting(false)
     }
@@ -276,6 +294,7 @@ export default function OperasyonTab() {
             onAssign={handleAssign}
             onToggle={handleToggle}
             onEditDetails={setEditingCall}
+            onEditNote={setNotingCall}
             onDelete={handleDelete}
             onConvertToOpportunity={handleConvertToOpportunity}
             islemTipiByOpportunityId={islemTipiByOpportunityId}
@@ -317,6 +336,15 @@ export default function OperasyonTab() {
           call={editingCall}
           onClose={() => setEditingCall(null)}
           onSubmit={handleEditDetails}
+          submitting={submitting}
+        />
+      )}
+
+      {notingCall && (
+        <CallNoteModal
+          call={notingCall}
+          onClose={() => setNotingCall(null)}
+          onSubmit={handleEditNote}
           submitting={submitting}
         />
       )}

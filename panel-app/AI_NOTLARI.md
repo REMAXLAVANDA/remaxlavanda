@@ -3,6 +3,28 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-06 — Operasyon: danışman kendine atanan çağrıya müşteri notu ekleyebiliyor
+
+Broker: "Operasyon kısmında atayınca danışman müşteri ile ilgili notlar
+almak istiyor". Kontrol: `notlar` kolonu zaten vardı ve zaten
+gösteriliyordu (`CallTable.jsx`), ama TEK düzenleme yolu
+`EditCallDetailsModal` ("Bilgileri Düzenle") idi — o da
+`canEditCallDetails()` ile sadece broker (her zaman)/owner-ofis (son 7
+gün) açıktı, danışman hiçbir zaman kapsamda değildi. Yani danışman
+kendine atanan çağrıda notu GÖREBİLİYOR ama hiç EKLEYEMİYORDU.
+
+RLS zaten hazırdı — `call_logs_update_own` politikası (migration
+20260716240000) danışmanın kendine atanan satırın HER kolonunu
+güncellemesine izin veriyor, kolon kısıtı yok. Migration GEREKMEDİ, sadece
+istemci tarafı eksikti.
+
+Yeni: `CallNoteModal.jsx` — bilerek dar tutuldu, SADECE notlar alanını
+günceller (kaynak/portföy no/satış tarihi gibi ofis alanlarını İÇERMİYOR,
+danışman bunlara dokunamaz). `CallTable.jsx`'te "Not ekle/Notu düzenle"
+butonu (StickyNote ikonu), `canEditResult && !canEditCallDetails(...)`
+şartıyla SADECE atanan danışmana görünüyor (yönetim zaten "Bilgileri
+Düzenle" ile notu da düzenleyebiliyor, buton tekrarlanmasın diye).
+
 ## 2026-08-06 — Panel: Reklam Kaynakları uzun isimler mobilde tüm sayfayı kaydırıyordu
 
 Broker ekran görüntüsü attı — Panel'de sadece bu widget değil, TÜM sayfa

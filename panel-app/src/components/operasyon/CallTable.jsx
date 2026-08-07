@@ -255,6 +255,7 @@ export default function CallTable({
   onAssign,
   onToggle,
   onEditDetails,
+  onEditNote,
   onDelete,
   onConvertToOpportunity,
   islemTipiByOpportunityId,
@@ -346,6 +347,15 @@ export default function CallTable({
                             <Send size={13} /> Fırsata Çevir
                           </button>
                         )}
+                        {canEditResult && !canEditCallDetails(currentRole, call.createdAt) && (
+                          <button
+                            onClick={() => onEditNote(call)}
+                            className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                            title={call.notlar ? 'Notu düzenle' : 'Not ekle'}
+                          >
+                            <StickyNote size={14} />
+                          </button>
+                        )}
                         {canEditCallDetails(currentRole, call.createdAt) && (
                           <button
                             onClick={() => onEditDetails(call)}
@@ -426,6 +436,15 @@ export default function CallTable({
                       title="Fırsata Çevir"
                     >
                       <Send size={13} /> Fırsata Çevir
+                    </button>
+                  )}
+                  {canEditResult && !canEditCallDetails(currentRole, call.createdAt) && (
+                    <button
+                      onClick={() => onEditNote(call)}
+                      className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                      title={call.notlar ? 'Notu düzenle' : 'Not ekle'}
+                    >
+                      <StickyNote size={14} />
                     </button>
                   )}
                   {canEditCallDetails(currentRole, call.createdAt) && (
