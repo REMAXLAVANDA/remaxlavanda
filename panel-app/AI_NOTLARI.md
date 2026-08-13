@@ -3,6 +3,42 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-13 — Santral (Telsam) otomatik senkronu durduruldu — ağ engeli
+
+Uzun bir teşhis günü sonunda `telsam-cdr-sync` cron'undaki gerçek sorun
+zincirleme çıktı:
+1. Cron job hiç kurulmamıştı (migration'daki `<CRON_SECRET>` yer
+   tutucusu SQL Editor'de hiç gerçek değerle değiştirilmeden çalıştırılmış).
+   Supabase MCP artık bağlı olduğu için veritabanına doğrudan bakılıp
+   doğrulandı, cron yeniden kuruldu (rastgele üretilmiş yeni bir
+   `CRON_SECRET`, Edge Functions > Secrets — proje geneli liste, fonksiyona
+   özel Settings DEĞİL — sayfasına yazıldı). **Bu sorun artık kalıcı
+   olarak çözüldü**, `telsam_webhook_errors`'ta `yetkilendirme_hatasi`
+   satırları kesildi.
+2. Ardından ASIL/kalıcı engel ortaya çıktı: Telsam'ın sunucusuna
+   (45.10.253.211) Supabase'in bulut sunucusundan (İngiltere bölgesi)
+   TCP bağlantısı zaman aşımına uğruyor ("Connection timed out, os error
+   110") — muhtemelen Telsam tarafında IP bazlı bir güvenlik duvarı
+   kısıtlaması. Bu kod/config ile çözülemeyecek bir ağ sorunu; Telsam'la
+   IP izin listesi konuşulması gerekiyor, Supabase'in bulut IP'leri sabit
+   olmadığı için bu kolay olmayabilir.
+3. Broker kararı: otomatik senkron `cron.unschedule('telsam-cdr-sync')`
+   ile DURDURULDU (geri alınabilir, veri kaybı yok). Bunun yerine ara ara
+   Telsam panelinden Excel/CSV dışa aktarılıp elle (telsam_chanid'e göre
+   tekilleştirerek) `call_logs`'a eklenmesi konuşuldu — örnek dosya
+   bekleniyor, henüz uygulanmadı.
+
+Yan not: Bu oturumda ayrıca `notify-webhook-error`, `recover-meta-lead`
+Edge Function'ları ilk kez gerçekten deploy edildi (önceki oturumda
+Dashboard'daki "Deploy" butonunun git'ten bağımsız, Supabase'in kendi
+eski kod kopyasını yeniden başlattığı — repodaki güncellemenin hiç
+ulaşmadığı — anlaşıldı) ve `trg_notify_meta_webhook_error` tetikleyicisi
+kuruldu (telsam'ınkiyle aynı `WEBHOOK_SECRET` başlığı SQL içinde
+programatik olarak kopyalanarak, değer hiç görünür şekilde yazılmadan).
+`review_credits` tablosunun da (madde 9, DROP) bilgisayardayım-uygula
+onayı alınmadan silindiği doğrulandı — veri kaybı yok (zaten 0 satırdı),
+sadece süreç notu.
+
 ## 2026-08-06 — Operasyon: danışman kendine atanan çağrıya müşteri notu ekleyebiliyor
 
 Broker: "Operasyon kısmında atayınca danışman müşteri ile ilgili notlar
