@@ -3,6 +3,33 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-15 — UYARI: .env ve node_modules oturum ortamından kayboldu, build sessizce mock'a düşüyordu
+
+Bu deploy'dan hemen önce build alırken bundle doğrulaması "supabase
+refs: 0" verdi (olması gereken 2) — `.env` dosyası (git'e hiç girmez,
+`.gitignore`'da) çalışma ortamından silinmiş, `node_modules` de aynı
+şekilde kaybolmuştu. `.env` olmadan `VITE_SUPABASE_URL`/`ANON_KEY` boş
+kalıyor, production build BUNU HATA VERMEDEN sessizce derliyor — bundle
+doğrulama adımı (`grep -c supabase.co`) tam olarak bu yüzden pipeline'da
+var, deploy'u burada durdurdu.
+
+`.env` şu şekilde yeniden oluşturuldu: URL + anon key Supabase MCP'den
+(`get_project_url`/`get_publishable_keys` — ikisi de public/anon
+değerler, gizli değil), `VITE_VAPID_PUBLIC_KEY` son iyi production
+build'in git'te duran `panel/assets/index-*.js` dosyasının içine
+gömülmüş halinden geri çıkarıldı (VAPID public key zaten tasarım gereği
+istemci koduna gömülür, gizli değildir). İlk denemede `VITE_DATA_SOURCE`
+yanlışlıkla `supabase` yazıldı — bu satır SADECE dev/test modunu etkiler
+(prod build zaten `IS_PROD` ile supabase'i zorluyor), ama test paketini
+kırdı (6 test FAIL) çünkü testler mock sağlayıcıyı bekliyor; `mock`
+olarak düzeltilip 100/100'e dönüldü.
+
+**Önemli**: `.env` dosyası git'e girmiyor, bu yüzden ortam sıfırlanırsa
+bir daha kaybolabilir. Kaybolursa: URL/anon key Supabase MCP'den, VAPID
+public key panel/'deki mevcut build'den yukarıdaki yöntemle geri
+çıkarılabilir — hiçbiri için broker'dan gerçek bir gizli değer istemeye
+gerek yok.
+
 ## 2026-08-15 — Doğum günü Takvim senkronu: düzenleme/pasifleştirme artık yansıyor
 
 Broker: "Ayarlardan danışmanın doğum tarihini güncelledim ama takvimde
