@@ -2193,3 +2193,29 @@ var: (1) özet sayım — bilinen örüntüyle diğer'e düşen vs. hiç eşleş
 
 **`archive.gd_leads`'e (684 satır, portföy tarafı) DOKUNULMADI** — ayrı bir
 faz olarak ele alınacak, bu taşımaya dahil değil.
+
+## 2026-08-15 — Danışman silme: müşteri/iş kayıtları artık silinmiyor
+
+Broker kararı: bir danışman hesabı SİLİNDİĞİNDE (deaktive değil), ona ait
+müşteri/iş kayıtları (fırsatlar, çağrı kayıtları, lead/recruiting
+atamaları, görevler) artık SİLİNMİYOR — kayıt kalıyor, sadece "kime ait"
+alanı boşalıyor, yönetim isterse başkasına yeniden atar. Sadece kişinin
+KENDİ kişisel performans verisi (lig puanları, ciro giriş geçmişi,
+etkinlik katılımı, doğum tarihi/TC no, user_private_info) eskisi gibi
+cascade ile siliniyor.
+
+- `supabase/migrations/20260815120000_gorevler_kullanici_silme_koruma.sql`:
+  `tasks.assignee_id`/`created_by` artık nullable, FK `on delete set null`
+  (eskiden `assignee_id` "not null ... on delete cascade" idi — danışman
+  silinince görev de TAMAMEN siliniyordu, bu bug'dı).
+- `supabase/functions/delete-user/index.ts`: `auth.admin.deleteUser`'dan
+  ÖNCE artık `opportunities` SİLİNMİYOR — `owner_id`/`claimer_id`/
+  `closed_by` null'lanıyor (claimer_id='claimed' ise status da 'acik'ya
+  düşüyor, kapanmış/iptal fırsatlara dokunulmuyor). Ayrıca `call_logs.
+  assigned_to`, `leads.atanan_danisman_id`, `recruiting_candidates.
+  atanan_danisman_id`, `docs.created_by`, `doc_versions.uploaded_by`,
+  `audit_log.actor_id`, `onboarding_checklist_status.done_by`,
+  `score_entries.entered_by`, `ciro_musterileri.entered_by`, `ciro_
+  girisleri.entered_by`, `social_activity_log.entered_by`, `event_
+  attendance.mazeret_reviewed_by` null'lanıyor — hepsi zaten nullable
+  kolonlardı, migration gerekmedi.
