@@ -3,6 +3,32 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-08-15 — Doğum günü Takvim senkronu: düzenleme/pasifleştirme artık yansıyor
+
+Broker: "Ayarlardan danışmanın doğum tarihini güncelledim ama takvimde
+görünmüyor." Kök neden: takvime "🎂 ... — Doğum Günü" etkinliği SADECE
+kullanıcı OLUŞTURULURKEN bir kere ekleniyordu (`handleCreateUser`) —
+sonradan `Ayarlar > Kullanıcılar > Düzenle`'den doğum tarihi
+değiştirilince/silinince veya kullanıcı pasifleştirilince takvimdeki
+etkinliğe hiç dokunulmuyordu.
+
+Eklendi: `calendarEvents.findBirthdayEvent(userId)` (hem mock hem
+supabase — `event_attendance` üzerinden o kullanıcının doğum günü
+etkinliğini bulur, `calendar_events`'te ayrı bir user_id kolonu
+gerekmedi). `Ayarlar.jsx`'te yeni `syncBirthdayEvent()`:
+- Doğum tarihi girilip/değiştirilince: mevcut etkinlik varsa tarihini
+  GÜNCELLER (yeni satır oluşturmaz, tekrar tekrar düzenlemek çoğaltmaz),
+  yoksa oluşturur.
+- Doğum tarihi silinince: mevcut etkinliği SİLER — "bir sonraki yılda
+  görünmesin" isteği karşılandı.
+- Kullanıcı pasifleştirilince: mevcut etkinliği siler (sadece AKTİF
+  danışmanın doğum günü görünsün isteği). Tekrar aktifleştirilince,
+  doğum tarihi hâlâ kayıtlıysa etkinliği yeniden oluşturur.
+
+Playwright ile dört senaryo da doğrulandı: ekleme, güncelleme (çoğalma
+yok), silme (kaldırılıyor), pasifleştirme/aktifleştirme (kaldırılıyor/
+geri geliyor). Migration gerekmedi — mevcut RLS zaten yeterliydi.
+
 ## 2026-08-13 — Santral (Telsam) otomatik senkronu durduruldu — ağ engeli
 
 Uzun bir teşhis günü sonunda `telsam-cdr-sync` cron'undaki gerçek sorun

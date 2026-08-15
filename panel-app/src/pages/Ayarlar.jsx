@@ -105,9 +105,60 @@ export default function Ayarlar() {
     try {
       await usersProvider.updateUser(id, { durum })
       setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, durum } : u)))
+      // Takvimde sadece AKTİF danışmanın doğum günü görünsün — pasife
+      // alınca mevcut etkinliği kaldır, tekrar aktifleştirilince (doğum
+      // tarihi hâlâ kayıtlıysa) yeniden oluştur (bkz. "aktif olanın doğum
+      // günü görünsün" isteği).
+      if (durum === 'pasif') {
+        const existingEventId = await calendarProvider.findBirthdayEvent(id)
+        if (existingEventId) await calendarProvider.remove(existingEventId)
+      } else {
+        const info = (privateInfoList ?? []).find((p) => p.userId === id)
+        const targetName = allUsers?.find((u) => u.id === id)?.name
+        if (info?.dogumTarihi && targetName) await syncBirthdayEvent(id, targetName, info.dogumTarihi)
+      }
       showToast(durum === 'aktif' ? 'Kullanıcı aktifleştirildi.' : 'Kullanıcı pasifleştirildi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  // Ayarlar'da doğum tarihi eklenip/değiştirilip/silinince Takvim'deki
+  // "🎂 ... — Doğum Günü" etkinliğinin bundan bağımsız kalmaması için —
+  // önceden sadece kullanıcı OLUŞTURULURKEN bir kere ekleniyordu, sonraki
+  // düzenlemeler takvime hiç yansımıyordu (bkz. "güncelledim ama takvimde
+  // görünmüyor" bildirimi).
+  async function syncBirthdayEvent(userId, name, dogumTarihi) {
+    try {
+      const existingEventId = await calendarProvider.findBirthdayEvent(userId)
+      if (dogumTarihi) {
+        if (existingEventId) {
+          await calendarProvider.update(existingEventId, {
+            title: `🎂 ${name} — Doğum Günü`,
+            date: nextBirthdayDate(dogumTarihi),
+            startTime: '09:00',
+            endTime: '',
+          })
+        } else {
+          await calendarProvider.create(
+            {
+              type: 'etkinlik',
+              title: `🎂 ${name} — Doğum Günü`,
+              date: nextBirthdayDate(dogumTarihi),
+              startTime: '09:00',
+              endTime: '',
+              katilimTipleri: { [userId]: 'istege_bagli' },
+            },
+            user.id,
+          )
+        }
+      } else if (existingEventId) {
+        // Doğum tarihi silindi — bir sonraki yıl artık görünmesin.
+        await calendarProvider.remove(existingEventId)
+      }
+    } catch {
+      // İkincil bir aksiyon — takvim senkronu başarısız olsa da asıl kayıt
+      // (doğum tarihi/aktiflik) zaten kaydedildi, kullanıcıyı bloklamıyoruz.
     }
   }
 
@@ -175,6 +226,7 @@ export default function Ayarlar() {
         ...(prev ?? []).filter((p) => p.userId !== editingUser.id),
         { userId: editingUser.id, dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo },
       ])
+      await syncBirthdayEvent(editingUser.id, patch.ad, patch.dogumTarihi)
       setEditingUser(null)
       showToast('Kullanıcı güncellendi.', 'success')
     } catch (err) {

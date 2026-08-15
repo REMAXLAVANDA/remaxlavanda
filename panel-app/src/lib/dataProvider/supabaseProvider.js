@@ -342,6 +342,22 @@ export const calendarEvents = {
     )
     return data.map(mapAttendance)
   },
+  // Ayarlar'daki doğum tarihi düzenleme/pasifleştirme akışının, o kullanıcı
+  // için daha önce oluşturulmuş "🎂 ... — Doğum Günü" etkinliğini yeniden
+  // bulup güncelleyebilmesi/silebilmesi için — event_attendance'taki katılımcı
+  // bağlantısı üzerinden arıyoruz (calendar_events'te ayrı bir user_id kolonu
+  // yok, event_attendance zaten stabil bir bağlantı sağlıyor).
+  async findBirthdayEvent(userId) {
+    const data = await run(
+      client()
+        .from('event_attendance')
+        .select('event_id, calendar_events!inner(id, title, type)')
+        .eq('user_id', userId)
+        .eq('calendar_events.type', 'etkinlik')
+        .like('calendar_events.title', '🎂 %'),
+    )
+    return data[0]?.event_id ?? null
+  },
   // "Herkese açık" bir etkinliğe davet edilmemiş biri kendi kendine
   // katılır — event_attendance_insert RLS'i bunu sadece istege_bagli +
   // onayladi olarak, ve sadece gorunurluk='herkese_acik' olan etkinlikte

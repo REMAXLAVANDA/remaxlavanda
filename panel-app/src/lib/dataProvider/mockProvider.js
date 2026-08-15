@@ -256,6 +256,16 @@ export const calendarEvents = {
     MOCK_ATTENDANCE.push(...rows)
     return delay(rows.map((r) => ({ ...r })))
   },
+  // supabaseProvider.findBirthdayEvent() ile aynı davranış — bkz. o
+  // dosyadaki not.
+  async findBirthdayEvent(userId) {
+    const attendance = MOCK_ATTENDANCE.find((a) => {
+      if (a.userId !== userId) return false
+      const event = MOCK_EVENTS.find((e) => e.id === a.eventId)
+      return event && event.type === 'etkinlik' && event.title?.startsWith('🎂 ')
+    })
+    return delay(attendance?.eventId ?? null)
+  },
   // supabaseProvider.joinEvent() ile aynı davranış — "herkese açık" bir
   // etkinliğe davet edilmemiş biri kendi kendine, sadece istege_bagli +
   // onayladi olarak katılabilir.
