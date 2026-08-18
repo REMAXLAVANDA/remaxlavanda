@@ -2219,3 +2219,15 @@ cascade ile siliniyor.
   girisleri.entered_by`, `social_activity_log.entered_by`, `event_
   attendance.mazeret_reviewed_by` null'lanıyor — hepsi zaten nullable
   kolonlardı, migration gerekmedi.
+
+## 2026-08-16 — CORS: 3 Edge Function `*` yerine kendi domainimize kilitlendi
+
+Güvenlik taraması sırasında `create-user`, `delete-user`, `reset-user-
+password` fonksiyonlarının `Access-Control-Allow-Origin: '*'` kullandığı
+(herhangi bir web sitesinin bu endpoint'lere tarayıcıdan istek atabildiği)
+görüldü — broker onaylı, `'*'` yerine `'https://panel.remaxlavanda.com.tr'`
+yapıldı. Bu üç fonksiyon zaten çağıranın gerçekten broker/owner olduğunu
+sunucu tarafında ayrıca doğruluyordu (RLS bypass service_role kontrolden
+SONRA kullanılıyor), yani asıl yetkisiz-erişim riski yoktu — bu sadece ek
+bir savunma katmanı. Deploy edildi (create-user v15, reset-user-password
+v15, delete-user v17).
