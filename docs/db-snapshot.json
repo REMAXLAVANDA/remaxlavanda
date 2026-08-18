@@ -1,0 +1,5671 @@
+{
+  "cron_jobs": [],
+  "functions": [
+    {
+      "name": "assign_opportunity_to",
+      "schema": "public"
+    },
+    {
+      "name": "close_opportunity",
+      "schema": "public"
+    },
+    {
+      "name": "current_user_role",
+      "schema": "public"
+    },
+    {
+      "name": "enforce_call_logs_detail_edit_window",
+      "schema": "public"
+    },
+    {
+      "name": "get_kartvizit",
+      "schema": "public"
+    },
+    {
+      "name": "get_opportunity_contact",
+      "schema": "public"
+    },
+    {
+      "name": "is_active",
+      "schema": "public"
+    },
+    {
+      "name": "is_event_creator",
+      "schema": "public"
+    },
+    {
+      "name": "is_invited_to_event",
+      "schema": "public"
+    },
+    {
+      "name": "is_manager",
+      "schema": "public"
+    },
+    {
+      "name": "list_musteri_review_counts",
+      "schema": "public"
+    },
+    {
+      "name": "list_user_activity",
+      "schema": "public"
+    },
+    {
+      "name": "log_audit_event",
+      "schema": "public"
+    },
+    {
+      "name": "prevent_self_privilege_escalation",
+      "schema": "public"
+    },
+    {
+      "name": "set_updated_at",
+      "schema": "public"
+    }
+  ],
+  "schemas": [
+    {
+      "name": "archive",
+      "tables": [
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "username",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "pass_hash",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "pin_hash",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "role",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "name",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "updated_at",
+              "ordinal_position": 6
+            }
+          ],
+          "foreign_keys": [],
+          "name": "app_credentials",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tip",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "il",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ilce",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "m2",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "oda",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "fiyat",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_ad",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_tel",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "paylas",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "takip_tarihi",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "gorusme_notu",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "sonuc",
+              "ordinal_position": 16
+            }
+          ],
+          "foreign_keys": [],
+          "name": "arayislar",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "lead_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "sonuc",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "komisyon",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "assignments",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kategori",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "baslik",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "icerik",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "dosya_url",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "olusturan",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "bilgi_merkezi",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "cagri_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "arayan",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aranan",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "yon",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "sure",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ses_kayit_url",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_id",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 11
+            }
+          ],
+          "foreign_keys": [],
+          "name": "cagri_log",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "tip",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "key",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "label",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "'Genel'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kategori",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "0",
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "sira",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "admin_onay",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "aktif",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 9
+            }
+          ],
+          "foreign_keys": [],
+          "name": "checklist_maddeler",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "task_key",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "'bos'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tamamlanma_tarihi",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "sorumlu",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "not",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "dan_ayrilis_progress",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "egitim_adi",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "egitim_tarihi",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "egitim_tipi",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "'Katılmadı'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "dan_egitim",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_adi",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "islem_tipi",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "puan",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "google_yorum",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "google_yorum_tarihi",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 9
+            }
+          ],
+          "foreign_keys": [],
+          "name": "dan_memnuniyet",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aday_adi",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aday_durumu",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "dan_recruiting_katki",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "toplanti_tarihi",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "toplanti_adi",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "'Katılmadı'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "mazeret_aciklama",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "'yok'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "mazeret_durum",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "mazeret_tarihi",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "yonetim_notu",
+              "ordinal_position": 10
+            }
+          ],
+          "foreign_keys": [],
+          "name": "dan_toplanti",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_ad",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_tel",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tip",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "danisman_notlar",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "token",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "aktif",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "character varying",
+              "is_nullable": "YES",
+              "name": "pin",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "eposta",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "dogum_gunu",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "giris_tarihi",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "remax_baslangic",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "ilk_islem_tarihi",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "uzmanlik",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "mentor",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "notlar",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": "'gayrimenkul'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kullanici_tipi",
+              "ordinal_position": 16
+            },
+            {
+              "column_default": "'aktif'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "yasam_durumu",
+              "ordinal_position": 17
+            }
+          ],
+          "foreign_keys": [],
+          "name": "danismanlar",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "islem",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tip",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "il",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ilce",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "adres",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "m2",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "fiyat",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tapu",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_ad",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "musteri_tel",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "paylas",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "sonuc",
+              "ordinal_position": 16
+            }
+          ],
+          "foreign_keys": [],
+          "name": "dis_portfolyo",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "dis_pf_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "arayis_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "talep_eden",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 5
+            }
+          ],
+          "foreign_keys": [],
+          "name": "eslesmeler",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "baslik",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "NO",
+              "name": "tarih",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "time without time zone",
+              "is_nullable": "YES",
+              "name": "saat",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "time without time zone",
+              "is_nullable": "YES",
+              "name": "bitis_saati",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tur",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "'tum_ofis'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "hedef",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "ARRAY",
+              "is_nullable": "YES",
+              "name": "atanan_danismanlar",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "olusturan",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 11
+            }
+          ],
+          "foreign_keys": [],
+          "name": "etkinlikler",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "rozet_key",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "kazanilma_tarihi",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 5
+            }
+          ],
+          "foreign_keys": [],
+          "name": "gd_badges",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ad",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kaynak",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "sonraki_takip",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "arsiv",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "updated_at",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "is_deleted",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "portfoy_kodu",
+              "ordinal_position": 14
+            }
+          ],
+          "foreign_keys": [],
+          "name": "gd_leads",
+          "policies": [
+            {
+              "cmd": "DELETE",
+              "name": "block_delete_gd_leads",
+              "using": "false",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "task_key",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "'bos'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tamamlanma_tarihi",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "sorumlu",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "gd_onboarding_progress",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "islem",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tip",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "il",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ilce",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "adres",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ada",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "m2",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "oda",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "fiyat",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tapu",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 14
+            }
+          ],
+          "foreign_keys": [],
+          "name": "havuz",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "kayit_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tablo",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aksiyon",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "yapan",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ip",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "user_agent",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "islem_log",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kaynak",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "ilk_gorusme",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "sonraki_tarih",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "notes",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "leads",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "legacy_source",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "legacy_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "matched_user_id",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "NO",
+              "name": "payload",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "legacy_records_matched_user_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "matched_user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "legacy_records",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ad",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kaynak",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "arama_tarihi",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "randevu_tarihi",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "time without time zone",
+              "is_nullable": "YES",
+              "name": "randevu_saati",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "arsiv",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "gorusmeci",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "is_deleted",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "gorusme_tarihi",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "gorusme_notu",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "aday_puani",
+              "ordinal_position": 16
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "atanan_yonetici",
+              "ordinal_position": 17
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "son_islem_tarihi",
+              "ordinal_position": 18
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "sonraki_aksiyon_tarihi",
+              "ordinal_position": 19
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "evrak_myk",
+              "ordinal_position": 20
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "evrak_vergi",
+              "ordinal_position": 21
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "evrak_sozlesme",
+              "ordinal_position": 22
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "ilk30_portfolyo",
+              "ordinal_position": 23
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "ilk30_yetki",
+              "ordinal_position": 24
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "ilk30_ilan",
+              "ordinal_position": 25
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "ilk30_musteri",
+              "ordinal_position": 26
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "ilk30_satis",
+              "ordinal_position": 27
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "baslangic_tarihi",
+              "ordinal_position": 28
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "il",
+              "ordinal_position": 29
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ilce",
+              "ordinal_position": 30
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 31
+            }
+          ],
+          "foreign_keys": [],
+          "name": "recruiting_candidates",
+          "policies": [
+            {
+              "cmd": "DELETE",
+              "name": "block_delete_rc",
+              "using": "false",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "time without time zone",
+              "is_nullable": "YES",
+              "name": "saat",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "arayan",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "neden",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "sonraki_tarih",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "notes",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 11
+            }
+          ],
+          "foreign_keys": [],
+          "name": "santral_calls",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "event_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "'Katılmadı'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 5
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "skor_event_attendance_event_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "event_id",
+              "target_column": "id",
+              "target_schema": "archive",
+              "target_table": "skor_events",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "skor_event_attendance",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tur",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "baslik",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "time without time zone",
+              "is_nullable": "YES",
+              "name": "saat",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "olusturan",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "skor_events",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "kayit_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "kayit_tipi",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "mesaj",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "yapan",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp without time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 6
+            }
+          ],
+          "foreign_keys": [],
+          "name": "timeline",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "program_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "modul_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "danisman_ad",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "'Katılmadı'::text",
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "durum",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 6
+            }
+          ],
+          "foreign_keys": [],
+          "name": "training_attendance",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "program_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "modul_no",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ad",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 6
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "training_modules_program_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "program_id",
+              "target_column": "id",
+              "target_schema": "archive",
+              "target_table": "training_programs",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "training_modules",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tip",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "tarih",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "egitimci",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "modul_say",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "created_at",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "training_programs",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        }
+      ]
+    },
+    {
+      "name": "public",
+      "tables": [
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "actor_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "action",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "table_name",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "record_id",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "detay",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "audit_log_actor_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "actor_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "audit_log",
+          "policies": [
+            {
+              "cmd": "SELECT",
+              "name": "audit_log_select",
+              "using": "is_manager()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "icon",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 9
+            }
+          ],
+          "foreign_keys": [],
+          "name": "badges",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "badges_manage",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "badges_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "type",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "title",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "description",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "location",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "start_at",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "end_at",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "creator_id",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "pano_goster",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": "'davetliler'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "gorunurluk",
+              "ordinal_position": 15
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "calendar_events_creator_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "creator_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "calendar_events",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "calendar_events_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "calendar_events_select",
+              "using": "(is_active() AND ((current_user_role() <> 'danisman'::user_role) OR (gorunurluk = 'herkese_acik'::text) OR (type = ANY (ARRAY['toplanti'::calendar_event_type, 'egitim'::calendar_event_type, 'etkinlik'::calendar_event_type, 'remax_turkiye'::calendar_event_type])) OR is_invited_to_event(id)))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kaynak",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "arayan_ad",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "arayan_telefon",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "assigned_to",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "sonuc",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "portfoy_alindi_mi",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kayit_url",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "boolean",
+              "is_nullable": "YES",
+              "name": "donus_yapildi_mi",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "donus_at",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "opportunity_id",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "notlar",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "portfoy_no",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "satildi_mi",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "satis_tarihi",
+              "ordinal_position": 16
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telsam_chanid",
+              "ordinal_position": 17
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telsam_sonuc",
+              "ordinal_position": 18
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "YES",
+              "name": "telsam_sure_sn",
+              "ordinal_position": 19
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "reklam_kodu",
+              "ordinal_position": 20
+            },
+            {
+              "column_default": null,
+              "data_type": "bigint",
+              "is_nullable": "YES",
+              "name": "lead_id",
+              "ordinal_position": 21
+            },
+            {
+              "column_default": null,
+              "data_type": "bigint",
+              "is_nullable": "YES",
+              "name": "kaynak_lead_id",
+              "ordinal_position": 22
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "portfoy_talebi_mi",
+              "ordinal_position": 23
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "call_logs_assigned_to_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "assigned_to",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "call_logs_kaynak_lead_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "kaynak_lead_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "leads",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "call_logs_lead_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "lead_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "leads",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "call_logs_opportunity_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "opportunity_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "opportunities",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "call_logs",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "call_logs_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "call_logs_select",
+              "using": "(is_active() AND ((current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])) OR (assigned_to = auth.uid())))",
+              "with_check": null
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "call_logs_update_own",
+              "using": "(is_active() AND (assigned_to = auth.uid()))",
+              "with_check": "(is_active() AND (assigned_to = auth.uid()))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "enforce_call_logs_detail_edit_window",
+              "name": "trg_call_logs_detail_edit_window"
+            },
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "http_request",
+              "name": "trg_notify_call_assigned"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "module",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "key",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "label",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "0",
+              "data_type": "integer",
+              "is_nullable": "NO",
+              "name": "sort_order",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "is_active",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "categories",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "categories_manage",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "categories_select_all",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "period_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "NO",
+              "name": "value",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "NO",
+              "name": "tarih",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "entered_by",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "ciro_girisleri_entered_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "entered_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "ciro_girisleri_period_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "period_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "periods",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "ciro_girisleri_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "ciro_girisleri",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "ciro_girisleri_manage",
+              "using": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))",
+              "with_check": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "ciro_girisleri_select",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "period_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad_soyad",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "alindi_mi",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "entered_by",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "ciro_musterileri_entered_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "entered_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "ciro_musterileri_period_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "period_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "periods",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "ciro_musterileri_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "ciro_musterileri",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "ciro_musterileri_manage",
+              "using": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))",
+              "with_check": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "ciro_musterileri_select",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "doc_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "integer",
+              "is_nullable": "NO",
+              "name": "version_no",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "filename",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "url",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "is_current",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "uploaded_by",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "uploaded_at",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "doc_versions_doc_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "doc_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "docs",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "doc_versions_uploaded_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "uploaded_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "doc_versions",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "doc_versions_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'ofis'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'ofis'::user_role]))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "doc_versions_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "category_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "baslik",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "created_by",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "content_text",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "0",
+              "data_type": "integer",
+              "is_nullable": "NO",
+              "name": "sort_order",
+              "ordinal_position": 11
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "docs_category_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "category_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "categories",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "docs_created_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "created_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "docs",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "docs_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'ofis'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'ofis'::user_role]))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "docs_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "title",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "description",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "content_url",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "0",
+              "data_type": "integer",
+              "is_nullable": "NO",
+              "name": "sort_order",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "is_active",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "education_modules",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "education_modules_manage",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "education_modules_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "module_id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "done_at",
+              "ordinal_position": 3
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "education_progress_module_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "module_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "education_modules",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "education_progress_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "education_progress",
+          "policies": [
+            {
+              "cmd": "SELECT",
+              "name": "education_progress_select",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))))",
+              "with_check": null
+            },
+            {
+              "cmd": "ALL",
+              "name": "education_progress_upsert",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR is_manager()))",
+              "with_check": "(is_active() AND ((user_id = auth.uid()) OR is_manager()))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "event_id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": "'davetli'::attendance_status",
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "status",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "responded_at",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "mazeret_text",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "mazeret_status",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "mazeret_reviewed_by",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "mazeret_reviewed_at",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "'zorunlu'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "katilim_tipi",
+              "ordinal_position": 9
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "event_attendance_event_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "event_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "calendar_events",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "event_attendance_mazeret_reviewed_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "mazeret_reviewed_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "event_attendance_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "event_attendance",
+          "policies": [
+            {
+              "cmd": "INSERT",
+              "name": "event_attendance_insert",
+              "using": null,
+              "with_check": "((current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])) OR ((user_id = auth.uid()) AND (katilim_tipi = 'istege_bagli'::text) AND (status = 'onayladi'::attendance_status) AND (EXISTS ( SELECT 1\n   FROM calendar_events ce\n  WHERE ((ce.id = event_attendance.event_id) AND ((ce.gorunurluk = 'herkese_acik'::text) OR (ce.type = ANY (ARRAY['toplanti'::calendar_event_type, 'egitim'::calendar_event_type, 'etkinlik'::calendar_event_type, 'remax_turkiye'::calendar_event_type]))))))))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "event_attendance_select",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])) OR is_event_creator(event_id)))",
+              "with_check": null
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "event_attendance_update_manager",
+              "using": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))",
+              "with_check": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))"
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "event_attendance_update_self",
+              "using": "(is_active() AND (user_id = auth.uid()))",
+              "with_check": "(is_active() AND (user_id = auth.uid()) AND (status = ANY (ARRAY['onayladi'::attendance_status, 'mazeretli'::attendance_status])) AND ((status <> 'mazeretli'::attendance_status) OR (mazeret_status = 'bekliyor'::text)) AND (mazeret_reviewed_by IS NULL) AND (mazeret_reviewed_at IS NULL))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "INSERT"
+              ],
+              "function_name": "http_request",
+              "name": "trg_notify_event_invite"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": "nextval('leads_id_seq'::regclass)",
+              "data_type": "bigint",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "tip",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "kaynak",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad_soyad",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "email",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "atanan_danisman_id",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "'yeni'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "durum",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "ilk_temas_at",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "sonuc_at",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kayip_nedeni",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "meta_lead_id",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kampanya_kodu",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "reklam_adi",
+              "ordinal_position": 16
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "meta_ad_id",
+              "ordinal_position": 17
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "leads_atanan_danisman_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "atanan_danisman_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "leads",
+          "policies": [
+            {
+              "cmd": "INSERT",
+              "name": "leads_insert_danisman",
+              "using": null,
+              "with_check": "((current_user_role() = 'danisman'::user_role) AND (kaynak = 'telefon'::text) AND (durum = 'yeni'::text))"
+            },
+            {
+              "cmd": "ALL",
+              "name": "leads_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role]))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "tur",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "leadgen_id",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "raw_payload",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "hata_mesaji",
+              "ordinal_position": 6
+            }
+          ],
+          "foreign_keys": [],
+          "name": "meta_webhook_errors",
+          "policies": [
+            {
+              "cmd": "SELECT",
+              "name": "meta_webhook_errors_select",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role]))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "INSERT"
+              ],
+              "function_name": "http_request",
+              "name": "trg_notify_meta_webhook_error"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "tip",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "baslik",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "0",
+              "data_type": "integer",
+              "is_nullable": "NO",
+              "name": "sort_order",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [],
+          "name": "onboarding_checklist_items",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "onboarding_items_manage",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "onboarding_items_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "item_id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "done_at",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "done_by",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 8
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "onboarding_checklist_status_done_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "done_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "onboarding_checklist_status_item_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "item_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "onboarding_checklist_items",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "onboarding_checklist_status_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "onboarding_checklist_status",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "onboarding_status_manage",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "onboarding_status_select",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "type",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "category_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "lead_ad",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "lead_telefon",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "ozet",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "konum",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "YES",
+              "name": "fiyat",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "'acik'::opportunity_status",
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "status",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "owner_id",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "claimer_id",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "claimed_at",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "updated_at",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 15
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 16
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 17
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 18
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "YES",
+              "name": "m2",
+              "ordinal_position": 19
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "oda_sayisi",
+              "ordinal_position": 20
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "YES",
+              "name": "fiyat_min",
+              "ordinal_position": 25
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "YES",
+              "name": "fiyat_max",
+              "ordinal_position": 26
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "closed_at",
+              "ordinal_position": 27
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "closed_by",
+              "ordinal_position": 28
+            },
+            {
+              "column_default": null,
+              "data_type": "bigint",
+              "is_nullable": "YES",
+              "name": "kaynak_lead_id",
+              "ordinal_position": 29
+            },
+            {
+              "column_default": "'satilik'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "islem_tipi",
+              "ordinal_position": 30
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "opportunities_category_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "category_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "categories",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "opportunities_claimer_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "claimer_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "opportunities_closed_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "closed_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "opportunities_kaynak_lead_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "kaynak_lead_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "leads",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "opportunities_owner_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "owner_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "opportunities",
+          "policies": [
+            {
+              "cmd": "DELETE",
+              "name": "opportunities_delete",
+              "using": "(is_active() AND (current_user_role() = 'broker'::user_role))",
+              "with_check": null
+            },
+            {
+              "cmd": "INSERT",
+              "name": "opportunities_insert",
+              "using": null,
+              "with_check": "((current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])) OR ((current_user_role() = 'danisman'::user_role) AND (owner_id = auth.uid()) AND ((claimer_id = auth.uid()) OR (claimer_id IS NULL))))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "opportunities_select",
+              "using": "(is_active() AND ((owner_id = auth.uid()) OR (claimer_id = auth.uid()) OR ((claimer_id IS NULL) AND (status = 'acik'::opportunity_status)) OR (current_user_role() = 'broker'::user_role) OR ((current_user_role() = 'owner'::user_role) AND (NOT (EXISTS ( SELECT 1\n   FROM users u\n  WHERE ((u.id = COALESCE(opportunities.claimer_id, opportunities.owner_id)) AND (u.rol = 'broker'::user_role))))))))",
+              "with_check": null
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "opportunities_update_manage",
+              "using": "(is_active() AND (is_manager() OR (owner_id = auth.uid())))",
+              "with_check": "(is_active() AND (is_manager() OR (owner_id = auth.uid())))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "DELETE",
+                "INSERT",
+                "UPDATE"
+              ],
+              "function_name": "log_audit_event",
+              "name": "trg_audit_opportunities"
+            },
+            {
+              "events": [
+                "INSERT"
+              ],
+              "function_name": "http_request",
+              "name": "trg_notify_new_pool_opportunity"
+            },
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "http_request",
+              "name": "trg_notify_opportunity_assigned"
+            },
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "set_updated_at",
+              "name": "trg_opportunities_updated_at"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "opportunity_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 4
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "opportunity_interest_opportunity_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "opportunity_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "opportunities",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "opportunity_interest_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "opportunity_interest",
+          "policies": [
+            {
+              "cmd": "DELETE",
+              "name": "opportunity_interest_delete_self",
+              "using": "(is_active() AND (user_id = auth.uid()))",
+              "with_check": null
+            },
+            {
+              "cmd": "INSERT",
+              "name": "opportunity_interest_insert",
+              "using": null,
+              "with_check": "(is_active() AND (user_id = auth.uid()) AND (EXISTS ( SELECT 1\n   FROM opportunities o\n  WHERE ((o.id = opportunity_interest.opportunity_id) AND (o.status = 'acik'::opportunity_status) AND (o.owner_id <> auth.uid())))))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "opportunity_interest_select",
+              "using": "(is_active() AND (is_manager() OR (user_id = auth.uid()) OR (EXISTS ( SELECT 1\n   FROM opportunities o\n  WHERE ((o.id = opportunity_interest.opportunity_id) AND (o.owner_id = auth.uid()))))))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "NO",
+              "name": "baslangic",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "NO",
+              "name": "bitis",
+              "ordinal_position": 4
+            }
+          ],
+          "foreign_keys": [],
+          "name": "periods",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "periods_manage",
+              "using": "(current_user_role() = 'broker'::user_role)",
+              "with_check": "(current_user_role() = 'broker'::user_role)"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "periods_select",
+              "using": "true",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "endpoint",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "p256dh",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "auth",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 6
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "push_subscriptions_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "push_subscriptions",
+          "policies": [
+            {
+              "cmd": "DELETE",
+              "name": "push_subscriptions_delete_own",
+              "using": "(user_id = auth.uid())",
+              "with_check": null
+            },
+            {
+              "cmd": "INSERT",
+              "name": "push_subscriptions_insert_own",
+              "using": null,
+              "with_check": "(is_active() AND (user_id = auth.uid()))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "push_subscriptions_select_own",
+              "using": "(is_active() AND (user_id = auth.uid()))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "nextval('recruiting_candidates_id_seq'::regclass)",
+              "data_type": "bigint",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "bigint",
+              "is_nullable": "YES",
+              "name": "kaynak_lead_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "kaynak",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad_soyad",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "email",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "atanan_danisman_id",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "'yeni_basvuru'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "durum",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": "'manuel'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "kayit_tipi",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "yeniden_aktif_at",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "aciklama",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "reklam_adi",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "kampanya_kodu",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "gorusme_event_id",
+              "ordinal_position": 15
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "recruiting_candidates_atanan_danisman_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "atanan_danisman_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "recruiting_candidates_gorusme_event_id_fkey",
+              "delete_rule": "SET NULL",
+              "source_column": "gorusme_event_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "calendar_events",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "recruiting_candidates_kaynak_lead_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "kaynak_lead_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "leads",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "recruiting_candidates",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "recruiting_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "period_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "type",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "NO",
+              "name": "value",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "entered_by",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "score_entries_entered_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "entered_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "score_entries_period_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "period_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "periods",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "score_entries_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "score_entries",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "score_entries_manage",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))",
+              "with_check": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "score_entries_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "DELETE",
+                "INSERT",
+                "UPDATE"
+              ],
+              "function_name": "log_audit_event",
+              "name": "trg_audit_score_entries"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "period_id",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "activity_type_id",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "1",
+              "data_type": "numeric",
+              "is_nullable": "NO",
+              "name": "adet",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "entered_by",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "social_activity_log_activity_type_id_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "activity_type_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "social_activity_types",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "social_activity_log_entered_by_fkey",
+              "delete_rule": "NO ACTION",
+              "source_column": "entered_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "social_activity_log_period_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "period_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "periods",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "social_activity_log_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "social_activity_log",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "social_activity_log_manage",
+              "using": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))",
+              "with_check": "(is_active() AND (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "social_activity_log_select",
+              "using": "(is_active() AND ((user_id = auth.uid()) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role]))))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "numeric",
+              "is_nullable": "NO",
+              "name": "puan",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "0",
+              "data_type": "integer",
+              "is_nullable": "NO",
+              "name": "sort_order",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "aktif",
+              "ordinal_position": 5
+            }
+          ],
+          "foreign_keys": [],
+          "name": "social_activity_types",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "social_activity_types_manage",
+              "using": "(is_active() AND (current_user_role() = 'broker'::user_role))",
+              "with_check": "(is_active() AND (current_user_role() = 'broker'::user_role))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "social_activity_types_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "title",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "description",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "assignee_id",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "YES",
+              "name": "created_by",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "due_date",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "'bekliyor'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "status",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "timestamp with time zone",
+              "is_nullable": "YES",
+              "name": "completed_at",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "updated_at",
+              "ordinal_position": 10
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "tasks_assignee_id_fkey",
+              "delete_rule": "SET NULL",
+              "source_column": "assignee_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "tasks_created_by_fkey",
+              "delete_rule": "SET NULL",
+              "source_column": "created_by",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "tasks",
+          "policies": [
+            {
+              "cmd": "DELETE",
+              "name": "tasks_delete",
+              "using": "(is_active() AND (is_manager() OR (current_user_role() = 'ofis'::user_role)))",
+              "with_check": null
+            },
+            {
+              "cmd": "INSERT",
+              "name": "tasks_insert",
+              "using": null,
+              "with_check": "(is_active() AND (is_manager() OR (current_user_role() = 'ofis'::user_role)) AND (created_by = auth.uid()))"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "tasks_select",
+              "using": "(is_active() AND ((assignee_id = auth.uid()) OR (created_by = auth.uid()) OR is_manager()))",
+              "with_check": null
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "tasks_update",
+              "using": "(is_active() AND ((assignee_id = auth.uid()) OR is_manager() OR (current_user_role() = 'ofis'::user_role)))",
+              "with_check": "(is_active() AND ((assignee_id = auth.uid()) OR is_manager() OR (current_user_role() = 'ofis'::user_role)))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "DELETE",
+                "INSERT",
+                "UPDATE"
+              ],
+              "function_name": "log_audit_event",
+              "name": "trg_audit_tasks"
+            },
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "set_updated_at",
+              "name": "trg_tasks_updated_at"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": "(now() - '00:10:00'::interval)",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "last_synced_at",
+              "ordinal_position": 2
+            }
+          ],
+          "foreign_keys": [],
+          "name": "telsam_sync_state",
+          "policies": [],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": "gen_random_uuid()",
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "kaynak",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "tur",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "chanid",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "raw_payload",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "hata_mesaji",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [],
+          "name": "telsam_webhook_errors",
+          "policies": [
+            {
+              "cmd": "SELECT",
+              "name": "telsam_webhook_errors_select",
+              "using": "(current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role]))",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "INSERT"
+              ],
+              "function_name": "http_request",
+              "name": "trg_notify_telsam_webhook_error"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "badge_id",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "earned_at",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_id",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_source",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "legacy_owner_name",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": null,
+              "data_type": "jsonb",
+              "is_nullable": "YES",
+              "name": "legacy_payload",
+              "ordinal_position": 7
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "user_badges_badge_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "badge_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "badges",
+              "update_rule": "NO ACTION"
+            },
+            {
+              "constraint_name": "user_badges_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "user_badges",
+          "policies": [
+            {
+              "cmd": "ALL",
+              "name": "user_badges_manage",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "user_badges_select",
+              "using": "is_active()",
+              "with_check": null
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": []
+        },
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "user_id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "tc_no",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "dogum_tarihi",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "updated_at",
+              "ordinal_position": 5
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "user_private_info_user_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "user_id",
+              "target_column": "id",
+              "target_schema": "public",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "user_private_info",
+          "policies": [
+            {
+              "cmd": "SELECT",
+              "name": "user_private_info_select",
+              "using": "((auth.uid() = user_id) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role, 'ofis'::user_role])))",
+              "with_check": null
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "user_private_info_update",
+              "using": "is_manager()",
+              "with_check": "is_manager()"
+            },
+            {
+              "cmd": "INSERT",
+              "name": "user_private_info_write",
+              "using": null,
+              "with_check": "is_manager()"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "set_updated_at",
+              "name": "trg_user_private_info_updated_at"
+            }
+          ]
+        },
+        {
+          "columns": [
+            {
+              "column_default": null,
+              "data_type": "uuid",
+              "is_nullable": "NO",
+              "name": "id",
+              "ordinal_position": 1
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "ad",
+              "ordinal_position": 2
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "email",
+              "ordinal_position": 3
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "telefon",
+              "ordinal_position": 4
+            },
+            {
+              "column_default": "'danisman'::user_role",
+              "data_type": "USER-DEFINED",
+              "is_nullable": "NO",
+              "name": "rol",
+              "ordinal_position": 5
+            },
+            {
+              "column_default": null,
+              "data_type": "text",
+              "is_nullable": "YES",
+              "name": "avatar_url",
+              "ordinal_position": 6
+            },
+            {
+              "column_default": "'aktif'::text",
+              "data_type": "text",
+              "is_nullable": "NO",
+              "name": "durum",
+              "ordinal_position": 7
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "baslangic_tarihi",
+              "ordinal_position": 8
+            },
+            {
+              "column_default": null,
+              "data_type": "date",
+              "is_nullable": "YES",
+              "name": "ayrilis_tarihi",
+              "ordinal_position": 9
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "created_at",
+              "ordinal_position": 10
+            },
+            {
+              "column_default": "now()",
+              "data_type": "timestamp with time zone",
+              "is_nullable": "NO",
+              "name": "updated_at",
+              "ordinal_position": 11
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "must_change_password",
+              "ordinal_position": 12
+            },
+            {
+              "column_default": "'{}'::jsonb",
+              "data_type": "jsonb",
+              "is_nullable": "NO",
+              "name": "sosyal_medya",
+              "ordinal_position": 13
+            },
+            {
+              "column_default": "true",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "kartvizit_aktif",
+              "ordinal_position": 14
+            },
+            {
+              "column_default": "false",
+              "data_type": "boolean",
+              "is_nullable": "NO",
+              "name": "test_hesabi",
+              "ordinal_position": 15
+            }
+          ],
+          "foreign_keys": [
+            {
+              "constraint_name": "users_id_fkey",
+              "delete_rule": "CASCADE",
+              "source_column": "id",
+              "target_column": "id",
+              "target_schema": "auth",
+              "target_table": "users",
+              "update_rule": "NO ACTION"
+            }
+          ],
+          "name": "users",
+          "policies": [
+            {
+              "cmd": "INSERT",
+              "name": "users_insert_broker",
+              "using": null,
+              "with_check": "(current_user_role() = 'broker'::user_role)"
+            },
+            {
+              "cmd": "SELECT",
+              "name": "users_select_all",
+              "using": "is_active()",
+              "with_check": null
+            },
+            {
+              "cmd": "UPDATE",
+              "name": "users_update_self_or_broker",
+              "using": "(is_active() AND ((auth.uid() = id) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role]))))",
+              "with_check": "(is_active() AND ((auth.uid() = id) OR (current_user_role() = ANY (ARRAY['broker'::user_role, 'owner'::user_role]))))"
+            }
+          ],
+          "rls_enabled": true,
+          "triggers": [
+            {
+              "events": [
+                "DELETE",
+                "INSERT",
+                "UPDATE"
+              ],
+              "function_name": "log_audit_event",
+              "name": "trg_audit_users"
+            },
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "prevent_self_privilege_escalation",
+              "name": "trg_prevent_self_privilege_escalation"
+            },
+            {
+              "events": [
+                "UPDATE"
+              ],
+              "function_name": "set_updated_at",
+              "name": "trg_users_updated_at"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "views": []
+}
