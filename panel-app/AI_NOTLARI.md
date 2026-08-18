@@ -2231,3 +2231,22 @@ sunucu tarafında ayrıca doğruluyordu (RLS bypass service_role kontrolden
 SONRA kullanılıyor), yani asıl yetkisiz-erişim riski yoktu — bu sadece ek
 bir savunma katmanı. Deploy edildi (create-user v15, reset-user-password
 v15, delete-user v17).
+
+## 2026-08-16 — Yönetim için danışman bazlı inceleme (Takip + Operasyon)
+
+Broker isteği: "danışmanları filtreleyebiliyor olmamız lazım... o
+danışman üzerinde neler yapmış listeleyebiliyor olmamız lazım." Önce
+Ayarlar'da ayrı bir sekim olarak yapıldı, sonra broker "en doğru menü
+Takip" dedi — Ayarlar'daki sekme tamamen kaldırıldı, yerine:
+
+- **Takip** sayfasında bir danışmana tıklayınca açılan detay penceresine
+  (`HealthDetailModal.jsx`) "Fırsatlar" ve "Çağrı Kayıtları" bölümü
+  eklendi — o danışmana ait/atanan kayıtları gösterir. **Sadece
+  broker/owner görür, ofis görmez** (`canSeeOpportunities` prop) —
+  opportunities RLS'i ofis'i zaten kısıtlıyor (bkz.
+  PORTAL-CALISMA-PRENSIBI-ANALIZI.md §1), bu yüzden ofis'e hiç
+  gösterilmiyor (yarım/yanıltıcı veri görmesin diye).
+- **Operasyon** ekranına (`CallFilters.jsx`/`OperasyonTab.jsx`) "Tüm
+  Danışmanlar" dropdown filtresi eklendi — broker/owner/ofis'e açık
+  (call_logs RLS'i ofis'i kısıtlamıyor, sorun yok). `onlyMine`
+  toggle'ından bağımsız çalışır, ikisi birlikte de seçilebilir.
