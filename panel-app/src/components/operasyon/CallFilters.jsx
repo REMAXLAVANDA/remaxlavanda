@@ -21,7 +21,19 @@ function Chip({ active, children, ...props }) {
 // kendi üst satırı yerine burada, gün filtrelerinin yanında duruyor.
 // onlyMine/onOnlyMineChange: broker/ofis ofisteki tüm çağrıları görür —
 // "sadece bana atananları göreyim" isteğiyle eklendi (bkz. OperasyonTab.jsx).
-export default function CallFilters({ filters, onChange, showKaynak = true, onNewCallClick, onlyMine, onOnlyMineChange }) {
+// danismanOptions: SADECE yönetimde (broker/owner/ofis) — belirli bir
+// danışmana atanan çağrıları görüp inceleyebilelim isteğiyle eklendi.
+// onlyMine'dan bağımsız, ikisi birlikte de işaretlenebilir (ikisi de
+// filters/onlyMine state'ini kendi başına etkiler).
+export default function CallFilters({
+  filters,
+  onChange,
+  showKaynak = true,
+  onNewCallClick,
+  onlyMine,
+  onOnlyMineChange,
+  danismanOptions,
+}) {
   const set = (patch) => onChange({ ...filters, ...patch })
 
   return (
@@ -41,7 +53,21 @@ export default function CallFilters({ filters, onChange, showKaynak = true, onNe
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <DateRangeFilter value={filters} onChange={onChange} />
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {danismanOptions && (
+            <select
+              value={filters.atananDanisman ?? 'tumu'}
+              onChange={(e) => set({ atananDanisman: e.target.value })}
+              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+            >
+              <option value="tumu">Tüm Danışmanlar</option>
+              {danismanOptions.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          )}
           {onOnlyMineChange && (
             <div className="inline-flex rounded-full bg-ink-50 p-1 text-xs font-medium">
               <button

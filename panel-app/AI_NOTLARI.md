@@ -2193,3 +2193,60 @@ var: (1) özet sayım — bilinen örüntüyle diğer'e düşen vs. hiç eşleş
 
 **`archive.gd_leads`'e (684 satır, portföy tarafı) DOKUNULMADI** — ayrı bir
 faz olarak ele alınacak, bu taşımaya dahil değil.
+
+## 2026-08-15 — Danışman silme: müşteri/iş kayıtları artık silinmiyor
+
+Broker kararı: bir danışman hesabı SİLİNDİĞİNDE (deaktive değil), ona ait
+müşteri/iş kayıtları (fırsatlar, çağrı kayıtları, lead/recruiting
+atamaları, görevler) artık SİLİNMİYOR — kayıt kalıyor, sadece "kime ait"
+alanı boşalıyor, yönetim isterse başkasına yeniden atar. Sadece kişinin
+KENDİ kişisel performans verisi (lig puanları, ciro giriş geçmişi,
+etkinlik katılımı, doğum tarihi/TC no, user_private_info) eskisi gibi
+cascade ile siliniyor.
+
+- `supabase/migrations/20260815120000_gorevler_kullanici_silme_koruma.sql`:
+  `tasks.assignee_id`/`created_by` artık nullable, FK `on delete set null`
+  (eskiden `assignee_id` "not null ... on delete cascade" idi — danışman
+  silinince görev de TAMAMEN siliniyordu, bu bug'dı).
+- `supabase/functions/delete-user/index.ts`: `auth.admin.deleteUser`'dan
+  ÖNCE artık `opportunities` SİLİNMİYOR — `owner_id`/`claimer_id`/
+  `closed_by` null'lanıyor (claimer_id='claimed' ise status da 'acik'ya
+  düşüyor, kapanmış/iptal fırsatlara dokunulmuyor). Ayrıca `call_logs.
+  assigned_to`, `leads.atanan_danisman_id`, `recruiting_candidates.
+  atanan_danisman_id`, `docs.created_by`, `doc_versions.uploaded_by`,
+  `audit_log.actor_id`, `onboarding_checklist_status.done_by`,
+  `score_entries.entered_by`, `ciro_musterileri.entered_by`, `ciro_
+  girisleri.entered_by`, `social_activity_log.entered_by`, `event_
+  attendance.mazeret_reviewed_by` null'lanıyor — hepsi zaten nullable
+  kolonlardı, migration gerekmedi.
+
+## 2026-08-16 — CORS: 3 Edge Function `*` yerine kendi domainimize kilitlendi
+
+Güvenlik taraması sırasında `create-user`, `delete-user`, `reset-user-
+password` fonksiyonlarının `Access-Control-Allow-Origin: '*'` kullandığı
+(herhangi bir web sitesinin bu endpoint'lere tarayıcıdan istek atabildiği)
+görüldü — broker onaylı, `'*'` yerine `'https://panel.remaxlavanda.com.tr'`
+yapıldı. Bu üç fonksiyon zaten çağıranın gerçekten broker/owner olduğunu
+sunucu tarafında ayrıca doğruluyordu (RLS bypass service_role kontrolden
+SONRA kullanılıyor), yani asıl yetkisiz-erişim riski yoktu — bu sadece ek
+bir savunma katmanı. Deploy edildi (create-user v15, reset-user-password
+v15, delete-user v17).
+
+## 2026-08-16 — Yönetim için danışman bazlı inceleme (Takip + Operasyon)
+
+Broker isteği: "danışmanları filtreleyebiliyor olmamız lazım... o
+danışman üzerinde neler yapmış listeleyebiliyor olmamız lazım." Önce
+Ayarlar'da ayrı bir sekim olarak yapıldı, sonra broker "en doğru menü
+Takip" dedi — Ayarlar'daki sekme tamamen kaldırıldı, yerine:
+
+- **Takip** sayfasında bir danışmana tıklayınca açılan detay penceresine
+  (`HealthDetailModal.jsx`) "Fırsatlar" ve "Çağrı Kayıtları" bölümü
+  eklendi — o danışmana ait/atanan kayıtları gösterir. **Sadece
+  broker/owner görür, ofis görmez** (`canSeeOpportunities` prop) —
+  opportunities RLS'i ofis'i zaten kısıtlıyor (bkz.
+  PORTAL-CALISMA-PRENSIBI-ANALIZI.md §1), bu yüzden ofis'e hiç
+  gösterilmiyor (yarım/yanıltıcı veri görmesin diye).
+- **Operasyon** ekranına (`CallFilters.jsx`/`OperasyonTab.jsx`) "Tüm
+  Danışmanlar" dropdown filtresi eklendi — broker/owner/ofis'e açık
+  (call_logs RLS'i ofis'i kısıtlamıyor, sorun yok). `onlyMine`
+  toggle'ından bağımsız çalışır, ikisi birlikte de seçilebilir.

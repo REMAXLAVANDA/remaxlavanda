@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { Copy, Upload, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { users as usersProvider } from '../lib/dataProvider'
 import { uploadAvatarFile } from '../lib/storage'
-import { SOSYAL_MEDYA_FIELDS, kartvizitUrl } from '../lib/kartvizit'
+import { SOSYAL_MEDYA_FIELDS, hasKartvizit, kartvizitUrl } from '../lib/kartvizit'
 import { formatPhoneInput, isPhoneComplete } from '../lib/phone'
 import KartvizitCard from '../components/kartvizit/KartvizitCard'
 import AvatarCropModal from '../components/kartvizit/AvatarCropModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 export default function Kartvizitim() {
-  const { user } = useAuth()
+  const { user, role } = useAuth()
   const { showToast } = useToast()
   const { data: profile, loading, error, reload } = useAsyncList(() => usersProvider.getMyProfile(user.id), [user.id])
   const [form, setForm] = useState(null)
@@ -89,6 +90,11 @@ export default function Kartvizitim() {
     await navigator.clipboard.writeText(kartvizitUrl(user.id))
     showToast('Kartvizit linki kopyalandı.', 'success')
   }
+
+  // Ofis menüde bu linki hiç görmüyor (bkz. lib/kartvizit.js hasKartvizit) —
+  // ama route guard'ı yoktu, URL'den doğrudan girilebiliyordu. Leads.jsx'teki
+  // aynı desen: tüm hook'lardan SONRA, en son kontrol edilir.
+  if (!hasKartvizit(role)) return <Navigate to="/panel" replace />
 
   return (
     <div>

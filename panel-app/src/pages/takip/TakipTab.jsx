@@ -7,6 +7,7 @@ import {
   education as educationProvider,
   calendarEvents as calendarProvider,
   callLogs as callLogsProvider,
+  opportunities as opportunitiesProvider,
   takip as takipProvider,
   users as usersProvider,
   league as leagueProvider,
@@ -25,8 +26,14 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // loading/error durumu. Portal kullanımı ve müşteri memnuniyeti artık
 // gerçek verilerden (son giriş zamanı, ciro_musterileri) hesaplanıyor —
 // bkz. lib/takip.js.
-async function loadAll() {
-  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods] =
+//
+// `opportunities` SADECE broker/owner için çekiliyor — danışman detay
+// modalındaki "Fırsatlar ve Çağrı Kayıtları" bölümü (bkz. HealthDetailModal)
+// sadece yönetime açık, ofis/danışman görmüyor, o yüzden onlara gereksiz
+// veri çekmiyoruz (bkz. "yönetim olarak danışmanları filtreleyebilelim"
+// isteği — önce Ayarlar'da ayrı bir sekmeydi, sonra Takip'e taşındı).
+async function loadAll(includeOpportunities) {
+  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods, opportunities] =
     await Promise.all([
       educationProvider.listModules(),
       educationProvider.listProgress(),
@@ -40,14 +47,16 @@ async function loadAll() {
       leagueProvider.listCiroGirisleri(),
       leagueProvider.listScores(),
       leagueProvider.listPeriods(),
+      includeOpportunities ? opportunitiesProvider.list() : Promise.resolve([]),
     ])
-  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods }
+  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods, opportunities }
 }
 
 export default function TakipTab() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
-  const { data, loading, error, reload } = useAsyncList(loadAll, [])
+  const canSeeOpportunities = ['broker', 'owner'].includes(role)
+  const { data, loading, error, reload } = useAsyncList(() => loadAll(canSeeOpportunities), [canSeeOpportunities])
   const [selectedId, setSelectedId] = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -99,6 +108,9 @@ export default function TakipTab() {
           notes={data.brokerNotes[selected.user.id] ?? []}
           resolveName={userName}
           onClose={() => setSelectedId(null)}
+          canSeeOpportunities={canSeeOpportunities}
+          opportunities={data.opportunities}
+          calls={data.calls}
         />
       )}
     </div>

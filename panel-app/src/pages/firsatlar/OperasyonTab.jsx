@@ -20,7 +20,7 @@ import CallNoteModal from '../../components/operasyon/CallNoteModal'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
-const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
+const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '', atananDanisman: 'tumu' }
 
 // Yükleme bitmeden önce data null olur — useMemo bağımlılıklarının her
 // render'da referans değiştirmemesi için sabit, boş bir dizi kullanılır.
@@ -83,6 +83,7 @@ export default function OperasyonTab() {
     }
     return roleFiltered
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
+      .filter((c) => (filters.atananDanisman ?? 'tumu') === 'tumu' || c.assignedTo === filters.atananDanisman)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
       // Sadece tarihe göre, en yeni üstte — bir durumu (Görüşüldü/Portföy)
       // işaretlemek satırı listede yukarı/aşağı sıçratmasın istendi (bkz.
@@ -97,6 +98,10 @@ export default function OperasyonTab() {
   // yerlerdeki "danışman listesi" filtreleri bilerek AYRI tutuluyor (bkz.
   // Lig.jsx/Panel.jsx/TakipTab.jsx), broker orada YAYINLANMAK istemiyor.
   const inviteeOptions = sortByName(Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker'))
+  // "Danışman filtrele" — sadece yönetimde (broker/owner/ofis), sadece
+  // gerçekten danışman rolündekiler listelenir (bkz. "operasyon menüsüne
+  // de danışman filtresi koyalım" isteği).
+  const danismanFilterOptions = sortByName(Object.values(knownUsers).filter((u) => u.role === 'danisman'))
 
   async function updateCall(id, patch) {
     try {
@@ -269,6 +274,7 @@ export default function OperasyonTab() {
                   onNewCallClick={isManager ? () => setShowModal(true) : undefined}
                   onlyMine={onlyMine}
                   onOnlyMineChange={isManager ? setOnlyMine : undefined}
+                  danismanOptions={isManager ? danismanFilterOptions : undefined}
                 />
               </div>
 

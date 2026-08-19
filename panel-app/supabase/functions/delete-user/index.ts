@@ -2,19 +2,27 @@
 // Deploy: supabase functions deploy delete-user
 //
 // Ayarlar > Kullanıcılar'dan hesap silme — auth.users kaydını silmek
-// service_role gerektirir (create-user ile aynı kalıp). DİKKAT: auth.users
-// silinince public.users (ve ona "on delete cascade" ile bağlı ciro_
-// musterileri, event_attendance, score_entries, user_private_info vb.
-// TÜM geçmiş) de silinir — geri alınamaz. Fırsatlar (opportunities) ayrıca,
-// aşağıda elle temizleniyor (bkz. handler içi not). Bu yüzden broker kendi
-// kendini silemez (yanlışlıkla kilitlenmesin diye).
+// service_role gerektirir (create-user ile aynı kalıp). auth.users silinince
+// public.users (ve ona "on delete cascade" ile bağlı ciro_musterileri,
+// event_attendance, score_entries, user_private_info vb. KİŞİSEL geçmişi)
+// de silinir — bu kasıtlı, broker onaylı (2026-08-15).
+//
+// Müşteri/iş kayıtları (fırsatlar, çağrı kayıtları, lead/recruiting
+// atamaları, görevler) ise ARTIK SİLİNMİYOR — broker kararı: "hiçbir
+// müşteri/iş kaydı, o kaydı giren kişi ayrıldı diye silinmemeli". Bunun
+// yerine auth.users silinmeden ÖNCE bu danışmana ait "kime ait" alanları
+// biz boşaltıyoruz (aşağıda), kayıt kendisi kalıyor — yönetim isterse
+// başkasına yeniden atar. tasks.assignee_id/created_by artık DB seviyesinde
+// "on delete set null" olduğu için burada elle dokunmaya gerek yok.
+//
+// Bu yüzden broker kendi kendini silemez (yanlışlıkla kilitlenmesin diye).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SB_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
 const CORS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://panel.remaxlavanda.com.tr',
   'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
@@ -59,22 +67,37 @@ Deno.serve(async (req) => {
     return Response.json({ ok: false, error: 'Kendi hesabını silemezsin.' }, { status: 400, headers: CORS })
   }
 
-  // opportunities.owner_id/claimer_id "on delete no action" (bilerek —
-  // diğer tablolardan farklı olarak fırsat geçmişi normalde korunur), bu
-  // yüzden auth.users silinmeden ÖNCE bu danışmanın girdiği/üzerine aldığı
-  // TÜM fırsatları (açık + kapanmış/iptal, broker onaylı: "hepsi silinsin")
-  // biz temizliyoruz — yoksa FK ihlaliyle kullanıcı silme tamamen başarısız
-  // olurdu. call_logs.opportunity_id de aynı sebeple önce null'lanıyor
-  // (arama kaydı kalsın, sadece fırsat bağlantısı kopsun).
-  const { data: ownedOpps } = await admin
+  // Fırsatlar: silinen kişi sahibiyse (owner_id) veya üzerine almışsa
+  // (claimer_id) kayıt SİLİNMİYOR, sadece o alan boşaltılıyor. "claimed"
+  // durumundaki bir fırsatın sahibi ayrılırsa havuza geri düşsün diye
+  // status da 'acik'ya, claimed_at da null'a çekiliyor — kapanmış/iptal
+  // fırsatların durumuna dokunulmuyor.
+  await admin.from('opportunities').update({ owner_id: null }).eq('owner_id', id)
+  await admin
     .from('opportunities')
-    .select('id')
-    .or(`owner_id.eq.${id},claimer_id.eq.${id}`)
-  const oppIds = (ownedOpps ?? []).map((o) => o.id)
-  if (oppIds.length > 0) {
-    await admin.from('call_logs').update({ opportunity_id: null }).in('opportunity_id', oppIds)
-    await admin.from('opportunities').delete().in('id', oppIds)
-  }
+    .update({ claimer_id: null, claimed_at: null, status: 'acik' })
+    .eq('claimer_id', id)
+    .eq('status', 'claimed')
+  await admin.from('opportunities').update({ claimer_id: null }).eq('claimer_id', id).neq('status', 'claimed')
+  await admin.from('opportunities').update({ closed_by: null }).eq('closed_by', id)
+
+  // Çağrı kayıtları, lead havuzu, recruiting atamaları: kayıt kalıyor,
+  // sadece atama boşalıyor.
+  await admin.from('call_logs').update({ assigned_to: null }).eq('assigned_to', id)
+  await admin.from('leads').update({ atanan_danisman_id: null }).eq('atanan_danisman_id', id)
+  await admin.from('recruiting_candidates').update({ atanan_danisman_id: null }).eq('atanan_danisman_id', id)
+
+  // Rehber (dokümanlar), audit log ve "kim girdi/kim onayladı" kolonları:
+  // kayıt kalıyor, sadece kim yaptığı bilgisi boşalıyor.
+  await admin.from('docs').update({ created_by: null }).eq('created_by', id)
+  await admin.from('doc_versions').update({ uploaded_by: null }).eq('uploaded_by', id)
+  await admin.from('audit_log').update({ actor_id: null }).eq('actor_id', id)
+  await admin.from('onboarding_checklist_status').update({ done_by: null }).eq('done_by', id)
+  await admin.from('score_entries').update({ entered_by: null }).eq('entered_by', id)
+  await admin.from('ciro_musterileri').update({ entered_by: null }).eq('entered_by', id)
+  await admin.from('ciro_girisleri').update({ entered_by: null }).eq('entered_by', id)
+  await admin.from('social_activity_log').update({ entered_by: null }).eq('entered_by', id)
+  await admin.from('event_attendance').update({ mazeret_reviewed_by: null }).eq('mazeret_reviewed_by', id)
 
   const { error: deleteErr } = await admin.auth.admin.deleteUser(id)
   if (deleteErr) {
