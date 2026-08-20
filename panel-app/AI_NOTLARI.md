@@ -2250,3 +2250,46 @@ Takip" dedi — Ayarlar'daki sekme tamamen kaldırıldı, yerine:
   Danışmanlar" dropdown filtresi eklendi — broker/owner/ofis'e açık
   (call_logs RLS'i ofis'i kısıtlamıyor, sorun yok). `onlyMine`
   toggle'ından bağımsız çalışır, ikisi birlikte de seçilebilir.
+
+## 2026-08-20 — Belge Doldurma Platformu (veri tabanı + 16 belgenin
+tamamı forma bağlandı, PDF üretimi henüz yok)
+
+Broker isteği: 16 hukuki/idari belgeyi (Yetki Belgesi, Yer Gösterme,
+Kira Sözleşmesi vb.) danışman ekrandan doldursun, sistem kilitli/salt
+okunur bir PDF üretsin. Broker'ın kendi hazırlattığı Design canvas
+çıktısı (`.dc.html`, gerçek `<textarea name="...">`/`<input
+type="checkbox">` alanlarıyla, RE/MAX marka kimliğiyle tasarlanmış 16
+belge + `alanlar.json` alan listesi) referans alındı.
+
+**Mimari karar:** Bu belgeler gerçek web sayfaları (özel `<doc-page>`
+elementi, tarayıcının print motoruna bağlı sayfalama) — Supabase Edge
+Function'larda (Deno) headless Chromium çalıştırılamıyor. PDF üretimi
+için REMAX LAVANDA ekibi altında zaten var olan bir Vercel projesi
+kullanılacak (serverless, kullanınca ücretlendirilen bir fonksiyon —
+ek sabit maliyet yok). **Bu adım henüz kurulmadı.**
+
+**Şimdiye kadar yapılan:**
+- `document_templates` / `document_fields` / `document_instances`
+  tabloları + RLS (migration `20260820100000_belge_doldurma_platformu.sql`).
+  Doldurulan belgeler (TC no/tutar gibi hassas veri içerdiği için)
+  **sadece dolduran kişi + broker/owner** görebiliyor — ofis/diğer
+  danışmanlar göremez. `locked_at` dolunca (PDF üretilince) kayıt
+  kalıcı olarak kilitleniyor, broker dahil kimse değiştiremiyor —
+  yanlışsa yeni kayıt açılıyor.
+- **16 belgenin tamamı** (Yetki Belgesi'nden Hizmet Bedeli Protokolü
+  Satıcı'ya kadar, toplam 417 alan) DB'ye seed edildi — alan
+  etiketleri/tipleri `.dc.html` şablonlarının gerçek içeriği okunarak
+  (5 paralel araştırma ajanıyla) çıkarıldı, `alanlar.json`'daki alan
+  anahtarlarıyla birebir eşleşiyor. Mock sağlayıcıda da aynı 16 belge +
+  alan listesi var (dev/test amaçlı, `mockProvider.js`).
+- **Rehber** menüsüne "Belge Oluştur" sekmesi eklendi (broker isteği:
+  ayrı menü değil, Rehber'in içinde) — şablon listesi (16 belge),
+  dinamik form (`BelgeDoldurForm.jsx`), taslak kaydetme çalışıyor uçtan
+  uca (mock ve Supabase sağlayıcılarında `lib/dataProvider/*Provider.js`
+  -> `documentTemplates`/`documentFields`/`documentInstances`) —
+  Playwright ile doğrulandı (16/16 şablon listede, en büyük belge Kira
+  Sözleşmesi 47 alanla sorunsuz açılıyor).
+
+**Henüz yapılmayan (sıradaki adım):** Vercel'de PDF render fonksiyonu,
+"Oluştur ve Kilitle" düğmesinin gerçek işlevi, indirme linki (token) +
+karşı tarafa gönderme.

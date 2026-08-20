@@ -1368,3 +1368,94 @@ export const tasks = {
     await run(client().from('tasks').delete().eq('id', id))
   },
 }
+
+// --- Belge Doldurma Platformu (document_templates/fields/instances) --------
+// Şablonların kendisi (.dc.html) burada DEĞİL, ayrı bir Vercel projesinde —
+// bu tablolar sadece "hangi şablon, hangi alanlar, kim ne doldurdu" bilgisini
+// tutuyor (bkz. migration 20260820100000).
+function mapDocumentTemplate(row) {
+  return { id: row.id, slug: row.slug, name: row.name, sortOrder: row.sort_order, isActive: row.is_active }
+}
+
+function mapDocumentField(row) {
+  return {
+    id: row.id,
+    templateId: row.template_id,
+    fieldKey: row.field_key,
+    label: row.label,
+    fieldType: row.field_type,
+    required: row.required,
+    sortOrder: row.sort_order,
+  }
+}
+
+function mapDocumentInstance(row) {
+  return {
+    id: row.id,
+    templateId: row.template_id,
+    createdBy: row.created_by,
+    data: row.data ?? {},
+    status: row.status,
+    pdfStoragePath: row.pdf_storage_path,
+    downloadToken: row.download_token,
+    downloadExpiresAt: row.download_expires_at,
+    lockedAt: row.locked_at,
+    createdAt: row.created_at,
+  }
+}
+
+export const documentTemplates = {
+  async list() {
+    const data = await run(
+      client().from('document_templates').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
+    )
+    return data.map(mapDocumentTemplate)
+  },
+}
+
+export const documentFields = {
+  async listByTemplate(templateId) {
+    const data = await run(
+      client()
+        .from('document_fields')
+        .select('*')
+        .eq('template_id', templateId)
+        .order('sort_order', { ascending: true }),
+    )
+    return data.map(mapDocumentField)
+  },
+}
+
+export const documentInstances = {
+  // document_instances_select RLS'i zaten görebileceklerini filtreliyor
+  // (kendi doldurdukları + broker/owner hepsini) — diğer list()'lerle aynı desen.
+  async list() {
+    const data = await run(client().from('document_instances').select('*').order('created_at', { ascending: false }))
+    return data.map(mapDocumentInstance)
+  },
+  async get(id) {
+    const data = await run(client().from('document_instances').select('*').eq('id', id).single())
+    return mapDocumentInstance(data)
+  },
+  async create({ templateId, data: fieldData }, userId) {
+    const row = await run(
+      client()
+        .from('document_instances')
+        .insert({ template_id: templateId, created_by: userId, data: fieldData ?? {} })
+        .select()
+        .single(),
+    )
+    return mapDocumentInstance(row)
+  },
+  // Sadece taslak (locked_at is null) aşamasında çağrılabilir — RLS zaten
+  // kilitlenmiş bir kaydın update'ini reddeder (bkz. migration).
+  async updateData(id, fieldData) {
+    const row = await run(
+      client().from('document_instances').update({ data: fieldData }).eq('id', id).select().single(),
+    )
+    return mapDocumentInstance(row)
+  },
+  async remove(id) {
+    await run(client().from('document_instances').delete().eq('id', id))
+  },
+}
