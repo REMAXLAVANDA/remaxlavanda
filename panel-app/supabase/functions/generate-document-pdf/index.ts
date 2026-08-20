@@ -14,7 +14,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const SB_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const BELGE_PDF_SECRET = Deno.env.get('BELGE_PDF_SECRET') ?? ''
-const VERCEL_PDF_URL = 'https://remaxlavanda-remax-lavanda.vercel.app/api/generate-document-pdf'
+// ÖNEMLİ: *.vercel.app adresleri Vercel'in kendi SSO korumasının arkasında
+// (bkz. proje ayarları — "all_except_custom_domains") — sadece gerçek özel
+// alan adı (custom domain) bu korumayı atlıyor. panel.remaxlavanda.com.tr
+// KULLANILAMAZ çünkü vercel.json orada /(.*) -> /panel/index.html rewrite'i
+// yapıyor, /api/* isteğini de yakalayıp SPA'ya yönlendirir.
+const VERCEL_PDF_URL = 'https://www.remaxlavanda.com.tr/api/generate-document-pdf'
 
 const CORS = {
   'Access-Control-Allow-Origin': 'https://panel.remaxlavanda.com.tr',
