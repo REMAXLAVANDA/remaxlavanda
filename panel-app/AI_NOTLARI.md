@@ -2251,8 +2251,8 @@ Takip" dedi — Ayarlar'daki sekme tamamen kaldırıldı, yerine:
   (call_logs RLS'i ofis'i kısıtlamıyor, sorun yok). `onlyMine`
   toggle'ından bağımsız çalışır, ikisi birlikte de seçilebilir.
 
-## 2026-08-20 — Belge Doldurma Platformu (1. adım: veri tabanı + Yetki
-Belgesi formu, PDF üretimi henüz yok)
+## 2026-08-20 — Belge Doldurma Platformu (veri tabanı + 16 belgenin
+tamamı forma bağlandı, PDF üretimi henüz yok)
 
 Broker isteği: 16 hukuki/idari belgeyi (Yetki Belgesi, Yer Gösterme,
 Kira Sözleşmesi vb.) danışman ekrandan doldursun, sistem kilitli/salt
@@ -2276,14 +2276,20 @@ ek sabit maliyet yok). **Bu adım henüz kurulmadı.**
   danışmanlar göremez. `locked_at` dolunca (PDF üretilince) kayıt
   kalıcı olarak kilitleniyor, broker dahil kimse değiştiremiyor —
   yanlışsa yeni kayıt açılıyor.
-- İlk şablon olarak **Yetki Belgesi** (30 alan) DB'ye seed edildi.
+- **16 belgenin tamamı** (Yetki Belgesi'nden Hizmet Bedeli Protokolü
+  Satıcı'ya kadar, toplam 417 alan) DB'ye seed edildi — alan
+  etiketleri/tipleri `.dc.html` şablonlarının gerçek içeriği okunarak
+  (5 paralel araştırma ajanıyla) çıkarıldı, `alanlar.json`'daki alan
+  anahtarlarıyla birebir eşleşiyor. Mock sağlayıcıda da aynı 16 belge +
+  alan listesi var (dev/test amaçlı, `mockProvider.js`).
 - **Rehber** menüsüne "Belge Oluştur" sekmesi eklendi (broker isteği:
-  ayrı menü değil, Rehber'in içinde) — şablon listesi, dinamik form
-  (`BelgeDoldurForm.jsx`), taslak kaydetme çalışıyor uçtan uca (mock ve
-  Supabase sağlayıcılarında `lib/dataProvider/*Provider.js` ->
-  `documentTemplates`/`documentFields`/`documentInstances`).
+  ayrı menü değil, Rehber'in içinde) — şablon listesi (16 belge),
+  dinamik form (`BelgeDoldurForm.jsx`), taslak kaydetme çalışıyor uçtan
+  uca (mock ve Supabase sağlayıcılarında `lib/dataProvider/*Provider.js`
+  -> `documentTemplates`/`documentFields`/`documentInstances`) —
+  Playwright ile doğrulandı (16/16 şablon listede, en büyük belge Kira
+  Sözleşmesi 47 alanla sorunsuz açılıyor).
 
-**Henüz yapılmayan (sıradaki adımlar):** Vercel'de PDF render
-fonksiyonu, "Oluştur ve Kilitle" düğmesinin gerçek işlevi, indirme
-linki (token) + karşı tarafa gönderme, diğer 15 belgenin alan
-listelerinin (`alanlar.json`'dan) seed edilmesi.
+**Henüz yapılmayan (sıradaki adım):** Vercel'de PDF render fonksiyonu,
+"Oluştur ve Kilitle" düğmesinin gerçek işlevi, indirme linki (token) +
+karşı tarafa gönderme.
