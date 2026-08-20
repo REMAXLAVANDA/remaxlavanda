@@ -1439,4 +1439,16 @@ export const documentInstances = {
     if (idx !== -1) MOCK_DOCUMENT_INSTANCES.splice(idx, 1)
     return delay(null)
   },
+  // Dev modda gerçek Vercel/Chromium yok — akışı test edebilmek için
+  // kaydı sahte bir PDF yoluyla kilitler.
+  async generatePdf(instanceId) {
+    const row = MOCK_DOCUMENT_INSTANCES.find((i) => i.id === instanceId)
+    if (!row) throw new Error('Belge kaydı bulunamadı.')
+    row.status = 'completed'
+    row.pdfStoragePath = `${instanceId}.pdf`
+    row.downloadToken = `mock-token-${instanceId}`
+    row.downloadExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    row.lockedAt = new Date().toISOString()
+    return delay({ downloadToken: row.downloadToken, downloadExpiresAt: row.downloadExpiresAt })
+  },
 }

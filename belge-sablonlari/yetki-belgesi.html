@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+doc-page:not(:defined){visibility:hidden}
+body{margin:0}
+a{color:#043D9D}
+a:hover{color:#022a70}
+input,textarea{font-family:'Montserrat',sans-serif}
+textarea[data-fld]{overflow:hidden;overflow-wrap:anywhere;word-break:break-word;resize:none;line-height:1.3;vertical-align:bottom}
+input:focus,textarea:focus{outline:2px solid #043D9D;outline-offset:-1px;background:#fff}
+@media print{textarea[data-fld]{overflow:visible}}
+doc-page{--doc-hdr-h:42px!important;--doc-ftr-h:46px!important;--doc-hdr-pad:0.30in!important;--doc-ftr-pad:0.30in!important}
+.om-pageno::after{content:counter(page)}
+@media screen{.om-pageno::after{content:"1"}}
+</style>
+<script src="./doc-page.js"></script>
+<script>
+(function(){
+ function grow(el){el.style.height='auto';el.style.height=Math.max(el.dataset.minh?+el.dataset.minh:18,el.scrollHeight)+'px';}
+ function init(){document.querySelectorAll('textarea[data-fld]').forEach(function(t){if(t.dataset.on)return;t.dataset.on=1;if(!t.dataset.minh)t.dataset.minh=t.offsetHeight||18;t.addEventListener('input',function(){grow(t)});grow(t);});}
+ document.addEventListener('input',function(e){if(e.target.matches&&e.target.matches('textarea[data-fld]'))grow(e.target)},true);
+ new MutationObserver(init).observe(document.documentElement,{childList:true,subtree:true});
+ window.addEventListener('load',init);window.addEventListener('beforeprint',init);init();
+})();
+</script>
+</helmet>
+<doc-page size="a4" margin="0.6in">
+
+<div slot="header" style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:9px;border-bottom:2px solid #043D9D;margin-bottom:0;font-family:'Montserrat',sans-serif">
+  <img src="./assets/lockup.png" alt="" width="290" height="441" style="position:absolute;left:50%;top:270px;width:290px;height:441px;transform:translateX(-50%);opacity:0.06;filter:drop-shadow(0 10px 22px rgba(0,0,0,0.45));pointer-events:none" />
+  <img src="./assets/wordmark.png" alt="RE/MAX LAVANDA" width="240" height="20" style="width:240px;height:20px;display:block;flex:none" />
+  <div style="font-size:6.6pt;letter-spacing:0.17em;color:#8A94A0;text-transform:uppercase;font-weight:700;text-align:right;max-width:210px;line-height:1.5">Danışmanlık ve Yetki Belgesi</div>
+</div>
+
+<div slot="footer" style="font-family:'Montserrat',sans-serif;padding-top:12px;border-top:1px solid #CBD5E4;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px">
+    <span style="display:flex;width:16px;height:2px;flex:none"><span style="flex:1;background:#043D9D"></span><span style="flex:1;background:#D8232A"></span></span>
+    <div style="display:flex;flex-direction:column;gap:2px;line-height:1.35;min-width:0">
+      <div style="font-size:6.1pt;font-weight:700;color:#1c1a20;letter-spacing:0.07em;white-space:nowrap">LAVANDA GAYRİMENKUL DAN. SAN. VE TİC. LTD. ŞTİ.</div>
+      <div style="font-size:5.9pt;color:#5C6773;letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rumeli Mah. Yücetürk Cad. No: 20/3 Çorlu / Tekirdağ<span style="color:#9AA3AE">&nbsp;&nbsp;·&nbsp;&nbsp;</span>Çorlu VD 6081445718<span style="color:#9AA3AE">&nbsp;&nbsp;·&nbsp;&nbsp;</span>Yetki Belge No 5900871<span style="color:#9AA3AE">&nbsp;&nbsp;·&nbsp;&nbsp;</span>+90 282 502 22 22<span style="color:#9AA3AE">&nbsp;&nbsp;·&nbsp;&nbsp;</span>remaxlavanda.com.tr</div>
+    </div>
+    <div style="font-size:7.6pt;font-weight:700;color:#043D9D;font-variant-numeric:tabular-nums"><span class="om-pageno"></span></div>
+  </div>
+
+<div style="font-family:'Montserrat',sans-serif;font-size:9.2pt;line-height:1.45;color:#14181D;font-weight:400">
+  <div style="margin-bottom:15px">
+    <div style="font-size:7pt;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:#D8232A">Gayrimenkul Danışmanlık Hizmet Sözleşmesi</div>
+    <h1 style="font-size:16.5pt;line-height:1.14;font-weight:700;letter-spacing:-0.01em;margin:6px 0 0;color:#043D9D">Taşınmazın Satılması / Kiralanması<br />Danışmanlık ve Yetki Belgesi</h1>
+    <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
+      <div style="display:flex;width:34px;height:3px"><span style="flex:1;background:#043D9D"></span><span style="flex:1;background:#D8232A"></span></div>
+      <div style="font-size:7.8pt;letter-spacing:0.05em;color:#3F4A56;font-weight:500">MLS sistemine alınma · Tek yetki · Pazarlama ve aracılık</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #CBD5E4">
+    <span style="font-size:8.2pt;font-weight:700;color:#D8232A">01</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#043D9D">Gayrimenkul Bilgileri</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:14.5%;">İl</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:14.5%;">İlçe</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:14.5%;">Mahalle</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:14.5%;">Ada</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:14.5%;">Parsel</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:27.5%;">Bağımsız Bölüm</th></tr>
+    <tr><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_il" id="f_d1_il" aria-label="d1_il" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_ilce" id="f_d1_ilce" aria-label="d1_ilce" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_mahalle" id="f_d1_mahalle" aria-label="d1_mahalle" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_ada" id="f_d1_ada" aria-label="d1_ada" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_parsel" id="f_d1_parsel" aria-label="d1_parsel" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_bagimsiz_bolum" id="f_d1_bagimsiz_bolum" aria-label="d1_bagimsiz_bolum" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;" colspan="6">Adres</th></tr>
+    <tr><td style="border:1px solid #CBD5E4;padding:0" colspan="6"><textarea data-fld rows="1" name="d1_adres" id="f_d1_adres" aria-label="d1_adres" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;margin:7px 0 4px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D">Nitelik</span><span style="display:flex;gap:13px"><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d1_nitelik_konut" id="f_d1_nitelik_konut" style="width:11px;height:11px;margin:0;accent-color:#043D9D;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Konut</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d1_nitelik_arsa" id="f_d1_nitelik_arsa" style="width:11px;height:11px;margin:0;accent-color:#043D9D;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Arsa</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d1_nitelik_fabrika" id="f_d1_nitelik_fabrika" style="width:11px;height:11px;margin:0;accent-color:#043D9D;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Fabrika</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d1_nitelik_diger" id="f_d1_nitelik_diger" style="width:11px;height:11px;margin:0;accent-color:#043D9D;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Diğer</span></label></span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D">İşlem</span><span style="display:flex;gap:13px"><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d1_islem_satis" id="f_d1_islem_satis" style="width:11px;height:11px;margin:0;accent-color:#043D9D;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Satış</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d1_islem_kiralama" id="f_d1_islem_kiralama" style="width:11px;height:11px;margin:0;accent-color:#043D9D;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Kiralama</span></label></span></div></div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #CBD5E4">
+    <span style="font-size:8.2pt;font-weight:700;color:#D8232A">02</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#043D9D">Aracı Kurum</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:33%;">Unvan</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:14%;">Yetki Belge No</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:21%;">Mersis</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;">Adres</th></tr>
+    <tr><td style="border:1px solid #CBD5E4;padding:0"><span style="font-weight:600;display:block;padding:4px 6px">Lavanda Gayrimenkul Dan. San. Tic. Ltd. Şti. <span style="font-weight:400;color:#3F4A56">(“RE/MAX LAVANDA”)</span></span></td><td style="border:1px solid #CBD5E4;padding:0"><span style="display:block;padding:4px 6px">5900871</span></td><td style="border:1px solid #CBD5E4;padding:0"><span style="display:block;padding:4px 6px">0608144571800001</span></td><td style="border:1px solid #CBD5E4;padding:0"><span style="display:block;padding:4px 6px">Rumeli Mah. Yücetürk Cd. No: 20/3 Çorlu / Tekirdağ</span></td></tr>
+  </tbody></table>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #CBD5E4">
+    <span style="font-size:8.2pt;font-weight:700;color:#D8232A">03</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#043D9D">Müşteri Bilgileri</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:33%;">Müşteri · Adı Soyadı / Unvan</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:21%;">T.C. / VKN</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:21%;">Telefon</th><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;">E-Posta</th></tr>
+    <tr><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_musteri_ad" id="f_d1_musteri_ad" aria-label="d1_musteri_ad" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_musteri_tc" id="f_d1_musteri_tc" aria-label="d1_musteri_tc" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_musteri_tel" id="f_d1_musteri_tel" aria-label="d1_musteri_tel" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td><td style="border:1px solid #CBD5E4;padding:0"><textarea data-fld rows="1" name="d1_musteri_eposta" id="f_d1_musteri_eposta" aria-label="d1_musteri_eposta" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#EEF3FA;border:1px solid #CBD5E4;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;" colspan="4">Adres</th></tr>
+    <tr><td style="border:1px solid #CBD5E4;padding:0" colspan="4"><textarea data-fld rows="1" name="d1_musteri_adres" id="f_d1_musteri_adres" aria-label="d1_musteri_adres" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <div style="display:flex;align-items:center;gap:10px;margin:15px 0 9px;break-after:avoid">
+    <div style="font-size:11pt;font-weight:700;white-space:nowrap;color:#043D9D">Sözleşme Hükümleri</div>
+    <div style="flex:1;height:1px;background:#CBD5E4"></div>
+  </div>
+  <ol style="margin:0;padding:0;list-style:none">
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">01</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">SÖZLEŞMENİN KONUSU —</span> İşbu sözleşme; MÜŞTERİ’nin maliki veya yasal temsilcisi olduğu taşınmazın satış veya kiralanması amacıyla RE/MAX LAVANDA tarafından yürütülecek pazarlama, tanıtım, aracılık, portföy yönetimi, MLS / internet sistemi üzerinden paylaşım faaliyetlerinin koşullarını düzenler.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">02</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">HİZMET BEDELİ —</span> Satış işlemlerinde satış bedelinin <strong>%2 + KDV</strong>, kiralama işlemlerinde <strong>1 kira bedeli + KDV</strong> MÜŞTERİ tarafından RE/MAX LAVANDA’ya ödenir. Hizmet bedeli, satış veya kiralama işleminin gerçekleştiği gün nakden ve defaten ödenir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">03</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">PAZARLAMA FAALİYETLERİ —</span> RE/MAX LAVANDA; ilan portalları, sosyal medya, MLS sistemi, portföy paylaşımı, basılı ve dijital reklam kanalları üzerinden pazarlama yapabilir. MÜŞTERİ; taşınmaza erişim, fotoğraf ve video çekimi ile tanıtım için gerekli izinleri verir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">04</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">TEK YETKİ —</span> MÜŞTERİ, sözleşme süresi boyunca taşınmazın satış veya kiralanması için yalnızca RE/MAX LAVANDA ile çalışacağını kabul eder. MÜŞTERİ; başka emlak ofisleri ile çalışmayacağını, taşınmazı kendisinin satmayacağını veya kiralamayacağını, gelen talepleri RE/MAX LAVANDA’ya yönlendireceğini kabul eder. Bu hükme aykırı davranılması halinde MÜŞTERİ, hizmet bedelinin tamamını ödemeyi kabul eder.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">05</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">DOĞRUDAN SATIŞ —</span> Yetki süresi içinde taşınmazın; MÜŞTERİ tarafından, başka bir emlakçı aracılığıyla veya doğrudan alıcıya satılması ya da kiralanması halinde, RE/MAX LAVANDA hizmet bedelinin tamamına hak kazanır.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">06</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">BAŞVURULARIN BİLDİRİLMESİ —</span> MÜŞTERİ’ye taşınmaz hakkında doğrudan gelen alıcı, kiracı ve yatırımcı talepleri RE/MAX LAVANDA’ya bildirilir. Bildirilmeden yapılan işlemlerde hizmet bedeli doğar.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">07</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">HİZMET ORTAKLIĞI —</span> RE/MAX LAVANDA; diğer RE/MAX ofisleri, emlak işletmeleri ve danışmanlar ile iş birliği yapabilir. MÜŞTERİ bunu kabul eder.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">08</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">SONUÇ DOĞURAN GÖRÜŞMELER —</span> Sözleşme süresi sona ermiş olsa dahi; RE/MAX LAVANDA tarafından tanıştırılan, gösterilen veya pazarlama faaliyetleri sonucu ulaşılan kişilerle <strong>180 gün</strong> içinde işlem yapılması halinde hizmet bedeli ödenir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">09</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">BAĞLANTILI KİŞİLER —</span> MÜŞTERİ aşağıdaki kişiler üzerinden işlem yaparsa da hizmet bedeli öder: eş, üçüncü dereceye kadar akrabalar, şirket ortakları, çalışanlar, bağlantılı şirketler ve vekiller.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">10</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">TEKLİF REDDİ —</span> RE/MAX LAVANDA tarafından yazılı olarak sunulan teklif reddedilir ve daha sonra aynı bedelle, daha düşük bedelle veya aynı kişi ya da bağlantılı kişiler ile işlem yapılırsa hizmet bedeli ödenir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">11</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">YETKİSİZ TEMSİL —</span> Taşınmaz üzerinde mülkiyet, satış yetkisi veya temsil yetkisi bulunmayan kişilerin imza atması halinde; imza atan kişi ve MÜŞTERİ, RE/MAX LAVANDA’nın uğrayacağı zararları müteselsilen karşılar.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">12</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">BİLGİLERİN DOĞRULUĞU —</span> MÜŞTERİ; taşınmazın mülkiyet, ipotek, haciz, imar ve kullanım durumu hakkında verdiği bilgilerin doğru olduğunu kabul eder. Yanlış bilgi verilmesi nedeniyle oluşacak zararlar MÜŞTERİ’ye aittir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">13</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">RESMİ KURUMLAR —</span> RE/MAX LAVANDA; tapu müdürlüğü, belediye ve resmi kurumlar nezdinde araştırma yapabilir, belge alabilir ve belge teslim edebilir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">14</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">FİYAT DEĞİŞİKLİĞİ —</span> Taşınmazın satış veya kira bedelinde yapılacak değişiklikler RE/MAX LAVANDA’ya yazılı olarak bildirilir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">15</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">BAĞLANMA / CAYMA BEDELİ YETKİSİ —</span> MÜŞTERİ, taşınmazın satış veya kiralanması sürecinde alıcı veya kiracı adaylarından bağlanma bedeli (kapora / cayma bedeli) alınmasına izin verdiğini kabul eder. MÜŞTERİ; RE/MAX LAVANDA ve görevlendirdiği gayrimenkul danışmanının bağlanma bedeli sözleşmesi düzenlemeye, bağlanma bedelini teslim almaya ve bu bedeli taraflar adına emaneten muhafaza etmeye yetkili olduğunu kabul eder. Bağlanma bedelinin hangi şartlarda iade edileceği veya irat kaydedileceği ayrıca düzenlenecek bağlanma bedeli / cayma bedeli sözleşmesine göre belirlenir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">16</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">SÜRE —</span> Bu sözleşme <textarea data-fld rows="1" name="d1_m16_tarih_1" id="f_d1_m16_tarih_1" aria-label="Tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:86px;font-size:8.6pt;text-align:center;"></textarea> tarihinde yürürlüğe girer. Yetki süresi <textarea data-fld rows="1" name="d1_m16_alan_2" id="f_d1_m16_alan_2" aria-label="d1_m16_alan_2" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:70px;font-size:8.6pt;"></textarea> gündür. Taraflar yetki süresi dolmadan yazılı olarak feshetmedikçe sözleşme en fazla dört (4) kez otomatik olarak uzar.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">17</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">FESİH VE CEZAİ ŞART —</span> MÜŞTERİ, haklı sebep olmaksızın sözleşmeyi feshederse satılık mülk için satış bedelinin <strong>%4 + KDV</strong>, kiralık mülk için <strong>1 kira bedeli + KDV</strong> veya son ilan fiyatı üzerinden cezai şart öder.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">18</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">KVKK —</span> MÜŞTERİ, kişisel verilerinin 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında işlenmesini ve franchise sistemi içinde paylaşılmasını kabul eder.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">19</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">MARKA —</span> RE/MAX LAVANDA, RE/MAX markasını franchise sistemi ile RE/MAX Türkiye’den kullanmaktadır.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">20</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">BİLGİLENDİRME —</span> MÜŞTERİ, taşınmazın satış veya kiralanması sürecinde ortaya çıkabilecek vergisel ve hukuksal konular hakkında RE/MAX LAVANDA tarafından genel bilgilendirme yapıldığını kabul eder.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#D8232A;padding-top:1px">21</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#043D9D">YETKİLİ MAHKEME —</span> İşbu sözleşmeden doğacak uyuşmazlıklarda <textarea data-fld rows="1" name="d1_m21_alan_1" id="f_d1_m21_alan_1" aria-label="d1_m21_alan_1" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:101.19999999999999px;font-size:8.6pt;"></textarea> Mahkemeleri ve İcra Daireleri yetkilidir.</p>
+    </li>
+  </ol>
+  <div style="margin-top:11px;border:1px solid #CBD5E4;background:#F7FAFD;padding:9px 12px;break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact">
+    <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#D8232A;margin-bottom:4px">Ek Hükümler / Özel Şartlar</div>
+    <p style="margin:0 0 7px;font-size:8pt;color:#3F4A56;line-height:1.42">Taraflar, işbu sözleşmede yer alan hükümlere ek olarak aşağıdaki özel şartları karşılıklı olarak kabul etmişlerdir. Bu bölümde yazılı olmayan hiçbir sözlü beyan taraflar açısından bağlayıcı değildir.</p>
+    <div style="display:grid;gap:7px">
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">1.</span><textarea data-fld rows="1" name="d1_ozel_sart_1" id="f_d1_ozel_sart_1" aria-label="d1_ozel_sart_1" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">2.</span><textarea data-fld rows="1" name="d1_ozel_sart_2" id="f_d1_ozel_sart_2" aria-label="d1_ozel_sart_2" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">3.</span><textarea data-fld rows="1" name="d1_ozel_sart_3" id="f_d1_ozel_sart_3" aria-label="d1_ozel_sart_3" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">4.</span><textarea data-fld rows="1" name="d1_ozel_sart_4" id="f_d1_ozel_sart_4" aria-label="d1_ozel_sart_4" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+    </div>
+  </div>
+  <p style="margin:11px 0 0;font-size:8.6pt;color:#3F4A56;font-weight:500">Bu sözleşme <textarea data-fld rows="1" name="d1_kapanis_tarih_1" id="f_d1_kapanis_tarih_1" aria-label="Tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:86px;font-size:8.6pt;text-align:center;"></textarea> tarihinde <textarea data-fld rows="1" name="d1_kapanis_alan_2" id="f_d1_kapanis_alan_2" aria-label="d1_kapanis_alan_2" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:70px;font-size:8.6pt;"></textarea> nüsha olarak düzenlenmiş ve taraflarca imzalanmıştır.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:16px;break-inside:avoid">
+    <div>
+      <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#043D9D;padding-bottom:4px;border-bottom:2px solid #043D9D">Müşteri <span style="color:#8A94A0;font-weight:600">(Malik / Kiraya Veren)</span></div>
+      <div style="display:grid;grid-template-columns:96px 1fr;gap:6px 8px;margin-top:8px;font-size:7pt;align-items:center;white-space:nowrap;color:#5C6773">
+        <span>Ad Soyad / Unvan</span><textarea data-fld rows="1" name="d1_musteri_ad" id="f_d1_musteri_ad" aria-label="d1_musteri_ad" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+        <span>Tarih</span><textarea data-fld rows="1" name="d1_musteri_tarih" id="f_d1_musteri_tarih" aria-label="d1_musteri_tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+      </div>
+      <div style="margin-top:8px;height:84px;border-bottom:1px solid #14181D"></div>
+      <div style="font-size:6.4pt;letter-spacing:0.16em;text-transform:uppercase;color:#8A94A0;margin-top:4px;font-weight:700">İmza</div>
+    </div>
+    <div>
+      <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#043D9D;padding-bottom:4px;border-bottom:2px solid #043D9D">RE/MAX Lavanda <span style="color:#8A94A0;font-weight:600">(Gayrimenkul Danışmanı)</span></div>
+      <div style="display:grid;grid-template-columns:96px 1fr;gap:6px 8px;margin-top:8px;font-size:7pt;align-items:center;white-space:nowrap;color:#5C6773">
+        <span>Ad Soyad / Unvan</span><textarea data-fld rows="1" name="d1_re_max_lavanda_ad" id="f_d1_re_max_lavanda_ad" aria-label="d1_re_max_lavanda_ad" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+        <span>Tarih</span><textarea data-fld rows="1" name="d1_re_max_lavanda_tarih" id="f_d1_re_max_lavanda_tarih" aria-label="d1_re_max_lavanda_tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F4F7FC;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+      </div>
+      <div style="margin-top:8px;height:84px;border-bottom:1px solid #14181D;position:relative;overflow:hidden">
+        <div style="position:absolute;right:2px;bottom:4px;border:1.6px solid #043D9D;padding:2px;opacity:0.88;print-color-adjust:exact;-webkit-print-color-adjust:exact">
+          <div style="border:0.6px solid #043D9D;padding:3px 7px;text-align:center;line-height:1.25">
+            <div style="font-size:5.4pt;font-weight:700;letter-spacing:0.18em;color:#D8232A">RE/MAX LAVANDA</div>
+            <div style="font-size:5pt;font-weight:700;letter-spacing:0.04em;color:#043D9D;margin-top:1px">LAVANDA GAYRİMENKUL DAN.<br />SAN. VE TİC. LTD. ŞTİ.</div>
+            <div style="height:0.6px;background:#043D9D;margin:2px 0"></div>
+            <div style="font-size:4.6pt;letter-spacing:0.05em;color:#043D9D">Çorlu VD 6081445718 · Yetki Belge No 5900871</div>
+            <div style="font-size:4.6pt;letter-spacing:0.05em;color:#043D9D">Rumeli Mah. Yücetürk Cad. 20/3 Çorlu / Tekirdağ</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:6.4pt;letter-spacing:0.16em;text-transform:uppercase;color:#8A94A0;margin-top:4px;font-weight:700">İmza / Kaşe</div>
+    </div>
+  </div>
+
+</div>
+</doc-page>
+</x-dc>
+</body>
+</html>

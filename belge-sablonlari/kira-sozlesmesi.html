@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+doc-page:not(:defined){visibility:hidden}
+body{margin:0}
+a{color:#1F2937}
+a:hover{color:#111827}
+input,textarea{font-family:'Montserrat',sans-serif}
+textarea[data-fld]{overflow:hidden;overflow-wrap:anywhere;word-break:break-word;resize:none;line-height:1.3;vertical-align:bottom}
+input:focus,textarea:focus{outline:2px solid #1F2937;outline-offset:-1px;background:#fff}
+@media print{textarea[data-fld]{overflow:visible}}
+doc-page{--doc-hdr-h:42px!important;--doc-ftr-h:40px!important;--doc-hdr-pad:0.30in!important;--doc-ftr-pad:0.30in!important}
+.om-pageno::after{content:counter(page)}
+@media screen{.om-pageno::after{content:"1"}}
+</style>
+<script src="./doc-page.js"></script>
+<script>
+(function(){
+ function grow(el){el.style.height='auto';el.style.height=Math.max(el.dataset.minh?+el.dataset.minh:18,el.scrollHeight)+'px';}
+ function init(){document.querySelectorAll('textarea[data-fld]').forEach(function(t){if(t.dataset.on)return;t.dataset.on=1;if(!t.dataset.minh)t.dataset.minh=t.offsetHeight||18;t.addEventListener('input',function(){grow(t)});grow(t);});}
+ document.addEventListener('input',function(e){if(e.target.matches&&e.target.matches('textarea[data-fld]'))grow(e.target)},true);
+ new MutationObserver(init).observe(document.documentElement,{childList:true,subtree:true});
+ window.addEventListener('load',init);window.addEventListener('beforeprint',init);init();
+})();
+</script>
+</helmet>
+<doc-page size="a4" margin="0.6in">
+
+<div slot="header" style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;height:14px;padding-bottom:4px;border-bottom:1.5px solid #1F2937;margin-bottom:12px;font-family:'Montserrat',sans-serif">
+  <div></div>
+  <div style="font-size:6.6pt;letter-spacing:0.17em;color:#8A94A0;text-transform:uppercase;font-weight:700;text-align:right;max-width:210px;line-height:1.5">Kira Sözleşmesi</div>
+</div>
+
+<div slot="footer" style="font-family:'Montserrat',sans-serif;padding:14px 0 0;border-top:0;;border-top:1px solid #D1D5DB;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px">
+    <div style="font-size:6.2pt;line-height:1.5;color:#5C6773"></div>
+    <div style="font-size:7.6pt;font-weight:700;color:#1F2937;font-variant-numeric:tabular-nums">
+      <span class="om-pageno"></span>
+    </div>
+  </div>
+
+<div style="font-family:'Montserrat',sans-serif;font-size:9.2pt;line-height:1.45;color:#14181D;font-weight:400">
+  <div style="margin-bottom:15px">
+    <div style="font-size:7pt;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;color:#4B5563">Türk Borçlar Kanunu Hükümlerine Uygun</div>
+    <h1 style="font-size:16.5pt;line-height:1.14;font-weight:700;letter-spacing:-0.01em;margin:6px 0 0;color:#1F2937">Kira Sözleşmesi</h1>
+    <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
+      <div style="display:flex;width:34px;height:3px"><span style="flex:1;background:#1F2937"></span><span style="flex:1;background:#4B5563"></span></div>
+      <div style="font-size:7.8pt;letter-spacing:0.05em;color:#3F4A56;font-weight:500">Müteferrik Hükümler · Genel / Konut / İşyeri</div>
+    </div>
+  </div>
+  <p style="margin:0px 0 0;font-size:9.2pt;line-height:1.42;color:#14181D">Bu sözleşme, 6098 sayılı Türk Borçlar Kanunu (“TBK”) hükümlerine uygun olarak, aşağıdaki şart ve hükümler dairesinde taraflarca akdedilmiştir.</p>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #D1D5DB">
+    <span style="font-size:8.2pt;font-weight:700;color:#4B5563">01</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937">Gayrimenkul Bilgileri</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Tapu Müdürlüğü</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_gm_tapu_mudurlugu" id="f_d6_gm_tapu_mudurlugu" aria-label="d6_gm_tapu_mudurlugu" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">İl / İlçe / Mahalle</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_gm_i_l_i_lce_mahalle" id="f_d6_gm_i_l_i_lce_mahalle" aria-label="d6_gm_i_l_i_lce_mahalle" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Cadde / Sokak</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_gm_cadde_sokak" id="f_d6_gm_cadde_sokak" aria-label="d6_gm_cadde_sokak" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Blok / Kapı No</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_gm_blok_kapi_no" id="f_d6_gm_blok_kapi_no" aria-label="d6_gm_blok_kapi_no" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Kullanım Şekli</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_gm_kullanim_sekli" id="f_d6_gm_kullanim_sekli" aria-label="d6_gm_kullanim_sekli" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Demirbaş Durumu</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_gm_demirbas_durumu" id="f_d6_gm_demirbas_durumu" aria-label="d6_gm_demirbas_durumu" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;margin:7px 0 4px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D">Cinsi</span><span style="display:flex;gap:13px"><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d6_cinsi_konut" id="f_d6_cinsi_konut" style="width:11px;height:11px;margin:0;accent-color:#1F2937;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Konut</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d6_cinsi_i_syeri" id="f_d6_cinsi_i_syeri" style="width:11px;height:11px;margin:0;accent-color:#1F2937;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>İşyeri</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d6_cinsi_diger" id="f_d6_cinsi_diger" style="width:11px;height:11px;margin:0;accent-color:#1F2937;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Diğer</span></label></span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D">Durumu</span><span style="display:flex;gap:13px"><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d6_durum_bos" id="f_d6_durum_bos" style="width:11px;height:11px;margin:0;accent-color:#1F2937;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Boş</span></label><label style="display:inline-flex;align-items:center;gap:5px;font-size:9pt"><input type="checkbox" name="d6_durum_kiracili" id="f_d6_durum_kiracili" style="width:11px;height:11px;margin:0;accent-color:#1F2937;print-color-adjust:exact;-webkit-print-color-adjust:exact" /><span>Kiracılı</span></label></span></div></div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #D1D5DB">
+    <span style="font-size:8.2pt;font-weight:700;color:#4B5563">02</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937">Kiraya Veren</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Adı Soyadı</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kiraya_veren_adi_soyadi" id="f_d6_kiraya_veren_adi_soyadi" aria-label="d6_kiraya_veren_adi_soyadi" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">T.C. / GSM</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kiraya_veren_t_c_gsm" id="f_d6_kiraya_veren_t_c_gsm" aria-label="d6_kiraya_veren_t_c_gsm" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Adres</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kiraya_veren_adres" id="f_d6_kiraya_veren_adres" aria-label="d6_kiraya_veren_adres" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #D1D5DB">
+    <span style="font-size:8.2pt;font-weight:700;color:#4B5563">03</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937">Kiracı</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Adı Soyadı</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kiraci_adi_soyadi" id="f_d6_kiraci_adi_soyadi" aria-label="d6_kiraci_adi_soyadi" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">T.C. / GSM</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kiraci_t_c_gsm" id="f_d6_kiraci_t_c_gsm" aria-label="d6_kiraci_t_c_gsm" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Adres</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kiraci_adres" id="f_d6_kiraci_adres" aria-label="d6_kiraci_adres" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #D1D5DB">
+    <span style="font-size:8.2pt;font-weight:700;color:#4B5563">04</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937">Kefil (Müşterek / Müteselsil)</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Adı Soyadı</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kefil_adi_soyadi" id="f_d6_kefil_adi_soyadi" aria-label="d6_kefil_adi_soyadi" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">T.C. / GSM</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kefil_t_c_gsm" id="f_d6_kefil_t_c_gsm" aria-label="d6_kefil_t_c_gsm" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Adres</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_kefil_adres" id="f_d6_kefil_adres" aria-label="d6_kefil_adres" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <p style="margin:9px 0 0;font-size:9.2pt;line-height:1.42;color:#14181D"><span style="font-weight:700;color:#1F2937">El yazısıyla kefalet beyanı (TBK m.583):</span> <span style="font-style:italic">“<textarea data-fld rows="1" name="d6b_p_alan_1" id="f_d6b_p_alan_1" aria-label="d6b_p_alan_1" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:92px;font-size:8.6pt;"></textarea> ₺’ye kadar doğan kira borçlarının tamamından <textarea data-fld rows="1" name="d6b_p_alan_2" id="f_d6b_p_alan_2" aria-label="d6b_p_alan_2" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:52px;font-size:8.6pt;text-align:center;"></textarea> / <textarea data-fld rows="1" name="d6b_p_alan_3" id="f_d6b_p_alan_3" aria-label="d6b_p_alan_3" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:52px;font-size:8.6pt;text-align:center;"></textarea> / 20<textarea data-fld rows="1" name="d6b_p_alan_4" id="f_d6b_p_alan_4" aria-label="d6b_p_alan_4" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:52px;font-size:8.6pt;text-align:center;"></textarea> tarihine kadar sorumluyum.”</span></p>
+  <div style="display:flex;align-items:baseline;gap:8px;margin:13px 0 5px;padding-bottom:3px;border-bottom:1px solid #D1D5DB">
+    <span style="font-size:8.2pt;font-weight:700;color:#4B5563">05</span>
+    <span style="font-size:7.8pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937">Akit Bilgileri</span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt"><tbody>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Başlangıç Tarihi</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_akit_baslangic_tarihi" id="f_d6_akit_baslangic_tarihi" aria-label="d6_akit_baslangic_tarihi" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Süresi</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_akit_suresi" id="f_d6_akit_suresi" aria-label="d6_akit_suresi" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Aylık Kira Bedeli (Rakam)</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_akit_aylik_kira_bedeli_rakam" id="f_d6_akit_aylik_kira_bedeli_rakam" aria-label="d6_akit_aylik_kira_bedeli_rakam" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Aylık Kira Bedeli (Yazıyla)</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_akit_aylik_kira_bedeli_yaziyla" id="f_d6_akit_aylik_kira_bedeli_yaziyla" aria-label="d6_akit_aylik_kira_bedeli_yaziyla" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Depozito</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_akit_depozito" id="f_d6_akit_depozito" aria-label="d6_akit_depozito" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+    <tr><th style="background:#F3F4F6;border:1px solid #D1D5DB;padding:3px 6px;text-align:left;font-size:6.6pt;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:#37414D;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:30%;">Ödeme Şekli / IBAN</th><td style="border:1px solid #D1D5DB;padding:0"><textarea data-fld rows="1" name="d6_akit_odeme_sekli_iban" id="f_d6_akit_odeme_sekli_iban" aria-label="d6_akit_odeme_sekli_iban" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:21px;"></textarea></td></tr>
+  </tbody></table>
+  <div style="margin:8px 0 0;border:1px solid #D1D5DB;background:#FAFAFA;padding:8px 11px;font-size:8.2pt;line-height:1.42;color:#3F4A56;break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact"><span style="font-weight:700;color:#1F2937">Vergilendirme —</span> Konut kiralamalarında stopaj / KDV uygulanmaz. İşyeri kiralamalarında stopaj kiracı tarafından; kiraya veren KDV mükellefi ise KDV kiraya veren tarafından beyan edilir.</div>
+  <div style="display:flex;align-items:center;gap:10px;margin:15px 0 9px;break-after:avoid">
+    <div style="font-size:11pt;font-weight:700;white-space:nowrap;color:#1F2937">Sözleşme Hükümleri</div>
+    <div style="flex:1;height:1px;background:#D1D5DB"></div>
+  </div>
+  <ol style="margin:0;padding:0;list-style:none">
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">01</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">KULLANIM KOŞULLARI —</span> Kiracı, kiralananı sözleşmede belirtilen amaç dışında kullanamaz. Kiralanan taşınmazda yürütülecek faaliyetlerden doğacak tüm idari ve hukuki sorumluluk kiracıya aittir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">02</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">DEVİR VE ALT KİRA —</span> Kiracı, kiralananı kısmen veya tamamen devredemez. Kiraya verenin yazılı izni olmadan alt kiraya veremez.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">03</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">TADİLAT —</span> Kiracı, kiraya verenin yazılı izni olmadan tadilat yapamaz. İzin verilen tadilatların bedeli sözleşme sonunda talep edilemez.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">04</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">GİDERLER —</span> Elektrik, su, doğalgaz, aidat, çevre temizlik vergisi ve işletme giderleri kiracı tarafından karşılanacaktır.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">05</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">DEPOZİTO —</span> Depozito, kiracı adına açılacak vadeli/bloke hesapta tutulur. Tahliye sonrası borç ve hasar bulunmaması halinde 30 gün içinde iade edilir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">06</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">KİRA ARTIŞI —</span> Her kira döneminde kira bedeli TÜFE 12 aylık ortalaması oranında artırılır. Kanuni sınırlar saklıdır.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">07</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">ERKEN TAHLİYE —</span> Kiracı taşınmazı erken tahliye etmek isterse en az 3 ay önce yazılı bildirim yapar. TBK m.325 uyarınca kiracı, yeni kiracı bulunana kadar kira sorumluluğunu taşır.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">08</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">SİGORTA —</span> Kiracı; yangın, su baskını ve üçüncü şahıs zararları gibi risklerden sorumludur. Kiraya veren taşınmaz için sigorta yaptırabilir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">09</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">TAHLİYE SEBEPLERİ —</span> Aşağıdaki durumlarda kiraya veren tahliye talep edebilir: kira ödenmemesi, sözleşmeye aykırı kullanım, izinsiz tadilat, komşulara zarar, yasa dışı faaliyet.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">10</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">RESMİ İZİNLER —</span> Faaliyet izinleri ve ruhsat süreçleri kiracının sorumluluğunda olup, kiraya verenin sorumluluğu yoktur.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">11</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">TEBLİGAT —</span> Tarafların sözleşmede yazılı adresleri kanuni tebligat adresidir. Adres değişikliği 7 gün içinde bildirilmezse eski adres geçerli kabul edilir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">12</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">YETKİLİ MAHKEME —</span> Uyuşmazlıklarda <textarea data-fld rows="1" name="d6_m12_alan_1" id="f_d6_m12_alan_1" aria-label="d6_m12_alan_1" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:101.19999999999999px;font-size:8.6pt;"></textarea> Mahkemeleri ve İcra Daireleri yetkilidir.</p>
+    </li>
+    <li style="margin-bottom:6px;break-inside:avoid;display:grid;grid-template-columns:20px 1fr;gap:8px">
+      <span style="font-size:8.2pt;font-weight:700;color:#4B5563;padding-top:1px">13</span>
+      <p style="margin:0;font-size:9.2pt;line-height:1.42"><span style="font-weight:700;color:#1F2937">GENEL HÜKÜMLER —</span> Bu sözleşmede düzenlenmeyen konularda Türk Borçlar Kanunu ve ilgili mevzuat uygulanır.</p>
+    </li>
+  </ol>
+  <div style="margin-top:11px;border:1px solid #D1D5DB;background:#FAFAFA;padding:9px 12px;break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact">
+    <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#4B5563;margin-bottom:4px">Ek Hükümler / Özel Şartlar</div>
+    <p style="margin:0 0 7px;font-size:8pt;color:#3F4A56;line-height:1.42">Taraflar, işbu sözleşmede yer alan hükümlere ek olarak aşağıdaki özel şartları karşılıklı olarak kabul etmişlerdir. Bu bölümde yazılı olmayan hiçbir sözlü beyan taraflar açısından bağlayıcı değildir. Aşağıda yazılan hükümler işbu sözleşmenin ayrılmaz parçasıdır.</p>
+    <div style="display:grid;gap:7px">
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">1.</span><textarea data-fld rows="1" name="d6_ozel_sart_1" id="f_d6_ozel_sart_1" aria-label="d6_ozel_sart_1" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">2.</span><textarea data-fld rows="1" name="d6_ozel_sart_2" id="f_d6_ozel_sart_2" aria-label="d6_ozel_sart_2" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">3.</span><textarea data-fld rows="1" name="d6_ozel_sart_3" id="f_d6_ozel_sart_3" aria-label="d6_ozel_sart_3" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">4.</span><textarea data-fld rows="1" name="d6_ozel_sart_4" id="f_d6_ozel_sart_4" aria-label="d6_ozel_sart_4" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">5.</span><textarea data-fld rows="1" name="d6_ozel_sart_5" id="f_d6_ozel_sart_5" aria-label="d6_ozel_sart_5" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">6.</span><textarea data-fld rows="1" name="d6_ozel_sart_6" id="f_d6_ozel_sart_6" aria-label="d6_ozel_sart_6" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">7.</span><textarea data-fld rows="1" name="d6_ozel_sart_7" id="f_d6_ozel_sart_7" aria-label="d6_ozel_sart_7" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+      <div style="display:grid;grid-template-columns:14px 1fr;gap:7px;align-items:center"><span style="font-size:7.6pt;color:#8A94A0">8.</span><textarea data-fld rows="1" name="d6_ozel_sart_8" id="f_d6_ozel_sart_8" aria-label="d6_ozel_sart_8" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.8pt;min-height:19px;"></textarea></div>
+    </div>
+  </div>
+  <p style="margin:11px 0 0;font-size:8.6pt;color:#3F4A56;font-weight:500">Bu sözleşme <textarea data-fld rows="1" name="d6_kapanis_tarih_1" id="f_d6_kapanis_tarih_1" aria-label="Tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:86px;font-size:8.6pt;text-align:center;"></textarea> tarihinde <textarea data-fld rows="1" name="d6_kapanis_alan_2" id="f_d6_kapanis_alan_2" aria-label="d6_kapanis_alan_2" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;display:inline-block;width:70px;font-size:8.6pt;"></textarea> nüsha olarak düzenlenmiş ve taraflarca imzalanmıştır.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;break-inside:avoid">
+    <div>
+      <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937;padding-bottom:4px;border-bottom:2px solid #1F2937">Kiraya Veren</div>
+      <div style="display:grid;grid-template-columns:96px 1fr;gap:6px 8px;margin-top:8px;font-size:7pt;align-items:center;white-space:nowrap;color:#5C6773">
+        <span>Ad Soyad / Unvan</span><textarea data-fld rows="1" name="d6_kiraya_veren_ad" id="f_d6_kiraya_veren_ad" aria-label="d6_kiraya_veren_ad" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+        <span>Tarih</span><textarea data-fld rows="1" name="d6_kiraya_veren_tarih" id="f_d6_kiraya_veren_tarih" aria-label="d6_kiraya_veren_tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+      </div>
+      <div style="margin-top:8px;height:56px;border-bottom:1px solid #14181D"></div>
+      <div style="font-size:6.4pt;letter-spacing:0.16em;text-transform:uppercase;color:#8A94A0;margin-top:4px;font-weight:700">İmza</div>
+    </div>
+    <div>
+      <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937;padding-bottom:4px;border-bottom:2px solid #1F2937">Kiracı</div>
+      <div style="display:grid;grid-template-columns:96px 1fr;gap:6px 8px;margin-top:8px;font-size:7pt;align-items:center;white-space:nowrap;color:#5C6773">
+        <span>Ad Soyad / Unvan</span><textarea data-fld rows="1" name="d6_kiraci_ad" id="f_d6_kiraci_ad" aria-label="d6_kiraci_ad" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+        <span>Tarih</span><textarea data-fld rows="1" name="d6_kiraci_tarih" id="f_d6_kiraci_tarih" aria-label="d6_kiraci_tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+      </div>
+      <div style="margin-top:8px;height:56px;border-bottom:1px solid #14181D"></div>
+      <div style="font-size:6.4pt;letter-spacing:0.16em;text-transform:uppercase;color:#8A94A0;margin-top:4px;font-weight:700">İmza</div>
+    </div>
+    <div>
+      <div style="font-size:7pt;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#1F2937;padding-bottom:4px;border-bottom:2px solid #1F2937">Kefil</div>
+      <div style="display:grid;grid-template-columns:96px 1fr;gap:6px 8px;margin-top:8px;font-size:7pt;align-items:center;white-space:nowrap;color:#5C6773">
+        <span>Ad Soyad / Unvan</span><textarea data-fld rows="1" name="d6_kefil_ad" id="f_d6_kefil_ad" aria-label="d6_kefil_ad" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+        <span>Tarih</span><textarea data-fld rows="1" name="d6_kefil_tarih" id="f_d6_kefil_tarih" aria-label="d6_kefil_tarih" style="box-sizing:border-box;border:0;border-bottom:1px solid #A7B2C0;background:#F7F7F8;font-family:inherit;color:#14181D;padding:2px 5px;print-color-adjust:exact;-webkit-print-color-adjust:exact;width:100%;font-size:8.4pt;min-height:18px;"></textarea>
+      </div>
+      <div style="margin-top:8px;height:56px;border-bottom:1px solid #14181D"></div>
+      <div style="font-size:6.4pt;letter-spacing:0.16em;text-transform:uppercase;color:#8A94A0;margin-top:4px;font-weight:700">İmza</div>
+    </div>
+  </div>
+
+</div>
+</doc-page>
+</x-dc>
+</body>
+</html>

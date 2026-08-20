@@ -1458,4 +1458,16 @@ export const documentInstances = {
   async remove(id) {
     await run(client().from('document_instances').delete().eq('id', id))
   },
+  // PDF üretimi service_role + headless tarayıcı gerektirir — bu yüzden
+  // generate-document-pdf Edge Function'ı üzerinden gidiyor (create-user ile
+  // aynı kalıp). O fonksiyon Vercel'deki render uç noktasını çağırıp
+  // sonucu Storage'a yazıyor, kaydı kilitliyor (bkz. AI_NOTLARI.md).
+  async generatePdf(instanceId) {
+    const { data, error } = await client().functions.invoke('generate-document-pdf', {
+      body: { instanceId },
+    })
+    if (error) throw new Error('PDF üretilemedi, bağlantıyı kontrol edip tekrar dene.')
+    if (!data?.ok) throw new Error(data?.error ?? 'PDF üretilemedi.')
+    return { downloadToken: data.downloadToken, downloadExpiresAt: data.downloadExpiresAt }
+  },
 }

@@ -32,6 +32,7 @@ export default function BelgeOlusturTab() {
   const [activeFields, setActiveFields] = useState([])
   const [activeInstance, setActiveInstance] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   const templates = data?.templates ?? []
   const instances = data?.instances ?? []
@@ -74,6 +75,32 @@ export default function BelgeOlusturTab() {
     }
   }
 
+  async function handleGenerate(formData) {
+    setGenerating(true)
+    try {
+      let inst = activeInstance
+      if (inst) {
+        inst = await instancesProvider.updateData(inst.id, formData)
+      } else {
+        inst = await instancesProvider.create({ templateId: activeTemplate.id, data: formData }, user.id)
+      }
+      const result = await instancesProvider.generatePdf(inst.id)
+      const completed = { ...inst, status: 'completed', lockedAt: new Date().toISOString(), ...result }
+      setData((prev) => ({
+        ...prev,
+        instances: prev.instances.some((i) => i.id === completed.id)
+          ? prev.instances.map((i) => (i.id === completed.id ? completed : i))
+          : [completed, ...prev.instances],
+      }))
+      setActiveInstance(completed)
+      showToast('Belge oluşturuldu ve kilitlendi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'PDF oluşturulamadı, tekrar dene.', 'error')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   if (loading) return <LoadingState />
   if (error) return <ErrorState error={error} onRetry={reload} />
 
@@ -105,8 +132,8 @@ export default function BelgeOlusturTab() {
               return (
                 <button
                   key={instance.id}
-                  onClick={() => template && instance.status === 'draft' && openTemplate(template, instance)}
-                  disabled={instance.status !== 'draft'}
+                  onClick={() => template && openTemplate(template, instance)}
+                  disabled={!template}
                   className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-surface-sunken disabled:cursor-default disabled:hover:bg-transparent"
                 >
                   <FileText size={16} className="shrink-0 text-text-disabled" />
@@ -130,7 +157,9 @@ export default function BelgeOlusturTab() {
           instance={activeInstance}
           onClose={closeForm}
           onSaveDraft={handleSaveDraft}
+          onGenerate={handleGenerate}
           saving={saving}
+          generating={generating}
         />
       )}
     </div>
