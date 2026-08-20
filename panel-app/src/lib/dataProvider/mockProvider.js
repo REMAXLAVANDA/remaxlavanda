@@ -903,3 +903,102 @@ export const tasks = {
     return delay(null)
   },
 }
+
+// --- Belge Doldurma Platformu — dev/mock için sadece Yetki Belgesi (2026-08-20) ---
+const MOCK_DOCUMENT_TEMPLATES = [
+  { id: 'doc-tpl-yetki-belgesi', slug: 'yetki-belgesi', name: 'Danışmanlık ve Yetki Belgesi', sortOrder: 1, isActive: true },
+]
+
+const MOCK_DOCUMENT_FIELDS = [
+  ['d1_il', 'İl', 'text'],
+  ['d1_ilce', 'İlçe', 'text'],
+  ['d1_mahalle', 'Mahalle', 'text'],
+  ['d1_ada', 'Ada', 'text'],
+  ['d1_parsel', 'Parsel', 'text'],
+  ['d1_bagimsiz_bolum', 'Bağımsız Bölüm', 'text'],
+  ['d1_adres', 'Adres (Gayrimenkul)', 'text'],
+  ['d1_nitelik_konut', 'Nitelik: Konut', 'checkbox'],
+  ['d1_nitelik_arsa', 'Nitelik: Arsa', 'checkbox'],
+  ['d1_nitelik_fabrika', 'Nitelik: Fabrika', 'checkbox'],
+  ['d1_nitelik_diger', 'Nitelik: Diğer', 'checkbox'],
+  ['d1_islem_satis', 'İşlem: Satış', 'checkbox'],
+  ['d1_islem_kiralama', 'İşlem: Kiralama', 'checkbox'],
+  ['d1_musteri_ad', 'Müşteri Adı Soyadı / Unvan', 'text'],
+  ['d1_musteri_tc', 'Müşteri T.C. / VKN', 'text'],
+  ['d1_musteri_tel', 'Müşteri Telefon', 'text'],
+  ['d1_musteri_eposta', 'Müşteri E-Posta', 'text'],
+  ['d1_musteri_adres', 'Müşteri Adresi', 'text'],
+  ['d1_m16_tarih_1', 'Sözleşme Yürürlük Tarihi', 'date'],
+  ['d1_m16_alan_2', 'Yetki Süresi (gün)', 'text'],
+  ['d1_m21_alan_1', 'Yetkili Mahkeme (İl)', 'text'],
+  ['d1_ozel_sart_1', 'Özel Şart 1', 'textarea'],
+  ['d1_ozel_sart_2', 'Özel Şart 2', 'textarea'],
+  ['d1_ozel_sart_3', 'Özel Şart 3', 'textarea'],
+  ['d1_ozel_sart_4', 'Özel Şart 4', 'textarea'],
+  ['d1_kapanis_tarih_1', 'Düzenleme Tarihi', 'date'],
+  ['d1_kapanis_alan_2', 'Nüsha Sayısı', 'text'],
+  ['d1_musteri_tarih', 'Müşteri İmza Tarihi', 'date'],
+  ['d1_re_max_lavanda_ad', 'Danışman Adı Soyadı', 'text'],
+  ['d1_re_max_lavanda_tarih', 'Danışman İmza Tarihi', 'date'],
+].map(([fieldKey, label, fieldType], index) => ({
+  id: `doc-fld-${fieldKey}`,
+  templateId: 'doc-tpl-yetki-belgesi',
+  fieldKey,
+  label,
+  fieldType,
+  required: false,
+  sortOrder: index + 1,
+}))
+
+const MOCK_DOCUMENT_INSTANCES = []
+
+export const documentTemplates = {
+  async list() {
+    return delay(MOCK_DOCUMENT_TEMPLATES.filter((t) => t.isActive))
+  },
+}
+
+export const documentFields = {
+  async listByTemplate(templateId) {
+    return delay(MOCK_DOCUMENT_FIELDS.filter((f) => f.templateId === templateId))
+  },
+}
+
+export const documentInstances = {
+  async list() {
+    return delay([...MOCK_DOCUMENT_INSTANCES])
+  },
+  async get(id) {
+    const row = MOCK_DOCUMENT_INSTANCES.find((i) => i.id === id)
+    if (!row) throw new Error('Belge kaydı bulunamadı.')
+    return delay({ ...row })
+  },
+  async create({ templateId, data }, userId) {
+    const row = {
+      id: `doc-inst-${Date.now()}`,
+      templateId,
+      createdBy: userId,
+      data: data ?? {},
+      status: 'draft',
+      pdfStoragePath: null,
+      downloadToken: null,
+      downloadExpiresAt: null,
+      lockedAt: null,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_DOCUMENT_INSTANCES.unshift(row)
+    return delay({ ...row })
+  },
+  async updateData(id, data) {
+    const row = MOCK_DOCUMENT_INSTANCES.find((i) => i.id === id)
+    if (!row) throw new Error('Belge kaydı bulunamadı.')
+    if (row.lockedAt) throw new Error('Bu belge kilitlendi, değiştirilemez.')
+    row.data = data
+    return delay({ ...row })
+  },
+  async remove(id) {
+    const idx = MOCK_DOCUMENT_INSTANCES.findIndex((i) => i.id === id)
+    if (idx !== -1) MOCK_DOCUMENT_INSTANCES.splice(idx, 1)
+    return delay(null)
+  },
+}

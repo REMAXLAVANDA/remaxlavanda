@@ -2250,3 +2250,40 @@ Takip" dedi — Ayarlar'daki sekme tamamen kaldırıldı, yerine:
   Danışmanlar" dropdown filtresi eklendi — broker/owner/ofis'e açık
   (call_logs RLS'i ofis'i kısıtlamıyor, sorun yok). `onlyMine`
   toggle'ından bağımsız çalışır, ikisi birlikte de seçilebilir.
+
+## 2026-08-20 — Belge Doldurma Platformu (1. adım: veri tabanı + Yetki
+Belgesi formu, PDF üretimi henüz yok)
+
+Broker isteği: 16 hukuki/idari belgeyi (Yetki Belgesi, Yer Gösterme,
+Kira Sözleşmesi vb.) danışman ekrandan doldursun, sistem kilitli/salt
+okunur bir PDF üretsin. Broker'ın kendi hazırlattığı Design canvas
+çıktısı (`.dc.html`, gerçek `<textarea name="...">`/`<input
+type="checkbox">` alanlarıyla, RE/MAX marka kimliğiyle tasarlanmış 16
+belge + `alanlar.json` alan listesi) referans alındı.
+
+**Mimari karar:** Bu belgeler gerçek web sayfaları (özel `<doc-page>`
+elementi, tarayıcının print motoruna bağlı sayfalama) — Supabase Edge
+Function'larda (Deno) headless Chromium çalıştırılamıyor. PDF üretimi
+için REMAX LAVANDA ekibi altında zaten var olan bir Vercel projesi
+kullanılacak (serverless, kullanınca ücretlendirilen bir fonksiyon —
+ek sabit maliyet yok). **Bu adım henüz kurulmadı.**
+
+**Şimdiye kadar yapılan:**
+- `document_templates` / `document_fields` / `document_instances`
+  tabloları + RLS (migration `20260820100000_belge_doldurma_platformu.sql`).
+  Doldurulan belgeler (TC no/tutar gibi hassas veri içerdiği için)
+  **sadece dolduran kişi + broker/owner** görebiliyor — ofis/diğer
+  danışmanlar göremez. `locked_at` dolunca (PDF üretilince) kayıt
+  kalıcı olarak kilitleniyor, broker dahil kimse değiştiremiyor —
+  yanlışsa yeni kayıt açılıyor.
+- İlk şablon olarak **Yetki Belgesi** (30 alan) DB'ye seed edildi.
+- **Rehber** menüsüne "Belge Oluştur" sekmesi eklendi (broker isteği:
+  ayrı menü değil, Rehber'in içinde) — şablon listesi, dinamik form
+  (`BelgeDoldurForm.jsx`), taslak kaydetme çalışıyor uçtan uca (mock ve
+  Supabase sağlayıcılarında `lib/dataProvider/*Provider.js` ->
+  `documentTemplates`/`documentFields`/`documentInstances`).
+
+**Henüz yapılmayan (sıradaki adımlar):** Vercel'de PDF render
+fonksiyonu, "Oluştur ve Kilitle" düğmesinin gerçek işlevi, indirme
+linki (token) + karşı tarafa gönderme, diğer 15 belgenin alan
+listelerinin (`alanlar.json`'dan) seed edilmesi.
