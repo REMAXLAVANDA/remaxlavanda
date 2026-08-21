@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
   const { data: instance, error } = await admin
     .from('document_instances')
-    .select('pdf_storage_path, download_expires_at')
+    .select('pdf_storage_path, download_expires_at, document_templates(name)')
     .eq('download_token', token)
     .single()
   if (error || !instance || !instance.pdf_storage_path) {
@@ -47,11 +47,25 @@ Deno.serve(async (req) => {
     return Response.json({ ok: false, error: 'Belge indirilemedi.' }, { status: 500, headers: CORS })
   }
 
+  // İndirilen dosyanın adı portalla ilgili olsun (broker: "Supabase diye
+  // dosya görmeyelim") — ham storage path'i (UUID.pdf) yerine şablon adı +
+  // tarih. attachment (inline değil) ki tarayıcı gerçekten "indir" davransın,
+  // salt-okunur önizleme yerine.
+  const templateName = instance.document_templates?.name ?? 'Belge'
+  const safeTemplateName = templateName
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-zA-Z0-9 ]+/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+  const dateStamp = new Date().toISOString().slice(0, 10)
+  const downloadFilename = `RE-MAX-Lavanda-${safeTemplateName}-${dateStamp}.pdf`
+
   return new Response(fileBlob, {
     headers: {
       ...CORS,
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${instance.pdf_storage_path}"`,
+      'Content-Disposition': `attachment; filename="${downloadFilename}"`,
     },
   })
 })

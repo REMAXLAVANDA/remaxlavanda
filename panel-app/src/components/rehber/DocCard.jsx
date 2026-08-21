@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, Copy, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
-import { getSignedDocUrl } from '../../lib/storage'
+import { getSignedDocUrl, normalizeFilename } from '../../lib/storage'
 
 export default function DocCard({
   doc,
@@ -35,7 +35,9 @@ export default function DocCard({
   async function handleDownload() {
     setDownloading(true)
     try {
-      const url = await getSignedDocUrl(current.url)
+      const ext = current.filename?.split('.').pop()?.toLowerCase()
+      const downloadFilename = normalizeFilename(ext ? `${doc.baslik}.${ext}` : doc.baslik)
+      const url = await getSignedDocUrl(current.url, 300, downloadFilename)
       window.open(url, '_blank', 'noopener')
     } catch {
       // İndirme linki alınamazsa sessizce vazgeçiyoruz — bu ikincil bir

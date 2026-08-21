@@ -11,6 +11,7 @@ import {
   buildShareText,
   canManagePeriods,
   canManageScores,
+  canSeeCiroAmounts,
   rankingsFor,
   wilsonScoreLowerBound,
 } from '../lib/league'
@@ -189,7 +190,7 @@ export default function Lig() {
         .map((g) => ({
           id: g.id,
           danismanName: userName(g.userId),
-          detail: `${Number(g.value).toLocaleString('tr-TR')} TL ciro girişi`,
+          detail: canSeeCiroAmounts(role) ? `${Number(g.value).toLocaleString('tr-TR')} TL ciro girişi` : '•••• TL ciro girişi',
           when: formatDateOnly(g.tarih),
         })),
       sosyal_medya: sortByCreatedDesc((data?.socialActivityLog ?? []).filter((l) => l.periodId === periodId))
@@ -201,7 +202,7 @@ export default function Lig() {
           when: formatDateOnly(l.createdAt),
         })),
     }
-  }, [data, periodId, userName, activityTypes])
+  }, [data, periodId, userName, activityTypes, role])
 
   // Ciro sekmesindeki sıralama satırına tıklayınca "sonradan kontrol"
   // amaçlı girilen ciro geçmişi (tarih + tutar) görülebilsin diye —
@@ -460,6 +461,7 @@ export default function Lig() {
             onAddMusteri={handleAddCiroMusteri}
             onRemoveMusteri={handleRemoveCiroMusteri}
             onToggleAlindi={handleToggleAlindi}
+            canSeeAmounts={canSeeCiroAmounts(role)}
           />
         </>
       )}

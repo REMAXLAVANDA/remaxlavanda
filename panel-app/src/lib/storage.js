@@ -79,13 +79,19 @@ export async function uploadDocFile(file, { categoryKey, docId }, onProgress) {
   return path
 }
 
-export async function getSignedDocUrl(path, expiresInSeconds = 300) {
+// downloadFilename verilirse Supabase, indirilen dosyaya (imzalı URL'in
+// path'i/token'ı yerine) BU ismi verir (Content-Disposition: attachment) —
+// broker: "indirilen dosya adları portalla ilgili olsun, Supabase diye
+// dosya görmeyelim" (2026-08-20). Önizleme (PreviewModal) BİLEREK bu
+// parametreyi vermiyor — orada indirme değil, tarayıcıda açma isteniyor.
+export async function getSignedDocUrl(path, expiresInSeconds = 300, downloadFilename) {
   // Mock modda path zaten uploadDocFile()'ın döndürdüğü blob URL — doğrudan
   // kullanılabilir, imzalamaya gerek yok.
   if (!USE_SUPABASE) return path
 
   const client = getSupabaseClient()
-  const { data, error } = await client.storage.from(BUCKET).createSignedUrl(path, expiresInSeconds)
+  const options = downloadFilename ? { download: downloadFilename } : undefined
+  const { data, error } = await client.storage.from(BUCKET).createSignedUrl(path, expiresInSeconds, options)
   if (error) throw mapSupabaseError(error)
   return data.signedUrl
 }

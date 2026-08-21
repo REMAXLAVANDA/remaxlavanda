@@ -22,6 +22,7 @@ export default function LeagueBoard({
   onAddMusteri,
   onRemoveMusteri,
   onToggleAlindi,
+  canSeeAmounts = true,
 }) {
   const [expandedId, setExpandedId] = useState(null)
   const [nameDraft, setNameDraft] = useState('')
@@ -86,7 +87,9 @@ export default function LeagueBoard({
                     {history.map((h) => (
                       <div key={h.id} className="flex items-center justify-between text-xs text-text-secondary">
                         <span>{formatDate(h.tarih)}</span>
-                        <span className="font-medium text-text-primary">{Number(h.value).toLocaleString('tr-TR')} TL</span>
+                        <span className="font-medium text-text-primary">
+                          {canSeeAmounts ? `${Number(h.value).toLocaleString('tr-TR')} TL` : '•••• TL'}
+                        </span>
                       </div>
                     ))}
                   </div>

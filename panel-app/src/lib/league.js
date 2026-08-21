@@ -39,6 +39,14 @@ export function canManageScores(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 
+// Ciro'nun MUTLAK TL tutarı (skor girişi geçmişi/son kayıtlar akışında) —
+// broker/owner görür, ofis göremez (2026-08-20 broker isteği: danışmanların
+// ciro rakamı ofise açık olmasın). Diğer her yerde zaten sadece lidere fark
+// gösteriliyor (bkz. dosya başı not), bu SADECE bu iki istisna noktası için.
+export function canSeeCiroAmounts(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER
+}
+
 // periods_manage / social_activity_types_manage RLS kuralıyla aynı: sadece
 // broker yeni dönem açabilir veya sosyal medya puanlarını değiştirebilir.
 export function canManagePeriods(role) {
