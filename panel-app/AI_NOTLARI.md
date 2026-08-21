@@ -2335,3 +2335,22 @@ sadece broker/owner true döner, ofis/danışman false (danışman zaten bu
 ekranlara hiç giremiyor, `isManager` kapısının arkasında). Maskeli
 görünüm: "•••• TL". Playwright ile hem broker (gerçek rakam) hem ofis
 (yıldızlı) için doğrulandı.
+
+## 2026-08-20/21 — Rehber ve Belge PDF: indirilen dosya adları
+
+Broker: "portaldan bir dosya indirildiğinde dosya adları portalla ilgili
+olsun. Supebase diye dosyalar gördüm" — indirilen dosyaların adı ham
+storage path'i (UUID/timestamp) yerine belgenin gerçek adı olsun istendi.
+
+- `lib/storage.js`: `getSignedDocUrl(path, expiresInSeconds, downloadFilename)`
+  — Supabase'in `createSignedUrl(..., {download: filename})` seçeneğini
+  kullanıyor (Content-Disposition başlığını Supabase kendi ayarlıyor,
+  elle blob indirme mantığı yazmaya gerek kalmadı).
+- `components/rehber/DocCard.jsx`: indirme adı `doc.baslik` + orijinal
+  uzantıdan üretiliyor (`normalizeFilename`).
+- `supabase/functions/download-document/index.ts` (karşı tarafın linkle,
+  girişsiz indirdiği kilitli PDF): dosya adı artık
+  `RE-MAX-Lavanda-<ŞablonAdı>-<tarih>.pdf` — Edge Function yeniden
+  deploy edildi (v2).
+- `PreviewModal.jsx` BİLEREK `downloadFilename` vermiyor — orada indirme
+  değil, tarayıcıda önizleme açılıyor.
