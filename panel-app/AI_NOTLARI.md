@@ -2290,6 +2290,48 @@ ek sabit maliyet yok). **Bu adım henüz kurulmadı.**
   Playwright ile doğrulandı (16/16 şablon listede, en büyük belge Kira
   Sözleşmesi 47 alanla sorunsuz açılıyor).
 
-**Henüz yapılmayan (sıradaki adım):** Vercel'de PDF render fonksiyonu,
-"Oluştur ve Kilitle" düğmesinin gerçek işlevi, indirme linki (token) +
-karşı tarafa gönderme.
+**PDF üretme adımı tamamlandı (aynı gün, ikinci tur):** Vercel'de
+`api/generate-document-pdf.js` (Puppeteer + `@sparticuz/chromium`) —
+16 belge şablonu (`belge-sablonlari/*.html`) repoya taşınıp Vercel
+statik dosyası olarak yayınlandı, aynı deploy'daki `remaxlavanda`
+projesi kullanıldı (yeni proje AÇILMADI). Supabase'de iki yeni Edge
+Function: `generate-document-pdf` (yetki kontrolü + Vercel'i çağırma +
+Storage'a yazma + kaydı `locked_at` ile kilitleme) ve `download-document`
+(karşı tarafın giriş yapmadan, 7 gün geçerli `download_token` ile PDF
+indirmesi — `verify_jwt: false`, bilerek herkese açık). Yeni Storage
+bucket: `belge-ciktilari` (private, RLS: sadece dolduran + broker/owner
+görebilir — `document_instances_select` ile aynı kural). Paylaşılan sır
+`BELGE_PDF_SECRET` hem Vercel hem Supabase Edge Function ortam
+değişkenlerinde broker tarafından elle eklendi.
+
+**Önemli düzeltme:** Vercel projesinin SSO koruması (`ssoProtection:
+all_except_custom_domains`) `*.vercel.app` adreslerini login duvarının
+arkasına alıyor — Edge Function ilk denemede `remaxlavanda-remax-
+lavanda.vercel.app`'i çağırıyordu, bu adres engellenirdi. Gerçek özel
+alan adına (`www.remaxlavanda.com.tr`) düzeltildi — `panel.
+remaxlavanda.com.tr` KULLANILAMAZ çünkü kök `vercel.json`'daki `/(.*)
+-> /panel/index.html` rewrite'i `/api/*` isteğini de yakalar.
+
+Rehber > Belge Oluştur formuna "Oluştur ve Kilitle" düğmesi + onay
+adımı (`ConfirmDialog`) + kilitlenince salt-okunur görünüm + indirme
+linki eklendi (`BelgeDoldurForm.jsx`). Mock modda uçtan uca test edildi
+(Playwright) — hâlâ yapılmayan: canlıda gerçek bir belgeyle deneme
+(broker'dan bekleniyor).
+
+## 2026-08-20 — Lig: Ciro rakamı ofisten gizlendi
+
+Broker isteği: "ofis kullanıcısı lig içindeki ciro işlemindeki rakam
+kısmı yıldızlı olsun göremesin." Lig'in geri kalanında zaten mutlak
+ciro/skor hiç gösterilmiyordu (sadece lidere fark) — bunun İKİ bilinçli
+istisnası vardı (broker'ın önceki isteğiyle: "rakam da dahil yoksa
+anlaşılmıyor", `Lig.jsx:169-174`), ikisi de artık ofis için maskeleniyor:
+
+- **Ciro sekmesinde bir danışmana tıklayınca açılan geçmiş** (`LeagueBoard.jsx`,
+  yeni `canSeeAmounts` prop).
+- **"Veri Gir > Ciro Girişi" formundaki son 3 kayıt** (`Lig.jsx` `recentEntriesByCategory`).
+
+Yeni `canSeeCiroAmounts(role)` yardımcı fonksiyonu (`lib/league.js`) —
+sadece broker/owner true döner, ofis/danışman false (danışman zaten bu
+ekranlara hiç giremiyor, `isManager` kapısının arkasında). Maskeli
+görünüm: "•••• TL". Playwright ile hem broker (gerçek rakam) hem ofis
+(yıldızlı) için doğrulandı.
