@@ -62,19 +62,20 @@ Deno.serve(async (req) => {
     return Response.json({ ok: false, error: 'instanceId gerekli.' }, { status: 400, headers: CORS })
   }
 
-  // 2) Kaydı getir — document_instances_select RLS'iyle AYNI kural burada da
-  //    elle uygulanıyor (service_role RLS'i bypass ettiği için).
+  // 2) PDF'e çevirme SADECE ofis rolünde (2026-08-22 broker: "broker, owner
+  //    sadece izleyici... danışman bilmesin" — danışman kendi oluşturduğu
+  //    kaydı bile bu uçtan çeviremez, broker/owner de çevirmez, sadece izler).
+  if (callerProfile.rol !== 'ofis') {
+    return Response.json({ ok: false, error: 'Bu işlemi sadece ofis yapabilir.' }, { status: 403, headers: CORS })
+  }
+
   const { data: instance, error: instanceErr } = await admin
     .from('document_instances')
-    .select('id, template_id, data, locked_at, created_by')
+    .select('id, template_id, data, locked_at')
     .eq('id', instanceId)
     .single()
   if (instanceErr || !instance) {
     return Response.json({ ok: false, error: 'Belge kaydı bulunamadı.' }, { status: 404, headers: CORS })
-  }
-  const isOwner = instance.created_by === callerAuth.user.id
-  if (!isOwner && !['broker', 'owner'].includes(callerProfile.rol)) {
-    return Response.json({ ok: false, error: 'Bu belgeyi oluşturma yetkin yok.' }, { status: 403, headers: CORS })
   }
   if (instance.locked_at) {
     return Response.json({ ok: false, error: 'Bu belge zaten kilitlendi.' }, { status: 409, headers: CORS })

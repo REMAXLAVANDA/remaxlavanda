@@ -20,6 +20,7 @@ import Ayarlar from './pages/Ayarlar'
 import Login from './pages/Login'
 import Kartvizitim from './pages/Kartvizitim'
 import KartvizitPublic from './pages/KartvizitPublic'
+import MusteriBelgeDoldur from './pages/MusteriBelgeDoldur'
 
 // Takvim, FullCalendar gibi ağır bir kütüphane taşıdığı için ana paketi
 // şişirmemesi adına lazy-load ediliyor — sadece Takvim'e girilince indirilir.
@@ -63,6 +64,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/k/:userId" element={<KartvizitPublic />} />
+              <Route path="/belge-doldur/:token" element={<MusteriBelgeDoldur />} />
               <Route element={<ProtectedRoute />}>
                 <Route
                   path="/pano"

@@ -1374,7 +1374,14 @@ export const tasks = {
 // bu tablolar sadece "hangi şablon, hangi alanlar, kim ne doldurdu" bilgisini
 // tutuyor (bkz. migration 20260820100000).
 function mapDocumentTemplate(row) {
-  return { id: row.id, slug: row.slug, name: row.name, sortOrder: row.sort_order, isActive: row.is_active }
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    isFavorite: row.is_favorite,
+  }
 }
 
 function mapDocumentField(row) {
@@ -1399,6 +1406,8 @@ function mapDocumentInstance(row) {
     pdfStoragePath: row.pdf_storage_path,
     downloadToken: row.download_token,
     downloadExpiresAt: row.download_expires_at,
+    fillToken: row.fill_token,
+    fillExpiresAt: row.fill_expires_at,
     lockedAt: row.locked_at,
     createdAt: row.created_at,
   }
@@ -1452,6 +1461,30 @@ export const documentInstances = {
   async updateData(id, fieldData) {
     const row = await run(
       client().from('document_instances').update({ data: fieldData }).eq('id', id).select().single(),
+    )
+    return mapDocumentInstance(row)
+  },
+  // Danışman/ofis "Gönder" dediğinde: kayıt artık kendi taslağı değil, ofis
+  // kuyruğuna düşer (status='sent'). Ofis dışındakiler PDF'e çeviremez —
+  // bkz. generate-document-pdf Edge Function'daki rol kontrolü.
+  async send(id, fieldData) {
+    const row = await run(
+      client().from('document_instances').update({ data: fieldData, status: 'sent' }).eq('id', id).select().single(),
+    )
+    return mapDocumentInstance(row)
+  },
+  // Müşterinin giriş yapmadan doldurabilmesi için tek kullanımlık link
+  // (fill_token, 30 gün geçerli) — bkz. fill-document Edge Function.
+  async createShareLink(id) {
+    const fillToken = crypto.randomUUID()
+    const fillExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const row = await run(
+      client()
+        .from('document_instances')
+        .update({ fill_token: fillToken, fill_expires_at: fillExpiresAt })
+        .eq('id', id)
+        .select()
+        .single(),
     )
     return mapDocumentInstance(row)
   },

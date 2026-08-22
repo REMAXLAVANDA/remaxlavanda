@@ -2354,3 +2354,67 @@ storage path'i (UUID/timestamp) yerine belgenin gerçek adı olsun istendi.
   deploy edildi (v2).
 - `PreviewModal.jsx` BİLEREK `downloadFilename` vermiyor — orada indirme
   değil, tarayıcıda önizleme açılıyor.
+
+## 2026-08-22 — Belge Oluştur yeniden tasarımı (kod hazır, migration/deploy bekliyor)
+
+Broker: sözleşmeler yenilendi (Rehber > Sözleşmeler'e PDF olarak yeniden
+yüklendi — içerik/alanlar broker'ın gönderdiği ZIP ile karşılaştırıldı,
+mevcut 16 `.dc.html` şablonla birebir aynı, İÇERİK GÜNCELLEMESİ GEREKMEDİ).
+Yeni iş akışı (broker'ın 2026-08-22 mesajları, "bilgisayardayım uygula"
+onayıyla):
+
+- **Ofis + danışman** belge doldurup oluşturabilir/gönderebilir. **Danışman
+  müşteriye link atarsa müşteri de GİRİŞSİZ doldurup gönderebilir.**
+- **Sadece ofis** "PDF'e Çevir"i görür/tetikler — danışman bu adımı hiç
+  görmez/bilmez (broker: "danışman bilmesin").
+- **Broker/owner sadece izleyici** — oluşturmaz, göndermez, çevirmez;
+  sadece görür/indirir.
+- Ekranda sadece "favori" (sık kullanılan) belgeler direkt kart olarak
+  görünür, gerisi "Diğer Belgeler" penceresinde — broker onayladığı
+  varsayılan liste: Yetki Belgesi, Yer Gösterme, Teklif Formu, Bağlanma
+  Parası (Alıcı), Kira Sözleşmesi, Hizmet Bedeli Protokolü (Alıcı+Satıcı).
+- "Doldurulan Belgeler" geçmişi artık tam liste değil, son 5 kayıtla
+  sınırlı (yer kaplamasın diye) — `RECENT_LIMIT` (`BelgeOlusturTab.jsx`).
+- PDF çıktısı broker'a göre "kalıcı hukuki kayıt" değil — sadece ofisin
+  bilgisayarına indirip harici imza sistemine elle yüklediği bir ara adım
+  (broker: "bilgiler silinse bile önemi yok, veri gizliliği önemli") —
+  bu yüzden mimari BİLEREK sade tutuldu (yeni bir "arşiv" katmanı yok).
+
+**Yeni durum akışı:** `draft` -> `sent` (danışman/müşteri gönderdi, ofis
+kuyruğunda) -> `completed` (ofis PDF'e çevirdi, kilitlendi).
+
+**Migration** (commit edildi, henüz UYGULANMADI — Supabase MCP bu oturumda
+bağlı değildi):
+`supabase/migrations/20260822120000_belge_olustur_yeniden_tasarim.sql`
+- `document_instances.status` check'ine `'sent'` eklendi.
+- `document_instances`e `fill_token`/`fill_expires_at` eklendi (müşteri
+  linki — `download_token` ile AYNI mantık, farklı amaç).
+- `document_templates`e `is_favorite` eklendi.
+- `document_instances` select/update/delete RLS'i ofis rolünü de
+  kapsayacak şekilde genişletildi, update/delete'ten broker/owner
+  çıkarıldı (sadece izleyici).
+
+**Yeni Edge Function** (commit edildi, henüz DEPLOY EDİLMEDİ):
+`supabase/functions/fill-document/index.ts` — müşterinin girişsiz
+doldurabilmesi için GET (alanları getir) + POST (gönder) — download-
+document ile aynı desen (service role, verify_jwt false).
+
+**generate-document-pdf** güncellendi (commit edildi, henüz redeploy
+edilmedi): artık SADECE `rol === 'ofis'` çağırabiliyor — eskiden
+owner+created_by da çevirebiliyordu, kaldırıldı.
+
+**Frontend** (build+deploy edilmedi — migration uygulanmadan canlıya
+çıkarsa var olmayan sütun/RLS'e bağımlı kod kırılır):
+`documents.js` (`canConvertToPdf`, `isDocumentViewerOnly`),
+`dataProvider` (`send`, `createShareLink`), `BelgeFieldInput.jsx` (ortak
+alan bileşeni, `BelgeDoldurForm` + `MusteriBelgeDoldur` paylaşıyor),
+`BelgeDoldurForm.jsx`/`BelgeOlusturTab.jsx` yeniden yazıldı,
+`MusteriBelgeDoldur.jsx` (yeni, `/belge-doldur/:token`, AppLayout dışında/
+girişsiz), `publicFillClient.js` (mock+gerçek ortam için tek client).
+
+Mock modda Playwright ile uçtan uca doğrulandı: danışman doldurup link
+üretiyor -> aynı sekmede (mock state paylaşımı için) müşteri linki
+doldurup gönderiyor -> ofis kuyrukta görüp PDF'e çeviriyor -> broker
+sadece izleyip indiriyor. **Sıradaki adım: Supabase bağlantısı bu
+oturumda tekrar açılınca migration uygulanacak + 2 Edge Function deploy
+edilecek + panel/ derlenip yayına alınacak.**
