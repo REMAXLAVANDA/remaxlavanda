@@ -905,23 +905,25 @@ export const tasks = {
 }
 
 // --- Belge Doldurma Platformu — dev/mock için 16 belgenin tamamı (2026-08-20) ---
+// isFavorite: ekranda direkt görünen "sık kullanılan" belgeler (2026-08-22
+// broker isteği) — gerisi "diğer belgeler" penceresinde.
 const MOCK_DOCUMENT_TEMPLATES = [
-  { id: 'doc-tpl-yetki-belgesi', slug: 'yetki-belgesi', name: 'Danışmanlık ve Yetki Belgesi', sortOrder: 1, isActive: true },
-  { id: 'doc-tpl-yer-gosterme-belgesi', slug: 'yer-gosterme-belgesi', name: 'Yer Gösterme Belgesi', sortOrder: 2, isActive: true },
-  { id: 'doc-tpl-baglanma-parasi-alici', slug: 'baglanma-parasi-alici', name: 'Bağlanma Parası Sözleşmesi (Alıcı)', sortOrder: 3, isActive: true },
-  { id: 'doc-tpl-cayma-parasi-satici', slug: 'cayma-parasi-satici', name: 'Cayma Parası Sözleşmesi (Satıcı)', sortOrder: 4, isActive: true },
-  { id: 'doc-tpl-cayma-parasi-alici-satici', slug: 'cayma-parasi-alici-satici', name: 'Cayma Parası Sözleşmesi (Alıcı-Satıcı)', sortOrder: 5, isActive: true },
-  { id: 'doc-tpl-kira-sozlesmesi', slug: 'kira-sozlesmesi', name: 'Kira Sözleşmesi', sortOrder: 6, isActive: true },
-  { id: 'doc-tpl-tahliye-taahhutnamesi', slug: 'tahliye-taahhutnamesi', name: 'Tahliye Taahhütnamesi', sortOrder: 7, isActive: true },
-  { id: 'doc-tpl-demirbas-listesi', slug: 'demirbas-listesi', name: 'Demirbaş Listesi', sortOrder: 8, isActive: true },
-  { id: 'doc-tpl-anahtar-teslim-tutanagi', slug: 'anahtar-teslim-tutanagi', name: 'Anahtar Teslim Tutanağı', sortOrder: 9, isActive: true },
-  { id: 'doc-tpl-alici-tanitim-hizmet-bedeli', slug: 'alici-tanitim-hizmet-bedeli', name: 'Alıcı Tanıtım ve Hizmet Bedeli Taahhütnamesi', sortOrder: 10, isActive: true },
-  { id: 'doc-tpl-tasinmaz-bulma-temsil', slug: 'tasinmaz-bulma-temsil', name: 'Taşınmaz Bulma ve Temsil Sözleşmesi', sortOrder: 11, isActive: true },
-  { id: 'doc-tpl-teklif-formu', slug: 'teklif-formu', name: 'Teklif Formu', sortOrder: 12, isActive: true },
-  { id: 'doc-tpl-musteri-memnuniyet-formu', slug: 'musteri-memnuniyet-formu', name: 'Müşteri Memnuniyet Formu', sortOrder: 13, isActive: true },
-  { id: 'doc-tpl-islem-raporu', slug: 'islem-raporu', name: 'İşlem Raporu', sortOrder: 14, isActive: true },
-  { id: 'doc-tpl-hizmet-bedeli-alici', slug: 'hizmet-bedeli-alici', name: 'Hizmet Bedeli Protokolü (Alıcı)', sortOrder: 15, isActive: true },
-  { id: 'doc-tpl-hizmet-bedeli-satici', slug: 'hizmet-bedeli-satici', name: 'Hizmet Bedeli Protokolü (Satıcı)', sortOrder: 16, isActive: true },
+  { id: 'doc-tpl-yetki-belgesi', slug: 'yetki-belgesi', name: 'Danışmanlık ve Yetki Belgesi', sortOrder: 1, isActive: true, isFavorite: true },
+  { id: 'doc-tpl-yer-gosterme-belgesi', slug: 'yer-gosterme-belgesi', name: 'Yer Gösterme Belgesi', sortOrder: 2, isActive: true, isFavorite: true },
+  { id: 'doc-tpl-baglanma-parasi-alici', slug: 'baglanma-parasi-alici', name: 'Bağlanma Parası Sözleşmesi (Alıcı)', sortOrder: 3, isActive: true, isFavorite: true },
+  { id: 'doc-tpl-cayma-parasi-satici', slug: 'cayma-parasi-satici', name: 'Cayma Parası Sözleşmesi (Satıcı)', sortOrder: 4, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-cayma-parasi-alici-satici', slug: 'cayma-parasi-alici-satici', name: 'Cayma Parası Sözleşmesi (Alıcı-Satıcı)', sortOrder: 5, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-kira-sozlesmesi', slug: 'kira-sozlesmesi', name: 'Kira Sözleşmesi', sortOrder: 6, isActive: true, isFavorite: true },
+  { id: 'doc-tpl-tahliye-taahhutnamesi', slug: 'tahliye-taahhutnamesi', name: 'Tahliye Taahhütnamesi', sortOrder: 7, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-demirbas-listesi', slug: 'demirbas-listesi', name: 'Demirbaş Listesi', sortOrder: 8, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-anahtar-teslim-tutanagi', slug: 'anahtar-teslim-tutanagi', name: 'Anahtar Teslim Tutanağı', sortOrder: 9, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-alici-tanitim-hizmet-bedeli', slug: 'alici-tanitim-hizmet-bedeli', name: 'Alıcı Tanıtım ve Hizmet Bedeli Taahhütnamesi', sortOrder: 10, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-tasinmaz-bulma-temsil', slug: 'tasinmaz-bulma-temsil', name: 'Taşınmaz Bulma ve Temsil Sözleşmesi', sortOrder: 11, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-teklif-formu', slug: 'teklif-formu', name: 'Teklif Formu', sortOrder: 12, isActive: true, isFavorite: true },
+  { id: 'doc-tpl-musteri-memnuniyet-formu', slug: 'musteri-memnuniyet-formu', name: 'Müşteri Memnuniyet Formu', sortOrder: 13, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-islem-raporu', slug: 'islem-raporu', name: 'İşlem Raporu', sortOrder: 14, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-hizmet-bedeli-alici', slug: 'hizmet-bedeli-alici', name: 'Hizmet Bedeli Protokolü (Alıcı)', sortOrder: 15, isActive: true, isFavorite: true },
+  { id: 'doc-tpl-hizmet-bedeli-satici', slug: 'hizmet-bedeli-satici', name: 'Hizmet Bedeli Protokolü (Satıcı)', sortOrder: 16, isActive: true, isFavorite: true },
 ]
 
 const MOCK_DOCUMENT_FIELD_DEFS = {
@@ -1432,6 +1434,20 @@ export const documentInstances = {
     if (!row) throw new Error('Belge kaydı bulunamadı.')
     if (row.lockedAt) throw new Error('Bu belge kilitlendi, değiştirilemez.')
     row.data = data
+    return delay({ ...row })
+  },
+  async send(id, data) {
+    const row = MOCK_DOCUMENT_INSTANCES.find((i) => i.id === id)
+    if (!row) throw new Error('Belge kaydı bulunamadı.')
+    row.data = data
+    row.status = 'sent'
+    return delay({ ...row })
+  },
+  async createShareLink(id) {
+    const row = MOCK_DOCUMENT_INSTANCES.find((i) => i.id === id)
+    if (!row) throw new Error('Belge kaydı bulunamadı.')
+    row.fillToken = `mock-fill-${id}`
+    row.fillExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     return delay({ ...row })
   },
   async remove(id) {
