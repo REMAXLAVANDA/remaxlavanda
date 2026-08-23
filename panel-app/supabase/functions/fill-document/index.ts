@@ -58,11 +58,21 @@ Deno.serve(async (req) => {
       .eq('template_id', result.instance.template_id)
       .order('sort_order')
 
+    // camelCase'e çeviriyoruz — BelgeFieldInput (fieldKey/fieldType) hem
+    // portal içinde hem burada aynı bileşen, snake_case'i beklemiyor.
+    const mappedFields = (fields ?? []).map((f) => ({
+      fieldKey: f.field_key,
+      label: f.label,
+      fieldType: f.field_type,
+      required: f.required,
+      sortOrder: f.sort_order,
+    }))
+
     return Response.json(
       {
         ok: true,
         templateName: result.instance.document_templates?.name ?? 'Belge',
-        fields: fields ?? [],
+        fields: mappedFields,
         data: result.instance.data ?? {},
       },
       { headers: CORS },
