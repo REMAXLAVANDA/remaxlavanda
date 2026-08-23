@@ -5,13 +5,14 @@
 --
 -- Yeni favori liste (ekranda direkt kart olarak görünecek): Yetki Belgesi,
 -- Bağlanma Parası Sözleşmesi (Alıcı), Cayma Parası Sözleşmesi (Satıcı),
--- Kira Sözleşmesi, Tahliye Taahhütnamesi. Eskiden favori olan Yer Gösterme
--- Belgesi, Teklif Formu, Hizmet Bedeli Protokolü (Alıcı/Satıcı) artık
--- "Diğer Belgeler" penceresine düşüyor.
+-- Kira Sözleşmesi, Tahliye Taahhütnamesi, Alıcı Tanıtım ve Hizmet Bedeli
+-- Taahhütnamesi. Eskiden favori olan Yer Gösterme Belgesi, Teklif Formu,
+-- Hizmet Bedeli Protokolü (Alıcı/Satıcı) artık "Diğer Belgeler" penceresine
+-- düşüyor.
 -- ============================================================================
 
 update public.document_templates set is_favorite = false;
 update public.document_templates set is_favorite = true
-  where slug in ('yetki-belgesi', 'baglanma-parasi-alici', 'cayma-parasi-satici', 'kira-sozlesmesi', 'tahliye-taahhutnamesi');
+  where slug in ('yetki-belgesi', 'baglanma-parasi-alici', 'cayma-parasi-satici', 'kira-sozlesmesi', 'tahliye-taahhutnamesi', 'alici-tanitim-hizmet-bedeli');
 
 update public.document_templates set name = 'Yetki Belgesi' where slug = 'yetki-belgesi';

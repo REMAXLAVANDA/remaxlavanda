@@ -917,7 +917,7 @@ const MOCK_DOCUMENT_TEMPLATES = [
   { id: 'doc-tpl-tahliye-taahhutnamesi', slug: 'tahliye-taahhutnamesi', name: 'Tahliye Taahhütnamesi', sortOrder: 7, isActive: true, isFavorite: true },
   { id: 'doc-tpl-demirbas-listesi', slug: 'demirbas-listesi', name: 'Demirbaş Listesi', sortOrder: 8, isActive: true, isFavorite: false },
   { id: 'doc-tpl-anahtar-teslim-tutanagi', slug: 'anahtar-teslim-tutanagi', name: 'Anahtar Teslim Tutanağı', sortOrder: 9, isActive: true, isFavorite: false },
-  { id: 'doc-tpl-alici-tanitim-hizmet-bedeli', slug: 'alici-tanitim-hizmet-bedeli', name: 'Alıcı Tanıtım ve Hizmet Bedeli Taahhütnamesi', sortOrder: 10, isActive: true, isFavorite: false },
+  { id: 'doc-tpl-alici-tanitim-hizmet-bedeli', slug: 'alici-tanitim-hizmet-bedeli', name: 'Alıcı Tanıtım ve Hizmet Bedeli Taahhütnamesi', sortOrder: 10, isActive: true, isFavorite: true },
   { id: 'doc-tpl-tasinmaz-bulma-temsil', slug: 'tasinmaz-bulma-temsil', name: 'Taşınmaz Bulma ve Temsil Sözleşmesi', sortOrder: 11, isActive: true, isFavorite: false },
   { id: 'doc-tpl-teklif-formu', slug: 'teklif-formu', name: 'Teklif Formu', sortOrder: 12, isActive: true, isFavorite: false },
   { id: 'doc-tpl-musteri-memnuniyet-formu', slug: 'musteri-memnuniyet-formu', name: 'Müşteri Memnuniyet Formu', sortOrder: 13, isActive: true, isFavorite: false },
