@@ -4,7 +4,7 @@ import Modal from '../common/Modal'
 import ConfirmDialog from '../common/ConfirmDialog'
 import { SUPABASE_URL } from '../../lib/env'
 import { formatDateOnly } from '../../lib/format'
-import BelgeFieldInput from './BelgeFieldInput'
+import BelgeFieldList from './BelgeFieldList'
 
 function fillLinkUrl(fillToken) {
   const { origin, pathname } = window.location
@@ -128,18 +128,7 @@ export default function BelgeDoldurForm({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-          {fields.map((field) => (
-            <div key={field.id} className={field.fieldType === 'textarea' ? 'sm:col-span-2' : ''}>
-              <BelgeFieldInput
-                field={field}
-                value={formData[field.fieldKey]}
-                onChange={(v) => handleChange(field.fieldKey, v)}
-                disabled={!canEditNow}
-              />
-            </div>
-          ))}
-        </div>
+        <BelgeFieldList fields={fields} formData={formData} onChange={handleChange} disabled={!canEditNow} />
 
         {canEditNow && !canConvert && instance?.fillToken && instance.status === 'draft' && (
           <ShareLinkPanel fillToken={instance.fillToken} templateName={template.name} />
