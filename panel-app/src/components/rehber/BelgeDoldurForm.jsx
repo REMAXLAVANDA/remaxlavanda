@@ -64,7 +64,6 @@ export default function BelgeDoldurForm({
   template,
   fields,
   instance,
-  viewerOnly,
   canConvert,
   isOwner,
   onClose,
@@ -81,7 +80,7 @@ export default function BelgeDoldurForm({
   const [confirmingGenerate, setConfirmingGenerate] = useState(false)
   const isLocked = instance?.status === 'completed'
   const isSent = instance?.status === 'sent'
-  const canEditNow = !isLocked && !viewerOnly && (isOwner || canConvert)
+  const canEditNow = !isLocked && (isOwner || canConvert)
 
   function handleChange(fieldKey, value) {
     setFormData((prev) => ({ ...prev, [fieldKey]: value }))

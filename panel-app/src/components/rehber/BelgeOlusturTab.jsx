@@ -9,7 +9,8 @@ import {
   documentFields as fieldsProvider,
   documentInstances as instancesProvider,
 } from '../../lib/dataProvider'
-import { canSeeAllDocumentInstances, canConvertToPdf, isDocumentViewerOnly } from '../../lib/documents'
+import { canSeeAllDocumentInstances, canConvertToPdf } from '../../lib/documents'
+import { ROLES } from '../../lib/roles'
 import { relativeTime } from '../../lib/format'
 import BelgeSablonKart from './BelgeSablonKart'
 import BelgeDoldurForm from './BelgeDoldurForm'
@@ -64,16 +65,18 @@ export default function BelgeOlusturTab() {
   const templates = data?.templates ?? []
   const instances = data?.instances ?? []
   const seeAll = canSeeAllDocumentInstances(role)
-  const canConvert = canConvertToPdf(role)
-  const viewerOnly = isDocumentViewerOnly(role)
+  // "Kendi belgeni çevirebilirsin" rolleri (broker/owner/ofis) — ama ORTAK
+  // kuyruğu (herkesin gönderdiği) sadece ofis işler, bkz. pendingQueue.
+  const canConvertOwn = canConvertToPdf(role)
+  const isQueueProcessor = role === ROLES.OFIS
   const userName = (id) => (id === user.id ? 'Sen' : (knownUsers[id]?.name ?? '—'))
 
   // RLS'in yaptığını mock/dev'de de simüle ediyoruz: danışman sadece kendi
   // kayıtlarını görür, ofis/broker/owner hepsini (bkz. document_instances_select).
-  const visibleInstances = viewerOnly || canConvert ? instances : instances.filter((i) => i.createdBy === user.id)
-  const pendingQueue = canConvert ? visibleInstances.filter((i) => i.status === 'sent') : []
+  const visibleInstances = seeAll || isQueueProcessor ? instances : instances.filter((i) => i.createdBy === user.id)
+  const pendingQueue = isQueueProcessor ? visibleInstances.filter((i) => i.status === 'sent') : []
   const recentInstances = visibleInstances
-    .filter((i) => !(canConvert && i.status === 'sent'))
+    .filter((i) => !(isQueueProcessor && i.status === 'sent'))
     .slice(0, RECENT_LIMIT)
 
   const favoriteTemplates = templates.filter((t) => t.isFavorite)
@@ -187,32 +190,30 @@ export default function BelgeOlusturTab() {
 
   return (
     <div className="space-y-6">
-      {!viewerOnly && (
-        <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-primary">Belge Şablonları</h3>
-            {otherTemplates.length > 0 && (
-              <button
-                onClick={() => setShowOtherTemplates(true)}
-                className="text-xs font-medium text-brand-600 hover:text-brand-700"
-              >
-                Diğer Belgeler ({otherTemplates.length})
-              </button>
-            )}
-          </div>
-          {favoriteTemplates.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-10 text-center text-sm text-text-disabled">
-              Henüz aktif belge şablonu eklenmedi.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {favoriteTemplates.map((t) => (
-                <BelgeSablonKart key={t.id} template={t} onClick={() => openTemplate(t)} />
-              ))}
-            </div>
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-text-primary">Belge Şablonları</h3>
+          {otherTemplates.length > 0 && (
+            <button
+              onClick={() => setShowOtherTemplates(true)}
+              className="text-xs font-medium text-brand-600 hover:text-brand-700"
+            >
+              Diğer Belgeler ({otherTemplates.length})
+            </button>
           )}
         </div>
-      )}
+        {favoriteTemplates.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-10 text-center text-sm text-text-disabled">
+            Henüz aktif belge şablonu eklenmedi.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {favoriteTemplates.map((t) => (
+              <BelgeSablonKart key={t.id} template={t} onClick={() => openTemplate(t)} />
+            ))}
+          </div>
+        )}
+      </div>
 
       {pendingQueue.length > 0 && (
         <div>
@@ -237,7 +238,7 @@ export default function BelgeOlusturTab() {
       {recentInstances.length > 0 && (
         <div>
           <h3 className="mb-3 text-sm font-semibold text-text-primary">
-            {viewerOnly || canConvert ? 'Doldurulan Belgeler' : 'Doldurduğun Belgeler'}
+            {seeAll || isQueueProcessor ? 'Doldurulan Belgeler' : 'Doldurduğun Belgeler'}
           </h3>
           <div className="divide-y divide-border-default rounded-2xl border border-border-default bg-surface-raised">
             {recentInstances.map((instance) => (
@@ -245,7 +246,7 @@ export default function BelgeOlusturTab() {
                 key={instance.id}
                 instance={instance}
                 template={findTemplate(instance.templateId)}
-                showOwner={seeAll || canConvert}
+                showOwner={seeAll || isQueueProcessor}
                 userName={userName}
                 onOpen={openTemplate}
               />
@@ -269,8 +270,10 @@ export default function BelgeOlusturTab() {
           template={activeTemplate}
           fields={activeFields}
           instance={activeInstance}
-          viewerOnly={viewerOnly}
-          canConvert={canConvert}
+          // Ofis her kaydı çevirebilir (kuyruk); broker/owner SADECE kendi
+          // oluşturduğunu (bkz. canConvertToPdf + generate-document-pdf'teki
+          // aynı kural) — danışman hiçbir zaman.
+          canConvert={canConvertOwn && (isQueueProcessor || !activeInstance || activeInstance.createdBy === user.id)}
           isOwner={!activeInstance || activeInstance.createdBy === user.id}
           onClose={closeForm}
           onSaveDraft={handleSaveDraft}
