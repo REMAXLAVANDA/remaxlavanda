@@ -30,7 +30,21 @@ const STATUS_STYLES = {
 }
 const RECENT_LIMIT = 5
 
+// Aynı şablonun birden fazla taslağı listede birbirinin aynı görünüyordu
+// (broker: "çok kullanışsız ve karışık") — ayırt edilsin diye karşı
+// tarafın adını (musteri_ad/alici_ad/satici_ad/kiraci_ad vb. — her şablonda
+// "..._ad" ile biten ama RE/MAX danışmanının kendi adı OLMAYAN ilk dolu
+// alan) küçük bir alt başlık olarak gösteriyoruz.
+function summaryFromData(data) {
+  if (!data) return null
+  const entry = Object.entries(data).find(
+    ([key, value]) => key.endsWith('_ad') && !key.includes('re_max_lavanda') && typeof value === 'string' && value.trim(),
+  )
+  return entry?.[1]?.trim() || null
+}
+
 function InstanceRow({ instance, template, showOwner, userName, onOpen }) {
+  const summary = summaryFromData(instance.data)
   return (
     <button
       onClick={() => template && onOpen(template, instance)}
@@ -38,10 +52,13 @@ function InstanceRow({ instance, template, showOwner, userName, onOpen }) {
       className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-surface-sunken disabled:cursor-default disabled:hover:bg-transparent"
     >
       <FileText size={16} className="shrink-0 text-text-disabled" />
-      <span className="flex-1 font-medium text-text-primary">{template?.name ?? '—'}</span>
-      {showOwner && <span className="text-xs text-text-disabled">{userName(instance.createdBy)}</span>}
-      <span className="text-xs text-text-disabled">{relativeTime(instance.createdAt)}</span>
-      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[instance.status]}`}>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium text-text-primary">{template?.name ?? '—'}</span>
+        {summary && <span className="block truncate text-xs text-text-disabled">{summary}</span>}
+      </span>
+      {showOwner && <span className="shrink-0 text-xs text-text-disabled">{userName(instance.createdBy)}</span>}
+      <span className="shrink-0 text-xs text-text-disabled">{relativeTime(instance.createdAt)}</span>
+      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[instance.status]}`}>
         {STATUS_LABELS[instance.status]}
       </span>
     </button>
