@@ -79,9 +79,18 @@ Kural:
    2. Ters giderse geri alınabilir mi? (evet/hayır)
    3. Portalda çalışan bir ekran bozulabilir mi? Kontrol ettim mi?
    SQL de eklenir ama **en alta**, 3 sorudan sonra.
-3. **Sadece onay yeterli** (broker "onaylıyorum"/"evet" derse
+3. **Sadece onay yeterli** (broker "onaylıyorum"/"evet"/"onay" derse
    uygulanabilir): GRANT/REVOKE, search_path SET, RLS politikası
-   ekleme/kaldırma, index ekleme.
+   ekleme/kaldırma, index ekleme. Ayrıca (2026-08-23 broker: "risklilerde
+   kalsın diğerlerinde kısa cevap" — kural riskli olmayan işlemler için
+   gevşetildi): birkaç *spesifik, isimle/ID'yle belirtilmiş* satırı
+   hedefleyen küçük DELETE (ör. test amaçlı birkaç kayıt) ve gerçek
+   müşteri/işlem verisini DEĞİL de görünüm/etiket/sıralama gibi
+   düşük riskli alanları (ör. `is_favorite`, `name`, `sort_order`)
+   değiştiren UPDATE.
 4. **Onay yetmez** — broker açıkça **"bilgisayardayım, uygula"**
-   demeden dokunma: DROP, DELETE, UPDATE, kolon tipi değişikliği,
-   erişimi genişleten her değişiklik.
+   demeden dokunma (gerçekten riskli/geri dönüşü belirsiz olanlar):
+   DROP (tablo/kolon), kolon tipi değişikliği, erişimi genişleten RLS/
+   politika değişikliği, geniş çaplı veya gerçek müşteri/işlem verisini
+   etkileyen DELETE/UPDATE, hangi satırların etkileneceği net olmayan
+   (WHERE'siz veya geniş kapsamlı) her değişiklik.

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { CheckCircle2, FileText } from 'lucide-react'
 import { getDocumentByFillToken, submitDocumentByFillToken } from '../lib/publicFillClient'
-import BelgeFieldInput from '../components/rehber/BelgeFieldInput'
+import BelgeFieldList from '../components/rehber/BelgeFieldList'
 
 // Girişsiz açılan, herkese açık belge doldurma sayfası — /belge-doldur/:token.
 // Danışmanın müşteriye attığı link buraya gelir (2026-08-22 broker isteği:
@@ -82,17 +82,7 @@ export default function MusteriBelgeDoldur() {
               <p className="text-sm font-semibold text-ink-900">{state.doc.templateName}</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-              {state.doc.fields.map((field) => (
-                <div key={field.fieldKey ?? field.id} className={field.fieldType === 'textarea' ? 'sm:col-span-2' : ''}>
-                  <BelgeFieldInput
-                    field={field}
-                    value={formData[field.fieldKey]}
-                    onChange={(v) => handleChange(field.fieldKey, v)}
-                  />
-                </div>
-              ))}
-            </div>
+            <BelgeFieldList fields={state.doc.fields} formData={formData} onChange={handleChange} disabled={false} />
 
             <button
               type="submit"
