@@ -21,8 +21,15 @@ const BELGE_PDF_SECRET = Deno.env.get('BELGE_PDF_SECRET') ?? ''
 // yapıyor, /api/* isteğini de yakalayıp SPA'ya yönlendirir.
 const VERCEL_PDF_URL = 'https://www.remaxlavanda.com.tr/api/generate-document-pdf'
 
+// Diğer Belge Doldurma Edge Function'larıyla (download-document, fill-document)
+// AYNI desen — köken kısıtı gerçek güvenlik sağlamıyor (herkes kendi
+// sunucusundan Authorization header'ı taklit edebilir), asıl yetki kontrolü
+// yukarıdaki JWT doğrulama + rol/created_by kontrolü. 2026-08-23: broker'ın
+// canlıda "PDF üretilemedi" hatası alması üzerine, tek bir origin'e
+// kilitlemenin (panel.remaxlavanda.com.tr) olası bir CORS uyuşmazlığı
+// kaynağı olmaması için gevşetildi.
 const CORS = {
-  'Access-Control-Allow-Origin': 'https://panel.remaxlavanda.com.tr',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }

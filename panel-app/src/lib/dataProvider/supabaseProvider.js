@@ -1499,7 +1499,19 @@ export const documentInstances = {
     const { data, error } = await client().functions.invoke('generate-document-pdf', {
       body: { instanceId },
     })
-    if (error) throw new Error('PDF üretilemedi, bağlantıyı kontrol edip tekrar dene.')
+    if (error) {
+      // FunctionsHttpError'da (fonksiyon 4xx/5xx döndüyse) gerçek Türkçe
+      // hata mesajımız error.context'teki Response gövdesinde — onu
+      // gösteriyoruz, yoksa (gerçek ağ hatası) jenerik mesaja düşüyoruz.
+      let detail = null
+      try {
+        const body = await error.context?.clone?.().json()
+        detail = body?.error ?? null
+      } catch {
+        // context okunamadıysa (gerçek ağ/CORS hatası) sessizce jenerik mesaja düş.
+      }
+      throw new Error(detail ?? 'PDF üretilemedi, bağlantıyı kontrol edip tekrar dene.')
+    }
     if (!data?.ok) throw new Error(data?.error ?? 'PDF üretilemedi.')
     return { downloadToken: data.downloadToken, downloadExpiresAt: data.downloadExpiresAt }
   },
