@@ -78,10 +78,17 @@ module.exports = async function handler(req, res) {
   let browser
   try {
     const [puppeteer, chromium] = await Promise.all([getPuppeteer(), getChromium()])
+    // chromium.args zaten '--headless=shell' içeriyor (bu binary SADECE
+    // chrome-headless-shell modunu destekliyor) — launch()'a headless:true
+    // vermek puppeteer'ın kendi "yeni headless" varsayılan bayraklarını da
+    // eklemesine sebep oluyordu, bu çakışma bozuk/aşırı büyük PDF'e yol
+    // açıyordu ("The object exceeded the maximum allowed size"). Paketin
+    // kendi belgelediği desene göre headless: 'shell' + defaultArgs
+    // kullanılıyor.
     browser = await puppeteer.launch({
-      args: chromium.args,
+      args: await puppeteer.defaultArgs({ args: chromium.args, headless: 'shell' }),
       executablePath: await chromium.executablePath(),
-      headless: true,
+      headless: 'shell',
     })
     const page = await browser.newPage()
     await page.goto(templateUrl, { waitUntil: 'networkidle0' })
