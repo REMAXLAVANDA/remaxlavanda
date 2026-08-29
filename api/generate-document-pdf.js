@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
       }
     }, data)
 
-    await page.waitForTimeout(150)
+    await new Promise((resolve) => setTimeout(resolve, 150))
 
     const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true })
 
