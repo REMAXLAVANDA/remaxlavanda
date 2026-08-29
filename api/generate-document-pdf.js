@@ -14,8 +14,17 @@
 // aynı mantık). slug da sabit bir listeye karşı doğrulanıyor (path
 // traversal / rastgele dosya okuma engellensin diye).
 
-const chromium = require('@sparticuz/chromium')
 const puppeteer = require('puppeteer-core')
+
+// @sparticuz/chromium@149+ artık sadece ES Module olarak dağıtılıyor
+// (build/index.js), require() ile yüklenemiyor (ERR_REQUIRE_ESM) — bu yüzden
+// dinamik import() kullanıyoruz. Sonucu önbelleğe alıyoruz ki sıcak
+// (warm) çağrılarda tekrar import edilmesin.
+let chromiumPromise
+function getChromium() {
+  if (!chromiumPromise) chromiumPromise = import('@sparticuz/chromium').then((m) => m.default)
+  return chromiumPromise
+}
 
 const VALID_SLUGS = new Set([
   'yetki-belgesi',
@@ -64,6 +73,7 @@ module.exports = async function handler(req, res) {
 
   let browser
   try {
+    const chromium = await getChromium()
     browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
