@@ -2,7 +2,7 @@
   "name": "remaxlavanda-site",
   "private": true,
   "dependencies": {
-    "@sparticuz/chromium": "^131.0.1",
-    "puppeteer-core": "^23.11.1"
+    "@sparticuz/chromium": "^149.0.0",
+    "puppeteer-core": "^25.1.0"
   }
 }
