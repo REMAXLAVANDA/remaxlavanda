@@ -220,6 +220,23 @@ export default function Lig() {
     return map
   }, [data, periodId])
 
+  // Sosyal Medya sekmesindeki sıralama satırına tıklayınca Ciro'daki gibi
+  // giriş geçmişi (tarih + "3x Instagram Post") görülebilsin diye — broker:
+  // "sosyal medya girişlerinde en son hangi veri girdiğimizi göremiyoruz".
+  const socialActivityHistoryByUser = useMemo(() => {
+    const activityTypeName = (id) => activityTypes.find((t) => t.id === id)?.ad ?? 'aktivite'
+    const rows = (data?.socialActivityLog ?? []).filter((l) => l.periodId === periodId)
+    const map = {}
+    for (const l of rows) {
+      if (!map[l.userId]) map[l.userId] = []
+      map[l.userId].push({ id: l.id, tarih: l.createdAt, adet: l.adet, activityTypeName: activityTypeName(l.activityTypeId) })
+    }
+    for (const list of Object.values(map)) {
+      list.sort((a, b) => new Date(b.tarih) - new Date(a.tarih))
+    }
+    return map
+  }, [data, periodId, activityTypes])
+
   // Ciro girilirken müşteri isimleri de aynı formda eklenebiliyor (bkz.
   // AddScoreModal) — ayrı bir menüye gitmeye gerek kalmasın diye. Skor
   // kaydedilince addScore'un döndürdüğü periodId ile isimler de eklenir;
@@ -458,6 +475,7 @@ export default function Lig() {
             unit={category.unit}
             historyByUser={tab === 'ciro' ? ciroHistoryByUser : null}
             reviewByUser={tab === 'memnuniyet' ? reviewByUser : null}
+            activityByUser={tab === 'sosyal_medya' ? socialActivityHistoryByUser : null}
             onAddMusteri={handleAddCiroMusteri}
             onRemoveMusteri={handleRemoveCiroMusteri}
             onToggleAlindi={handleToggleAlindi}
