@@ -7,18 +7,21 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('tr-TR')
 }
 
-// historyByUser (Ciro) VE reviewByUser (Memnuniyet) BİRBİRİNİN AYNI
-// deseni — satıra tıklanınca o danışmana özel detay açılır. Ciro'da bu
-// salt-okunur bir geçmiş (score_entries.value üstüne yazıldığı için tek
-// yolu bu); Memnuniyet'te ise interaktif — müşteri ekle/sil/işaretle
-// (eskiden ayrı bir "Yorum Hakkı" paneliydi, broker: "her danışmanın
-// ciroda açılan bir penceresi olduğu gibi memnuniyette de yapalım").
-// İkisi aynı anda verilmez (sekmeye göre biri null).
+// historyByUser (Ciro), reviewByUser (Memnuniyet) VE activityByUser
+// (Sosyal Medya) BİRBİRİNİN AYNI deseni — satıra tıklanınca o danışmana
+// özel detay açılır. Ciro'da bu salt-okunur bir geçmiş (score_entries.value
+// üstüne yazıldığı için tek yolu bu); Memnuniyet'te ise interaktif —
+// müşteri ekle/sil/işaretle (eskiden ayrı bir "Yorum Hakkı" paneliydi,
+// broker: "her danışmanın ciroda açılan bir penceresi olduğu gibi
+// memnuniyette de yapalım"); Sosyal Medya'da Ciro gibi salt-okunur bir
+// giriş geçmişi (broker: "en son hangi veri girdiğimizi göremiyoruz").
+// Üçü aynı anda verilmez (sekmeye göre sadece biri dolu).
 export default function LeagueBoard({
   rankings,
   unit,
   historyByUser,
   reviewByUser,
+  activityByUser,
   onAddMusteri,
   onRemoveMusteri,
   onToggleAlindi,
@@ -44,7 +47,8 @@ export default function LeagueBoard({
         const history = historyByUser?.[r.userId] ?? []
         const review = reviewByUser?.[r.userId]
         const musteriler = review?.musteriler ?? []
-        const canExpand = Boolean(historyByUser) || Boolean(reviewByUser)
+        const activity = activityByUser?.[r.userId] ?? []
+        const canExpand = Boolean(historyByUser) || Boolean(reviewByUser) || Boolean(activityByUser)
         const isExpanded = canExpand && expandedId === r.userId
         return (
           <div
@@ -89,6 +93,25 @@ export default function LeagueBoard({
                         <span>{formatDate(h.tarih)}</span>
                         <span className="font-medium text-text-primary">
                           {canSeeAmounts ? `${Number(h.value).toLocaleString('tr-TR')} TL` : '•••• TL'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isExpanded && activityByUser && (
+              <div className="border-t border-border-default px-4 py-2">
+                {activity.length === 0 ? (
+                  <p className="py-1 text-xs text-text-disabled">Bu dönem için giriş kaydı yok.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {activity.map((a) => (
+                      <div key={a.id} className="flex items-center justify-between text-xs text-text-secondary">
+                        <span>{formatDate(a.tarih)}</span>
+                        <span className="font-medium text-text-primary">
+                          {a.adet}x {a.activityTypeName}
                         </span>
                       </div>
                     ))}
