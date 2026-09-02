@@ -892,10 +892,20 @@ async function recomputeCiroTotal(userId, periodId, enteredBy) {
   const rows = await run(
     client().from('ciro_girisleri').select('value').eq('user_id', userId).eq('period_id', periodId),
   )
-  const total = rows.reduce((sum, r) => sum + Number(r.value), 0)
   const existing = await run(
     client().from('score_entries').select('id').eq('user_id', userId).eq('period_id', periodId).eq('type', 'ciro').maybeSingle(),
   )
+  // Son satış da silinince toplam satırı da silinsin — 0 değerli bir
+  // score_entries bırakırsak kişi "gerçek verisi yok" olmasına rağmen
+  // sıralamada (hatta lider olarak) görünmeye devam eder (broker:
+  // "sildim ama sanki kayıt varmış gibi listede görünüyor").
+  if (rows.length === 0) {
+    if (existing) {
+      await run(client().from('score_entries').delete().eq('id', existing.id))
+    }
+    return
+  }
+  const total = rows.reduce((sum, r) => sum + Number(r.value), 0)
   if (existing) {
     await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
   } else {
@@ -909,11 +919,18 @@ async function recomputeSocialTotal(userId, periodId, enteredBy) {
     run(client().from('social_activity_log').select('activity_type_id, adet').eq('user_id', userId).eq('period_id', periodId)),
     run(client().from('social_activity_types').select('id, puan')),
   ])
-  const puanMap = Object.fromEntries(types.map((t) => [t.id, Number(t.puan)]))
-  const total = logs.reduce((sum, l) => sum + Number(l.adet) * (puanMap[l.activity_type_id] ?? 0), 0)
   const existing = await run(
     client().from('score_entries').select('id').eq('user_id', userId).eq('period_id', periodId).eq('type', 'sosyal_medya').maybeSingle(),
   )
+  // bkz. recomputeCiroTotal — son giriş de silinince toplam satırı silinir.
+  if (logs.length === 0) {
+    if (existing) {
+      await run(client().from('score_entries').delete().eq('id', existing.id))
+    }
+    return
+  }
+  const puanMap = Object.fromEntries(types.map((t) => [t.id, Number(t.puan)]))
+  const total = logs.reduce((sum, l) => sum + Number(l.adet) * (puanMap[l.activity_type_id] ?? 0), 0)
   if (existing) {
     await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
   } else {
