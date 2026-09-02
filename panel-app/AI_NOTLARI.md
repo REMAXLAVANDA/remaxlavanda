@@ -3,6 +3,150 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-02 — Gerçek portal aktivite takibi (son_aktif) — Portal Kullanımı doğru sinyal alsın
+
+Broker: "gerçekten hiç portalı kullanan yok mu" — Panel'deki "Portal
+Kullanımı" widget'ı `auth.users.last_sign_in_at`'e dayanıyordu, bu alan
+SADECE yeniden şifre/link ile giriş yapıldığında güncelleniyor, oturum
+açık kaldığı sürece (normal kullanım) hiç yenilenmiyor — broker'ın kendi
+kaydı bile günlerce eskiydi, hâlbuki aktif kullanıyordu. `users.son_aktif`
+kolonu + `touch_activity()` RPC'si eklendi; `AuthContext.jsx` her profil
+yüklemesinde (saatte bir ile sınırlı, localStorage) şifre istemeden
+sessizce çağırıyor. `list_user_activity()` artık iki sinyalin
+(`auth.last_sign_in_at` + `son_aktif`) en güncelini (`greatest`) döndürüyor.
+Geçmişe dönük veri yok — sadece bugünden itibaren.
+
+## 2026-09-02 — Belge Oluştur menüsü kaldırıldı
+
+"Yer Gösterme Belgesi" PDF'e çevrilirken tekrar tekrar "The object
+exceeded the maximum allowed size" hatası verdi — depolama sınırı 25 MB'a
+çıkarılmasına, Chromium/headless-mod zincirindeki tüm düzeltmelere rağmen
+(bkz. bir alttaki not) sorun sürdü. Broker: "hepsini kaldır belge oluştur
+menüsü olmasın" — Rehber sayfasındaki "Belge Oluştur" sekmesi/girişi
+kaldırıldı (`Rehber.jsx`), alttaki `BelgeOlusturTab` bileşenine ve
+Supabase/Vercel altyapısına dokunulmadı — geri getirilmek istenirse kolay.
+Ayrıca `document_templates.is_active` üzerinden sadece "Yer Gösterme
+Belgesi" şablonu pasife alındı (menü kaldırılmadan önceki ara adım).
+
+## 2026-09-01/02 — PDF üretimi: Chromium/Node 24 uyumluluk zinciri + Vercel'de iki proje karışıklığı
+
+"PDF üretilemedi (401)" hatasıyla başlayan uzun bir zincir: (1) `BELGE_PDF_SECRET`
+Supabase'de hiç yoktu, Vercel'de değişmişti — ikisi eşitlendi ama hata
+sürdü çünkü (2) **bu depoya bağlı Vercel'de iki proje var** — üzerinde
+çalıştığımız `remaxlavanda` projesi canlı alan adına (www/panel.
+remaxlavanda.com.tr) bağlı DEĞİLDİ, gerçek canlı proje `project-se28x`
+(garip otomatik isim) imiş. Doğru projede düzeltilince sırasıyla: (3)
+`@sparticuz/chromium`@131 Node 24 ortamıyla uyuşmuyordu (`libnss3.so`
+bulunamadı) → 149'a yükseltildi (engines: node ^22.17.0 || >=24.0.0); (4)
+149 + `puppeteer-core`@25 artık ES Module, `require()` ile yüklenemiyordu
+(`ERR_REQUIRE_ESM`) → dinamik `import()`'a geçirildi; (5) `page.
+waitForTimeout` kaldırılmış bir metod → düz `setTimeout` Promise'i; (6)
+`chromium.args` zaten `--headless=shell` içeriyordu ama `launch()`'a
+`headless:true` veriliyordu — bu çakışma bozuk/aşırı büyük PDF üretimine
+yol açıyordu ("The object exceeded the maximum allowed size") →
+`headless:'shell'` + `puppeteer.defaultArgs` (paketin belgelediği desen).
+Depolama sınırı ayrıca 10→25 MB'a çıkarıldı, gerçek boyut/sayfa sayısı
+teşhis için loglanıyor. Sonunda "Yer Gösterme Belgesi" hâlâ aşıyordu,
+kaldırıldı (yukarıdaki not).
+
+## 2026-09-01/02 — Lig dönem görünürlüğü: acik/kapali/aciklandi
+
+Büyük bir özellik: dönemin 3 hali. Bitişe 7 gün kala OTOMATİK "kapali"
+olur (kimse düğmeye basmaz — hem `pg_cron` her gece `durum` kolonunu
+senkronlar, hem RLS tarihten CANLI hesaplar, cron'a bağımlı değil).
+Kapalıyken danışman VE ofis hiçbir şey göremez (kendi satırı dahil),
+broker/owner görür + skor girmeye devam eder. Broker/owner "Sonuçları
+Açıkla" der → "aciklandi" olur, danışman o dönemin TAM sıralamasını
+görür — bu KALICI, yeni dönem başlasa bile daralmaz. Açıklanmamış geçmiş
+dönemde danışman/ofis sadece kendi satırını görür. **Erişim RLS
+seviyesinde** (`score_entries`/`ciro_girisleri`/`ciro_musterileri`/
+`social_activity_log`/`periods` + `list_musteri_review_counts()` RPC'si
+— bu RPC SECURITY DEFINER olduğu için RLS'i bypass ediyordu, ayrıca
+kapatıldı) — broker'ın kendi uyardığı Takvim genel türler hatasının
+(774b12a → a100a37: sadece UI'da gizleyip RLS'i unutma) tekrarlanmaması
+için özellikle. Mock modda 4 rolde Playwright ile görsel doğrulandı.
+
+## 2026-09-01 — Lig: sıralama farkı artık bir üstteki komşuya göre + dönem tarih aralığı danışman ekranından kaldırıldı
+
+Broker: "1. ile 2. arasındaki fark görünmeli... bir danışman bir üst
+seviyeye kaç puan fark olduğunu bilmeli" — `rankingsFor()`'daki diff
+hesaplaması eskiden (önceki broker onaylı spesifikasyon) SADECE lidere
+göreydi, şimdi bir üst basamağa göre. Ayrıca "ödül günü sürpriz olmalı"
+— dönem seçici ("2026 - Dönem 2 (May-Ağu)") tarih aralığını herkese
+gösteriyordu, artık sadece yöneticiye (broker/owner/ofis) görünüyor.
+
+## 2026-09-01 — Lig: Ciro Gir'de "+"ya basılmadan yazılan müşteri ismi kayboluyordu
+
+Broker: "ciro'ya isim ekledik ama müşteri memnuniyetinde görünmüyor" —
+kök sebep: isim kutusuna yazılıp "+" ile onaylanmadan "Kaydet"e basılırsa
+isim sessizce kayboluyordu (ciro tutarı kaydediliyor, hata çıkmıyor, çünkü
+teknik olarak başarılı bir kayıt). Kaydet'e basılırken draft'ta kalan
+metin varsa artık otomatik listeye ekleniyor. Songül İşcan için bu şekilde
+kaybolan isimler (Selen Geyik'in bugün girdiği ciro kayıtları) elle
+geri eklendi. Ayrıca aynı tarih aralığına sahip kopya bir "dönem" kaydı
+("Q2 2026", tamamen boş/kullanılmayan) bulunup silindi.
+
+## 2026-09-01 — Lig: Sosyal Medya sekmesine de giriş geçmişi (açılır satır) eklendi
+
+Ciro ve Memnuniyet sekmelerinde satıra tıklayınca danışmana özel geçmiş
+açılıyordu, Sosyal Medya'da yoktu — broker: "en son hangi veri
+girdiğimizi göremiyoruz". `LeagueBoard`'a üçüncü mod (`activityByUser`)
+eklendi, Ciro'daki `historyByUser` ile aynı desen.
+
+## 2026-08-24 — Güvenlik taraması: belge-ciktilari storage ofis erişimi + Görevler atanan sadece durum
+
+Sistem geneli güvenlik taraması (background agent, 84 migration + 12 Edge
+Function) iki düşük risk bulgu döndü: (1) `belge-ciktilari` bucket'ının
+SELECT kuralı ofis'in "her belgeyi PDF'e çevirebilme" yetkisi eklenmeden
+önce yazılmıştı, tutarsızlık giderildi (pratik etkisi yoktu, indirme zaten
+service-role Edge Function üzerinden). (2) `tasks_update` RLS'i danışmanın
+sadece görev durumunu değiştirebilmesini hedefliyordu ama veritabanı
+seviyesinde zorlamıyordu (UI kısıtıydı) — `BEFORE UPDATE` trigger
+eklendi, yönetim dışındaki güncellemelerde başlık/açıklama/atanan/son
+tarih sessizce eski değerine döner. (Bir sonraki oturumda aynı taramanın
+2. bulgusu — `event_attendance.katilim_tipi` self-edit — de aynı desenle
+kapatıldı, bkz. güvenlik notu 2026-09-02.)
+
+## 2026-09-02 — Güvenlik: event_attendance katilim_tipi self-edit kapatıldı
+
+2026-08-24 taramasının 2. (o gün ertelenen) bulgusu: `event_attendance_
+update_self` RLS'i status/mazeret alanlarını kısıtlıyordu ama
+`katilim_tipi`'ni (zorunlu/onerilen/istege_bagli) hiç kısıtlamıyordu —
+gerekçe "app kodu göndermiyor" idi (aynı sınıf hata: Takvim genel türler
+emsali). Danışman doğrudan API isteğiyle kendi katılımını zorunludan
+isteğe bağlıya çekip kendini muaf tutabilirdi. `tasks_restrict_
+assignee_update` ile aynı desen: `BEFORE UPDATE` trigger, yönetim
+dışındaki güncellemede `katilim_tipi` eski değerine sessizce döner.
+
+## 2026-08-23 — Belge Oluştur: broker/owner kendi belgesini oluşturup PDF'e çevirebiliyor + doldurma formu UI iyileştirmeleri
+
+Kural değişti: ofis hâlâ herkesin gönderdiği belgeyi çevirebiliyor
+(kuyruk); broker/owner artık kendi oluşturduğu belgeyi kendisi doldurup
+tek adımda PDF'e çevirebiliyor (ofis gibi, ama SADECE kendi belgesi);
+danışman hâlâ hiçbir zaman çeviremiyor, sadece doldurup gönderiyor —
+hem `lib/documents.js` hem `generate-document-pdf` Edge Function'da
+uygulandı. PDF üretiminde "PDF üretilemedi, bağlantıyı kontrol edip
+tekrar dene." jenerik hatası CORS'un tek origin'e kilitli olmasından
+kaynaklanıyordu, `'*'`'a gevşetildi + gerçek sunucu hata mesajı artık
+kullanıcıya gösteriliyor. Favori belge şablonu listesi broker'ın verdiği
+listeyle güncellendi ("Danışmanlık ve Yetki Belgesi" → "Yetki Belgesi"
+olarak sadeleşti). Doldurma formu "çok karışık" geri bildirimi üzerine:
+ardışık onay kutuları kompakt "seçenek grubu" pillerine gruplandı + üstte
+ilerleme sayacı eklendi, ardından etiket metnindeki anahtar kelimelere
+göre bölüm başlıkları (Taşınmaz/Karşı Taraf/Özel Şart/RE-MAX Lavanda)
+eklendi — ortak `BelgeFieldList` bileşeni hem portal içi form hem
+müşterinin girişsiz doldurduğu sayfada kullanılıyor.
+
+## 2026-08-23 — CLAUDE.md: Migration Onay Kuralı riskli olmayan işlemler için gevşetildi
+
+Broker: "risklilerde kalsın diğerlerinde kısa cevap" — birkaç spesifik,
+isimle/ID'yle belirtilmiş satırı hedefleyen küçük DELETE (ör. test
+kayıtları) ve gerçek müşteri/işlem verisini DEĞİL de görünüm/etiket/
+sıralama gibi düşük riskli alanları (`is_favorite`, `name`, `sort_order`)
+değiştiren UPDATE artık düz "onaylıyorum" ile yapılabiliyor —
+"bilgisayardayım, uygula" sadece gerçekten riskli/geniş kapsamlı işlemler
+için gerekli.
+
 ## 2026-08-15 — UYARI: .env ve node_modules oturum ortamından kayboldu, build sessizce mock'a düşüyordu
 
 Bu deploy'dan hemen önce build alırken bundle doğrulaması "supabase
