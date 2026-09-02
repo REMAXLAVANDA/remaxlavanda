@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-02 — Lig: silinen son ciro/sosyal medya girişinde toplam satırı da sil
+
+Broker: Murat Sarılgan'a girilen bir sosyal medya kaydını sildikten
+sonra hâlâ listede "lider" görünmesi bildirildi. Kök neden:
+`recomputeCiroTotal`/`recomputeSocialTotal` (bir önceki oturumda
+eklenen silme özelliğinin parçası), altındaki tüm girişler silinse
+bile `score_entries` toplam satırını 0 değerle bırakıyordu — bu tek
+0'lık satır, başka kimsenin verisi olmadığında otomatik "lider"
+görünüyordu. Artık son giriş de silinince toplam satır tamamen
+siliniyor. Aynı desendeki mevcut tek kalıntı kayıt (Murat Sarılgan,
+Eylül-Aralık) onayla temizlendi, başka kalıntı yok.
+
 ## 2026-09-02 — Lig: ofis'e geçmiş dönem görünürlüğü (RLS fix)
 
 Broker: "sosyal medyada geçtiğimiz döneme veri girmek istediğimizde
