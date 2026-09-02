@@ -3,6 +3,25 @@ import { ROLES } from '../lib/roles'
 import { USE_SUPABASE } from '../lib/env'
 import { getSupabaseClient } from '../lib/supabaseClient'
 import { ApiError, mapSupabaseError } from '../lib/errors'
+import { users as usersProvider } from '../lib/dataProvider'
+
+// "Portal Kullanımı" widget'ının gerçek sinyal alması için (bkz. migration
+// 20260902130000) — şifre istemeden, sessizce. localStorage ile saatte
+// birden fazla çağrılmasını engelliyoruz, günlük/haftalık bir istatistik
+// için bu kadarı yeterli, gereksiz yere DB'ye yazmayalım diye.
+const ACTIVITY_PING_KEY = 'remaxlavanda_last_activity_ping'
+const ACTIVITY_PING_INTERVAL_MS = 60 * 60 * 1000
+
+function pingActivity() {
+  try {
+    const last = Number(localStorage.getItem(ACTIVITY_PING_KEY) ?? 0)
+    if (Date.now() - last < ACTIVITY_PING_INTERVAL_MS) return
+    localStorage.setItem(ACTIVITY_PING_KEY, String(Date.now()))
+  } catch {
+    // localStorage kapalıysa (gizli sekme vb.) sessizce vazgeç — kritik değil.
+  }
+  usersProvider.touchActivity().catch(() => {})
+}
 
 // Mock modda kullanılan sabit kullanıcı seti — sadece development'ta,
 // USE_SUPABASE=false iken devrede. lib/dataProvider/mockProvider.js
@@ -74,6 +93,7 @@ function RealAuthProvider({ children }) {
       throw new Error('Hesabın pasif durumda. Erişim için ofis yöneticinle iletişime geç.')
     }
 
+    pingActivity()
     return { id: data.id, name: data.ad, email: data.email, role: data.rol, mustChangePassword: data.must_change_password }
   }
 

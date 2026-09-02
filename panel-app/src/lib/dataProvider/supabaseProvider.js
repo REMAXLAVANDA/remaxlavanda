@@ -1163,6 +1163,13 @@ export const users = {
     const data = await run(client().rpc('list_user_activity'))
     return data.map((row) => ({ userId: row.user_id, lastSignInAt: row.last_sign_in_at }))
   },
+  // Gerçek "portal kullanıyor" sinyali — auth.users.last_sign_in_at sadece
+  // yeniden şifre/link girişinde güncelleniyor, oturum açık kaldığı sürece
+  // donuk kalıyor (bkz. migration 20260902130000). AuthContext bunu şifre
+  // istemeden, sınırlı sıklıkta çağırır.
+  async touchActivity() {
+    await run(client().rpc('touch_activity'))
+  },
   // TC no / doğum tarihi — ayrı, kısıtlı-görünürlüklü tabloda tutuluyor
   // (bkz. user_private_info_select RLS: sadece broker/owner/ofis + kişinin
   // kendisi görebilir). user_private_info_write RLS'i is_manager() şartı

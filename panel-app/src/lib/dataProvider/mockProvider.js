@@ -771,6 +771,9 @@ export const users = {
         .map((u) => ({ userId: u.id, lastSignInAt: MOCK_USER_ACTIVITY[u.id] ?? null })),
     )
   },
+  async touchActivity() {
+    return delay(null)
+  },
   async upsertPrivateInfo(userId, { dogumTarihi, tcNo }) {
     MOCK_PRIVATE_INFO[userId] = { dogumTarihi: dogumTarihi ?? null, tcNo: tcNo ?? null }
     return delay({ userId, ...MOCK_PRIVATE_INFO[userId] })
