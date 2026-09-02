@@ -70,12 +70,12 @@ export function wilsonScoreLowerBound(basarili, toplam) {
 }
 
 // Spesifikasyon gereği (broker onaylı): mutlak ciro/skor değeri hiçbir zaman
-// ekrana basılmaz — sadece LİDERE (1. sıradaki) göre fark gösterilir, bir
-// üstteki komşuya göre değil — böylece 3., 4. ... sıradaki danışman da
-// zirveye kaç puan/TL kaldığını doğrudan görür. Lider için de fark
-// gösterilir — 2. sıradakine göre ne kadar ÖNDE olduğu (liderin üstünde
-// kimse yok, o yüzden 2.'ye göre fark hesaplanır). Tek kişilik sıralamada
-// (yarışacak kimse yoksa) fark 0 kalır.
+// ekrana basılmaz — sadece BİR ÜSTTEKİ komşuya göre fark gösterilir (2026-09-01
+// broker: "1. ile 2. arasındaki fark görünmeli... bir danışman bir üst
+// seviyeye kaç puan fark olduğunu bilmeli" — eskiden herkes lidere göre
+// fark görüyordu, artık bir üst basamağa ne kadar kaldığını görüyor). Lider
+// için fark yine 2. sıradakine göre ne kadar ÖNDE olduğu (liderin üstünde
+// kimse yok). Tek kişilik sıralamada (yarışacak kimse yoksa) fark 0 kalır.
 export function rankingsFor(type, scores, resolveName) {
   const ranked = scores
     .filter((s) => s.type === type)
@@ -85,7 +85,7 @@ export function rankingsFor(type, scores, resolveName) {
   return ranked.map((r, i) => {
     let diff = 0
     if (ranked.length > 1) {
-      diff = i === 0 ? r.value - ranked[1].value : ranked[0].value - r.value
+      diff = i === 0 ? r.value - ranked[1].value : ranked[i - 1].value - r.value
     }
     return { ...r, isLeader: r.rank === 1, diff }
   })
