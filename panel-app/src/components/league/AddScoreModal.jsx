@@ -41,7 +41,13 @@ export default function AddScoreModal({ onClose, onSubmit, submitting, danismanO
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ userId: form.userId, type: 'ciro', value: parsedValue, tarih: form.tarih, musteriler })
+          // Yazılıp "+" ile onaylanmadan Kaydet'e basılan isim sessizce
+          // kayboluyordu (broker: "ciro'ya isim ekledik ama memnuniyette
+          // görünmüyor" — meğerse hiç gönderilmemiş) — draft'ta kalan metin
+          // varsa listeye eklenip öyle gönderiliyor.
+          const trimmedDraft = capitalizeWords(nameDraft.trim())
+          const finalMusteriler = trimmedDraft ? [...musteriler, trimmedDraft] : musteriler
+          onSubmit({ userId: form.userId, type: 'ciro', value: parsedValue, tarih: form.tarih, musteriler: finalMusteriler })
         }}
         className="space-y-3"
       >
