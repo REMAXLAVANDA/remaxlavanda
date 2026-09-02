@@ -88,6 +88,27 @@ export function wilsonScoreLowerBound(basarili, toplam) {
   return (centre - margin) / denominator
 }
 
+// Memnuniyet puanı (2026-09-02 broker düzeltmesi) — danışmanlara duyurulan
+// söz "az işlemden gelen yüksek yüzde, çok işlemden gelen sağlam bir
+// sonucun önüne geçmez" diyordu, ama salt Wilson alt sınırı bunu
+// TUTMUYORDU: canlı veride 4 hak/4 alınan (%100) 51.0 puan, 16 hak/12
+// alınan (%75) 50.5 puan çıkıyordu — 4 işlemli, 16 işlemliyi geçiyordu.
+//
+// Artık iki parçalı: ÖZEN (Wilson alt sınırı, aynı — oranı örneklem
+// büyüklüğüyle tartıyor) + KATKI (alınan yorum SAYISINA göre artan ama
+// YAVAŞLAYAN bir katkı, karekök — ilk yorumlar çok puan katar, sonrakiler
+// giderek daha az). KATKI_KATSAYISI (12) Mayıs-Ağustos'un gerçek
+// verisiyle kalibre edildi: 16 hak/10 alınan (%63) 4 hak/4 alınanı
+// (%100) geçmeli — bu, formülün "hacim, çok düşük oranlı olmadıkça
+// kazanır" sözünü tutması için gereken asgari eşik (bkz. AI_NOTLARI.md,
+// test tablosu).
+const KATKI_KATSAYISI = 12
+export function memnuniyetPuani(hakSayisi, alinanSayisi) {
+  const ozen = wilsonScoreLowerBound(alinanSayisi, hakSayisi) * 100
+  const katki = KATKI_KATSAYISI * Math.sqrt(alinanSayisi)
+  return ozen + katki
+}
+
 // Spesifikasyon gereği (broker onaylı): mutlak ciro/skor değeri hiçbir zaman
 // ekrana basılmaz — sadece BİR ÜSTTEKİ komşuya göre fark gösterilir (2026-09-01
 // broker: "1. ile 2. arasındaki fark görünmeli... bir danışman bir üst
@@ -95,10 +116,18 @@ export function wilsonScoreLowerBound(basarili, toplam) {
 // fark görüyordu, artık bir üst basamağa ne kadar kaldığını görüyor). Lider
 // için fark yine 2. sıradakine göre ne kadar ÖNDE olduğu (liderin üstünde
 // kimse yok). Tek kişilik sıralamada (yarışacak kimse yoksa) fark 0 kalır.
-export function rankingsFor(type, scores, resolveName) {
+//
+// tieBreakValue (opsiyonel): value TAM eşitse ikinci bir sıralama anahtarı
+// döndüren fonksiyon (userId -> sayı) — Memnuniyet'te "beraberlikte ciro
+// puanı yüksek olan üstte" kuralı için (2026-09-02 broker kararı).
+export function rankingsFor(type, scores, resolveName, tieBreakValue) {
   const ranked = scores
     .filter((s) => s.type === type)
-    .sort((a, b) => b.value - a.value)
+    .sort((a, b) => {
+      if (b.value !== a.value) return b.value - a.value
+      if (tieBreakValue) return (tieBreakValue(b.userId) ?? 0) - (tieBreakValue(a.userId) ?? 0)
+      return 0
+    })
     .map((s, i) => ({ userId: s.userId, name: resolveName(s.userId), rank: i + 1, value: s.value }))
 
   return ranked.map((r, i) => {
