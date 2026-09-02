@@ -37,16 +37,20 @@ const delay = (value, ms = LATENCY_MS) => new Promise((resolve) => setTimeout(()
 
 // addScore(ciro)/removeCiroGiris ve logSocialActivity/removeSocialActivity
 // ORTAK — bkz. supabaseProvider.js'teki recomputeCiroTotal/recomputeSocialTotal.
+// Son satış/giriş de silinince toplam satırı da silinir — bkz.
+// supabaseProvider.js'teki aynı isimli fonksiyonlardaki not.
 function recomputeMockCiroTotal(userId, periodId) {
   const now = new Date().toISOString()
-  const total = MOCK_CIRO_GIRISLERI.filter((g) => g.userId === userId && g.periodId === periodId).reduce(
-    (sum, g) => sum + Number(g.value),
-    0,
-  )
-  const existingScore = MOCK_SCORES.find((s) => s.userId === userId && s.type === 'ciro' && s.periodId === periodId)
-  if (existingScore) {
-    existingScore.value = total
-    existingScore.updatedAt = now
+  const rows = MOCK_CIRO_GIRISLERI.filter((g) => g.userId === userId && g.periodId === periodId)
+  const existingIndex = MOCK_SCORES.findIndex((s) => s.userId === userId && s.type === 'ciro' && s.periodId === periodId)
+  if (rows.length === 0) {
+    if (existingIndex !== -1) MOCK_SCORES.splice(existingIndex, 1)
+    return
+  }
+  const total = rows.reduce((sum, g) => sum + Number(g.value), 0)
+  if (existingIndex !== -1) {
+    MOCK_SCORES[existingIndex].value = total
+    MOCK_SCORES[existingIndex].updatedAt = now
   } else {
     MOCK_SCORES.push({ userId, periodId, type: 'ciro', value: total, updatedAt: now })
   }
@@ -54,14 +58,16 @@ function recomputeMockCiroTotal(userId, periodId) {
 
 function recomputeMockSocialTotal(userId, periodId) {
   const now = new Date().toISOString()
-  const total = MOCK_ACTIVITY_LOG.filter((l) => l.userId === userId && l.periodId === periodId).reduce(
-    (sum, l) => sum + l.adet * (MOCK_ACTIVITY_TYPES.find((t) => t.id === l.activityTypeId)?.puan ?? 0),
-    0,
-  )
-  const existingScore = MOCK_SCORES.find((s) => s.userId === userId && s.type === 'sosyal_medya' && s.periodId === periodId)
-  if (existingScore) {
-    existingScore.value = total
-    existingScore.updatedAt = now
+  const logs = MOCK_ACTIVITY_LOG.filter((l) => l.userId === userId && l.periodId === periodId)
+  const existingIndex = MOCK_SCORES.findIndex((s) => s.userId === userId && s.type === 'sosyal_medya' && s.periodId === periodId)
+  if (logs.length === 0) {
+    if (existingIndex !== -1) MOCK_SCORES.splice(existingIndex, 1)
+    return
+  }
+  const total = logs.reduce((sum, l) => sum + l.adet * (MOCK_ACTIVITY_TYPES.find((t) => t.id === l.activityTypeId)?.puan ?? 0), 0)
+  if (existingIndex !== -1) {
+    MOCK_SCORES[existingIndex].value = total
+    MOCK_SCORES[existingIndex].updatedAt = now
   } else {
     MOCK_SCORES.push({ userId, periodId, type: 'sosyal_medya', value: total, updatedAt: now })
   }
