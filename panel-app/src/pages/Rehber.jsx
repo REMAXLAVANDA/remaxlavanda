@@ -11,7 +11,6 @@ import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
 import PreviewModal from '../components/rehber/PreviewModal'
 import UploadDocModal from '../components/rehber/UploadDocModal'
-import BelgeOlusturTab from '../components/rehber/BelgeOlusturTab'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -31,7 +30,6 @@ export default function Rehber() {
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
-  const [activeTab, setActiveTab] = useState('dosyalar')
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [previewVersion, setPreviewVersion] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
@@ -176,44 +174,21 @@ export default function Rehber() {
 
   return (
     <div>
-      <div className="mb-5 inline-flex rounded-lg bg-surface-sunken p-1 text-sm font-medium">
-        <button
-          onClick={() => setActiveTab('dosyalar')}
-          className={`rounded-md px-3.5 py-1.5 transition-colors ${
-            activeTab === 'dosyalar' ? 'bg-white text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Dosyalar
-        </button>
-        <button
-          onClick={() => setActiveTab('belgeler')}
-          className={`rounded-md px-3.5 py-1.5 transition-colors ${
-            activeTab === 'belgeler' ? 'bg-white text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Belge Oluştur
-        </button>
-      </div>
+      {canManage && (
+        <div className="mb-5 flex justify-end">
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            <Plus size={16} /> Ekle
+          </button>
+        </div>
+      )}
 
-      {activeTab === 'belgeler' && <BelgeOlusturTab />}
+      {loading && <LoadingState />}
+      {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-      {activeTab === 'dosyalar' && (
-        <>
-          {canManage && (
-            <div className="mb-5 flex justify-end">
-              <button
-                onClick={() => setShowUpload(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
-              >
-                <Plus size={16} /> Ekle
-              </button>
-            </div>
-          )}
-
-          {loading && <LoadingState />}
-          {!loading && error && <ErrorState error={error} onRetry={reload} />}
-
-          {!loading && !error && (
+      {!loading && !error && (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-[200px_1fr]">
           <FolderList categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
 
@@ -268,18 +243,16 @@ export default function Rehber() {
         />
       )}
 
-          {deleteTarget && (
-            <ConfirmDialog
-              title="Bu dokümanı silmek istiyor musun?"
-              message={`"${deleteTarget.baslik}" ve tüm sürümleri kalıcı olarak silinecek, geri alınamaz.`}
-              confirmLabel="Evet, sil"
-              tone="danger"
-              onConfirm={() => handleDeleteDoc(deleteTarget)}
-              onCancel={() => setDeleteTarget(null)}
-              confirming={deleting}
-            />
-          )}
-        </>
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Bu dokümanı silmek istiyor musun?"
+          message={`"${deleteTarget.baslik}" ve tüm sürümleri kalıcı olarak silinecek, geri alınamaz.`}
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={() => handleDeleteDoc(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          confirming={deleting}
+        />
       )}
     </div>
   )
