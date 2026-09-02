@@ -355,6 +355,32 @@ export default function Lig() {
     }
   }
 
+  // Yanlış girilen bir satırı düzeltmenin tek yolu (broker: "Murat
+  // Sarılgan'a yanlış giriş yaptık") — sil, sonra doğrusunu yeniden gir.
+  // Silme, o danışmanın dönem toplamını (score_entries) otomatik yeniden
+  // hesaplar (bkz. dataProvider).
+  async function handleRemoveCiroGiris(id) {
+    if (!window.confirm('Bu ciro kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir.')) return
+    try {
+      await leagueProvider.removeCiroGiris(id)
+      showToast('Ciro kaydı silindi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Silinemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleRemoveSocialActivity(id) {
+    if (!window.confirm('Bu sosyal medya kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir.')) return
+    try {
+      await leagueProvider.removeSocialActivity(id)
+      showToast('Kayıt silindi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Silinemedi, tekrar dene.', 'error')
+    }
+  }
+
   // "Müşteri Memnuniyeti": broker/ofis hangi müşteriden gerçekten yorum
   // alındığını isim isim işaretler — açıkta kalanlar (işaretsiz olanlar)
   // danışmanın da görebildiği bir eksik listesi haline gelir.
@@ -561,6 +587,8 @@ export default function Lig() {
             onAddMusteri={handleAddCiroMusteri}
             onRemoveMusteri={handleRemoveCiroMusteri}
             onToggleAlindi={handleToggleAlindi}
+            onRemoveHistory={tab === 'ciro' ? handleRemoveCiroGiris : undefined}
+            onRemoveActivity={tab === 'sosyal_medya' ? handleRemoveSocialActivity : undefined}
             canSeeAmounts={canSeeCiroAmounts(role)}
           />
         </>

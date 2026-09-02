@@ -884,6 +884,43 @@ async function resolvePeriodByDate(tarih) {
   return periods[0]
 }
 
+// addScore (ciro) ve removeCiroGiris ORTAK — bir satış eklenince/silinince
+// score_entries.value (o danışman/dönem toplamı) aynı şekilde yeniden
+// hesaplanır. Yanlış girilen bir satırı düzeltmenin tek yolu (broker:
+// "Murat Sarılgan'a yanlış giriş yaptık") — önce sil, sonra doğrusunu gir.
+async function recomputeCiroTotal(userId, periodId, enteredBy) {
+  const rows = await run(
+    client().from('ciro_girisleri').select('value').eq('user_id', userId).eq('period_id', periodId),
+  )
+  const total = rows.reduce((sum, r) => sum + Number(r.value), 0)
+  const existing = await run(
+    client().from('score_entries').select('id').eq('user_id', userId).eq('period_id', periodId).eq('type', 'ciro').maybeSingle(),
+  )
+  if (existing) {
+    await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
+  } else {
+    await run(client().from('score_entries').insert({ user_id: userId, period_id: periodId, type: 'ciro', value: total, entered_by: enteredBy }))
+  }
+}
+
+// logSocialActivity ve removeSocialActivity ORTAK — aynı mantık.
+async function recomputeSocialTotal(userId, periodId, enteredBy) {
+  const [logs, types] = await Promise.all([
+    run(client().from('social_activity_log').select('activity_type_id, adet').eq('user_id', userId).eq('period_id', periodId)),
+    run(client().from('social_activity_types').select('id, puan')),
+  ])
+  const puanMap = Object.fromEntries(types.map((t) => [t.id, Number(t.puan)]))
+  const total = logs.reduce((sum, l) => sum + Number(l.adet) * (puanMap[l.activity_type_id] ?? 0), 0)
+  const existing = await run(
+    client().from('score_entries').select('id').eq('user_id', userId).eq('period_id', periodId).eq('type', 'sosyal_medya').maybeSingle(),
+  )
+  if (existing) {
+    await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
+  } else {
+    await run(client().from('score_entries').insert({ user_id: userId, period_id: periodId, type: 'sosyal_medya', value: total, entered_by: enteredBy }))
+  }
+}
+
 export const league = {
   async getPeriod() {
     const data = await run(client().from('periods').select('*').order('baslangic', { ascending: false }).limit(1).single())
@@ -928,33 +965,8 @@ export const league = {
           .from('ciro_girisleri')
           .insert({ user_id: userId, period_id: period.id, value, tarih, entered_by: enteredBy }),
       )
-      const rows = await run(
-        client()
-          .from('ciro_girisleri')
-          .select('value')
-          .eq('user_id', userId)
-          .eq('period_id', period.id),
-      )
-      const total = rows.reduce((sum, r) => sum + Number(r.value), 0)
-      const existing = await run(
-        client()
-          .from('score_entries')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('period_id', period.id)
-          .eq('type', 'ciro')
-          .maybeSingle(),
-      )
-      if (existing) {
-        await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
-      } else {
-        await run(
-          client()
-            .from('score_entries')
-            .insert({ user_id: userId, period_id: period.id, type: 'ciro', value: total, entered_by: enteredBy }),
-        )
-      }
-      return { userId, periodId: period.id, type, value: total }
+      await recomputeCiroTotal(userId, period.id, enteredBy)
+      return { userId, periodId: period.id, type }
     }
 
     // memnuniyet (ve ilerideki manuel tipler): tek satır, her girişte
@@ -1074,39 +1086,24 @@ export const league = {
         .from('social_activity_log')
         .insert({ user_id: userId, period_id: period.id, activity_type_id: activityTypeId, adet, entered_by: enteredBy }),
     )
-
-    const [logs, types] = await Promise.all([
-      run(
-        client()
-          .from('social_activity_log')
-          .select('activity_type_id, adet')
-          .eq('user_id', userId)
-          .eq('period_id', period.id),
-      ),
-      run(client().from('social_activity_types').select('id, puan')),
-    ])
-    const puanMap = Object.fromEntries(types.map((t) => [t.id, Number(t.puan)]))
-    const total = logs.reduce((sum, l) => sum + Number(l.adet) * (puanMap[l.activity_type_id] ?? 0), 0)
-
-    const existingScore = await run(
-      client()
-        .from('score_entries')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('period_id', period.id)
-        .eq('type', 'sosyal_medya')
-        .maybeSingle(),
-    )
-    if (existingScore) {
-      await run(client().from('score_entries').update({ value: total }).eq('id', existingScore.id))
-    } else {
-      await run(
-        client()
-          .from('score_entries')
-          .insert({ user_id: userId, period_id: period.id, type: 'sosyal_medya', value: total, entered_by: enteredBy }),
-      )
-    }
-    return { userId, periodId: period.id, total }
+    await recomputeSocialTotal(userId, period.id, enteredBy)
+    return { userId, periodId: period.id }
+  },
+  // Yanlış girilen bir ciro satırını/sosyal medya kaydını düzeltmenin tek
+  // yolu (broker: "Murat Sarılgan'a yanlış giriş yaptık") — sil, doğrusunu
+  // yeniden gir. Silinen satırın user_id/period_id'si score_entries
+  // toplamını yeniden hesaplamak için önce okunuyor.
+  async removeCiroGiris(id, enteredBy) {
+    const row = await run(client().from('ciro_girisleri').select('user_id, period_id').eq('id', id).single())
+    await run(client().from('ciro_girisleri').delete().eq('id', id))
+    await recomputeCiroTotal(row.user_id, row.period_id, enteredBy)
+    return { id }
+  },
+  async removeSocialActivity(id, enteredBy) {
+    const row = await run(client().from('social_activity_log').select('user_id, period_id').eq('id', id).single())
+    await run(client().from('social_activity_log').delete().eq('id', id))
+    await recomputeSocialTotal(row.user_id, row.period_id, enteredBy)
+    return { id }
   },
 }
 
