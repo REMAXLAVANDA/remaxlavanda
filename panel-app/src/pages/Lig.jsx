@@ -363,7 +363,13 @@ export default function Lig() {
   return (
     <div>
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-        {data?.periods?.length ? (
+        {/* Dönem adı ("2026 - Dönem 2 (May-Ağu)") tarih aralığını ifşa
+            ediyordu — danışman ne zaman biteceğini/ödül gününü önceden
+            görmesin diye (broker: "ödül günü sürpriz olmalı") bu seçici
+            SADECE yöneticiye (broker/owner/ofis) gösteriliyor. Danışman
+            için periodId zaten en güncel döneme otomatik ayarlanıyor
+            (yukarıdaki useEffect), sadece ekranda görünmüyor. */}
+        {isManager && data?.periods?.length ? (
           <select
             value={periodId ?? ''}
             onChange={(e) => setPeriodId(e.target.value)}
@@ -375,8 +381,10 @@ export default function Lig() {
               </option>
             ))}
           </select>
-        ) : (
+        ) : isManager ? (
           <p className="text-xs text-text-disabled">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
+        ) : (
+          <span />
         )}
         <div className="flex flex-wrap items-center gap-2">
           {!loading && !error && period && (
