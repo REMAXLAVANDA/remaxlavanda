@@ -856,7 +856,7 @@ export { takip } from './mockProvider'
 
 // --- League (Lig) --------------------------------------------------------------
 function mapPeriod(row) {
-  return { id: row.id, ad: row.ad, baslangic: row.baslangic, bitis: row.bitis }
+  return { id: row.id, ad: row.ad, baslangic: row.baslangic, bitis: row.bitis, durum: row.durum ?? 'acik' }
 }
 
 // "Tarih"e göre doğru döneme otomatik atama — ay sonunda 2-3 gün geriden ya
@@ -896,6 +896,13 @@ export const league = {
   // periods_manage RLS'i sadece broker'a izin veriyor.
   async createPeriod({ ad, baslangic, bitis }) {
     const data = await run(client().from('periods').insert({ ad, baslangic, bitis }).select().single())
+    return mapPeriod(data)
+  },
+  // "Sonuçları açıkla" — periods_manage RLS'i broker/owner'a izin veriyor.
+  // Kalıcı: bir kere 'aciklandi' olan dönem geri 'kapali'ya dönmez, danışman
+  // o dönemin tam sıralamasını hep görür (2026-09-02 broker kararı).
+  async announcePeriod(id) {
+    const data = await run(client().from('periods').update({ durum: 'aciklandi' }).eq('id', id).select().single())
     return mapPeriod(data)
   },
   async listScores() {

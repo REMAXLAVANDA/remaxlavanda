@@ -53,6 +53,25 @@ export function canManagePeriods(role) {
   return role === ROLES.BROKER
 }
 
+// "Sonuçları açıkla" düğmesi (2026-09-02 broker kararı) — dönem oluşturmanın
+// aksine broker VE owner'a açık, periods_manage RLS'i de ikisine izin veriyor.
+export function canAnnouncePeriod(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER
+}
+
+// Dönemin ekranda gösterilecek efektif durumu — SQL'deki
+// period_effective_durum() ile birebir aynı mantık (RLS'in gerçek kaynağı
+// orası, bu sadece UI'ın anında doğru göstermesi için, cron'un o gece
+// gelmesini beklemeden). "durum" kolonu 'acik' kalsa bile bitişe 7 gün
+// kaldıysa 'kapali' sayılır.
+export function periodEffectiveDurum(period) {
+  if (!period) return 'acik'
+  if (period.durum === 'aciklandi') return 'aciklandi'
+  if (period.durum === 'kapali') return 'kapali'
+  const gunKala = Math.ceil((new Date(period.bitis) - new Date(new Date().toDateString())) / 86400000)
+  return gunKala <= 7 ? 'kapali' : 'acik'
+}
+
 // Wilson skoru (alt güven sınırı, %95) — "kaç yorum alındı / kaç işlem
 // yapıldı" oranını ham yüzde olarak değil, örneklem büyüklüğüyle tartarak
 // hesaplar. Reddit/Yelp gibi platformların "en iyi" sıralamasında kullandığı

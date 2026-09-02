@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Plus, Copy, CalendarPlus, Eye } from 'lucide-react'
+import { Plus, Copy, CalendarPlus, Eye, Lock, Megaphone } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -9,9 +9,11 @@ import {
   LEAGUE_CATEGORIES,
   LEAGUE_CATEGORY_COLORS,
   buildShareText,
+  canAnnouncePeriod,
   canManagePeriods,
   canManageScores,
   canSeeCiroAmounts,
+  periodEffectiveDurum,
   rankingsFor,
   wilsonScoreLowerBound,
 } from '../lib/league'
@@ -74,6 +76,17 @@ export default function Lig() {
   }, [data, periodId])
 
   const period = data?.periods?.find((p) => p.id === periodId)
+  // Ekranın anında doğru göstermesi için — asıl kaynak (RLS'in ne
+  // döndürdüğü) sunucuda tarihten canlı hesaplanıyor, bu sadece UI'ın
+  // pg_cron'un o gece gelmesini beklemeden aynı sonuca varması için.
+  const effectiveDurum = periodEffectiveDurum(period)
+  // "kapali": broker/owner her zaman görür + girer (kural: "skor girmeye
+  // devam eder"). Danışman VE OFİS hiçbir şey görmez — isManager burada
+  // canManageScores() (broker/owner/OFİS) demek, o yüzden isManager tek
+  // başına yeterli değil, ofis'i de bu pencerede dışarıda bırakmak için
+  // ayrıca isBrokerOrOwner lazım.
+  const isBrokerOrOwner = canAnnouncePeriod(role)
+  const isBlackedOut = effectiveDurum === 'kapali' && !isBrokerOrOwner
   // Test hesabının ciro/sosyal medya skoru olsa bile sıralamada
   // görünmesin diye (bkz. "test hesabı ... tablolarda görünmesin" isteği).
   const periodScores = useMemo(
@@ -260,6 +273,23 @@ export default function Lig() {
     }
   }
 
+  // "Sonuçları açıkla" — kalıcı bir işlem (2026-09-02 broker kararı: bir
+  // kere açıklanan dönem geri kapanmaz), o yüzden onay isteniyor.
+  async function handleAnnounce() {
+    if (!periodId) return
+    if (!window.confirm('Bu dönemin sonuçlarını herkese açıklamak istediğine emin misin? Bu geri alınamaz.')) return
+    setSubmitting(true)
+    try {
+      await leagueProvider.announcePeriod(periodId)
+      showToast('Sonuçlar açıklandı.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Açıklanamadı, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleAddPeriod(form) {
     setSubmitting(true)
     try {
@@ -369,7 +399,7 @@ export default function Lig() {
             SADECE yöneticiye (broker/owner/ofis) gösteriliyor. Danışman
             için periodId zaten en güncel döneme otomatik ayarlanıyor
             (yukarıdaki useEffect), sadece ekranda görünmüyor. */}
-        {isManager && data?.periods?.length ? (
+        {isManager && !isBlackedOut && data?.periods?.length ? (
           <select
             value={periodId ?? ''}
             onChange={(e) => setPeriodId(e.target.value)}
@@ -381,13 +411,16 @@ export default function Lig() {
               </option>
             ))}
           </select>
-        ) : isManager ? (
+        ) : isManager && !isBlackedOut ? (
           <p className="text-xs text-text-disabled">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
         ) : (
           <span />
         )}
         <div className="flex flex-wrap items-center gap-2">
-          {!loading && !error && period && (
+          {/* Sonuçlar açıklanmadan (kapalı iken) paylaşım — henüz kesinleşmemiş
+              bir sonucu erken sızdırmamak için herkese (broker/owner dahil)
+              kapalı, "Sonuçları Açıkla"dan sonra açılıyor. */}
+          {!loading && !error && period && effectiveDurum !== 'kapali' && (
             <button
               onClick={() => setShowShareModal(true)}
               className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
@@ -396,7 +429,7 @@ export default function Lig() {
               <Eye size={16} /> Görseli Göster
             </button>
           )}
-          {!loading && !error && period && (
+          {!loading && !error && period && effectiveDurum !== 'kapali' && (
             <button
               onClick={handleCopySummary}
               className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-sm font-medium text-text-secondary hover:bg-border-subtle"
@@ -412,7 +445,7 @@ export default function Lig() {
               <CalendarPlus size={16} /> Yeni Dönem
             </button>
           )}
-          {isManager && !loading && !error && period && (
+          {isManager && !isBlackedOut && !loading && !error && period && (
             <button
               onClick={() => setShowChooserModal(true)}
               className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
@@ -423,7 +456,41 @@ export default function Lig() {
         </div>
       </div>
 
-      {!loading && !error && period && (
+      {/* Dönem kapalı (kör yargılama penceresi) — broker/owner'a banner +
+          "Sonuçları Açıkla" düğmesi. Danışman/ofis bu bloğu hiç görmez,
+          onlara aşağıdaki ayrı "hazırlanıyor" mesajı gösteriliyor. */}
+      {!loading && !error && period && effectiveDurum === 'kapali' && isBrokerOrOwner && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 text-sm text-amber-900">
+            <Lock size={16} className="shrink-0" />
+            <span>
+              Bu dönem kapalı — bitişe 7 gün kaldığı için sonuçlar sadece sana görünüyor, danışman/ofis göremiyor.
+            </span>
+          </div>
+          {canAnnouncePeriod(role) && (
+            <button
+              onClick={handleAnnounce}
+              disabled={submitting}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              <Megaphone size={16} /> Sonuçları Açıkla
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Danışman/ofis için: kapalıyken sıralama/podyum yerine tek bir
+          bilgilendirme — RLS zaten veriyi döndürmüyor, boş/bozuk bir
+          tabloya bakmak yerine ne olduğunu açıkça söylüyoruz. */}
+      {!loading && !error && period && isBlackedOut && (
+        <div className="mt-5 rounded-2xl border border-border-default bg-surface-raised p-8 text-center">
+          <Lock size={24} className="mx-auto mb-3 text-text-disabled" />
+          <p className="text-sm font-medium text-text-primary">Bu dönemin sonuçları hazırlanıyor</p>
+          <p className="mt-1 text-sm text-text-disabled">Yakında açıklanacak — o zamana kadar sürpriz kalsın!</p>
+        </div>
+      )}
+
+      {!loading && !error && period && !isBlackedOut && (
         <div className="mt-5">
           <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
         </div>
@@ -437,7 +504,7 @@ export default function Lig() {
           yok (tab state hep varsayılan 'ciro'da kalır) — o yüzden danışman
           için eski konumunda (üstte, her zaman görünür) kalmaya devam
           ediyor, yoksa kendi Yorum Hakkı satırını hiç göremezdi. */}
-      {!loading && !error && period && !isManager && (
+      {!loading && !error && period && !isManager && !isBlackedOut && (
         <ReviewCreditsPanel
           rows={visibleReviewCreditRows}
           isManager={isManager}
@@ -460,7 +527,7 @@ export default function Lig() {
       {/* Detaylı sıralama listesi (herkesin adı + görece farkı) sadece
           yönetime (broker/owner/ofis) açık — danışman sadece podyumdaki
           ilk 3'ü ve kendi Yorum Hakkı satırını görür. */}
-      {isManager && !loading && !error && period && (
+      {isManager && !isBlackedOut && !loading && !error && period && (
         <>
           <div className="mb-5 flex gap-1 border-b border-border-default">
             {LEAGUE_CATEGORIES.map((c) => {
