@@ -41,6 +41,7 @@ export default function ReviewCreditsPanel({
       <div className="space-y-1.5">
         {rows.map((r) => {
           const percent = r.hakSayisi === 0 ? 0 : Math.round((r.alinanSayisi / r.hakSayisi) * 100)
+          const eksik = r.hakSayisi - r.alinanSayisi
           const isExpanded = expandedId === r.userId
           return (
             <div key={r.userId} className="rounded-lg">
@@ -64,6 +65,14 @@ export default function ReviewCreditsPanel({
                 >
                   {r.alinanSayisi} alındı · %{percent}
                 </span>
+                {/* Danışman kendi eksiğini sürekli görsün diye — dönem
+                    sonunu beklemeden, listeyi açıp tek tek saymadan
+                    (broker: "Lig ekranına 'X yorumun eksik' göstergesi ekle"). */}
+                {eksik > 0 && (
+                  <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                    {eksik} eksik
+                  </span>
+                )}
               </div>
 
               {isExpanded && (

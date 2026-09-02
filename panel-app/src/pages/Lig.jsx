@@ -15,7 +15,7 @@ import {
   canSeeCiroAmounts,
   periodEffectiveDurum,
   rankingsFor,
-  wilsonScoreLowerBound,
+  memnuniyetPuani,
 } from '../lib/league'
 import { sortByName, formatDateOnly } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
@@ -89,8 +89,13 @@ export default function Lig() {
   const isBlackedOut = effectiveDurum === 'kapali' && !isBrokerOrOwner
   // Test hesabının ciro/sosyal medya skoru olsa bile sıralamada
   // görünmesin diye (bkz. "test hesabı ... tablolarda görünmesin" isteği).
+  // knownUsers SADECE aktif kullanıcıları içeriyor (listKnown() RLS'i) —
+  // önceki filtre pasif bir kullanıcı için knownUsers[id] undefined
+  // döndüğünde "!undefined?.testHesabi" = true olup satırı YANLIŞLIKLA
+  // İÇERİDE bırakıyordu (broker: "Esra Sever pasif ama hesaba katılıyor").
+  // Artık kullanıcının knownUsers'ta (yani aktif) olması da şart.
   const periodScores = useMemo(
-    () => (data?.scores ?? []).filter((s) => s.periodId === periodId && !knownUsers[s.userId]?.testHesabi),
+    () => (data?.scores ?? []).filter((s) => s.periodId === periodId && knownUsers[s.userId] && !knownUsers[s.userId].testHesabi),
     [data, periodId, knownUsers],
   )
 
@@ -156,6 +161,8 @@ export default function Lig() {
     for (const c of data?.musteriReviewCounts ?? []) {
       if (c.periodId === periodId) countsByUser[c.userId] = c
     }
+    // Beraberlikte ciro puanı yüksek olan üstte (2026-09-02 broker kararı).
+    const ciroByUser = Object.fromEntries(periodScores.filter((s) => s.type === 'ciro').map((s) => [s.userId, s.value]))
     for (const cat of LEAGUE_CATEGORIES) {
       if (cat.key === 'memnuniyet') {
         const memnuniyetScores = danismanOptions.map((u) => {
@@ -163,10 +170,10 @@ export default function Lig() {
           return {
             userId: u.id,
             type: 'memnuniyet',
-            value: Math.round(wilsonScoreLowerBound(c?.alinanSayisi ?? 0, c?.hakSayisi ?? 0) * 100),
+            value: Math.round(memnuniyetPuani(c?.hakSayisi ?? 0, c?.alinanSayisi ?? 0)),
           }
         })
-        map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName)
+        map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName, (id) => ciroByUser[id])
       } else {
         map[cat.key] = rankingsFor(cat.key, periodScores, userName)
       }
