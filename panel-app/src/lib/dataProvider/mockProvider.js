@@ -35,6 +35,38 @@ import { canRevealContact } from '../opportunities'
 const LATENCY_MS = 250
 const delay = (value, ms = LATENCY_MS) => new Promise((resolve) => setTimeout(() => resolve(value), ms))
 
+// addScore(ciro)/removeCiroGiris ve logSocialActivity/removeSocialActivity
+// ORTAK — bkz. supabaseProvider.js'teki recomputeCiroTotal/recomputeSocialTotal.
+function recomputeMockCiroTotal(userId, periodId) {
+  const now = new Date().toISOString()
+  const total = MOCK_CIRO_GIRISLERI.filter((g) => g.userId === userId && g.periodId === periodId).reduce(
+    (sum, g) => sum + Number(g.value),
+    0,
+  )
+  const existingScore = MOCK_SCORES.find((s) => s.userId === userId && s.type === 'ciro' && s.periodId === periodId)
+  if (existingScore) {
+    existingScore.value = total
+    existingScore.updatedAt = now
+  } else {
+    MOCK_SCORES.push({ userId, periodId, type: 'ciro', value: total, updatedAt: now })
+  }
+}
+
+function recomputeMockSocialTotal(userId, periodId) {
+  const now = new Date().toISOString()
+  const total = MOCK_ACTIVITY_LOG.filter((l) => l.userId === userId && l.periodId === periodId).reduce(
+    (sum, l) => sum + l.adet * (MOCK_ACTIVITY_TYPES.find((t) => t.id === l.activityTypeId)?.puan ?? 0),
+    0,
+  )
+  const existingScore = MOCK_SCORES.find((s) => s.userId === userId && s.type === 'sosyal_medya' && s.periodId === periodId)
+  if (existingScore) {
+    existingScore.value = total
+    existingScore.updatedAt = now
+  } else {
+    MOCK_SCORES.push({ userId, periodId, type: 'sosyal_medya', value: total, updatedAt: now })
+  }
+}
+
 // opportunity_interest tablosunun mock karşılığı — {opportunityId, userId, createdAt}
 const MOCK_OPPORTUNITY_INTEREST = []
 
@@ -581,18 +613,8 @@ export const league = {
         tarih,
         createdAt: now,
       })
-      const total = MOCK_CIRO_GIRISLERI.filter((g) => g.userId === userId && g.periodId === period.id).reduce(
-        (sum, g) => sum + Number(g.value),
-        0,
-      )
-      const existingScore = MOCK_SCORES.find((s) => s.userId === userId && s.type === 'ciro' && s.periodId === period.id)
-      if (existingScore) {
-        existingScore.value = total
-        existingScore.updatedAt = now
-      } else {
-        MOCK_SCORES.push({ userId, periodId: period.id, type: 'ciro', value: total, updatedAt: now })
-      }
-      return delay({ userId, periodId: period.id, type, value: total })
+      recomputeMockCiroTotal(userId, period.id)
+      return delay({ userId, periodId: period.id, type })
     }
 
     const existing = MOCK_SCORES.find((s) => s.userId === userId && s.type === type && s.periodId === period.id)
@@ -661,21 +683,24 @@ export const league = {
       createdAt: new Date().toISOString(),
     })
 
-    const total = MOCK_ACTIVITY_LOG.filter((l) => l.userId === userId && l.periodId === period.id).reduce(
-      (sum, l) => sum + l.adet * (MOCK_ACTIVITY_TYPES.find((t) => t.id === l.activityTypeId)?.puan ?? 0),
-      0,
-    )
-    const existingScore = MOCK_SCORES.find(
-      (s) => s.userId === userId && s.periodId === period.id && s.type === 'sosyal_medya',
-    )
-    const now = new Date().toISOString()
-    if (existingScore) {
-      existingScore.value = total
-      existingScore.updatedAt = now
-    } else {
-      MOCK_SCORES.push({ userId, periodId: period.id, type: 'sosyal_medya', value: total, updatedAt: now })
-    }
-    return delay({ userId, periodId: period.id, total })
+    recomputeMockSocialTotal(userId, period.id)
+    return delay({ userId, periodId: period.id })
+  },
+  async removeCiroGiris(id) {
+    const row = MOCK_CIRO_GIRISLERI.find((g) => g.id === id)
+    if (!row) throw new Error('Kayıt bulunamadı.')
+    const index = MOCK_CIRO_GIRISLERI.indexOf(row)
+    MOCK_CIRO_GIRISLERI.splice(index, 1)
+    recomputeMockCiroTotal(row.userId, row.periodId)
+    return delay({ id })
+  },
+  async removeSocialActivity(id) {
+    const row = MOCK_ACTIVITY_LOG.find((l) => l.id === id)
+    if (!row) throw new Error('Kayıt bulunamadı.')
+    const index = MOCK_ACTIVITY_LOG.indexOf(row)
+    MOCK_ACTIVITY_LOG.splice(index, 1)
+    recomputeMockSocialTotal(row.userId, row.periodId)
+    return delay({ id })
   },
 }
 

@@ -25,6 +25,8 @@ export default function LeagueBoard({
   onAddMusteri,
   onRemoveMusteri,
   onToggleAlindi,
+  onRemoveHistory,
+  onRemoveActivity,
   canSeeAmounts = true,
 }) {
   const [expandedId, setExpandedId] = useState(null)
@@ -89,10 +91,21 @@ export default function LeagueBoard({
                 ) : (
                   <div className="space-y-1">
                     {history.map((h) => (
-                      <div key={h.id} className="flex items-center justify-between text-xs text-text-secondary">
+                      <div key={h.id} className="flex items-center justify-between gap-2 text-xs text-text-secondary">
                         <span>{formatDate(h.tarih)}</span>
-                        <span className="font-medium text-text-primary">
-                          {canSeeAmounts ? `${Number(h.value).toLocaleString('tr-TR')} TL` : '•••• TL'}
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          <span className="font-medium text-text-primary">
+                            {canSeeAmounts ? `${Number(h.value).toLocaleString('tr-TR')} TL` : '•••• TL'}
+                          </span>
+                          {onRemoveHistory && (
+                            <button
+                              onClick={() => onRemoveHistory(h.id)}
+                              className="shrink-0 rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary"
+                              title="Yanlış girildiyse sil"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
                         </span>
                       </div>
                     ))}
@@ -108,10 +121,21 @@ export default function LeagueBoard({
                 ) : (
                   <div className="space-y-1">
                     {activity.map((a) => (
-                      <div key={a.id} className="flex items-center justify-between text-xs text-text-secondary">
+                      <div key={a.id} className="flex items-center justify-between gap-2 text-xs text-text-secondary">
                         <span>{formatDate(a.tarih)}</span>
-                        <span className="font-medium text-text-primary">
-                          {a.adet}x {a.activityTypeName}
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          <span className="font-medium text-text-primary">
+                            {a.adet}x {a.activityTypeName}
+                          </span>
+                          {onRemoveActivity && (
+                            <button
+                              onClick={() => onRemoveActivity(a.id)}
+                              className="shrink-0 rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary"
+                              title="Yanlış girildiyse sil"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
                         </span>
                       </div>
                     ))}
