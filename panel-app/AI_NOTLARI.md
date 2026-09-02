@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-02 — Lig: ofis'e geçmiş dönem görünürlüğü (RLS fix)
+
+Broker: "sosyal medyada geçtiğimiz döneme veri girmek istediğimizde
+otomatikman yeni döneme giriyor" — meğer veri doğru yere (eski döneme)
+kaydediliyormuş, sorun GÖRME tarafındaymış. Aynı gün uygulanan dönem
+görünürlüğü migration'ında (bkz. aşağıdaki "Lig Dönem Görünürlüğü"
+kaydı) ofis'in YAZMA hakkı `is_current_period()` kontrolü yapmadan
+sadece blackout'a bakıyordu (doğru), ama GÖRME tarafı
+(`can_view_period_ranking()`, `ciro_musterileri_select`,
+`social_activity_log_select`) ofis'i ayrı tutmuyordu — güncel olmayan
+dönemde "sadece kendi satırı" kuralına düşüyordu, ofis'in danışman gibi
+"kendi satırı" olmadığından geçmiş döneme girdiği veriyi kendisi hiç
+göremiyordu. Ofis'in görme hakkı yazma hakkıyla simetrik hale getirildi
+(`20260902140000_lig_ofis_gecmis_donem_gorunurlugu.sql`).
+
 ## 2026-09-02 — Gerçek portal aktivite takibi (son_aktif) — Portal Kullanımı doğru sinyal alsın
 
 Broker: "gerçekten hiç portalı kullanan yok mu" — Panel'deki "Portal
