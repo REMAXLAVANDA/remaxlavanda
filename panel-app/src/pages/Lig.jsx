@@ -165,14 +165,21 @@ export default function Lig() {
     const ciroByUser = Object.fromEntries(periodScores.filter((s) => s.type === 'ciro').map((s) => [s.userId, s.value]))
     for (const cat of LEAGUE_CATEGORIES) {
       if (cat.key === 'memnuniyet') {
-        const memnuniyetScores = danismanOptions.map((u) => {
-          const c = countsByUser[u.id]
-          return {
-            userId: u.id,
-            type: 'memnuniyet',
-            value: Math.round(memnuniyetPuani(c?.hakSayisi ?? 0, c?.alinanSayisi ?? 0)),
-          }
-        })
+        // Hiç müşteri girilmemiş (hakSayisi 0) danışman sıralamaya hiç
+        // girmesin — yoksa herkes 0 puanken biri rastgele "Lider" gösterilir
+        // (broker: "aynı şey memnuniyette de Alper'de görünüyor" — Sosyal
+        // Medya'daki "hayalet lider" hatasıyla aynı kök neden, buradaki
+        // karşılığı).
+        const memnuniyetScores = danismanOptions
+          .filter((u) => (countsByUser[u.id]?.hakSayisi ?? 0) > 0)
+          .map((u) => {
+            const c = countsByUser[u.id]
+            return {
+              userId: u.id,
+              type: 'memnuniyet',
+              value: Math.round(memnuniyetPuani(c?.hakSayisi ?? 0, c?.alinanSayisi ?? 0)),
+            }
+          })
         map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName, (id) => ciroByUser[id])
       } else {
         map[cat.key] = rankingsFor(cat.key, periodScores, userName)
