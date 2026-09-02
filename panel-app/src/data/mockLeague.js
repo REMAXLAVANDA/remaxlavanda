@@ -9,6 +9,7 @@ export const MOCK_PERIODS = [
     ad: '2026 - Dönem 2 (Mayıs - Ağustos)',
     baslangic: '2026-05-01',
     bitis: '2026-08-31',
+    durum: 'acik',
   },
 ]
 

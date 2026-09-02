@@ -551,8 +551,14 @@ export const league = {
     return delay([...MOCK_PERIODS].sort((a, b) => new Date(b.baslangic) - new Date(a.baslangic)))
   },
   async createPeriod({ ad, baslangic, bitis }) {
-    const period = { id: `period-${Date.now()}`, ad, baslangic, bitis }
+    const period = { id: `period-${Date.now()}`, ad, baslangic, bitis, durum: 'acik' }
     MOCK_PERIODS.push(period)
+    return delay({ ...period })
+  },
+  async announcePeriod(id) {
+    const period = MOCK_PERIODS.find((p) => p.id === id)
+    if (!period) throw new Error('Dönem bulunamadı.')
+    period.durum = 'aciklandi'
     return delay({ ...period })
   },
   async listScores() {
