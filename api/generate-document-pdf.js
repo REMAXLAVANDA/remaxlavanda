@@ -116,6 +116,12 @@ module.exports = async function handler(req, res) {
 
     const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true })
 
+    // Teşhis için — "The object exceeded the maximum allowed size" hatası
+    // Storage tarafında oluşuyordu, burada gerçek boyutu/sayfa sayısını
+    // görmeden sebebi tahmin etmek zordu.
+    const pageCount = await page.evaluate(() => document.querySelectorAll('.page').length).catch(() => 0)
+    console.log(`PDF üretildi: slug=${slug} boyut=${pdf.length} bayt sayfa=${pageCount || 'akışkan'}`)
+
     res.setHeader('Content-Type', 'application/pdf')
     res.status(200).send(pdf)
   } catch (err) {
