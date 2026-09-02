@@ -3,6 +3,16 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-02 — Lig: veri girilmemiş danışman Memnuniyet sıralamasına girmesin
+
+Broker: "aynı şey memnuniyette de Alper'de görünüyor" — bir önceki
+"hayalet lider" hatasının (Sosyal Medya) Memnuniyet karşılığı. Kök
+neden farklı ama sınıfı aynı: `rankingsByCategory`'deki memnuniyet
+dalı, hiç müşteri girilmemiş (hakSayisi=0) danışmanı da puan=0 olarak
+sıralamaya dahil ediyordu — kimse veri girmemişken listedeki ilk isim
+rastgele "Lider" gösteriliyordu. Artık sadece en az 1 müşterisi
+girilmiş danışman sıralamaya giriyor (`Lig.jsx`).
+
 ## 2026-09-02 — Lig: silinen son ciro/sosyal medya girişinde toplam satırı da sil
 
 Broker: Murat Sarılgan'a girilen bir sosyal medya kaydını sildikten
