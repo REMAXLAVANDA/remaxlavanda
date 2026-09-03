@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — Deploy sonrası kalan açık sekmeler için otomatik yenileme
+
+Broker: "bugün ben, ofis ve danışmanlar portala girmede sorun yaşamış".
+Kök neden: aynı gün art arda yapılan birden fazla deploy, lazy-load
+edilen sayfa paketlerinin dosya adlarını değiştirdi — deploy'lar
+ARASINDA açık kalan bir sekim, henüz gidilmemiş bir sayfaya
+tıklandığında artık sunucuda olmayan eski bir paket dosyasını istiyor,
+donuyor/boş kalıyordu. `main.jsx`'e Vite'ın resmi `vite:preloadError`
+olayını yakalayıp sayfayı otomatik yenileyen bir dinleyici eklendi
+(bir oturumda en fazla bir kez, sonsuz döngü olmasın diye).
+
 ## 2026-09-03 — Kullanıcı yönetimi Edge Function'larında CORS düzeltmesi
 
 Broker: "yeni danışman oluşturulamıyor, hata veriyor". Kök neden:
