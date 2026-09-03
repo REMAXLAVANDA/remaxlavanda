@@ -29,3 +29,15 @@ export function isInactiveAgent(lastSignInAt, now = Date.now()) {
 export function isBehindEducation(row) {
   return row.modulePercent < 50 || row.checklistPercent < 50
 }
+
+// Broker'ın en büyük önceliği recruiting (bkz. AI_NOTLARI.md) — ama
+// "Ofisin Nabzı"ndaki Recruiting kutusu "0 yeni başvuru" olsa bile diğer
+// kutularla aynı nötr mavi renkte kalıyor (kart renkleri kasıtlı olarak
+// modül bazlı sabit, bkz. OfisinNabziGrid.jsx). Bu yüzden durgunluk sinyali
+// buradan, "Dikkat Gerekiyor" listesine ayrı bir kriter olarak veriliyor.
+export function isRecruitingStalled(recruitingCandidates, now = Date.now()) {
+  const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
+  return !recruitingCandidates.some(
+    (c) => !isLegacyRecord(c.createdAt) && new Date(c.createdAt).getTime() > sevenDaysAgo,
+  )
+}
