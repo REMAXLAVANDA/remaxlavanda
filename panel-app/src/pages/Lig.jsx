@@ -28,7 +28,9 @@ import AddScoreModal from '../components/league/AddScoreModal'
 import AddSocialActivityModal from '../components/league/AddSocialActivityModal'
 import AddEntryChooserModal from '../components/league/AddEntryChooserModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
+import PastPeriodsMenu from '../components/league/PastPeriodsMenu'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 
 const sortByCreatedDesc = (rows) => [...rows].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 const EMPTY_ARR = []
@@ -60,6 +62,11 @@ export default function Lig() {
   const [showShareModal, setShowShareModal] = useState(false)
   const [showChooserModal, setShowChooserModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  // Native window.confirm() yerine portalın kendi ConfirmDialog'u — bkz.
+  // handleAnnounce/handleRemoveCiroGiris/handleRemoveSocialActivity.
+  const [announceConfirmOpen, setAnnounceConfirmOpen] = useState(false)
+  const [removeCiroTarget, setRemoveCiroTarget] = useState(null)
+  const [removeActivityTarget, setRemoveActivityTarget] = useState(null)
   // ReviewCreditsPanel'in kendi state'i değil, burada tutuluyor — isim
   // ekleme/silme/işaretleme her seferinde reload() tetikleyip paneli kısa
   // süreliğine unmount ediyor (loading=true olunca), state panelde olsaydı
@@ -87,6 +94,13 @@ export default function Lig() {
   // ayrıca isBrokerOrOwner lazım.
   const isBrokerOrOwner = canAnnouncePeriod(role)
   const isBlackedOut = effectiveDurum === 'kapali' && !isBrokerOrOwner
+  // "Açıklanmış dönem danışmana hep açık kalsın" kuralı (2026-09-02 broker
+  // kararı) veritabanına işlendi ama ekranda dönem seçici sadece yöneticiye
+  // gösteriliyordu — danışman o özelliğe hiç ulaşamıyordu. Bu liste SADECE
+  // "aciklandi" dönemleri içerir (tarih aralığı ifşa olmasın diye güncel/
+  // kapalı dönem burada asla yer almaz), danışmana/ofis-dışı role PastPeriodsMenu
+  // üzerinden gösterilir.
+  const announcedPeriods = useMemo(() => (data?.periods ?? []).filter((p) => p.durum === 'aciklandi'), [data])
   // Test hesabının ciro/sosyal medya skoru olsa bile sıralamada
   // görünmesin diye (bkz. "test hesabı ... tablolarda görünmesin" isteği).
   // knownUsers SADECE aktif kullanıcıları içeriyor (listKnown() RLS'i) —
@@ -288,10 +302,16 @@ export default function Lig() {
   }
 
   // "Sonuçları açıkla" — kalıcı bir işlem (2026-09-02 broker kararı: bir
-  // kere açıklanan dönem geri kapanmaz), o yüzden onay isteniyor.
-  async function handleAnnounce() {
+  // kere açıklanan dönem geri kapanmaz), o yüzden onay isteniyor. Native
+  // window.confirm() yerine portalın kendi ConfirmDialog'u (bkz. aşağıdaki
+  // render) — tasarımla tutarlı, buton metni özelleştirilebilir.
+  function requestAnnounce() {
     if (!periodId) return
-    if (!window.confirm('Bu dönemin sonuçlarını herkese açıklamak istediğine emin misin? Bu geri alınamaz.')) return
+    setAnnounceConfirmOpen(true)
+  }
+
+  async function handleAnnounce() {
+    setAnnounceConfirmOpen(false)
     setSubmitting(true)
     try {
       await leagueProvider.announcePeriod(periodId)
@@ -365,9 +385,15 @@ export default function Lig() {
   // Yanlış girilen bir satırı düzeltmenin tek yolu (broker: "Murat
   // Sarılgan'a yanlış giriş yaptık") — sil, sonra doğrusunu yeniden gir.
   // Silme, o danışmanın dönem toplamını (score_entries) otomatik yeniden
-  // hesaplar (bkz. dataProvider).
-  async function handleRemoveCiroGiris(id) {
-    if (!window.confirm('Bu ciro kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir.')) return
+  // hesaplar (bkz. dataProvider). Native window.confirm() yerine
+  // ConfirmDialog — bkz. handleAnnounce'daki aynı gerekçe.
+  function requestRemoveCiroGiris(id) {
+    setRemoveCiroTarget(id)
+  }
+
+  async function handleRemoveCiroGiris() {
+    const id = removeCiroTarget
+    setRemoveCiroTarget(null)
     try {
       await leagueProvider.removeCiroGiris(id)
       showToast('Ciro kaydı silindi.', 'success')
@@ -377,8 +403,13 @@ export default function Lig() {
     }
   }
 
-  async function handleRemoveSocialActivity(id) {
-    if (!window.confirm('Bu sosyal medya kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir.')) return
+  function requestRemoveSocialActivity(id) {
+    setRemoveActivityTarget(id)
+  }
+
+  async function handleRemoveSocialActivity() {
+    const id = removeActivityTarget
+    setRemoveActivityTarget(null)
     try {
       await leagueProvider.removeSocialActivity(id)
       showToast('Kayıt silindi.', 'success')
@@ -454,7 +485,7 @@ export default function Lig() {
         ) : isManager && !isBlackedOut ? (
           <p className="text-xs text-text-disabled">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
         ) : (
-          <span />
+          <PastPeriodsMenu periods={announcedPeriods} currentPeriodId={periodId} onSelect={setPeriodId} />
         )}
         <div className="flex flex-wrap items-center gap-2">
           {/* Sonuçlar açıklanmadan (kapalı iken) paylaşım — henüz kesinleşmemiş
@@ -509,7 +540,7 @@ export default function Lig() {
           </div>
           {canAnnouncePeriod(role) && (
             <button
-              onClick={handleAnnounce}
+              onClick={requestAnnounce}
               disabled={submitting}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
             >
@@ -564,10 +595,18 @@ export default function Lig() {
         </p>
       )}
 
-      {/* Detaylı sıralama listesi (herkesin adı + görece farkı) sadece
-          yönetime (broker/owner/ofis) açık — danışman sadece podyumdaki
-          ilk 3'ü ve kendi Yorum Hakkı satırını görür. */}
-      {isManager && !isBlackedOut && !loading && !error && period && (
+      {/* Detaylı sıralama listesi (herkesin adı + görece farkı). Yönetime
+          (broker/owner/ofis) her zaman açık. Danışman normalde sadece
+          podyumdaki ilk 3'ü ve kendi Yorum Hakkı satırını görür — ama dönem
+          "açıklandı" olduysa broker kararı gereği (2026-09-02: "'aciklandi'
+          olunca danışman o dönemin TAM sıralamasını görür, hep") tam liste
+          burada da açılıyor. Danışman görünümünde ekleme/silme/expand
+          prop'ları hiç verilmiyor: bu veriye zaten arka planda erişimi yok
+          (ciro_musterileri/ciro_girisleri/social_activity_log RLS'i
+          "aciklandi" ile genişlemiyor — sadece score_entries toplamı
+          açılıyor, bkz. migration notu), satırlar boş açılan bir tıklama
+          gibi görünmesin diye. */}
+      {(isManager || effectiveDurum === 'aciklandi') && !isBlackedOut && !loading && !error && period && (
         <>
           <div className="mb-5 flex gap-1 border-b border-border-default">
             {LEAGUE_CATEGORIES.map((c) => {
@@ -588,14 +627,14 @@ export default function Lig() {
           <LeagueBoard
             rankings={rankings}
             unit={category.unit}
-            historyByUser={tab === 'ciro' ? ciroHistoryByUser : null}
-            reviewByUser={tab === 'memnuniyet' ? reviewByUser : null}
-            activityByUser={tab === 'sosyal_medya' ? socialActivityHistoryByUser : null}
-            onAddMusteri={handleAddCiroMusteri}
-            onRemoveMusteri={handleRemoveCiroMusteri}
-            onToggleAlindi={handleToggleAlindi}
-            onRemoveHistory={tab === 'ciro' ? handleRemoveCiroGiris : undefined}
-            onRemoveActivity={tab === 'sosyal_medya' ? handleRemoveSocialActivity : undefined}
+            historyByUser={isManager && tab === 'ciro' ? ciroHistoryByUser : null}
+            reviewByUser={isManager && tab === 'memnuniyet' ? reviewByUser : null}
+            activityByUser={isManager && tab === 'sosyal_medya' ? socialActivityHistoryByUser : null}
+            onAddMusteri={isManager ? handleAddCiroMusteri : undefined}
+            onRemoveMusteri={isManager ? handleRemoveCiroMusteri : undefined}
+            onToggleAlindi={isManager ? handleToggleAlindi : undefined}
+            onRemoveHistory={isManager && tab === 'ciro' ? requestRemoveCiroGiris : undefined}
+            onRemoveActivity={isManager && tab === 'sosyal_medya' ? requestRemoveSocialActivity : undefined}
             canSeeAmounts={canSeeCiroAmounts(role)}
           />
         </>
@@ -702,6 +741,40 @@ export default function Lig() {
           categories={LEAGUE_CATEGORIES}
           rankingsByCategory={rankingsByCategory}
           periodLabel={period.ad}
+        />
+      )}
+
+      {announceConfirmOpen && (
+        <ConfirmDialog
+          title="Sonuçları açıkla"
+          message="Bu dönemin sonuçlarını herkese açıklamak istediğine emin misin? Bu geri alınamaz."
+          confirmLabel="Evet, açıkla"
+          tone="danger"
+          onConfirm={handleAnnounce}
+          onCancel={() => setAnnounceConfirmOpen(false)}
+          confirming={submitting}
+        />
+      )}
+
+      {removeCiroTarget && (
+        <ConfirmDialog
+          title="Ciro kaydını sil"
+          message="Bu ciro kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir."
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={handleRemoveCiroGiris}
+          onCancel={() => setRemoveCiroTarget(null)}
+        />
+      )}
+
+      {removeActivityTarget && (
+        <ConfirmDialog
+          title="Sosyal medya kaydını sil"
+          message="Bu sosyal medya kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir."
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={handleRemoveSocialActivity}
+          onCancel={() => setRemoveActivityTarget(null)}
         />
       )}
     </div>

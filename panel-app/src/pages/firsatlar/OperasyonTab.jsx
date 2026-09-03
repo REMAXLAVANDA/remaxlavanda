@@ -19,6 +19,7 @@ import EditCallDetailsModal from '../../components/operasyon/EditCallDetailsModa
 import CallNoteModal from '../../components/operasyon/CallNoteModal'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
+import ConfirmDialog from '../../components/common/ConfirmDialog'
 
 const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '', atananDanisman: 'tumu' }
 
@@ -65,6 +66,9 @@ export default function OperasyonTab() {
   const [notingCall, setNotingCall] = useState(null)
   const [convertingCall, setConvertingCall] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  // Native window.confirm() yerine portalın kendi ConfirmDialog'u — bkz. handleDelete.
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
   const isManager = canManageCalls(role)
@@ -118,15 +122,23 @@ export default function OperasyonTab() {
 
   // call_logs_manage RLS'i zaten broker/owner/ofis dışını engelliyor —
   // CallTable buton dahi göstermiyor ama double-check burada da var.
-  async function handleDelete(call) {
+  function requestDelete(call) {
     if (!canManageCalls(role)) return
-    if (!window.confirm(`"${call.arayanAd}" çağrısı kalıcı olarak silinsin mi? Bu işlem geri alınamaz.`)) return
+    setDeleteTarget(call)
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await callLogsProvider.remove(call.id)
-      setCalls((prev) => prev.filter((c) => c.id !== call.id))
+      await callLogsProvider.remove(deleteTarget.id)
+      setCalls((prev) => prev.filter((c) => c.id !== deleteTarget.id))
+      setDeleteTarget(null)
       showToast('Çağrı silindi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Çağrı silinemedi, tekrar dene.', 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -301,7 +313,7 @@ export default function OperasyonTab() {
             onToggle={handleToggle}
             onEditDetails={setEditingCall}
             onEditNote={setNotingCall}
-            onDelete={handleDelete}
+            onDelete={requestDelete}
             onConvertToOpportunity={handleConvertToOpportunity}
             islemTipiByOpportunityId={islemTipiByOpportunityId}
           />
@@ -352,6 +364,18 @@ export default function OperasyonTab() {
           onClose={() => setNotingCall(null)}
           onSubmit={handleEditNote}
           submitting={submitting}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Çağrıyı sil"
+          message={`"${deleteTarget.arayanAd}" çağrısı kalıcı olarak silinsin mi? Bu işlem geri alınamaz.`}
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          confirming={deleting}
         />
       )}
     </div>

@@ -13,6 +13,7 @@ import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../li
 import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
+import ConfirmDialog from '../common/ConfirmDialog'
 
 // Fırsata dönüşen çağrının yanında ne gösterilsin — biliniyorsa
 // (islemTipiByOpportunityId'de varsa) KaynakBadge ile aynı desende kısa
@@ -201,33 +202,49 @@ function CallProgressSteps({ call, canEdit, onToggle }) {
 }
 
 function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }) {
+  // Tek satırlık native select, yanlışlıkla (fare tekerleği/yanlış tık)
+  // farklı bir kişiye atamayı çok kolaylaştırıyor — onay olmadan doğrudan
+  // kaydediyordu. Native window.confirm() yerine portalın kendi
+  // ConfirmDialog'u kullanılıyor; select zaten kontrollü (value=
+  // call.assignedTo) olduğu için onay bekleyen state değişikliği bile
+  // ekranda seçimi otomatik eski haline döndürüyor, ayrı bir "geri al" kodu
+  // gerekmiyor.
+  const [pendingAssign, setPendingAssign] = useState(null)
+
   if (!isManager) {
     return <span className="whitespace-nowrap text-xs text-ink-500">{call.assignedTo ? resolveName(call.assignedTo) : 'Atanmadı'}</span>
   }
   return (
-    <select
-      value={call.assignedTo ?? ''}
-      onChange={(e) => {
-        const newId = e.target.value || null
-        const newName = newId ? inviteeOptions.find((u) => u.id === newId)?.name : 'Atanmadı'
-        // Tek satırlık native select, yanlışlıkla (fare tekerleği/yanlış
-        // tık) farklı bir kişiye atamayı çok kolaylaştırıyor — onay
-        // olmadan doğrudan kaydediyordu.
-        if (!window.confirm(`Bu çağrı "${newName}" olarak atansın mı?`)) {
-          e.target.value = call.assignedTo ?? ''
-          return
-        }
-        onAssign(call.id, newId)
-      }}
-      className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
-    >
-      <option value="">Atanmadı</option>
-      {inviteeOptions.map((u) => (
-        <option key={u.id} value={u.id}>
-          {u.name}
-        </option>
-      ))}
-    </select>
+    <>
+      <select
+        value={call.assignedTo ?? ''}
+        onChange={(e) => {
+          const newId = e.target.value || null
+          const newName = newId ? inviteeOptions.find((u) => u.id === newId)?.name : 'Atanmadı'
+          setPendingAssign({ id: newId, name: newName })
+        }}
+        className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+      >
+        <option value="">Atanmadı</option>
+        {inviteeOptions.map((u) => (
+          <option key={u.id} value={u.id}>
+            {u.name}
+          </option>
+        ))}
+      </select>
+      {pendingAssign && (
+        <ConfirmDialog
+          title="Çağrıyı ata"
+          message={`Bu çağrı "${pendingAssign.name}" olarak atansın mı?`}
+          confirmLabel="Evet, ata"
+          onConfirm={() => {
+            onAssign(call.id, pendingAssign.id)
+            setPendingAssign(null)
+          }}
+          onCancel={() => setPendingAssign(null)}
+        />
+      )}
+    </>
   )
 }
 

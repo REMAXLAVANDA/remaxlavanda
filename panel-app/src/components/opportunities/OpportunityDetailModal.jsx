@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Lock, MapPin, Pencil, Phone, Trash2, User, Users, XCircle } from 'lucide-react'
 import Modal from '../common/Modal'
+import ConfirmDialog from '../common/ConfirmDialog'
 import { useToast } from '../../context/ToastContext'
 import { categoryLabel } from '../../lib/categories'
 import { telHref, whatsappHref } from '../../lib/phone'
@@ -57,6 +58,8 @@ export default function OpportunityDetailModal({
   const [loadingContact, setLoadingContact] = useState(true)
   const [interestList, setInterestList] = useState(null)
   const [assignDraft, setAssignDraft] = useState('')
+  // Native window.confirm() yerine portalın kendi ConfirmDialog'u — bkz. render'daki kullanım.
+  const [assignConfirm, setAssignConfirm] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -119,6 +122,7 @@ export default function OpportunityDetailModal({
   const showInterestButton = !isOwnerOrManager && canExpressInterest(opp, user) && !alreadyInterested
 
   return (
+    <>
     <Modal title="Fırsat Detayı" onClose={onClose} maxWidth="max-w-lg">
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
@@ -239,8 +243,7 @@ export default function OpportunityDetailModal({
               onClick={() => {
                 if (!assignDraft) return
                 const name = assignableOptions.find((u) => u.id === assignDraft)?.name
-                if (!window.confirm(`Bu fırsat "${name}" kişisine atansın mı?`)) return
-                onAssignRequest(assignDraft)
+                setAssignConfirm({ id: assignDraft, name })
               }}
               disabled={!assignDraft || assigning}
               className="shrink-0 rounded-lg bg-brand-600 px-3 py-2 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
@@ -316,5 +319,19 @@ export default function OpportunityDetailModal({
         </div>
       )}
     </Modal>
+    {assignConfirm && (
+      <ConfirmDialog
+        title="Fırsatı ata"
+        message={`Bu fırsat "${assignConfirm.name}" kişisine atansın mı?`}
+        confirmLabel="Evet, ata"
+        onConfirm={() => {
+          onAssignRequest(assignConfirm.id)
+          setAssignConfirm(null)
+        }}
+        onCancel={() => setAssignConfirm(null)}
+        confirming={assigning}
+      />
+    )}
+    </>
   )
 }
