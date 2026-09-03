@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — 3 kullanım rahatlığı önerisi (design panosu → uygulama)
+
+Broker: "portaldaki detayları inceleyin, kullanım rahatlığı sunacak
+önerilerde bulunun" — gerçek kod üzerinden 3 somut bulgu (`/design`
+panosunda şu an/öneri karşılaştırmalı sunuldu, onaylandı, uygulandı):
+1) Lig/Fırsat/Santral'da 6 yerde native `window.confirm()` → portalın
+kendi `ConfirmDialog`'u. 2) `AddSocialActivityModal` tarih alanına
+`AddScoreModal`'daki "hangi döneme yazılacağı" ipucu eklendi. 3) Yeni
+`PastPeriodsMenu` — danışman artık "açıklanmış" geçmiş dönemleri
+görebiliyor (sadece aciklandi durumundakiler, tarih ifşası yok);
+seçilen açıklanmış dönemde artık tam sıralama da gösteriliyor (önceden
+sadece ilk 3), broker'ın "'aciklandi' olunca danışman tam sıralamayı
+görür" kararıyla tutarlı hale getirildi.
+
 ## 2026-09-03 — Performans: tüm sayfalar lazy-load
 
 Broker: "portalda yavaşlama var mı" — Vercel'de 24 saatte hata yok,
