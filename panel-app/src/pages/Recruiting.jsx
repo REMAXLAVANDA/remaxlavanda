@@ -6,6 +6,7 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { recruiting as recruitingProvider, calendarEvents as calendarProvider } from '../lib/dataProvider'
 import { canManageRecruiting, matchesKayitTipiFilter } from '../lib/recruiting'
+import { addMinutesToTimeString } from '../lib/calendar'
 import { sortByName } from '../lib/format'
 import { ROLES } from '../lib/roles'
 import RecruitingTable from '../components/recruiting/RecruitingTable'
@@ -84,12 +85,16 @@ export default function Recruiting() {
       return savedCandidate
     }
 
+    // endTime, süre formda seçilmemişse (eski çağrılar/geriye dönük
+    // uyumluluk) varsayılan 30 dakika kullanılarak başlangıçtan hesaplanır
+    // — önceden hep null gönderiliyordu, Takvim'de sadece başlangıç saati
+    // görünüp süre/bitiş hiç görünmüyordu.
     const eventForm = {
       type: 'recruiting_gorusmesi',
       title: `Görüşme — ${savedCandidate.adSoyad}`,
       date: form.gorusmeTarih,
       startTime: form.gorusmeSaat,
-      endTime: null,
+      endTime: addMinutesToTimeString(form.gorusmeSaat, form.gorusmeSure ?? 30),
       gorunurluk: 'davetliler',
     }
 

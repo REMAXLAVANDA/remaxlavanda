@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canViewEvent } from './calendar'
+import { canViewEvent, addMinutesToTimeString } from './calendar'
 
 const danisman = { id: 'u-danisman', role: 'danisman' }
 const broker = { id: 'u-broker', role: 'broker' }
@@ -33,5 +33,23 @@ describe('canViewEvent', () => {
   it('kişisel görüşme türü manuel "herkese açık" işaretlenirse davetsiz de görünür', () => {
     const event = { id: 'e1', type: 'broker_gorusmesi', gorunurluk: 'herkese_acik' }
     expect(canViewEvent(event, danisman, [])).toBe(true)
+  })
+})
+
+describe('addMinutesToTimeString', () => {
+  it('normal bir saate dakika ekler', () => {
+    expect(addMinutesToTimeString('14:00', 30)).toBe('14:30')
+  })
+
+  it('saat sınırını aşan dakikayı doğru taşır', () => {
+    expect(addMinutesToTimeString('14:45', 30)).toBe('15:15')
+  })
+
+  it('gün sınırını aşarsa saati sarar', () => {
+    expect(addMinutesToTimeString('23:45', 30)).toBe('00:15')
+  })
+
+  it('0 dakika eklerse saati değiştirmez', () => {
+    expect(addMinutesToTimeString('09:05', 0)).toBe('09:05')
   })
 })

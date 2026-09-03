@@ -19,6 +19,17 @@ function toDateTimeParts(iso) {
   }
 }
 
+// Var olan görüşmenin süresini startAt/endAt farkından geri hesaplar —
+// düzenlerken süre seçici sessizce 30 dakikaya dönmesin diye. endAt
+// eksikse (bu düzeltmeden önce oluşturulmuş eski kayıtlar) ya da
+// seçeneklerden biri değilse varsayılan 30 dakikaya düşer.
+const DURATION_OPTIONS = [15, 30, 45, 60]
+function toDurationMinutes(event) {
+  if (!event?.startAt || !event?.endAt) return 30
+  const minutes = Math.round((new Date(event.endAt).getTime() - new Date(event.startAt).getTime()) / 60000)
+  return DURATION_OPTIONS.includes(minutes) ? minutes : 30
+}
+
 // Hem "+ Yeni Aday" (candidate=null) hem satır tıklaması (candidate=mevcut
 // kayıt) AYNI paneli açar — Lead Havuzu'ndaki LeadDetailModal ile aynı
 // desen. initialValues: Lead Havuzu'ndan "Recruiting'e Dönüştür" ile
@@ -50,6 +61,7 @@ export default function RecruitingDetailModal({
     aciklama: candidate?.aciklama ?? '',
     gorusmeTarih: interviewParts.date,
     gorusmeSaat: interviewParts.time,
+    gorusmeSure: toDurationMinutes(interviewEvent),
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const canSubmit = form.adSoyad.trim().length > 0
@@ -178,6 +190,17 @@ export default function RecruitingDetailModal({
               className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
             />
           </div>
+          <select
+            value={form.gorusmeSure}
+            onChange={(e) => set({ gorusmeSure: Number(e.target.value) })}
+            className="mt-2 w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          >
+            {DURATION_OPTIONS.map((dk) => (
+              <option key={dk} value={dk}>
+                {dk} dakika
+              </option>
+            ))}
+          </select>
         </div>
 
         <textarea
