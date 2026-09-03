@@ -77,7 +77,9 @@ export default function AddSocialActivityModal({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs text-ink-500">Tarih</label>
+          <label className="mb-1 block text-xs text-ink-500">
+            Hangi tarih için (geriye/ileriye tarihli girilebilir — o tarihi kapsayan döneme yazılır)
+          </label>
           <input
             required
             type="date"

@@ -4,6 +4,18 @@
 // kullanılır — UI hiçbir zaman bu sayıyı doğrudan basmaz.
 
 export const MOCK_PERIODS = [
+  // Geçmiş, açıklanmış bir dönem — "aciklandi" danışmana kalıcı açık kalsın
+  // kuralını (bkz. Lig.jsx'teki PastPeriodsMenu) mock modda da göstermek
+  // için. DİZİDE period-1'den ÖNCE durmalı — mockProvider.getPeriod()
+  // "en güncel dönem"i dizinin SON elemanı olarak alıyor (bkz. supabaseProvider
+  // ile aynı "en yeni baslangic" anlamına gelmesi için bu sıra korunmalı).
+  {
+    id: 'period-0',
+    ad: '2026 - Dönem 1 (Ocak - Nisan)',
+    baslangic: '2026-01-01',
+    bitis: '2026-04-30',
+    durum: 'aciklandi',
+  },
   {
     id: 'period-1',
     ad: '2026 - Dönem 2 (Mayıs - Ağustos)',
@@ -13,7 +25,7 @@ export const MOCK_PERIODS = [
   },
 ]
 
-export const MOCK_PERIOD = MOCK_PERIODS[0]
+export const MOCK_PERIOD = MOCK_PERIODS[MOCK_PERIODS.length - 1]
 
 const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
@@ -35,6 +47,16 @@ export const MOCK_SCORES = [
   { userId: 'u-danisman', periodId: 'period-1', type: 'sosyal_medya', value: 45, updatedAt: daysAgo(1) },
   { userId: 'ext-danisman-2', periodId: 'period-1', type: 'sosyal_medya', value: 72, updatedAt: daysAgo(0) },
   { userId: 'ext-danisman-3', periodId: 'period-1', type: 'sosyal_medya', value: 30, updatedAt: daysAgo(4) },
+
+  { userId: 'u-danisman', periodId: 'period-0', type: 'ciro', value: 1840000, updatedAt: daysAgo(140) },
+  { userId: 'ext-danisman-2', periodId: 'period-0', type: 'ciro', value: 2010000, updatedAt: daysAgo(141) },
+  { userId: 'ext-danisman-3', periodId: 'period-0', type: 'ciro', value: 990000, updatedAt: daysAgo(145) },
+
+  { userId: 'u-danisman', periodId: 'period-0', type: 'memnuniyet', value: 82, updatedAt: daysAgo(142) },
+  { userId: 'ext-danisman-2', periodId: 'period-0', type: 'memnuniyet', value: 91, updatedAt: daysAgo(142) },
+
+  { userId: 'u-danisman', periodId: 'period-0', type: 'sosyal_medya', value: 38, updatedAt: daysAgo(140) },
+  { userId: 'ext-danisman-2', periodId: 'period-0', type: 'sosyal_medya', value: 55, updatedAt: daysAgo(139) },
 ]
 
 // user_id, period_id, ad_soyad, alindiMi — ciro'ya dönen her müşteri isim
