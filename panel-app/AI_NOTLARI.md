@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — Performans: tüm sayfalar lazy-load
+
+Broker: "portalda yavaşlama var mı" — Vercel'de 24 saatte hata yok,
+Supabase tabloları çok küçük (en büyüğü 29 satır), backend'de sorun
+bulunamadı. Gerçek sorun frontend'de: Takvim/Pano dışındaki tüm sayfalar
+(Panel, Lig, Rehber, Fırsatlar, Recruiting, Ayarlar, Belge Oluştur vb.)
+tek ~880 KB'lık JS pakete birleşmişti — hangi sayfaya girilirse girilsin
+bu paket indiriliyordu (mobil/LTE'de hissedilir gecikme). Tüm sayfalar
+`React.lazy` ile ayrı pakete alındı; ana paket 881 KB'dan 262 KB'a
+düştü. Mock modda tüm route'lar Playwright ile tek tek test edildi.
+
 ## 2026-09-02 — Lig: veri girilmemiş danışman Memnuniyet sıralamasına girmesin
 
 Broker: "aynı şey memnuniyette de Alper'de görünüyor" — bir önceki
