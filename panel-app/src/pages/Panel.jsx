@@ -48,7 +48,7 @@ import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
-import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation } from '../lib/attention'
+import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation, isRecruitingStalled } from '../lib/attention'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
@@ -581,6 +581,15 @@ export default function Panel() {
         severity: 'uyari',
         to: '/egitim?odak=egitim',
         text: `${behindEducation.length} danışmanın eğitim/checklist tamamlama oranı %50'nin altında`,
+      })
+    }
+
+    if (isRecruitingStalled(data.recruitingCandidates, now)) {
+      items.push({
+        id: 'recruiting-stalled',
+        severity: 'kritik',
+        to: '/recruiting',
+        text: '7 gündür yeni recruiting başvurusu yok',
       })
     }
 
