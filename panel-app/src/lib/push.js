@@ -23,10 +23,29 @@ export function getNotificationPermission() {
   return Notification.permission
 }
 
-// İzin isteyip PushManager aboneliği oluşturur, subscription'ı
-// dataProvider'a kaydetmeden JSON olarak döner (çağıran taraf kaydeder) —
-// bu dosya sadece tarayıcı API'siyle konuşur, Supabase'i bilmez.
-export async function subscribeToPush() {
+// iOS/iPadOS'ta Web Push SADECE "Ana Ekrana Ekle" ile kurulmuş PWA
+// içinden çalışır — normal Safari sekmesinde serviceWorker/PushManager
+// API'leri var gibi görünse (feature-detection geçse) bile
+// Notification.requestPermission()/pushManager.subscribe() hiç
+// sonuçlanmadan asılı kalabiliyor (broker: "aç diyorsun açılıyor
+// yazıyor takılı kalıyor" — telefonlarda normal Safari sekmesinden
+// deneniyor olması en olası sebep). Bu durumu subscribeToPush()
+// denemeden ÖNCE ayırt edip anlaşılır bir mesaj veriyoruz.
+function needsHomeScreenInstall() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream
+  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true
+  return isIOS && !isStandalone
+}
+
+function withTimeout(promise, ms, message) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+async function subscribeToPushInner() {
   const registration = await navigator.serviceWorker.register('/panel/sw.js', { scope: '/panel/' })
   await navigator.serviceWorker.ready
 
@@ -44,6 +63,20 @@ export async function subscribeToPush() {
     }))
 
   return subscription.toJSON()
+}
+
+// İzin isteyip PushManager aboneliği oluşturur, subscription'ı
+// dataProvider'a kaydetmeden JSON olarak döner (çağıran taraf kaydeder) —
+// bu dosya sadece tarayıcı API'siyle konuşur, Supabase'i bilmez. 20 saniyelik
+// zaman aşımı — hangi adımda olursa olsun tarayıcı hiç yanıt vermezse
+// "Açılıyor..." düğmesi sonsuza kadar takılı kalmasın diye (bkz. yukarıdaki
+// not, aynı hatanın kök nedeni bilinmeyen başka bir tarayıcıda tekrarlanırsa
+// diye ikinci bir güvenlik ağı).
+export async function subscribeToPush() {
+  if (needsHomeScreenInstall()) {
+    throw new Error('iPhone/iPad\'de bildirim alabilmek için önce siteyi ana ekrana eklemen gerekiyor: Paylaş düğmesi → "Ana Ekrana Ekle", sonra oradan aç ve tekrar dene.')
+  }
+  return withTimeout(subscribeToPushInner(), 20000, 'Bildirim izni zaman aşımına uğradı, tekrar dene.')
 }
 
 export async function unsubscribeFromPush() {
