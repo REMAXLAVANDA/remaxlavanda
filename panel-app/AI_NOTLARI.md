@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — Takvim: ay görünümü hücre sınırı, recruiting ikonu, görüşme bitiş saati
+
+Üç ayrı iyileştirme birlikte deploy edildi:
+1. Yoğun günlerde (4-6 etkinlikli) ay görünümü hücreleri dengesiz
+   uzuyordu — `EventCalendar.jsx`'e `dayMaxEvents={4}` ve Türkçe
+   `moreLinkText` ("+N daha") eklendi, fazlası popover'a taşınıyor.
+2. `recruiting_gorusmesi` etkinlik rengi marka paleti kısıtı yüzünden
+   kasıtlı olarak diğer türlerle aynı gri (bkz. `lib/calendar.js`
+   `EVENT_TYPE_COLORS` notu, renk DEĞİŞTİRİLMEDİ) — bunun yerine
+   `renderEventContent`'te başlığın önüne küçük bir `UserPlus` ikonu
+   eklendi, ayrım renkte değil şekilde yapılıyor.
+3. Recruiting görüşme randevusu Takvim'e her zaman `endTime: null` ile
+   işleniyordu, sadece başlangıç saati görünüyordu. `RecruitingDetailModal`'a
+   15/30/45/60 dakikalık bir "Süre" seçici eklendi (varsayılan 30),
+   `Recruiting.jsx`'teki `syncInterviewEvent` artık `lib/calendar.js`'e
+   eklenen `addMinutesToTimeString()` ile bitiş saatini hesaplıyor
+   (süre formda yoksa eski kayıtlarla geriye dönük uyumluluk için
+   varsayılan 30 dakika kullanılıyor).
+
 ## 2026-09-03 — Bildirim izni: iOS ana ekran kontrolü + zaman aşımı
 
 Broker: "aç diyorsun açılıyor yazıyor takılı kalıyor" — "Bildirimleri
