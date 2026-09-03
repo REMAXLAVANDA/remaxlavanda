@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — Kullanıcı yönetimi Edge Function'larında CORS düzeltmesi
+
+Broker: "yeni danışman oluşturulamıyor, hata veriyor". Kök neden:
+`create-user`/`delete-user`/`reset-user-password` sadece
+`https://panel.remaxlavanda.com.tr` adresinden gelen isteklere izin
+veriyordu (CORS), ama Vercel projesi aynı içeriği
+`www.remaxlavanda.com.tr` ve `remaxlavanda.com.tr` adreslerinden de
+servis ediyor — o adreslerden girildiğinde tarayıcı isteği sessizce
+engelliyordu (sunucu logunda sadece OPTIONS ön-kontrolü görünüyor,
+gerçek istek hiç gitmiyordu). Üç fonksiyon da artık bu üç bilinen
+adresin hepsinden gelen istekleri kabul ediyor; yetki kontrolü
+(broker/owner) zaten fonksiyon içinde ayrıca yapıldığı için güvenlik
+gevşemedi. Broker onayıyla ("onaylıyorum") uygulandı, üç fonksiyon da
+Supabase'e deploy edildi.
+
 ## 2026-09-03 — 3 kullanım rahatlığı önerisi (design panosu → uygulama)
 
 Broker: "portaldaki detayları inceleyin, kullanım rahatlığı sunacak
