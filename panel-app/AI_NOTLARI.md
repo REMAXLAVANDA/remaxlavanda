@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — Bildirim izni: iOS ana ekran kontrolü + zaman aşımı
+
+Broker: "aç diyorsun açılıyor yazıyor takılı kalıyor" — "Bildirimleri
+Aç" düğmesi sonsuza kadar "Açılıyor..." durumunda kalıyordu. Kök
+neden: iOS/iPadOS'ta Web Push sadece ana ekrana eklenmiş PWA içinde
+çalışıyor, normal Safari sekmesinde izin isteği hiç sonuçlanmıyor.
+`lib/push.js`'e iki katman eklendi: (1) iOS + ana ekrana eklenmemiş
+durumu denemeden önce ayırt edilip anlaşılır bir mesaj gösteriliyor,
+(2) hangi tarayıcıda olursa olsun 20 saniyelik zaman aşımı — düğme
+artık hiçbir zaman sonsuza kadar takılı kalmıyor.
+
 ## 2026-09-03 — Panel: Dikkat Gerekiyor'a recruiting durgunluk uyarısı
 
 "Ofisin Nabzı"ndaki Recruiting kutusu 0 yeni başvuru olsa bile diğer
