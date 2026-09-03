@@ -34,3 +34,11 @@
   font-weight: 500;
   opacity: 0.75;
 }
+
+/* Recruiting görüşmesi ikonu — renk marka paleti kısıtı yüzünden diğer
+   türlerle aynı gri kaldığı için (bkz. lib/calendar.js), öncelik sinyalini
+   burada, başlığın önündeki küçük ikon veriyor. */
+.fc-event-custom-icon {
+  vertical-align: -1px;
+  margin-right: 2px;
+}

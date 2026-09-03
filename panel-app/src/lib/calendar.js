@@ -155,6 +155,18 @@ export function isPastEvent(event) {
   return new Date(event.endAt ?? event.startAt).getTime() < Date.now()
 }
 
+// "HH:MM" bir saate dakika ekler, yine "HH:MM" döner — recruiting
+// görüşmesi Takvim'e işlenirken bitiş saatini başlangıç + süreden
+// hesaplamak için (bkz. Recruiting.jsx syncInterviewEvent). Gün sınırını
+// aşarsa (23:45 + 30dk gibi) sarıyor — görüşme süresi bir günü aşmayacağı
+// için bu yeterli, ayrı bir gün taşması hesaplamasına gerek yok.
+export function addMinutesToTimeString(hhmm, minutes) {
+  const [h, m] = hhmm.split(':').map(Number)
+  const total = (h * 60 + m + minutes + 24 * 60) % (24 * 60)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`
+}
+
 // Bir doğum tarihinden (YYYY-MM-DD), bugünden itibaren gelecek İLK yıl
 // dönümünü "YYYY-MM-DD" olarak döner — danışman kaydedilirken Takvim'e
 // otomatik doğum günü etkinliği eklenirken kullanılır (bkz. Ayarlar.jsx).

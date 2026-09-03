@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import trLocale from '@fullcalendar/core/locales/tr'
+import { UserPlus } from 'lucide-react'
 import { EVENT_TYPE_COLORS } from '../../lib/calendar'
 import './EventCalendar.css'
 
@@ -28,10 +29,18 @@ function useIsMobile() {
 // önemli" geri bildirimi). Kendi içerik şablonumuzla konu HER ZAMAN önce
 // ve tam gösteriliyor (satır kaymasına izin var), saat altında küçük/soluk
 // bir ayrıntı olarak kalıyor.
+// recruiting_gorusmesi marka paleti kısıtı yüzünden diğer 6 türle aynı
+// nötr gri renkte (bkz. lib/calendar.js EVENT_TYPE_COLORS notu) — rengi
+// değiştirmeden öncelik sinyali vermek için başlığın önüne küçük bir
+// ikon ekleniyor, ayrım renkte değil şekilde yapılıyor.
 function renderEventContent(arg) {
+  const isRecruiting = arg.event.extendedProps.type === 'recruiting_gorusmesi'
   return (
     <div className="fc-event-custom">
-      <div className="fc-event-custom-title">{arg.event.title}</div>
+      <div className="fc-event-custom-title">
+        {isRecruiting && <UserPlus size={12} className="fc-event-custom-icon" />}
+        {arg.event.title}
+      </div>
       {arg.timeText && <div className="fc-event-custom-time">{arg.timeText}</div>}
     </div>
   )
@@ -46,6 +55,7 @@ export default function EventCalendar({ events, onEventClick }) {
     end: e.endAt ?? undefined,
     backgroundColor: EVENT_TYPE_COLORS[e.type],
     borderColor: EVENT_TYPE_COLORS[e.type],
+    extendedProps: { type: e.type },
   }))
 
   return (
@@ -62,6 +72,12 @@ export default function EventCalendar({ events, onEventClick }) {
         height="auto"
         eventDisplay="block"
         displayEventEnd
+        // Yoğun günlerde (4-6 etkinlikli) hücre sonsuza kadar uzayıp ay
+        // görünümündeki satırları dengesiz kılıyordu — dayMaxEvents ile
+        // hücre sabit yükseklikte kalıyor, fazlası "+N daha" popover'ında
+        // açılıyor (bkz. "hücre boyu dengesiz" geri bildirimi).
+        dayMaxEvents={4}
+        moreLinkText={(n) => `+${n} daha`}
         eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
         eventContent={renderEventContent}
         events={fcEvents}
