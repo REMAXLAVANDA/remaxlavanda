@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-03 — Panel: Dikkat Gerekiyor'a recruiting durgunluk uyarısı
+
+"Ofisin Nabzı"ndaki Recruiting kutusu 0 yeni başvuru olsa bile diğer
+kutularla aynı nötr renkte kalıyor (kart renkleri kasıtlı sabit).
+`lib/attention.js`'e `isRecruitingStalled()` eklendi — son 7 gündür
+hiç yeni recruiting başvurusu yoksa `Panel.jsx`'teki "Dikkat Gerekiyor"
+listesine kritik bir uyarı ("7 gündür yeni recruiting başvurusu yok",
+`/recruiting`'e yönlendiriyor) düşüyor. `attention.test.js` eklendi.
+
 ## 2026-09-03 — Deploy sonrası kalan açık sekmeler için otomatik yenileme
 
 Broker: "bugün ben, ofis ve danışmanlar portala girmede sorun yaşamış".
