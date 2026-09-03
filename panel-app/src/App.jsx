@@ -9,21 +9,23 @@ import ConfigErrorScreen from './components/common/ConfigErrorScreen'
 import { USE_SUPABASE } from './lib/env'
 import { getSupabaseClient, MissingSupabaseConfigError } from './lib/supabaseClient'
 
-import Panel from './pages/Panel'
-import Firsatlar from './pages/Firsatlar'
-import Leads from './pages/Leads'
-import Recruiting from './pages/Recruiting'
-import Takip from './pages/Takip'
-import Lig from './pages/Lig'
-import Rehber from './pages/Rehber'
-import Ayarlar from './pages/Ayarlar'
-import Login from './pages/Login'
-import Kartvizitim from './pages/Kartvizitim'
-import KartvizitPublic from './pages/KartvizitPublic'
-import MusteriBelgeDoldur from './pages/MusteriBelgeDoldur'
-
-// Takvim, FullCalendar gibi ağır bir kütüphane taşıdığı için ana paketi
-// şişirmemesi adına lazy-load ediliyor — sadece Takvim'e girilince indirilir.
+// Her sayfa artık ayrı paket — girişte tek dev bir JS indirilmesin diye
+// (broker: "portalda yavaşlama var mı" — tüm sayfalar tek ~880 KB pakette
+// birleşmişti, mobil/LTE'de hissedilir gecikme yaratıyordu). Route
+// değişince ilgili sayfanın paketi indirilir, ilk açılış artık daha küçük.
+const Panel = lazy(() => import('./pages/Panel'))
+const Firsatlar = lazy(() => import('./pages/Firsatlar'))
+const Leads = lazy(() => import('./pages/Leads'))
+const Recruiting = lazy(() => import('./pages/Recruiting'))
+const Takip = lazy(() => import('./pages/Takip'))
+const Lig = lazy(() => import('./pages/Lig'))
+const Rehber = lazy(() => import('./pages/Rehber'))
+const Ayarlar = lazy(() => import('./pages/Ayarlar'))
+const Login = lazy(() => import('./pages/Login'))
+const Kartvizitim = lazy(() => import('./pages/Kartvizitim'))
+const KartvizitPublic = lazy(() => import('./pages/KartvizitPublic'))
+const MusteriBelgeDoldur = lazy(() => import('./pages/MusteriBelgeDoldur'))
+// Takvim, FullCalendar gibi ağır bir kütüphane taşıdığı için ayrı paket.
 const Takvim = lazy(() => import('./pages/Takvim'))
 // Ofis TV'sindeki Etkinlik Panosu — nadiren açılan, kabuksuz ayrı bir görünüm.
 const Pano = lazy(() => import('./pages/Pano'))
@@ -61,52 +63,33 @@ export default function App() {
       <UsersProvider>
         <ToastProvider>
           <HashRouter>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/k/:userId" element={<KartvizitPublic />} />
-              <Route path="/belge-doldur/:token" element={<MusteriBelgeDoldur />} />
-              <Route element={<ProtectedRoute />}>
-                <Route
-                  path="/pano"
-                  element={
-                    <Suspense fallback={<PageLoading />}>
-                      <Pano />
-                    </Suspense>
-                  }
-                />
-                <Route element={<AppLayout />}>
-                  <Route index element={<Navigate to="/panel" replace />} />
-                  <Route path="/panel" element={<Panel />} />
-                  <Route path="/firsatlar" element={<Firsatlar />} />
-                  <Route
-                    path="/takvim"
-                    element={
-                      <Suspense fallback={<PageLoading />}>
-                        <Takvim />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/gorevler"
-                    element={
-                      <Suspense fallback={<PageLoading />}>
-                        <Takvim />
-                      </Suspense>
-                    }
-                  />
-                  <Route path="/operasyon" element={<Firsatlar />} />
-                  <Route path="/leads" element={<Leads />} />
-                  <Route path="/recruiting" element={<Recruiting />} />
-                  <Route path="/takip" element={<Takip />} />
-                  <Route path="/egitim" element={<Takip />} />
-                  <Route path="/lig" element={<Lig />} />
-                  <Route path="/rehber" element={<Rehber />} />
-                  <Route path="/kartvizitim" element={<Kartvizitim />} />
-                  <Route path="/ayarlar" element={<Ayarlar />} />
-                  <Route path="*" element={<Navigate to="/panel" replace />} />
+            <Suspense fallback={<PageLoading />}>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/k/:userId" element={<KartvizitPublic />} />
+                <Route path="/belge-doldur/:token" element={<MusteriBelgeDoldur />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/pano" element={<Pano />} />
+                  <Route element={<AppLayout />}>
+                    <Route index element={<Navigate to="/panel" replace />} />
+                    <Route path="/panel" element={<Panel />} />
+                    <Route path="/firsatlar" element={<Firsatlar />} />
+                    <Route path="/takvim" element={<Takvim />} />
+                    <Route path="/gorevler" element={<Takvim />} />
+                    <Route path="/operasyon" element={<Firsatlar />} />
+                    <Route path="/leads" element={<Leads />} />
+                    <Route path="/recruiting" element={<Recruiting />} />
+                    <Route path="/takip" element={<Takip />} />
+                    <Route path="/egitim" element={<Takip />} />
+                    <Route path="/lig" element={<Lig />} />
+                    <Route path="/rehber" element={<Rehber />} />
+                    <Route path="/kartvizitim" element={<Kartvizitim />} />
+                    <Route path="/ayarlar" element={<Ayarlar />} />
+                    <Route path="*" element={<Navigate to="/panel" replace />} />
+                  </Route>
                 </Route>
-              </Route>
-            </Routes>
+              </Routes>
+            </Suspense>
           </HashRouter>
         </ToastProvider>
       </UsersProvider>
