@@ -1,3 +1,5 @@
+# Panel-app kaynak kodu main'e girince otomatik derleyip panel/ klasörünü
+# güncelleyen iş akışı (bkz. AI_NOTLARI.md).
 name: Panel otomatik derleme ve yayın
 
 on:
@@ -20,10 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Depoyu çek
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Node kurulumu
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: 'npm'
@@ -59,8 +61,5 @@ jobs:
             echo "panel/ zaten güncel, commit atılmadı."
             exit 0
           fi
-          git commit -m "Panel otomatik derleme: ${GITHUB_SHA::7} [skip ci]
-
-Bu commit panel-build-deploy.yml iş akışı tarafından otomatik
-oluşturuldu — kaynak: ${GITHUB_SHA}"
+          git commit -m "Panel otomatik derleme: ${GITHUB_SHA::7} [skip ci]" -m "Bu commit panel-build-deploy.yml iş akışı tarafından otomatik oluşturuldu — kaynak: ${GITHUB_SHA}"
           git push origin HEAD:main
