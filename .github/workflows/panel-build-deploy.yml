@@ -20,6 +20,16 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # NOT: Bu iki değer GİZLİ DEĞİL — sadece public/anon Supabase
+    # değerleri (bkz. panel-app/src/lib/env.js güvenlik notu), zaten
+    # derlenen JS paketine gömülüp herkese açık şekilde tarayıcıya
+    # gidiyor. Vercel kendisi hiç build çalıştırmadığı için (framework
+    # tanımlı değil, statik dosya sunuyor) gerçek derleme SADECE burada
+    # oluyor — bunlar olmadan panel "Sistem yapılandırması eksik"
+    # hatasıyla açılıyor (bkz. ConfigErrorScreen.jsx).
+    env:
+      VITE_SUPABASE_URL: https://vfqkmluqjaihpgxhqlqt.supabase.co
+      VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8
     steps:
       - name: Depoyu çek
         uses: actions/checkout@v7
