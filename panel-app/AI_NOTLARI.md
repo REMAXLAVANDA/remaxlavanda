@@ -7,6 +7,53 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-12 — Etkinlik katılımı: sessiz kalan davetler otomatik "katılmadı"
+
+Bir danışman etkinliğe davet edilip hiç yanıt vermezse ("katılacağım" da
+demez, mazeret de bildirmez), `event_attendance` satırı sonsuza kadar
+`davetli` kalıyor, `meetingAttendPercent()` bunu hiç saymıyordu — açıkça
+"katılmıyorum" diyen dürüst biri (mazereti reddedilirse) skorda
+cezalandırılırken, sessiz kalan hiç etkilenmiyordu. `auto_close_periods()`
+(Lig) ile aynı `pg_cron` deseniyle `auto_resolve_attendance()` eklendi —
+her gece 04:00'te, etkinlik bitişinden 3+ gün sonra hâlâ `davetli` kalan
+satırları `katilmadi`ya çeviriyor. Sadece `davetli`ye dokunuyor —
+`onayladi`/`mazeretli` kapsam dışı. `lib/takip.js`'te kod değişikliği
+gerekmedi, zaten `katilmadi`yı sayıyordu. Broker onayıyla uygulandı
+(migration `20260912100000_katilim_otomatik_cozum.sql`).
+
+## 2026-09-12 — mockProvider/supabaseProvider tutarsızlıkları: 3 eksik "kim yaptı" alanı
+
+Karşılaştırma raporunda bulunan 3 eksiklik tamamlandı: (1) `Lig.jsx`'teki
+`removeCiroGiris`/`removeSocialActivity` çağrılarına `user.id` eklendi —
+supabaseProvider bunu zaten bekliyordu, gönderilmiyordu. (2)
+`mockProvider.addScore` artık `enteredBy`'ı kaydediyor (aynı dosyadaki
+`addCiroMusteri`/`logSocialActivity` deseniyle aynı). (3)
+`mockProvider.savePushSubscription`/`removePushSubscription` artık
+gerçekten çalışıyor (önceden tam no-op'tu, yorum "hafızada tutuyoruz"
+diye yanlış bilgi veriyordu).
+
+## 2026-09-12 — roles.js: güncelliğini yitirmiş yetkilendirme notu
+
+Yorum hâlâ "gerçek yetkilendirme PART 2'de bağlanacak" diyordu ama
+kontrol edildi: Supabase Auth + RLS çoktan bağlanmış, production'da
+`USE_SUPABASE` her zaman zorunlu true (`lib/env.js`), rol RLS korumalı
+`public.users.rol`'den okunuyor, kendi rolünü değiştirme ayrı bir DB
+trigger'ıyla (`rol_yukseltme_koruma`, 2026-07-24) engelleniyor. Sadece
+yorum güncellendi.
+
+## 2026-09-12 — Panel derlemesi/deploy tam otomatik hale getirildi
+
+Deploy süreci elle "derle → panel/ klasörüne kopyala → push et" idi,
+unutulursa canlı site eskide kalıyordu (bkz. deploy-drift-check.yml).
+`.github/workflows/panel-build-deploy.yml` eklendi — `panel-app`
+kaynak kodu `main`'e girince testler+lint geçerse otomatik derlenip
+`panel/` güncelleniyor ve commit'leniyor, Vercel bunu görüp otomatik
+yayınlıyor. İlk sürümde bir YAML girinti hatası yüzünden dosya hiç
+çalışmıyordu (bkz. commit ce169f6) — düzeltildi, artık uçtan uca
+çalışıyor. `actions/checkout`/`actions/setup-node` de GitHub'ın Eylül
+2026'da kaldıracağı Node 20 çalışma zamanından Node 24 kullanan v7'ye
+yükseltildi.
+
 ## 2026-09-03 — Takvim: ay görünümü hücre sınırı, recruiting ikonu, görüşme bitiş saati
 
 Üç ayrı iyileştirme birlikte deploy edildi:
