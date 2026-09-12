@@ -602,7 +602,7 @@ export const league = {
   async listScores() {
     return delay([...MOCK_SCORES])
   },
-  async addScore({ userId, type, value, tarih }) {
+  async addScore({ userId, type, value, tarih }, enteredBy) {
     const numValue = Number(value)
     const period = MOCK_PERIODS.find((p) => p.baslangic <= tarih && p.bitis >= tarih)
     if (!period) throw new Error('Bu tarihi kapsayan bir dönem yok — önce dönemi oluşturman gerekiyor.')
@@ -617,6 +617,7 @@ export const league = {
         periodId: period.id,
         value: numValue,
         tarih,
+        enteredBy,
         createdAt: now,
       })
       recomputeMockCiroTotal(userId, period.id)
@@ -628,7 +629,7 @@ export const league = {
       existing.value = numValue
       existing.updatedAt = now
     } else {
-      MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, updatedAt: now })
+      MOCK_SCORES.push({ userId, periodId: period.id, type, value: numValue, enteredBy, updatedAt: now })
     }
     return delay({ userId, periodId: period.id, type, value: numValue })
   },
@@ -715,6 +716,9 @@ export const league = {
 // MOCK_USERS/OTHER_USERS sabit dev hesapları olduğu için ayrı tutuluyor.
 const MOCK_EXTRA_USERS = []
 const MOCK_PRIVATE_INFO = {}
+// endpoint benzersiz — supabaseProvider.savePushSubscription() ile aynı
+// kural: aynı cihaz tekrar abone olursa üstüne yazılır, ikinci satır olmaz.
+const MOCK_PUSH_SUBSCRIPTIONS = []
 const usersDaysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString()
 
 function allMockUserRows() {
@@ -826,11 +830,19 @@ export const users = {
     return delay(null)
   },
   // Push bildirimi aboneliği — mock modda gerçek bir Service Worker/PushManager
-  // akışı test edilebilir olsun diye state'i in-memory tutuyoruz.
-  async savePushSubscription(_subscription) {
+  // akışı test edilebilir olsun diye state'i in-memory tutuyoruz (bkz.
+  // MOCK_PUSH_SUBSCRIPTIONS) — supabaseProvider.savePushSubscription() ile
+  // aynı kural: endpoint benzersiz, tekrar abone olunca üstüne yazılır.
+  async savePushSubscription(subscription, userId) {
+    const idx = MOCK_PUSH_SUBSCRIPTIONS.findIndex((s) => s.endpoint === subscription.endpoint)
+    const row = { userId, endpoint: subscription.endpoint, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth }
+    if (idx !== -1) MOCK_PUSH_SUBSCRIPTIONS[idx] = row
+    else MOCK_PUSH_SUBSCRIPTIONS.push(row)
     return delay(null)
   },
-  async removePushSubscription(_endpoint) {
+  async removePushSubscription(endpoint) {
+    const idx = MOCK_PUSH_SUBSCRIPTIONS.findIndex((s) => s.endpoint === endpoint)
+    if (idx !== -1) MOCK_PUSH_SUBSCRIPTIONS.splice(idx, 1)
     return delay(null)
   },
   async getMyProfile(userId) {
