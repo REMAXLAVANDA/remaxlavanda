@@ -1,3 +1,5 @@
+# Panel-app kaynak kodu main'e girince otomatik derleyip panel/ klasörünü
+# güncelleyen iş akışı (bkz. AI_NOTLARI.md).
 name: Panel otomatik derleme ve yayın
 
 on:
