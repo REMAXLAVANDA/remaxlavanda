@@ -1,6 +1,14 @@
 // Rol tanımları — RE/MAX Lavanda Portal
-// Not: Gerçek yetkilendirme Supabase auth + RLS ile PART 2'de bağlanacak.
-// Şimdilik AuthContext üzerinden mock/dev amaçlı rol seçimi yapılıyor.
+// Not (2026-09-12 güncellendi — eski not "PART 2'de bağlanacak" diyordu,
+// artık bağlı): Gerçek yetkilendirme Supabase auth + RLS ile bağlandı ve
+// production'da her zaman aktif (bkz. lib/env.js — USE_SUPABASE prod
+// build'de zorunlu true). Rol, AuthContext'teki RealAuthProvider
+// tarafından sunucudan (RLS korumalı public.users.rol) okunuyor; kendi
+// rolünü/durumunu değiştirme ise ayrıca bir DB trigger'ıyla engelleniyor
+// (bkz. migration 20260724140000_rol_yukseltme_koruma.sql). AuthContext'te
+// hâlâ duran mock/dev rol seçici (MockAuthProvider) SADECE yerel
+// geliştirme/Playwright testlerinde (USE_SUPABASE=false) devreye giriyor,
+// canlıda hiç çalışmıyor.
 
 export const ROLES = {
   BROKER: 'broker',
