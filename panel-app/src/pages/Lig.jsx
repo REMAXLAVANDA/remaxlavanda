@@ -395,7 +395,7 @@ export default function Lig() {
     const id = removeCiroTarget
     setRemoveCiroTarget(null)
     try {
-      await leagueProvider.removeCiroGiris(id)
+      await leagueProvider.removeCiroGiris(id, user.id)
       showToast('Ciro kaydı silindi.', 'success')
       reload()
     } catch (err) {
@@ -411,7 +411,7 @@ export default function Lig() {
     const id = removeActivityTarget
     setRemoveActivityTarget(null)
     try {
-      await leagueProvider.removeSocialActivity(id)
+      await leagueProvider.removeSocialActivity(id, user.id)
       showToast('Kayıt silindi.', 'success')
       reload()
     } catch (err) {
