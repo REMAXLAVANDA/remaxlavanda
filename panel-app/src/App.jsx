@@ -24,7 +24,6 @@ const Ayarlar = lazy(() => import('./pages/Ayarlar'))
 const Login = lazy(() => import('./pages/Login'))
 const Kartvizitim = lazy(() => import('./pages/Kartvizitim'))
 const KartvizitPublic = lazy(() => import('./pages/KartvizitPublic'))
-const MusteriBelgeDoldur = lazy(() => import('./pages/MusteriBelgeDoldur'))
 // Takvim, FullCalendar gibi ağır bir kütüphane taşıdığı için ayrı paket.
 const Takvim = lazy(() => import('./pages/Takvim'))
 // Ofis TV'sindeki Etkinlik Panosu — nadiren açılan, kabuksuz ayrı bir görünüm.
@@ -67,7 +66,6 @@ export default function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/k/:userId" element={<KartvizitPublic />} />
-                <Route path="/belge-doldur/:token" element={<MusteriBelgeDoldur />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/pano" element={<Pano />} />
                   <Route element={<AppLayout />}>
