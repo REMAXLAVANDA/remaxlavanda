@@ -7,6 +7,34 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-13 — ACİL: Portal açılmıyordu (eksik Supabase env değişkeni) + PDF üretme özelliği tamamen kaldırıldı
+
+**Olay:** Broker "portal açılmıyor" / "Sistem yapılandırması eksik"
+hatasını bildirdi — TÜM kullanıcılar için portal açılmıyordu. Kök sebep:
+bir önceki gündeki panel-build-deploy.yml otomasyonu (bkz. aşağıdaki
+2026-09-12 kaydı) derleme sırasında `VITE_SUPABASE_URL`/
+`VITE_SUPABASE_ANON_KEY`'i hiç tanımlamıyordu — Vercel kendisi build
+çalıştırmadığı için (framework tanımsız, statik dosya sunuyor) gerçek
+derleme SADECE bu iş akışında oluyor, ve bu iki değer olmadan panel
+veritabanına hiç bağlanamadan "yapılandırma eksik" ekranında kalıyordu
+(`lib/env.js` `HAS_SUPABASE_CONFIG=false` → `ConfigErrorScreen.jsx`).
+Bu, otomasyonu kurarken gözden kaçan bir hataydı. Düzeltme: bu iki
+değer (public/anon Supabase bilgisi, zaten tarayıcıya giden kodun
+içinde — gizli değil) iş akışına `env:` olarak eklendi, elle bir
+derleme tetiklenip canlıya alındı. Portal doğrulanıp düzeldi.
+
+**Aynı gün ayrıca:** Broker isteği üzerine "Belge Doldurma Platformu"
+(PDF üretme) özelliği portaldan komple kaldırıldı — iç ekran zaten
+hiçbir menüden erişilemiyordu (bağlı değildi), müşteri genel-erişim
+doldurma sayfası + 3 Supabase Edge Function + Vercel PDF fonksiyonu
+(headless Chromium, `@sparticuz/chromium`) + 16 şablon silindi. Bu,
+Vercel'in "Function Storage %100 doldu" uyarısını da doğrudan
+hafifletti — o fonksiyon her deploy'da koca bir tarayıcı motoru
+paketliyordu. Veritabanı tarafı (document_templates/fields/instances
+tabloları, belge-ciktilari storage bucket'ı — kontrol edildi: 12 boş
+taslak, gerçek belge yok) henüz kaldırılmadı, ayrı bir migration ile
+broker onayından sonra kaldırılacak.
+
 ## 2026-09-12 — Etkinlik katılımı: sessiz kalan davetler otomatik "katılmadı"
 
 Bir danışman etkinliğe davet edilip hiç yanıt vermezse ("katılacağım" da
