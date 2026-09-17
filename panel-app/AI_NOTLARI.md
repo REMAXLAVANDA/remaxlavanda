@@ -7,6 +7,26 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Rehber: SSS'ye alt kategori (ücretsiz anahtar kelime önerisi)
+
+Broker isteği: SSS sorularına alt kategori (Fatura, Komisyon, KDV, Tapu
+İşlemleri vb.) eklenebilsin, sisteme yazılan soru+cevaba göre uygun alt
+kategori önerilsin. Broker önce "yapay zeka" istedi, sonra fikrini
+değiştirip API anahtarı/Anthropic entegrasyonu istemedi — tamamen
+ücretsiz, client-side anahtar kelime eşleştirmesiyle ilerlendi
+(`lib/subcategorySuggest.js`). Veri modeli: yeni tablo yerine
+`categories.parent_id` (self-FK) — üst seviye klasörler yine
+`parent_id IS NULL`, bir alt kategori sadece `module='docs'` +
+`parent_id`=SSS'in id'si olan sıradan bir `categories` satırı. RLS'e
+DOKUNULMADI — mevcut `categories_select`/`docs_select` zaten satırın
+kendi `visibility`'sine bakıyor, parent/child ayrımını bilmesine gerek
+yok (alt kategori oluşturulurken üst kategorinin visibility'si kod
+tarafında kopyalanıyor). `UploadDocModal`'da yeni bir SSS sorusu
+eklerken "Öner" butonu önerileri gösteriyor, broker her zaman
+değiştirebiliyor/reddedebiliyor — hiçbir şey otomatik kaydolmuyor.
+`FolderList` artık sadece üst seviye klasörleri gösteriyor, SSS
+görünümünde dokümanlar alt kategori başlıklarıyla gruplanıyor.
+
 ## 2026-09-17 — Güvenlik: Telsam şifresi hata loglarında açık metin duruyordu
 
 `telsam-cdr-sync` Edge Function, Telsam CDR API'sine kullanıcı adı/şifreyi
