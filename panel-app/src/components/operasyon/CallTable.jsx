@@ -1,18 +1,27 @@
 import { Fragment, useState } from 'react'
-import { ChevronRight, Eye, EyeOff, Target, Send, StickyNote, Tag, Pencil, Trash2, Circle, Check, X, AlertTriangle, Info } from 'lucide-react'
 import {
-  CALL_SOURCE_CODES,
-  GORUSULDU_CYCLE,
-  PORTFOY_CYCLE,
-  callNeedsTracking,
-  canEditCallDetails,
-  cycleValue,
-  maskPhone,
-} from '../../lib/callLogs'
+  ChevronRight,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Target,
+  Send,
+  StickyNote,
+  Tag,
+  Pencil,
+  Trash2,
+  Circle,
+  Check,
+  X,
+  AlertTriangle,
+  Info,
+} from 'lucide-react'
+import { CALL_SOURCE_CODES, callNeedsTracking, canEditCallDetails, maskPhone } from '../../lib/callLogs'
 import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import ConfirmDialog from '../common/ConfirmDialog'
 
 // Fırsata dönüşen çağrının yanında ne gösterilsin — biliniyorsa
@@ -97,9 +106,10 @@ function PhoneCell({ phone }) {
 
 // Görüşüldü/Portföy/Satıldı — sürecin üç aşaması, aralarında ok ile
 // bağlanan bir zincir olarak gösterilir (bkz. "aşama aşama takip
-// etmeliyiz" isteği). İlk ikisi tek tıkla döngülenen üç durumlu rozet,
-// üçüncüsü (Satıldı) sadece portföy alındıktan sonra anlamlı olduğu için
-// ancak o zaman zincire eklenir.
+// etmeliyiz" isteği). İlk ikisi (Görüşüldü/Portföy) tıklanınca olası
+// durumları listeleyen bir menü açan üç durumlu rozet (bkz.
+// StatusPickerPill), üçüncüsü (Satıldı) sadece portföy alındıktan sonra
+// anlamlı olduğu için ancak o zaman zincire eklenir ve hiç tıklanamaz.
 const STATUS_VARIANTS = {
   pending: { icon: Circle, iconProps: { size: 9, fill: 'currentColor' } },
   warn: { icon: AlertTriangle, iconProps: { size: 12 } },
@@ -117,18 +127,16 @@ const PILL_VARIANTS = {
 // Mobilde hover/tooltip çalışmadığı için ikon tek başına yetmiyordu
 // ("süreci takip edemiyoruz" geri bildirimi) — durumun adı da yazıyla
 // görünüyor, dokunmadan/açıklama beklemeden okunabiliyor.
-function StatusPill({ variant, label, title, onClick }) {
+function StatusPill({ variant, label, title }) {
   const { icon: Icon, iconProps } = STATUS_VARIANTS[variant]
-  const Tag = onClick ? 'button' : 'span'
   return (
-    <Tag
-      onClick={onClick}
+    <span
       title={title}
       className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${PILL_VARIANTS[variant]}`}
     >
       <Icon {...iconProps} />
       {label}
-    </Tag>
+    </span>
   )
 }
 
@@ -137,15 +145,83 @@ function Arrow() {
 }
 
 function gorusuldeVariant(value) {
-  if (value === true) return { variant: 'yes', label: 'Görüşüldü', title: "Görüşüldü — tıklayınca Bekliyor'a döner" }
-  if (value === false) return { variant: 'warn', label: 'Ulaşılamadı', title: 'Ulaşılamadı — tıklayınca Görüşüldü olur' }
-  return { variant: 'pending', label: 'Bekliyor', title: 'Bekliyor — henüz aranmadı, tıklayınca Ulaşılamadı olur' }
+  if (value === true) return { variant: 'yes', label: 'Görüşüldü' }
+  if (value === false) return { variant: 'warn', label: 'Ulaşılamadı' }
+  return { variant: 'pending', label: 'Bekliyor' }
 }
 
 function portfoyVariant(value) {
-  if (value === true) return { variant: 'yes', label: 'Alındı', title: 'Alındı — tıklayınca Almadık olur' }
-  if (value === false) return { variant: 'no', label: 'Almadık', title: "Almadık — tıklayınca Bekliyor'a döner" }
-  return { variant: 'pending', label: 'Bekliyor', title: 'Bekliyor — tıklayınca Alındı olur' }
+  if (value === true) return { variant: 'yes', label: 'Alındı' }
+  if (value === false) return { variant: 'no', label: 'Almadık' }
+  return { variant: 'pending', label: 'Bekliyor' }
+}
+
+// Olası durumlar, döngüdeki eski sırayla aynı (Bekliyor önce, sonra
+// "olumsuz/ara" durum, sonra "olumlu" durum) — kullanıcının zaten alışık
+// olduğu sırayı koruyor, sadece döngülemek yerine hepsini birden gösteriyor.
+const GORUSULDU_OPTIONS = [null, false, true].map((value) => ({ value, ...gorusuldeVariant(value) }))
+const PORTFOY_OPTIONS = [null, true, false].map((value) => ({ value, ...portfoyVariant(value) }))
+
+// Süreç rozetleri eskiden tek tıkla döngülenen tek bir kontroldü — "tıklamadan
+// önce ne olacağını kestiremiyorum" geri bildirimi üzerine değiştirildi:
+// rozete tıklayınca olası durumları (2-3 seçenek) açıkça listeleyen küçük bir
+// menü açılıyor, aktif olan işaretli görünüyor, birine tıklamak DİREKT o
+// değeri yazıyor — döngüleme/tahmin etme yok. Chevron ikonu rozetin salt
+// bilgi değil, tıklanabilir bir kontrol olduğunu görsel olarak da belli
+// ediyor (Satıldı/Satış bekliyor adımlarında chevron yok, onlar gerçekten
+// tıklanamaz — bkz. StatusPill). Popover mekanizması SourceLegendInfo.jsx
+// ile aynı desen (dışarı tıklayınca/ESC ile kapanır).
+function StatusPickerPill({ variant, label, title, options, currentValue, description, canEdit, onSelect }) {
+  const [open, setOpen] = useState(false)
+  useEscapeKey(() => setOpen(false))
+
+  if (!canEdit) return <StatusPill variant={variant} label={label} title={title} />
+
+  const { icon: Icon, iconProps } = STATUS_VARIANTS[variant]
+
+  return (
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        title={title}
+        className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${PILL_VARIANTS[variant]}`}
+      >
+        <Icon {...iconProps} />
+        {label}
+        <ChevronDown size={11} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-ink-100 bg-white p-1.5 shadow-lg">
+            {description && <p className="px-2 pb-1.5 pt-1 text-[11px] text-ink-400">{description}</p>}
+            {options.map((opt) => {
+              const { icon: OptIcon, iconProps: optIconProps } = STATUS_VARIANTS[opt.variant]
+              const active = opt.value === currentValue
+              return (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => {
+                    onSelect(opt.value)
+                    setOpen(false)
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium ${
+                    active ? 'bg-ink-50 text-ink-900' : 'text-ink-600 hover:bg-ink-50'
+                  }`}
+                >
+                  <OptIcon {...optIconProps} />
+                  {opt.label}
+                  {active && <Check size={12} className="ml-auto shrink-0 text-brand-600" />}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 // Süreci baştan sona TEK bir zincir olarak gösterir: Arandı -> Portföy ->
@@ -174,18 +250,26 @@ function CallProgressSteps({ call, canEdit, onToggle }) {
   const portfoy = portfoyVariant(call.portfoyAlindiMi)
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <StatusPill
+      <StatusPickerPill
         variant={gorusuldu.variant}
         label={gorusuldu.label}
-        title={gorusuldu.title}
-        onClick={canEdit ? () => onToggle(call.id, 'donusYapildiMi', cycleValue(call.donusYapildiMi, GORUSULDU_CYCLE)) : undefined}
+        title={canEdit ? `${gorusuldu.label} — değiştirmek için tıkla` : gorusuldu.label}
+        options={GORUSULDU_OPTIONS}
+        currentValue={call.donusYapildiMi}
+        description="Görüşme durumunu değiştirmek için birini seç."
+        canEdit={canEdit}
+        onSelect={(value) => onToggle(call.id, 'donusYapildiMi', value)}
       />
       <Arrow />
-      <StatusPill
+      <StatusPickerPill
         variant={portfoy.variant}
         label={portfoy.label}
-        title={portfoy.title}
-        onClick={canEdit ? () => onToggle(call.id, 'portfoyAlindiMi', cycleValue(call.portfoyAlindiMi, PORTFOY_CYCLE)) : undefined}
+        title={canEdit ? `${portfoy.label} — değiştirmek için tıkla` : portfoy.label}
+        options={PORTFOY_OPTIONS}
+        currentValue={call.portfoyAlindiMi}
+        description="Portföy durumunu değiştirmek için birini seç."
+        canEdit={canEdit}
+        onSelect={(value) => onToggle(call.id, 'portfoyAlindiMi', value)}
       />
       {call.portfoyAlindiMi && (
         <>
