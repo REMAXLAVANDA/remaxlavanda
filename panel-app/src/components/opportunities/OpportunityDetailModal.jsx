@@ -9,13 +9,13 @@ import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
-  OPPORTUNITY_TYPE_LABELS,
   ISLEM_TIPI_LABELS,
   ISLEM_TIPI_STYLES,
   canExpressInterest,
   canRevealContact,
   formatPrice,
   relativeTime,
+  tarafLabel,
 } from '../../lib/opportunities'
 
 // GÜVENLİK NOTU: Bu bileşen artık opportunity.leadAd/leadTelefon'a
@@ -126,7 +126,7 @@ export default function OpportunityDetailModal({
     <Modal title="Fırsat Detayı" onClose={onClose} maxWidth="max-w-lg">
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-600">
-          {OPPORTUNITY_TYPE_LABELS[opp.type]}
+          {tarafLabel(opp.category, opp.islemTipi, opp.type)}
         </span>
         <span className="rounded-full bg-ink-50 px-2 py-0.5 text-xs font-medium text-ink-500">
           {categoryLabel(opp.category)}

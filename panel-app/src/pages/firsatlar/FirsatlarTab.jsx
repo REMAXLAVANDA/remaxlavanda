@@ -10,12 +10,14 @@ import {
   canDeleteOpportunity,
   canEditOpportunity,
   canViewOpportunity,
-  computeBoxCounts,
+  buildOpportunityTree,
+  legacyCategoryOpportunities,
 } from '../../lib/opportunities'
 import { isStaleOpp } from '../../lib/attention'
 import { parseThousands, sortByName } from '../../lib/format'
 import { ROLES } from '../../lib/roles'
-import OpportunitySection from '../../components/opportunities/OpportunitySection'
+import OpportunityCategoryTree from '../../components/opportunities/OpportunityCategoryTree'
+import LegacyCategoryReview from '../../components/opportunities/LegacyCategoryReview'
 import OpportunityTable from '../../components/opportunities/OpportunityTable'
 import OpportunityDetailModal from '../../components/opportunities/OpportunityDetailModal'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
@@ -37,8 +39,12 @@ export default function FirsatlarTab() {
     () => opportunitiesProvider.list(),
     [],
   )
-  const [expanded, setExpanded] = useState({ satici: true, alici: true })
-  const [activeCategory, setActiveCategory] = useState({ satici: null, alici: null })
+  // Kategori > İşlem Tipi > Taraf accordion — her zaman TEK bir yol açık
+  // kalır (broker kararı, 2026-09-17: "en az bilgili kullanıcı" için
+  // sadelik, aynı anda birden fazla dal açıkken "neredeyim" hissi
+  // kaybolmasın diye). Bir üst seviye değişince alt seviyeler otomatik
+  // sıfırlanır (bkz. handleSelectCategory/handleSelectIslemTipi).
+  const [path, setPath] = useState({ category: null, islemTipi: null, taraf: null })
   const [detailOpp, setDetailOpp] = useState(null)
   const [expressingId, setExpressingId] = useState(null)
   const [interestTargetId, setInterestTargetId] = useState(null)
@@ -51,10 +57,10 @@ export default function FirsatlarTab() {
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
-  // "Yeni Fırsat" artık kendi üst satırı yerine Satıcılar/Alıcılar
-  // bölümlerinin başlığında bir "+" butonu — hangisine basıldığına göre
-  // modal doğru tip (satıcı/alıcı) ile önceden dolu açılır.
-  const [createType, setCreateType] = useState(null)
+  // "Yeni Fırsat" artık her dalın (Kategori>İşlemTipi>Taraf) içinde bir "+"
+  // butonu — hangi daldan basıldığına göre modal category/islemTipi/type
+  // önceden dolu açılır (bkz. handleCreateClick).
+  const [createContext, setCreateContext] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -78,22 +84,34 @@ export default function FirsatlarTab() {
     [roleVisible, odakActive],
   )
 
-  const boxes = useMemo(() => computeBoxCounts(roleVisible), [roleVisible])
+  const tree = useMemo(() => buildOpportunityTree(roleVisible), [roleVisible])
+  const legacyOpps = useMemo(() => legacyCategoryOpportunities(roleVisible), [roleVisible])
+  // "Kategorisi belirsiz" bandı sadece yönetim rollerine — bu bir veri
+  // hijyeni konusu, danışman ekranını sade tutmak isteyen broker kararıyla
+  // (2026-09-17) uyumlu.
+  const canSeeLegacyReview = role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 
-  function sectionData(type) {
-    const typeBoxes = boxes.filter((b) => b.type === type)
-    const total = roleVisible.filter((o) => o.type === type).length
-    const category = activeCategory[type]
-    const rows = category
-      ? roleVisible
-          .filter((o) => o.type === type && o.category === category)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      : []
-    return { typeBoxes, total, category, rows }
+  const tableRows = useMemo(() => {
+    if (!path.category || !path.islemTipi || !path.taraf) return []
+    return roleVisible
+      .filter(
+        (o) => o.category === path.category && o.islemTipi === path.islemTipi && o.type === path.taraf,
+      )
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }, [roleVisible, path])
+
+  function handleSelectCategory(category) {
+    setPath({ category, islemTipi: null, taraf: null })
   }
-
-  const satici = sectionData('satici')
-  const alici = sectionData('alici')
+  function handleSelectIslemTipi(islemTipi) {
+    setPath((p) => ({ ...p, islemTipi, taraf: null }))
+  }
+  function handleSelectTaraf(taraf) {
+    setPath((p) => ({ ...p, taraf }))
+  }
+  function handleCreateClick(category, islemTipi, type) {
+    setCreateContext({ type, category, islemTipi })
+  }
 
   async function performExpressInterest(id) {
     setExpressingId(id)
@@ -126,7 +144,7 @@ export default function FirsatlarTab() {
       const selfClaim = (role === ROLES.DANISMAN || role === ROLES.BROKER) && !form.havuzaAt
       const created = await opportunitiesProvider.create(payload, user.id, selfClaim)
       setOpportunities((prev) => [created, ...prev])
-      setCreateType(null)
+      setCreateContext(null)
       showToast('Fırsat eklendi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Fırsat kaydedilemedi, tekrar dene.', 'error')
@@ -208,7 +226,7 @@ export default function FirsatlarTab() {
   // hemen temizlenir ki sayfa yenilenince tekrar açılmasın.
   useEffect(() => {
     if (searchParams.get('yeni') === 'firsat' && canCreate) {
-      setCreateType('satici')
+      setCreateContext({ type: 'satici' })
       const next = new URLSearchParams(searchParams)
       next.delete('yeni')
       setSearchParams(next, { replace: true })
@@ -248,50 +266,39 @@ export default function FirsatlarTab() {
 
       {!loading && !error && !odakActive && (
         <div className="space-y-4">
-          <OpportunitySection
-            dotColor="bg-brand-600"
-            borderColor="border-t-brand-600"
-            label="🔴 Satıcılar"
-            total={satici.total}
-            expanded={expanded.satici}
-            onToggleExpanded={() => setExpanded((f) => ({ ...f, satici: !f.satici }))}
-            boxes={satici.typeBoxes}
-            activeCategory={satici.category}
-            onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, satici: category }))}
-            tableRows={satici.rows}
-            onRowClick={setDetailOpp}
-            onExpressInterest={(opp) => setInterestTargetId(opp.id)}
-            expressingId={expressingId}
-            user={user}
-            interestedIds={interestedIds}
-            onCreateClick={canCreate ? () => setCreateType('satici') : undefined}
-          />
+          {canSeeLegacyReview && (
+            <LegacyCategoryReview
+              opportunities={legacyOpps}
+              onRowClick={setDetailOpp}
+              onExpressInterest={(opp) => setInterestTargetId(opp.id)}
+              expressingId={expressingId}
+              user={user}
+              interestedIds={interestedIds}
+            />
+          )}
 
-          <OpportunitySection
-            dotColor="bg-remax-blue"
-            borderColor="border-t-remax-blue"
-            label="🔵 Alıcılar"
-            total={alici.total}
-            expanded={expanded.alici}
-            onToggleExpanded={() => setExpanded((f) => ({ ...f, alici: !f.alici }))}
-            boxes={alici.typeBoxes}
-            activeCategory={alici.category}
-            onSelectCategory={(category) => setActiveCategory((f) => ({ ...f, alici: category }))}
-            tableRows={alici.rows}
+          <OpportunityCategoryTree
+            tree={tree}
+            path={path}
+            onSelectCategory={handleSelectCategory}
+            onSelectIslemTipi={handleSelectIslemTipi}
+            onSelectTaraf={handleSelectTaraf}
+            tableRows={tableRows}
             onRowClick={setDetailOpp}
             onExpressInterest={(opp) => setInterestTargetId(opp.id)}
             expressingId={expressingId}
             user={user}
             interestedIds={interestedIds}
-            onCreateClick={canCreate ? () => setCreateType('alici') : undefined}
+            onCreateClick={canCreate ? handleCreateClick : undefined}
           />
         </div>
       )}
 
-      {createType && (
+      {createContext && (
         <NewOpportunityModal
-          defaultType={createType}
-          onClose={() => setCreateType(null)}
+          defaultType={createContext.type}
+          initialValues={createContext.category ? { category: createContext.category, islemTipi: createContext.islemTipi } : undefined}
+          onClose={() => setCreateContext(null)}
           onSubmit={handleCreate}
           submitting={submitting}
           showPoolToggle={role === ROLES.DANISMAN || role === ROLES.BROKER}
