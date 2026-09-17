@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { callLogs as callLogsProvider, opportunities as opportunitiesProvider } from '../../lib/dataProvider'
-import { CALL_SOURCE_CODES, canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
+import { canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
 import { parseThousands, sortByName } from '../../lib/format'
@@ -61,6 +62,13 @@ export default function OperasyonTab() {
   // üzerinden filtreleniyor — danışman zaten RLS'te sadece kendine atananı
   // görüyor, bu toggle onun için bir şey değiştirmez.
   const [onlyMine, setOnlyMine] = useState(false)
+  // İstatistik kartları masaüstünde varsayılan açık, mobilde varsayılan
+  // kapalı (bkz. "Operasyon sayfası yoğunluk" geri bildirimi, 2026-09-17
+  // — mobilde dikey kaydırma daha kısıtlı). Sadece İLK render'daki
+  // varsayımı belirler, kullanıcı istediği zaman kendi açıp kapatabilir.
+  const [statsOpen, setStatsOpen] = useState(
+    () => typeof window === 'undefined' || window.matchMedia('(min-width: 640px)').matches,
+  )
   const [showModal, setShowModal] = useState(false)
   const [editingCall, setEditingCall] = useState(null)
   const [notingCall, setNotingCall] = useState(null)
@@ -274,11 +282,22 @@ export default function OperasyonTab() {
             />
           ) : (
             <>
-              <div className="mb-5">
-                <StatsCards stats={stats} />
+              <div className="mb-6 rounded-2xl border border-ink-100 bg-white">
+                <button
+                  onClick={() => setStatsOpen((v) => !v)}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left"
+                >
+                  <span className="text-sm font-semibold text-ink-700">İstatistikler</span>
+                  <ChevronDown size={16} className={`text-ink-400 transition-transform ${statsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {statsOpen && (
+                  <div className="border-t border-ink-50 p-4 pt-3">
+                    <StatsCards stats={stats} />
+                  </div>
+                )}
               </div>
 
-              <div className="mb-5">
+              <div className="mb-6">
                 <CallFilters
                   filters={filters}
                   onChange={setFilters}
@@ -289,16 +308,6 @@ export default function OperasyonTab() {
                   danismanOptions={isManager ? danismanFilterOptions : undefined}
                 />
               </div>
-
-              {isManager && (
-                <p className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-400">
-                  {Object.entries(CALL_SOURCE_CODES).map(([name, { code }]) => (
-                    <span key={name}>
-                      <strong className="text-ink-500">{code}</strong>: {name}
-                    </span>
-                  ))}
-                </p>
-              )}
             </>
           )}
 

@@ -1,6 +1,8 @@
-import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, SlidersHorizontal, ChevronDown } from 'lucide-react'
 import { CALL_SOURCES } from '../../lib/callLogs'
 import DateRangeFilter from '../common/DateRangeFilter'
+import SourceLegendInfo from './SourceLegendInfo'
 
 function Chip({ active, children, ...props }) {
   return (
@@ -25,6 +27,14 @@ function Chip({ active, children, ...props }) {
 // danışmana atanan çağrıları görüp inceleyebilelim isteğiyle eklendi.
 // onlyMine'dan bağımsız, ikisi birlikte de işaretlenebilir (ikisi de
 // filters/onlyMine state'ini kendi başına etkiler).
+//
+// Kaynak çipleri/danışman dropdown'u/Herkes-SadeceBenim artık varsayılan
+// KAPALI bir "Filtrele" panelinin arkasında (bkz. "Operasyon sayfası
+// yoğunluk" geri bildirimi, 2026-09-17) — tarih aralığı ve Yeni Çağrı her
+// zaman görünür kalıyor, en sık kullanılanlar bunlar. Danışman rolünde
+// zaten hiçbiri render edilmediği için (showKaynak/danismanOptions/
+// onOnlyMineChange hepsi undefined) panel danışmana hiç görünmez — bu
+// değişiklik SADECE yönetim görünümünü etkiliyor.
 export default function CallFilters({
   filters,
   onChange,
@@ -35,58 +45,32 @@ export default function CallFilters({
   danismanOptions,
 }) {
   const set = (patch) => onChange({ ...filters, ...patch })
+  const [expanded, setExpanded] = useState(false)
+
+  const hasExtraFilters = showKaynak || Boolean(danismanOptions) || Boolean(onOnlyMineChange)
+  const extraFiltersActive =
+    (showKaynak && filters.kaynak !== 'tumu') ||
+    (danismanOptions && (filters.atananDanisman ?? 'tumu') !== 'tumu') ||
+    Boolean(onlyMine)
 
   return (
     <div className="space-y-3 rounded-2xl border border-ink-100 bg-white p-4">
-      {showKaynak && (
-        <div className="flex flex-wrap gap-1.5">
-          <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>
-            Tüm Kaynaklar
-          </Chip>
-          {CALL_SOURCES.map((s) => (
-            <Chip key={s} active={filters.kaynak === s} onClick={() => set({ kaynak: s })}>
-              {s}
-            </Chip>
-          ))}
-        </div>
-      )}
-
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <DateRangeFilter value={filters} onChange={onChange} />
+        <div className="flex flex-wrap items-center gap-2">
+          <DateRangeFilter value={filters} onChange={onChange} />
+          {showKaynak && <SourceLegendInfo />}
+        </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {danismanOptions && (
-            <select
-              value={filters.atananDanisman ?? 'tumu'}
-              onChange={(e) => set({ atananDanisman: e.target.value })}
-              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+          {hasExtraFilters && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="flex items-center gap-1.5 rounded-full border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-50"
             >
-              <option value="tumu">Tüm Danışmanlar</option>
-              {danismanOptions.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          )}
-          {onOnlyMineChange && (
-            <div className="inline-flex rounded-full bg-ink-50 p-1 text-xs font-medium">
-              <button
-                onClick={() => onOnlyMineChange(false)}
-                className={`rounded-full px-3 py-1.5 transition-colors ${
-                  !onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
-                }`}
-              >
-                Herkes
-              </button>
-              <button
-                onClick={() => onOnlyMineChange(true)}
-                className={`rounded-full px-3 py-1.5 transition-colors ${
-                  onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
-                }`}
-              >
-                Sadece Benim
-              </button>
-            </div>
+              <SlidersHorizontal size={13} />
+              Filtrele
+              {extraFiltersActive && <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
+              <ChevronDown size={13} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            </button>
           )}
           {onNewCallClick && (
             <button
@@ -98,6 +82,62 @@ export default function CallFilters({
           )}
         </div>
       </div>
+
+      {expanded && hasExtraFilters && (
+        <div className="space-y-3 border-t border-ink-50 pt-3">
+          {showKaynak && (
+            <div className="flex flex-wrap gap-1.5">
+              <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>
+                Tüm Kaynaklar
+              </Chip>
+              {CALL_SOURCES.map((s) => (
+                <Chip key={s} active={filters.kaynak === s} onClick={() => set({ kaynak: s })}>
+                  {s}
+                </Chip>
+              ))}
+            </div>
+          )}
+
+          {(danismanOptions || onOnlyMineChange) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {danismanOptions && (
+                <select
+                  value={filters.atananDanisman ?? 'tumu'}
+                  onChange={(e) => set({ atananDanisman: e.target.value })}
+                  className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+                >
+                  <option value="tumu">Tüm Danışmanlar</option>
+                  {danismanOptions.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {onOnlyMineChange && (
+                <div className="inline-flex rounded-full bg-ink-50 p-1 text-xs font-medium">
+                  <button
+                    onClick={() => onOnlyMineChange(false)}
+                    className={`rounded-full px-3 py-1.5 transition-colors ${
+                      !onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                    }`}
+                  >
+                    Herkes
+                  </button>
+                  <button
+                    onClick={() => onOnlyMineChange(true)}
+                    className={`rounded-full px-3 py-1.5 transition-colors ${
+                      onlyMine ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-700'
+                    }`}
+                  >
+                    Sadece Benim
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
