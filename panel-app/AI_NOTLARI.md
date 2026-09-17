@@ -7,6 +7,19 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Rehber: owner da belge ekleyip düzenleyebiliyor
+
+Broker isteği: Rehber'de belge ekleme daha önce sadece broker/ofis'e
+açıktı (`canManageDocs` — owner sadece görüntülüyordu/denetliyordu).
+Owner'a da aynı yetki verildi — `lib/docs.js`'teki `canManageDocs` artık
+`ROLES.OWNER`'ı da kapsıyor. RLS'in UI ile tutarsız kalıp owner'ın
+"+ Ekle" butonunu görüp yüklemenin sunucuda reddedilmesini önlemek için
+4 politika da aynı migration'da güncellendi: `docs_manage`,
+`doc_versions_manage` ve `docs` storage bucket'ındaki `docs_bucket_insert`/
+`update`/`delete` — hepsi artık `('broker', 'ofis', 'owner')`.
+`categories_manage` (Ayarlar > Kategori) zaten `is_manager()` (broker+owner)
+kullanıyordu, ona dokunulmadı.
+
 ## 2026-09-17 — Operasyon sayfası sadeleştirme (kaynak kod tooltip'i, katlanabilir filtre/istatistik)
 
 Broker/danışman geri bildirimi: Operasyon sayfası genel olarak yoğun
