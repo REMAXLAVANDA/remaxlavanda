@@ -7,6 +7,36 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Panel menüsü: Operasyon girişi geri döndü, isim çakışmaları netleştirildi
+
+Geri bildirim: (1) Operasyon sayfası ("çağrı kayıtları") sidebar'da hiç
+görünmüyordu — önce Fırsatlar'la tek sayfada birleştirilip menüden
+kaldırılmıştı, danışman "nerede" diye arayamıyordu. (2) "Takip" hem grup
+başlığı ("Takip & Gelişim") hem de içindeki bir menü öğesiydi; "Panel" hem
+sistemin günlük konuşmadaki adı hem spesifik bir sayfa. Önce yazılı plan
+sunuldu (3 alan, her biri için 2-3 seçenek), şu kombinasyon onaylandı:
+
+- `lib/modules.js`'e yeni `operasyon` modülü eklendi (Fırsatlar'ın hemen
+  altında, aynı grup) — zaten var olan `/operasyon` route'unu kullanıyor,
+  yeni route/component YOK. Tıklanınca sayfa aynı component'i (Fırsatlar
+  + Operasyon tek sayfa, üst üste iki bölüm — bu mimari değişmedi) render
+  edip doğrudan Operasyon bölümüne kaydırıyor.
+- `MODULE_GROUPS.takip`: "Takip & Gelişim" → "Gelişim". "Takip" menü
+  öğesinin adı/path'i DOKUNULMADI (kullanıcı zaten günlük konuşmada
+  spesifik sayfayı "Takip" diye biliyor, grup başlığı nadiren referans
+  alınıyor — alışkanlığı en az bozan yön).
+- "Panel"in adına DOKUNULMADI (broker kararı: "Panel'e gir" alışkanlığı
+  yerleşik). Bunun yerine Panel ve Takip modüllerine `subtitle` alanı
+  eklendi, `Sidebar.jsx`'te etiketin yanında küçük/soluk, HER ZAMAN
+  görünen (hover değil — mobilde de okunsun diye) bir alt-etiket olarak
+  gösteriliyor: "Panel · Anasayfa", "Takip · Sağlık & Eğitim". Diğer
+  modüllerde subtitle yok, sidebar'ın geneli sade kalıyor.
+- `AppLayout.jsx`'teki `/operasyon` için özel sayfa-başlığı case'i
+  kaldırıldı — artık MODULES listesinde birebir karşılığı olduğu için
+  otomatik doğru başlığı buluyor.
+
+Migration yok — tamamen frontend, veri modeli/route yapısına dokunulmadı.
+
 ## 2026-09-17 — Operasyon: süreç zinciri döngüleme yerine açık seçim menüsü
 
 Geri bildirim: `CallProgressSteps`'teki Görüşüldü/Portföy rozetleri tek

@@ -11,6 +11,7 @@ import {
   BookOpen,
   Inbox,
   UserSearch,
+  Wrench,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -21,9 +22,15 @@ const MANAGE_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS]
 // ofis) kalıyor, ikisi artık farklı yetki seviyeleri.
 const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 
+// "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
+// menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi
+// üzerine (2026-09-17) SADECE grup başlığı "Gelişim"e kısaltıldı, "Takip"
+// menü öğesinin adı/path'i aynı kaldı (kullanıcı zaten günlük konuşmada
+// spesifik sayfayı "Takip" diye biliyor, grup başlığı nadiren referans
+// alınıyor — alışkanlığı en az bozan yön, bkz. Sidebar.jsx subtitle notu).
 export const MODULE_GROUPS = {
   operasyon: 'Operasyon',
-  takip: 'Takip & Gelişim',
+  takip: 'Gelişim',
 }
 
 export const MODULES = [
@@ -31,6 +38,12 @@ export const MODULES = [
     key: 'panel',
     path: '/panel',
     label: 'Panel',
+    // "Panel" hem tüm sistemin günlük konuşmadaki adı hem de bu spesifik
+    // sayfanın adı — isim çakışması geri bildirimi üzerine (2026-09-17)
+    // isim DEĞİŞTİRİLMEDİ (broker kararı: "Panel'e gir" alışkanlığı zaten
+    // yerleşik), sadece Sidebar.jsx'te her zaman görünen (hover değil) kısa
+    // bir alt-etiket eklendi — subtitle bunun için.
+    subtitle: 'Anasayfa',
     description: 'Bugün yapman gerekenler',
     icon: LayoutDashboard,
     roles: ALL_ROLES,
@@ -42,6 +55,21 @@ export const MODULES = [
     label: 'Fırsatlar',
     description: 'Satıcı / Alıcı adayları ve operasyon çağrıları',
     icon: Target,
+    roles: ALL_ROLES,
+    group: 'operasyon',
+  },
+  {
+    key: 'operasyon',
+    path: '/operasyon',
+    label: 'Operasyon',
+    // Fırsatlar ve Operasyon aynı sayfanın (pages/Firsatlar.jsx) iki üst-üste
+    // bölümü — bu mimari DEĞİŞMEDİ. Sidebar girişi önce sadeleştirme
+    // kararıyla kaldırılmıştı, "Operasyon'u nerede bulacağım" geri
+    // bildirimi üzerine (2026-09-17) geri eklendi: tıklanınca zaten var olan
+    // /operasyon route'una gidip sayfayı doğrudan Operasyon bölümüne
+    // kaydırıyor (bkz. Firsatlar.jsx) — yeni bir route/component yok.
+    description: 'Gelen çağrıların görüşme ve portföy takibi',
+    icon: Wrench,
     roles: ALL_ROLES,
     group: 'operasyon',
   },
@@ -82,6 +110,9 @@ export const MODULES = [
     key: 'takip',
     path: '/takip',
     label: 'Takip',
+    // Grup başlığı "Gelişim"e kısaltıldıktan sonra bile "Takip" tek başına
+    // ne olduğunu tam açıklamıyor olabilir — bkz. MODULE_GROUPS.takip notu.
+    subtitle: 'Sağlık & Eğitim',
     description: 'Sağlık skoru ve eğitim/checklist takibi',
     icon: HeartPulse,
     // Herkes modüle girebilir; sayfa içeriği role göre uyarlanıyor —

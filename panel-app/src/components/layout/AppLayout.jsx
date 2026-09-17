@@ -9,10 +9,10 @@ import { MODULES } from '../../lib/modules'
 function useCurrentTitle() {
   const { pathname } = useLocation()
   if (pathname.startsWith('/ayarlar')) return 'Ayarlar'
-  // /operasyon ve /egitim artık ayrı birer menü değil, sırasıyla Fırsatlar
-  // ve Takip sayfalarının bir bölümü (bkz. pages/Firsatlar.jsx,
-  // pages/Takip.jsx) — ama link olarak hâlâ çalışıyorlar.
-  if (pathname.startsWith('/operasyon')) return 'Fırsatlar'
+  // /egitim artık ayrı bir menü değil, Takip sayfasının bir bölümü (bkz.
+  // pages/Takip.jsx) — ama link olarak hâlâ çalışıyor. /operasyon ise
+  // yeniden kendi sidebar girişine sahip (2026-09-17, bkz. lib/modules.js)
+  // — MODULES üzerinden aşağıda otomatik eşleşiyor, özel case'e gerek yok.
   if (pathname.startsWith('/egitim')) return 'Takip'
   const active = MODULES.find((m) => pathname.startsWith(m.path))
   return active?.label ?? 'RE/MAX Lavanda'

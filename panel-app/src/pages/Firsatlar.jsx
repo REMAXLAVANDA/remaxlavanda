@@ -5,11 +5,13 @@ import FirsatlarTab from './firsatlar/FirsatlarTab'
 import OperasyonTab from './firsatlar/OperasyonTab'
 
 // Fırsatlar ve Operasyon aynı işin iki aşaması (gelen çağrı → portföy/fırsat)
-// — menüyü sadeleştirmek için tek sayfada, sekme yerine ÜST ÜSTE iki bölüm
-// olarak birleştirildi: en üstte Fırsatlar, altında Operasyon. /operasyon
-// linki hâlâ çalışır (Panel'den gelen bağlantılar dahil) — sayfayı doğrudan
-// Operasyon bölümüne kaydırır. Kenar çubuğunda artık ayrı bir giriş yok
-// (bkz. lib/modules.js).
+// — sayfa yapısı sekme yerine ÜST ÜSTE iki bölüm olarak birleşik kalıyor:
+// en üstte Fırsatlar, altında Operasyon (bu karar değişmedi). /operasyon
+// linki aynı component'i render edip sayfayı doğrudan Operasyon bölümüne
+// kaydırır (Panel'den gelen bağlantılar dahil). Kenar çubuğundaki ayrı giriş
+// önce "menüyü sadeleştir" kararıyla kaldırılmıştı, "Operasyon'u nerede
+// bulacağım" geri bildirimi üzerine (2026-09-17) yeniden eklendi (bkz.
+// lib/modules.js) — sayfa/route yapısına dokunulmadı.
 export default function Firsatlar() {
   const location = useLocation()
 
