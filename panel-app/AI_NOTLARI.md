@@ -7,6 +7,21 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Rehber: "Sıkça Sorulan Sorular" kategorisi + tüm dokümanlarda basit biçimlendirme
+
+Broker isteği: Rehber'e SSS diye yeni bir klasör eklensin, sorular
+tıklayınca açılan akordiyon şeklinde görünsün (`FaqAccordionItem`),
+ve tüm yazı dokümanları artık `**kalın**`, `- madde` ve `# başlık`
+biçimlendirmesini destekliyor (`lib/formattedText.js` + `FormattedText`
+bileşeni — ağır bir markdown kütüphanesi yerine basit satır bazlı
+parser). Kategori kimliği bu projede zaten `key` ile eşleşiyordu
+(bkz. `lib/league.js`), SSS de aynı desenle `Rehber.jsx`'te
+`selectedCategory === 'sss'` kontrolüyle özel render'a yönlendiriliyor
+— veri modeli/CRUD akışı diğer kategorilerle birebir aynı. Doküman
+ekle/düzenle penceresine biçimlendirme sözdizimini anlatan bir ipucu
+metni eklendi. `categories` tablosuna yeni satır ekleyen migration
+(`20260917100000_rehber_sss_kategorisi.sql`) broker onayıyla uygulandı.
+
 ## 2026-09-13 — ACİL: Portal açılmıyordu (eksik Supabase env değişkeni) + PDF üretme özelliği tamamen kaldırıldı
 
 **Olay:** Broker "portal açılmıyor" / "Sistem yapılandırması eksik"

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, Copy, Download, Eye, FileText, Pencil, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
 import { getSignedDocUrl, normalizeFilename } from '../../lib/storage'
+import FormattedText from '../common/FormattedText'
 
 export default function DocCard({
   doc,
@@ -106,9 +107,9 @@ export default function DocCard({
 
       {doc.contentText && (
         <div className="relative mt-3">
-          <p className="whitespace-pre-line rounded-xl bg-surface-sunken p-3 pr-16 text-sm text-text-secondary">
-            {doc.contentText}
-          </p>
+          <div className="rounded-xl bg-surface-sunken p-3 pr-16 text-sm text-text-secondary">
+            <FormattedText text={doc.contentText} />
+          </div>
           <button
             onClick={handleCopy}
             title="Kopyala"
