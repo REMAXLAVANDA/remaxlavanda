@@ -47,8 +47,12 @@ export default function Sidebar({ open, onNavigate }) {
                   }`
                 }
               >
-                <m.icon size={18} strokeWidth={2} />
+                <m.icon size={18} strokeWidth={2} className="shrink-0" />
                 {m.label}
+                {/* İsim çakışması netleştirmesi (Panel/Takip) — sadece bu iki
+                    öğede subtitle tanımlı, hover değil her zaman görünür
+                    (mobilde de okunsun diye), bkz. lib/modules.js notları. */}
+                {m.subtitle && <span className="text-[10px] font-normal text-white/40">· {m.subtitle}</span>}
               </NavLink>
             ))}
           </div>
