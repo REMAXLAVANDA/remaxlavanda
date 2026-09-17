@@ -14,4 +14,5 @@ export const MOCK_CATEGORIES = [
   { id: 'cat-docs-iban', module: 'docs', key: 'iban', label: 'IBAN Bilgileri', sortOrder: 4, isActive: true },
   { id: 'cat-docs-logo', module: 'docs', key: 'logo', label: 'Logo & Marka', sortOrder: 5, isActive: true },
   { id: 'cat-docs-hazirmetin', module: 'docs', key: 'hazir-metin', label: 'Hazır Metinler', sortOrder: 6, isActive: true },
+  { id: 'cat-docs-sss', module: 'docs', key: 'sss', label: 'Sıkça Sorulan Sorular', sortOrder: 7, isActive: true },
 ]

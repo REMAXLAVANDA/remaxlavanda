@@ -10,6 +10,26 @@ export const MOCK_DOCS = [
   { id: 'doc-3', categoryKey: 'iban', baslik: 'Ofis IBAN Bilgileri', createdBy: 'u-broker', sortOrder: 1 },
   { id: 'doc-4', categoryKey: 'logo', baslik: 'RE/MAX Lavanda Logo Paketi', createdBy: 'u-ofis', sortOrder: 1 },
   { id: 'doc-5', categoryKey: 'hazir-metin', baslik: 'İlan Açıklama Şablonları', createdBy: 'u-ofis', sortOrder: 1 },
+  {
+    id: 'doc-6',
+    categoryKey: 'sss',
+    baslik: 'Bir portföyü sisteme nasıl eklerim?',
+    contentText:
+      'Fırsatlar sekmesinden **+ Yeni Fırsat** butonuna basıp portföy bilgilerini gir.\n\n' +
+      'Girerken dikkat edilecekler:\n- Bütçe ve bölge bilgisini boş bırakma\n- Sonraki aksiyon tarihini mutlaka seç\n- Danışman ataması yapılmadan kayıt yarım kalır',
+    createdBy: 'u-broker',
+    sortOrder: 1,
+  },
+  {
+    id: 'doc-7',
+    categoryKey: 'sss',
+    baslik: 'Şifremi unuttum, ne yapmalıyım?',
+    contentText:
+      '# Şifre Sıfırlama\nKendi şifreni sıfırlayamazsın — bunu sadece **broker veya ofis personeli** yapabilir.\n\n' +
+      'Ayarlar > Kullanıcılar sayfasından ilgili kullanıcının yanındaki "Şifre Sıfırla" butonunu kullanmaları yeterli.',
+    createdBy: 'u-ofis',
+    sortOrder: 2,
+  },
 ]
 
 export const MOCK_DOC_VERSIONS = [

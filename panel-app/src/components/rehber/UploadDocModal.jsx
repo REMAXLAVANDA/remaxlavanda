@@ -168,15 +168,21 @@ export default function UploadDocModal({
             {fileError && <p className="mt-1 text-xs text-red-600">{fileError}</p>}
           </div>
         ) : (
-          <textarea
-            required
-            value={contentText}
-            onChange={(e) => setContentText(e.target.value)}
-            onBlur={(e) => setContentText(capitalizeFirst(e.target.value))}
-            placeholder="Metni buraya yaz..."
-            rows={8}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
+          <div>
+            <textarea
+              required
+              value={contentText}
+              onChange={(e) => setContentText(e.target.value)}
+              onBlur={(e) => setContentText(capitalizeFirst(e.target.value))}
+              placeholder="Metni buraya yaz..."
+              rows={8}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+            <p className="mt-1 text-xs text-ink-400">
+              Biçimlendirme: <strong>**kalın metin**</strong>, satır başında "- " ile madde işareti, satır başında
+              "# " ile başlık.
+            </p>
+          </div>
         )}
 
         <div className="flex justify-end gap-2 pt-2">

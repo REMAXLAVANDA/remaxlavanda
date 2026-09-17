@@ -9,12 +9,18 @@ import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
 import { uploadDocFile, deleteDocFile } from '../lib/storage'
 import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
+import FaqAccordionItem from '../components/rehber/FaqAccordionItem'
 import PreviewModal from '../components/rehber/PreviewModal'
 import UploadDocModal from '../components/rehber/UploadDocModal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 const EMPTY = []
+// SSS kategorisi DocCard yerine akordiyon (FaqAccordionItem) ile
+// gösteriliyor — bkz. broker isteği. Kategori kimliği bu projede hep
+// `key` ile eşleşiyor (bkz. lib/league.js aynı desen), bu yüzden burada da
+// key karşılaştırması kullanılıyor.
+const FAQ_CATEGORY_KEY = 'sss'
 
 async function loadAll() {
   const [docs, versions, categories] = await Promise.all([
@@ -198,22 +204,35 @@ export default function Rehber() {
                 Bu klasörde henüz doküman yok.
               </div>
             ) : (
-              docsInCategory.map((doc, index) => (
-                <DocCard
-                  key={doc.id}
-                  doc={doc}
-                  current={currentVersion(doc.id, versions)}
-                  history={versionsForDoc(doc.id, versions)}
-                  onPreview={setPreviewVersion}
-                  resolveName={userName}
-                  canManage={canManage}
-                  onEdit={() => setEditingDoc(doc)}
-                  onDeleteRequest={() => setDeleteTarget(doc)}
-                  onMove={(direction) => handleMoveDoc(doc.id, direction)}
-                  isFirst={index === 0}
-                  isLast={index === docsInCategory.length - 1}
-                />
-              ))
+              docsInCategory.map((doc, index) =>
+                selectedCategory === FAQ_CATEGORY_KEY ? (
+                  <FaqAccordionItem
+                    key={doc.id}
+                    doc={doc}
+                    canManage={canManage}
+                    onEdit={() => setEditingDoc(doc)}
+                    onDeleteRequest={() => setDeleteTarget(doc)}
+                    onMove={(direction) => handleMoveDoc(doc.id, direction)}
+                    isFirst={index === 0}
+                    isLast={index === docsInCategory.length - 1}
+                  />
+                ) : (
+                  <DocCard
+                    key={doc.id}
+                    doc={doc}
+                    current={currentVersion(doc.id, versions)}
+                    history={versionsForDoc(doc.id, versions)}
+                    onPreview={setPreviewVersion}
+                    resolveName={userName}
+                    canManage={canManage}
+                    onEdit={() => setEditingDoc(doc)}
+                    onDeleteRequest={() => setDeleteTarget(doc)}
+                    onMove={(direction) => handleMoveDoc(doc.id, direction)}
+                    isFirst={index === 0}
+                    isLast={index === docsInCategory.length - 1}
+                  />
+                ),
+              )
             )}
           </div>
         </div>
