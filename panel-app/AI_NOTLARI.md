@@ -7,6 +7,27 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Rehber: "yönetime özel" klasör görünürlüğü (rol bazlı RLS)
+
+Broker isteği: Rehber'e broker/owner/ofis'in gördüğü, danışmanın hiç
+göremediği bir klasör türü eklensin — daha önce Rehber'deki HER kategori/
+doküman `ALL_ROLES` idi, rol bazlı görünürlük hiç yoktu. Asıl güvenlik
+katmanı RLS'te: `categories`'e `visibility` kolonu eklendi
+(`'herkes'`/`'yonetim'`, default `'herkes'`) — SADECE kategoriye, docs/
+doc_versions ayrı kolon TAŞIMIYOR, kendi `category_id`'si üzerinden
+`EXISTS` ile categories.visibility'ye bakıyor (tek kontrol noktası,
+senkronizasyon riski yok). Rol grubu için `is_manager()` yetmiyordu
+(sadece broker+owner) — projede zaten 10+ yerde kullanılan
+`current_user_role() in ('broker','owner','ofis')` kalıbı tekrarlandı,
+yeni fonksiyon yazılmadı. `categories_select`/`docs_select`/
+`doc_versions_select` politikaları buna göre güncellendi (migration
+20260917110000). UI tarafında `Rehber.jsx` artık kategorileri role göre
+filtreliyor (`lib/roles.js` → `canViewManagerCategories`) — RLS zaten
+veriyi getirmiyor ama mock modda (RLS yok) aynı davranış ve boş/kırık
+görünüm olmaması için. Kategori oluşturma zaten UI'dan yapılıyordu
+(Ayarlar > Kategori, broker/owner) — oraya "Yönetime özel" checkbox +
+her satırda kilit ikonlu toggle eklendi.
+
 ## 2026-09-17 — Rehber: "Sıkça Sorulan Sorular" kategorisi + tüm dokümanlarda basit biçimlendirme
 
 Broker isteği: Rehber'e SSS diye yeni bir klasör eklensin, sorular

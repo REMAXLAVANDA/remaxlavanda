@@ -720,7 +720,15 @@ function mapDocVersion(v) {
 
 // --- Categories (Rehber klasörleri, Fırsatlar kategorileri) ----------------
 function mapCategory(row) {
-  return { id: row.id, module: row.module, key: row.key, label: row.label, sortOrder: row.sort_order, isActive: row.is_active }
+  return {
+    id: row.id,
+    module: row.module,
+    key: row.key,
+    label: row.label,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    visibility: row.visibility,
+  }
 }
 
 export const categories = {
@@ -741,16 +749,17 @@ export const categories = {
     )
     return data.map(mapCategory)
   },
-  async create({ module, key, label, sortOrder }) {
-    const data = await run(
-      client().from('categories').insert({ module, key, label, sort_order: sortOrder }).select().single(),
-    )
+  async create({ module, key, label, sortOrder, visibility }) {
+    const insertRow = { module, key, label, sort_order: sortOrder }
+    if (visibility !== undefined) insertRow.visibility = visibility
+    const data = await run(client().from('categories').insert(insertRow).select().single())
     return mapCategory(data)
   },
   async update(id, patch) {
     const updateRow = {}
     if (patch.label !== undefined) updateRow.label = patch.label
     if (patch.sortOrder !== undefined) updateRow.sort_order = patch.sortOrder
+    if (patch.visibility !== undefined) updateRow.visibility = patch.visibility
     const data = await run(client().from('categories').update(updateRow).eq('id', id).select().single())
     return mapCategory(data)
   },

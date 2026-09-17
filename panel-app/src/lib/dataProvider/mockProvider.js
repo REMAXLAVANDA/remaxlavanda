@@ -498,8 +498,8 @@ export const categories = {
       MOCK_CATEGORIES.filter((c) => c.module === module).sort((a, b) => a.sortOrder - b.sortOrder),
     )
   },
-  async create({ module, key, label, sortOrder }) {
-    const row = { id: `cat-${Date.now()}`, module, key, label, sortOrder, isActive: true }
+  async create({ module, key, label, sortOrder, visibility }) {
+    const row = { id: `cat-${Date.now()}`, module, key, label, sortOrder, isActive: true, visibility: visibility ?? 'herkes' }
     MOCK_CATEGORIES.push(row)
     return delay({ ...row })
   },
