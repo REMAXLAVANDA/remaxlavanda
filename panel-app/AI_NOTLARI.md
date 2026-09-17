@@ -7,6 +7,16 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Fırsatlar accordion'a Apple ana ekran tarzı ikonlar
+
+Kategori>İşlemTipi>Taraf accordion'unun (bkz. aşağıdaki kayıt) her
+seviyesine Lucide'dan (mevcut kütüphane, ek bağımlılık yok) renkli
+rounded-square ikon rozetleri eklendi — Konut/Arsa/Ticari, Satılık/
+Kiralık, Alıcı/Satıcı (Ticari+Kiralık'ta Mülk/Kiracı). Satılık/Kiralık
+renk tonları bilerek `OpportunityTable`'daki mevcut SAT/KİR rozet
+renkleriyle (`ISLEM_TIPI_STYLES`) aynı tutuldu — tutarlı bir görsel dil
+için. Sadece görsel katman, davranış/mantık değişmedi.
+
 ## 2026-09-17 — Fırsatlar menüsü: Kategori>İşlemTipi>Taraf accordion'a geçiş
 
 Broker isteği: danışmanlardan "Satıcılar/Alıcılar üstte, altında 4
