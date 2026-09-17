@@ -6,6 +6,7 @@ import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { docs as docsProvider, categories as categoriesProvider } from '../lib/dataProvider'
 import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
+import { canViewManagerCategories } from '../lib/roles'
 import { uploadDocFile, deleteDocFile } from '../lib/storage'
 import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
@@ -45,9 +46,17 @@ export default function Rehber() {
   const [submitting, setSubmitting] = useState(false)
 
   const canManage = canManageDocs(role)
+  const canViewManager = canViewManagerCategories(role)
   const docs = data?.docs ?? EMPTY
   const versions = data?.versions ?? EMPTY
-  const categories = data?.categories ?? EMPTY
+  const allCategories = data?.categories ?? EMPTY
+  // "Yönetime özel" klasörler zaten RLS ile gelmiyor (broker/owner/ofis
+  // dışındaki rollere) — bu filtre mock modda (RLS yok) aynı davranışı
+  // sağlamak ve UI'nin tutarlı kalması için (bkz. lib/roles.js).
+  const categories = useMemo(
+    () => allCategories.filter((c) => c.visibility !== 'yonetim' || canViewManager),
+    [allCategories, canViewManager],
+  )
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
   // Kategoriler yüklendikten sonra ilk klasör otomatik seçilsin.

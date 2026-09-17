@@ -7,12 +7,16 @@
 // veri kaybı olmasın diye) — sadece istenen üç menüyü ekliyor/günceliyor.
 // Mock veri de aynı durumu yansıtsın diye eskiler (iban/logo/hazir-metin)
 // burada duruyor; admin/owner isterse Ayarlar > Kategori'den siler.
+// visibility: 'herkes' (varsayılan) / 'yonetim' — 'yonetim' klasörler
+// sadece broker/owner/ofis'e görünür (bkz. lib/roles.js
+// canViewManagerCategories, RLS'in mock karşılığı).
 export const MOCK_CATEGORIES = [
-  { id: 'cat-docs-sozlesme', module: 'docs', key: 'sozlesme', label: 'Sözleşmeler', sortOrder: 1, isActive: true },
-  { id: 'cat-docs-sirket', module: 'docs', key: 'sirket-bilgileri', label: 'Şirket Bilgileri', sortOrder: 2, isActive: true },
-  { id: 'cat-docs-ortaklik', module: 'docs', key: 'is-ortakliklari', label: 'İş Ortaklıkları', sortOrder: 3, isActive: true },
-  { id: 'cat-docs-iban', module: 'docs', key: 'iban', label: 'IBAN Bilgileri', sortOrder: 4, isActive: true },
-  { id: 'cat-docs-logo', module: 'docs', key: 'logo', label: 'Logo & Marka', sortOrder: 5, isActive: true },
-  { id: 'cat-docs-hazirmetin', module: 'docs', key: 'hazir-metin', label: 'Hazır Metinler', sortOrder: 6, isActive: true },
-  { id: 'cat-docs-sss', module: 'docs', key: 'sss', label: 'Sıkça Sorulan Sorular', sortOrder: 7, isActive: true },
+  { id: 'cat-docs-sozlesme', module: 'docs', key: 'sozlesme', label: 'Sözleşmeler', sortOrder: 1, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-sirket', module: 'docs', key: 'sirket-bilgileri', label: 'Şirket Bilgileri', sortOrder: 2, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-ortaklik', module: 'docs', key: 'is-ortakliklari', label: 'İş Ortaklıkları', sortOrder: 3, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-iban', module: 'docs', key: 'iban', label: 'IBAN Bilgileri', sortOrder: 4, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-logo', module: 'docs', key: 'logo', label: 'Logo & Marka', sortOrder: 5, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-hazirmetin', module: 'docs', key: 'hazir-metin', label: 'Hazır Metinler', sortOrder: 6, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-sss', module: 'docs', key: 'sss', label: 'Sıkça Sorulan Sorular', sortOrder: 7, isActive: true, visibility: 'herkes' },
+  { id: 'cat-docs-yonetim', module: 'docs', key: 'yonetim-notlari', label: 'Yönetim Notları', sortOrder: 8, isActive: true, visibility: 'yonetim' },
 ]

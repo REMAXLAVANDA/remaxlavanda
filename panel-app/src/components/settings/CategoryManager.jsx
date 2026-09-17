@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Trash2, Plus } from 'lucide-react'
+import { ChevronUp, ChevronDown, Trash2, Plus, Lock, Unlock } from 'lucide-react'
 import { capitalizeWords } from '../../lib/format'
 
 // Rehber klasörlerini (categories, module='docs') yönetmek için — admin/
-// owner ekleyip/silip/yeniden adlandırıp sırasını değiştirebilir.
-export default function CategoryManager({ categories, onAdd, onRename, onDelete, onMove }) {
+// owner ekleyip/silip/yeniden adlandırıp sırasını değiştirebilir. Bir
+// klasör "yönetime özel" (visibility='yonetim') işaretlenirse danışmanlar
+// o klasörü ve içindeki dokümanları hiç göremez (bkz. RLS — migration
+// 20260917110000).
+export default function CategoryManager({ categories, onAdd, onRename, onDelete, onMove, onToggleVisibility }) {
   const [newLabel, setNewLabel] = useState('')
+  const [newManagerOnly, setNewManagerOnly] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editingLabel, setEditingLabel] = useState('')
 
@@ -15,25 +19,37 @@ export default function CategoryManager({ categories, onAdd, onRename, onDelete,
         onSubmit={(e) => {
           e.preventDefault()
           if (!newLabel.trim()) return
-          onAdd(capitalizeWords(newLabel.trim()))
+          onAdd(capitalizeWords(newLabel.trim()), newManagerOnly ? 'yonetim' : 'herkes')
           setNewLabel('')
+          setNewManagerOnly(false)
         }}
-        className="flex gap-2"
+        className="space-y-2"
       >
-        <input
-          value={newLabel}
-          onChange={(e) => setNewLabel(e.target.value)}
-          onBlur={(e) => setNewLabel(capitalizeWords(e.target.value))}
-          placeholder="Yeni kategori adı (ör. Şirket Bilgileri)"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
-        <button
-          type="submit"
-          disabled={!newLabel.trim()}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          <Plus size={16} /> Ekle
-        </button>
+        <div className="flex gap-2">
+          <input
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            onBlur={(e) => setNewLabel(capitalizeWords(e.target.value))}
+            placeholder="Yeni kategori adı (ör. Şirket Bilgileri)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <button
+            type="submit"
+            disabled={!newLabel.trim()}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          >
+            <Plus size={16} /> Ekle
+          </button>
+        </div>
+        <label className="flex items-center gap-2 text-xs text-ink-500">
+          <input
+            type="checkbox"
+            checked={newManagerOnly}
+            onChange={(e) => setNewManagerOnly(e.target.checked)}
+            className="rounded border-ink-300"
+          />
+          Yönetime özel (danışmanlar bu klasörü göremez)
+        </label>
       </form>
 
       {categories.length === 0 ? (
@@ -88,6 +104,18 @@ export default function CategoryManager({ categories, onAdd, onRename, onDelete,
                   {c.label}
                 </button>
               )}
+
+              <button
+                onClick={() => onToggleVisibility(c.id, c.visibility === 'yonetim' ? 'herkes' : 'yonetim')}
+                title={c.visibility === 'yonetim' ? 'Yönetime özel — herkese aç' : 'Herkese açık — yönetime özel yap'}
+                className={`shrink-0 rounded-lg p-1.5 ${
+                  c.visibility === 'yonetim'
+                    ? 'text-brand-600 hover:bg-tint-red'
+                    : 'text-ink-400 hover:bg-ink-50 hover:text-ink-700'
+                }`}
+              >
+                {c.visibility === 'yonetim' ? <Lock size={16} /> : <Unlock size={16} />}
+              </button>
 
               <button
                 onClick={() => onDelete(c.id)}

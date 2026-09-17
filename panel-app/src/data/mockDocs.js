@@ -30,6 +30,14 @@ export const MOCK_DOCS = [
     createdBy: 'u-ofis',
     sortOrder: 2,
   },
+  {
+    id: 'doc-8',
+    categoryKey: 'yonetim-notlari',
+    baslik: 'Danışman Prim Hedefleri (2026 Q4)',
+    contentText: 'Bu klasördeki içerik sadece broker/owner/ofis rolüne görünür — danışman ekranında hiç listelenmez.',
+    createdBy: 'u-broker',
+    sortOrder: 1,
+  },
 ]
 
 export const MOCK_DOC_VERSIONS = [

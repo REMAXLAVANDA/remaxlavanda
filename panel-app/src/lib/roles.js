@@ -46,6 +46,15 @@ export function canManageRecruiting(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 }
 
+// categories_select / docs_select / doc_versions_select RLS kuralıyla aynı:
+// visibility='yonetim' olan Rehber klasörlerini (ve içindeki dokümanları)
+// sadece broker/owner/ofis görebilir, danışman hiç göremez. Gerçek veri
+// zaten RLS ile geliyor — bu, mock modda (RLS yok) da aynı davranışı
+// sağlamak ve UI'nin tutarlı kalması için.
+export function canViewManagerCategories(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
+}
+
 // Temel kural: Ofis rolü yalnızca veri girer; broker girmez, owner denetler.
 export const ROLE_RULES = {
   [ROLES.OFIS]: { canEnterData: true, canManage: false },

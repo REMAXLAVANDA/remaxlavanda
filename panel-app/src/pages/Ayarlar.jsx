@@ -265,7 +265,7 @@ export default function Ayarlar() {
     }
   }
 
-  async function handleAddCategory(label) {
+  async function handleAddCategory(label, visibility) {
     try {
       const maxOrder = (docCategories ?? []).reduce((max, c) => Math.max(max, c.sortOrder), 0)
       const created = await categoriesProvider.create({
@@ -273,11 +273,25 @@ export default function Ayarlar() {
         key: slugify(label),
         label,
         sortOrder: maxOrder + 1,
+        visibility,
       })
       setDocCategories((prev) => [...prev, created])
       showToast('Kategori eklendi.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Kategori eklenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  async function handleToggleCategoryVisibility(id, visibility) {
+    try {
+      await categoriesProvider.update(id, { visibility })
+      setDocCategories((prev) => prev.map((c) => (c.id === id ? { ...c, visibility } : c)))
+      showToast(
+        visibility === 'yonetim' ? 'Klasör yönetime özel yapıldı.' : 'Klasör herkese açıldı.',
+        'success',
+      )
+    } catch (err) {
+      showToast(err.message ?? 'Görünürlük değiştirilemedi, tekrar dene.', 'error')
     }
   }
 
@@ -402,6 +416,7 @@ export default function Ayarlar() {
                 onRename={handleRenameCategory}
                 onDelete={handleDeleteCategory}
                 onMove={handleMoveCategory}
+                onToggleVisibility={handleToggleCategoryVisibility}
               />
             </>
           )}
