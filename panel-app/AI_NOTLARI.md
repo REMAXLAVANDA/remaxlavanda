@@ -7,6 +7,34 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Fırsatlar menüsü: Kategori>İşlemTipi>Taraf accordion'a geçiş
+
+Broker isteği: danışmanlardan "Satıcılar/Alıcılar üstte, altında 4
+kategori kutusu" yapısının kafa karıştırıcı olduğu geri bildirimi üzerine,
+Fırsatlar menüsü Kategori (Konut/Arsa/Ticari) > İşlem Tipi (Satılık/
+Kiralık) > Taraf (Alıcı/Satıcı) şeklinde 3 seviyeli, her zaman TEK dalın
+açık kaldığı bir accordion'a çevrildi (`OpportunityCategoryTree.jsx`,
+`OpportunitySection.jsx`'in yerini aldı). Arsa'da kiralık dalı hiç
+render edilmiyor (`OPPORTUNITY_TREE`'de arsa.islemTipleri=['satilik']).
+Ticari+Kiralık dalında taraflar "Satıcı/Alıcı" değil "Mülk/Kiracı" —
+`tarafLabel()` yardımcı fonksiyonu SADECE bu dalda etiketi değiştiriyor,
+`OPPORTUNITY_TYPE_LABELS`/veri modeli aynı kaldı; tutarlılık için bu
+etiket New/Edit/Detail modallarına da uygulandı.
+
+"Diğer" kategorisi kaldırıldı — ama prod'da bu kategoride 25 gerçek AÇIK
+kayıt bulundu (kontrol edildi, çoğu net kategoriye otomatik atanamayacak
+serbest metin notları). `categories` tablosundaki satır SİLİNMEDİ (25 FK
+referansı var), sadece yeni kayıt için seçilemez oldu. Sessizce
+kaybolmasınlar diye sadece broker/owner/ofis'e görünen bir "kategorisi
+belirsiz" bandı eklendi (`LegacyCategoryReview.jsx`) — tıklanınca bu
+kayıtların tablosu açılıyor, mevcut Düzenle akışıyla gerçek kategoriye
+taşınabiliyor (`EditOpportunityModal`'a bu kayıtlar için geçici "Diğer
+(eski)" seçeneği eklendi, yoksa `<select>` sessizce yanlış kategori
+seçebilirdi). Migration YOK — tamamen frontend katmanı, RLS/şema
+değişmedi. `canViewOpportunity`/`canExpressInterest`/`canRevealContact`/
+açık havuz mantığı/Panel'in "Dikkat Gerekiyor" deep-link'i hiç
+değişmedi.
+
 ## 2026-09-17 — Rehber: SSS'ye alt kategori (ücretsiz anahtar kelime önerisi)
 
 Broker isteği: SSS sorularına alt kategori (Fatura, Komisyon, KDV, Tapu

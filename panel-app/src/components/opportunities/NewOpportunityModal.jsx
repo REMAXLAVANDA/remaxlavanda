@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
-import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
+import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS, tarafLabel } from '../../lib/opportunities'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
 
@@ -118,7 +118,7 @@ export default function NewOpportunityModal({
           </label>
         )}
         <div className="flex gap-1.5">
-          {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
+          {Object.keys(OPPORTUNITY_TYPE_LABELS).map((key) => (
             <button
               key={key}
               type="button"
@@ -127,7 +127,7 @@ export default function NewOpportunityModal({
                 form.type === key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
               }`}
             >
-              {label}
+              {tarafLabel(form.category, form.islemTipi, key)}
             </button>
           ))}
         </div>

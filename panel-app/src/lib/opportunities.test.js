@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { canRevealContact, canViewOpportunity, canExpressInterest, computeBoxCounts } from './opportunities'
+import {
+  canRevealContact,
+  canViewOpportunity,
+  canExpressInterest,
+  buildOpportunityTree,
+  tarafLabel,
+  legacyCategoryOpportunities,
+  OPPORTUNITY_TREE,
+} from './opportunities'
 
 // Bu testler RLS'teki opportunities_select ve get_opportunity_contact()
 // kurallarının istemci tarafındaki AYNASI olan fonksiyonları doğrular.
@@ -137,24 +145,79 @@ describe('canExpressInterest', () => {
   })
 })
 
-describe('computeBoxCounts', () => {
-  it('her tip×kategori kombinasyonu için bir kutu üretir', () => {
-    const boxes = computeBoxCounts([])
-    // 2 tip (satici/alici) x kategori sayısı kadar kutu bekleniyor
-    expect(boxes.length).toBeGreaterThan(0)
-    expect(boxes.every((b) => b.total === 0)).toBe(true)
+describe('buildOpportunityTree', () => {
+  it('boş listede her dal için sıfır sayaçlı bir ağaç üretir', () => {
+    const tree = buildOpportunityTree([])
+    expect(tree.map((c) => c.key)).toEqual(['konut', 'arsa', 'ticari'])
+    expect(tree.every((c) => c.total === 0)).toBe(true)
   })
 
-  it('doğru tip/kategoriye göre sayar', () => {
+  it('arsa dalında hiç "kiralik" işlem tipi üretmez (arsa kiralama kapsam dışı)', () => {
+    const tree = buildOpportunityTree([])
+    const arsa = tree.find((c) => c.key === 'arsa')
+    expect(arsa.islemTipleri.map((t) => t.key)).toEqual(['satilik'])
+  })
+
+  it('konut ve ticaride hem satılık hem kiralık dalı üretir', () => {
+    const tree = buildOpportunityTree([])
+    for (const key of ['konut', 'ticari']) {
+      const cat = tree.find((c) => c.key === key)
+      expect(cat.islemTipleri.map((t) => t.key)).toEqual(['satilik', 'kiralik'])
+    }
+  })
+
+  it('doğru kategori/işlem tipi/tarafa göre sayar', () => {
     const opps = [
-      { type: 'satici', category: 'konut', createdAt: new Date().toISOString() },
-      { type: 'satici', category: 'konut', createdAt: new Date().toISOString() },
-      { type: 'alici', category: 'konut', createdAt: new Date().toISOString() },
+      { type: 'satici', category: 'konut', islemTipi: 'satilik', createdAt: new Date().toISOString() },
+      { type: 'satici', category: 'konut', islemTipi: 'satilik', createdAt: new Date().toISOString() },
+      { type: 'alici', category: 'konut', islemTipi: 'satilik', createdAt: new Date().toISOString() },
+      { type: 'alici', category: 'konut', islemTipi: 'kiralik', createdAt: new Date().toISOString() },
     ]
-    const boxes = computeBoxCounts(opps)
-    const saticiKonut = boxes.find((b) => b.type === 'satici' && b.category === 'konut')
-    const aliciKonut = boxes.find((b) => b.type === 'alici' && b.category === 'konut')
-    expect(saticiKonut.total).toBe(2)
-    expect(aliciKonut.total).toBe(1)
+    const tree = buildOpportunityTree(opps)
+    const konut = tree.find((c) => c.key === 'konut')
+    expect(konut.total).toBe(4)
+    const satilik = konut.islemTipleri.find((t) => t.key === 'satilik')
+    expect(satilik.total).toBe(3)
+    expect(satilik.taraflar.find((t) => t.type === 'satici').total).toBe(2)
+    expect(satilik.taraflar.find((t) => t.type === 'alici').total).toBe(1)
+    const kiralik = konut.islemTipleri.find((t) => t.key === 'kiralik')
+    expect(kiralik.total).toBe(1)
+  })
+
+  it('kategori/işlem tipi eşleşmeyen kayıtları hiçbir dala saymaz (ör. eski "diğer")', () => {
+    const opps = [{ type: 'satici', category: 'diger', islemTipi: 'satilik', createdAt: new Date().toISOString() }]
+    const tree = buildOpportunityTree(opps)
+    expect(tree.every((c) => c.total === 0)).toBe(true)
+  })
+})
+
+describe('tarafLabel', () => {
+  it('ticari+kiralık dışında her zaman standart Satıcı/Alıcı döner', () => {
+    expect(tarafLabel('konut', 'satilik', 'satici')).toBe('Satıcı')
+    expect(tarafLabel('konut', 'kiralik', 'alici')).toBe('Alıcı')
+    expect(tarafLabel('ticari', 'satilik', 'satici')).toBe('Satıcı')
+    expect(tarafLabel('arsa', 'satilik', 'alici')).toBe('Alıcı')
+  })
+
+  it('SADECE ticari+kiralık dalında Mülk/Kiracı döner', () => {
+    expect(tarafLabel('ticari', 'kiralik', 'satici')).toBe('Mülk')
+    expect(tarafLabel('ticari', 'kiralik', 'alici')).toBe('Kiracı')
+  })
+})
+
+describe('legacyCategoryOpportunities', () => {
+  it('OPPORTUNITY_TREE dışındaki kategorileri (ör. eski "diğer") döner', () => {
+    const opps = [
+      { id: '1', category: 'konut' },
+      { id: '2', category: 'diger' },
+      { id: '3', category: 'arsa' },
+    ]
+    const legacy = legacyCategoryOpportunities(opps)
+    expect(legacy.map((o) => o.id)).toEqual(['2'])
+  })
+
+  it('hiç eski kayıt yoksa boş dizi döner', () => {
+    const opps = OPPORTUNITY_TREE.map((c) => ({ id: c.key, category: c.key }))
+    expect(legacyCategoryOpportunities(opps)).toEqual([])
   })
 })

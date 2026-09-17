@@ -1,6 +1,5 @@
 import { ROLES } from './roles'
 import { isToday } from './format'
-import { OPPORTUNITY_CATEGORIES } from './categories'
 export { relativeTime } from './format'
 export { DATE_RANGES, isWithinRange } from './dateRange'
 
@@ -153,21 +152,64 @@ export const OPPORTUNITY_STATUS_STYLES = {
   iptal: 'bg-ink-100 text-ink-500',
 }
 
-// Fırsatlar sayfasındaki 8 kutu (Satıcı/Alıcı × 4 kategori) için özet.
-// `visibleOpportunities` zaten canViewOpportunity ile filtrelenmiş olmalı.
-export function computeBoxCounts(visibleOpportunities) {
-  const boxes = []
-  for (const type of Object.keys(OPPORTUNITY_TYPE_LABELS)) {
-    for (const category of OPPORTUNITY_CATEGORIES) {
-      const items = visibleOpportunities.filter((o) => o.type === type && o.category === category.key)
-      boxes.push({
-        type,
-        category: category.key,
-        categoryLabel: category.label,
-        total: items.length,
-        today: items.filter((o) => isToday(o.createdAt)).length,
-      })
-    }
+// Fırsatlar menüsü accordion hiyerarşisi (broker isteği, 2026-09-17):
+// Kategori > İşlem Tipi > Taraf. Arsa'da "kiralik" hiç yok — dizide bile
+// bulunmuyor, bu yüzden o dal hiç render edilmiyor (bkz. FirsatlarTab).
+export const OPPORTUNITY_TREE = [
+  { key: 'konut', label: 'Konut', islemTipleri: ['satilik', 'kiralik'] },
+  { key: 'arsa', label: 'Arsa', islemTipleri: ['satilik'] },
+  { key: 'ticari', label: 'Ticari', islemTipleri: ['satilik', 'kiralik'] },
+]
+
+// Ticari + Kiralık dalında taraflar "Satıcı/Alıcı" değil "Mülk/Kiracı" —
+// kiralık ticari süreçte gerçek taraflar bunlar. Veri modeli
+// (type: 'satici'|'alici') ve OPPORTUNITY_TYPE_LABELS AYNEN kalıyor,
+// sadece bu spesifik daldayken görüntüleme etiketi değişiyor.
+export function tarafLabel(category, islemTipi, type) {
+  if (category === 'ticari' && islemTipi === 'kiralik') {
+    return type === 'satici' ? 'Mülk' : 'Kiracı'
   }
-  return boxes
+  return OPPORTUNITY_TYPE_LABELS[type]
+}
+
+// Fırsatlar menüsündeki 3 seviyeli accordion için sayaçlı ağaç —
+// computeBoxCounts'un yerini aldı (broker isteği, 2026-09-17: Satıcı/Alıcı
+// üstte + 4 kategori kutusu yapısından Kategori>İşlemTipi>Taraf
+// accordion'a geçiş). `visibleOpportunities` zaten canViewOpportunity ile
+// filtrelenmiş olmalı.
+export function buildOpportunityTree(visibleOpportunities) {
+  return OPPORTUNITY_TREE.map((cat) => {
+    const catOpps = visibleOpportunities.filter((o) => o.category === cat.key)
+    return {
+      key: cat.key,
+      label: cat.label,
+      total: catOpps.length,
+      islemTipleri: cat.islemTipleri.map((tipiKey) => {
+        const tipiOpps = catOpps.filter((o) => o.islemTipi === tipiKey)
+        return {
+          key: tipiKey,
+          label: ISLEM_TIPI_LABELS[tipiKey],
+          total: tipiOpps.length,
+          taraflar: Object.keys(OPPORTUNITY_TYPE_LABELS).map((type) => {
+            const items = tipiOpps.filter((o) => o.type === type)
+            return {
+              type,
+              label: tarafLabel(cat.key, tipiKey, type),
+              total: items.length,
+              today: items.filter((o) => isToday(o.createdAt)).length,
+            }
+          }),
+        }
+      }),
+    }
+  })
+}
+
+// "Diğer" artık seçilebilir bir kategori değil (bkz. lib/categories.js) —
+// ama eski kayıtlar (prod'da 25 açık kayıt, 2026-09-17 itibarıyla) hâlâ bu
+// key'i taşıyor. OPPORTUNITY_TREE'deki hiçbir dala düşmediği için sessizce
+// kaybolmasınlar diye ayrıca sayılıyor (bkz. FirsatlarTab'daki
+// gözden-geçirme bandı).
+export function legacyCategoryOpportunities(visibleOpportunities) {
+  return visibleOpportunities.filter((o) => !OPPORTUNITY_TREE.some((c) => c.key === o.category))
 }

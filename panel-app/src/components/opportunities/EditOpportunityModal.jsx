@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
-import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
+import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS, tarafLabel } from '../../lib/opportunities'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
 import { formatPhoneInput, isPhoneComplete } from '../../lib/phone'
@@ -79,7 +79,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
         className="space-y-3"
       >
         <div className="flex gap-1.5">
-          {Object.entries(OPPORTUNITY_TYPE_LABELS).map(([key, label]) => (
+          {Object.keys(OPPORTUNITY_TYPE_LABELS).map((key) => (
             <button
               key={key}
               type="button"
@@ -88,7 +88,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
                 form.type === key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
               }`}
             >
-              {label}
+              {tarafLabel(form.category, form.islemTipi, key)}
             </button>
           ))}
         </div>
@@ -98,6 +98,11 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
           onChange={(e) => set({ category: e.target.value, odaSayisi: '' })}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
         >
+          {/* Eski "Diğer" kaydı düzenleniyorsa geçici bir seçenek gösterilir
+              — yoksa <select> mevcut değeri bulamayıp sessizce listedeki ilk
+              kategoriyi (Konut) seçili gösterir, broker fark etmeden yanlış
+              kategoriyle kaydedebilir (bkz. lib/categories.js notu). */}
+          {opp.category === 'diger' && <option value="diger">Diğer (eski — lütfen güncelle)</option>}
           {OPPORTUNITY_CATEGORIES.map((c) => (
             <option key={c.key} value={c.key}>
               {c.label}
