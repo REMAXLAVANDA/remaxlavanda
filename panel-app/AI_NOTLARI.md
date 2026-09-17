@@ -7,6 +7,30 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Operasyon sayfası sadeleştirme (kaynak kod tooltip'i, katlanabilir filtre/istatistik)
+
+Broker/danışman geri bildirimi: Operasyon sayfası genel olarak yoğun
+geliyordu. Kodu inceleyip (`OperasyonTab.jsx`, `CallTable.jsx`) önce plan
+sundum — danışman rolünün zaten yapısal olarak sade bir görünüm gördüğü
+tespit edildi (`isManager` koşullu render'lar sayesinde kaynak rozeti/
+filtresi, danışman filtresi, Yeni Çağrı butonu zaten ona hiç görünmüyor),
+bu yüzden AYRI bir danışman görünümü inşa ETMEDEN, tek paylaşılan
+component yapısını koruyarak üç değişiklik yapıldı:
+- Kaynak kod açıklaması (S/R/WS/D) artık sabit bir satır değil, tıklanınca
+  açılan küçük bir "ⓘ" tooltip'i (`SourceLegendInfo.jsx` — mobilde hover
+  çalışmadığı için tıklamayla açılıyor, CallTable'daki aynı gerekçeyle).
+- `CallFilters.jsx`: kaynak çipleri/danışman dropdown'u/Herkes-SadeceBenim
+  artık varsayılan kapalı bir "Filtrele" panelinin arkasında — tarih
+  çipleri ve Yeni Çağrı her zaman görünür kalıyor. Danışman zaten bu
+  kontrolleri hiç görmediği için ("Filtrele" butonu bile render edilmiyor)
+  bu değişiklik SADECE yönetim görünümünü etkiliyor.
+- İstatistik kartları kendi başlıklı, katlanabilir bir kart içine alındı —
+  masaüstünde varsayılan açık, mobilde varsayılan kapalı
+  (`window.matchMedia` ile ilk render'da belirleniyor, kullanıcı istediği
+  zaman değiştirebiliyor).
+
+Migration yok — tamamen frontend, davranış/yetki mantığı değişmedi.
+
 ## 2026-09-17 — Fırsatlar accordion'a Apple ana ekran tarzı ikonlar
 
 Kategori>İşlemTipi>Taraf accordion'unun (bkz. aşağıdaki kayıt) her
