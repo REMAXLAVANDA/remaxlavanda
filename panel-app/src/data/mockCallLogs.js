@@ -3,8 +3,8 @@
 //
 // donusYapildiMi / portfoyAlindiMi artık üç durumlu: null=Bekliyor,
 // donusYapildiMi için false=Ulaşılamadı/true=Görüşüldü, portfoyAlindiMi
-// için true=Alındı/false=Almadık (bkz. lib/callLogs.js GORUSULDU_CYCLE/
-// PORTFOY_CYCLE). "sonuc" kolonu artık UI'da kullanılmıyor ama geçmiş veri
+// için true=Alındı/false=Almadık (bkz. components/operasyon/CallTable.jsx
+// StatusPickerPill). "sonuc" kolonu artık UI'da kullanılmıyor ama geçmiş veri
 // kaybolmasın diye burada da (gerçek DB'deki gibi) duruyor.
 //
 // portfoyTalebiMi: sadece kaynak='Santral' olan çağrılarda anlamlı — bkz.

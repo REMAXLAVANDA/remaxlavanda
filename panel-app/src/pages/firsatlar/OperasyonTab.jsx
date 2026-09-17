@@ -150,10 +150,10 @@ export default function OperasyonTab() {
     }
   }
 
-  // CallTable zaten bir sonraki durumu (3'lü döngü) hesaplayıp gönderiyor —
-  // burada sadece kaydediyoruz. "Görüşüldü"ye geçince donusAt otomatik
-  // dolsun, diğer durumlarda (Bekliyor/Ulaşılamadı) boşalsın — "satisTarihi"
-  // ile aynı desen (bkz. handleEditDetails).
+  // CallTable (StatusPickerPill) kullanıcının menüden seçtiği değeri direkt
+  // gönderiyor — burada sadece kaydediyoruz. "Görüşüldü"ye geçince donusAt
+  // otomatik dolsun, diğer durumlarda (Bekliyor/Ulaşılamadı) boşalsın —
+  // "satisTarihi" ile aynı desen (bkz. handleEditDetails).
   function handleToggle(id, field, nextValue) {
     const patch = { [field]: nextValue }
     if (field === 'donusYapildiMi') patch.donusAt = nextValue === true ? new Date().toISOString() : null

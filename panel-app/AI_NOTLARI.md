@@ -7,6 +7,36 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Operasyon: süreç zinciri döngüleme yerine açık seçim menüsü
+
+Geri bildirim: `CallProgressSteps`'teki Görüşüldü/Portföy rozetleri tek
+tıkla üç durum arasında döngüleniyordu (Bekliyor→Ulaşılamadı→Görüşüldü→
+tekrar Bekliyor gibi) — bu mekanizma sadece bakarak anlaşılmıyordu,
+kullanıcı tıklamadan önce ne olacağını kestiremiyordu (mobilde hover
+olmadığı için "tıklayınca X olur" title'ı da görünmüyordu). Önce yazılı
+plan sunuldu (3 seçenek: popover ile direkt seçim / hep-açık segmented
+control / minimal — sadece "?" ipucu ekle), "popover ile direkt seçim"
+onaylandı:
+
+- `CallTable.jsx`'e yeni `StatusPickerPill` bileşeni eklendi — rozete
+  tıklayınca döngülemek yerine olası durumları (2-3 seçenek, her biri
+  kendi ikon/rengiyle) açıkça listeleyen bir menü açılıyor, aktif olan
+  işaretli, birine tıklamak DİREKT o değeri yazıyor. Popover mekanizması
+  `SourceLegendInfo.jsx` ile aynı desen (dışarı tık/ESC ile kapanır,
+  `useEscapeKey` paylaşılıyor). Rozetin üzerine bir chevron eklendi ki
+  tıklanabilir olduğu (Satıldı/Satış bekliyor gibi salt bilgi adımlarından
+  farklı olarak) görsel olarak da belli olsun. Popover içine kısa bir
+  açıklama satırı da eklendi ("Görüşme/Portföy durumunu değiştirmek için
+  birini seç.").
+- `lib/callLogs.js`'teki artık kullanılmayan `GORUSULDU_CYCLE`/
+  `PORTFOY_CYCLE`/`cycleValue` kaldırıldı.
+- Veri modeline DOKUNULMADI — `donusYapildiMi`/`portfoyAlindiMi` aynı üç
+  değerli alanlar (`null`/`true`/`false`), sadece yazma şekli "sırayla
+  döngüle" yerine "seçileni direkt yaz" oldu; `OperasyonTab.jsx`'teki
+  `handleToggle(id, field, nextValue)` imzası/davranışı aynı kaldı.
+
+Migration yok — tamamen frontend.
+
 ## 2026-09-17 — Rehber: owner da belge ekleyip düzenleyebiliyor
 
 Broker isteği: Rehber'de belge ekleme daha önce sadece broker/ofis'e

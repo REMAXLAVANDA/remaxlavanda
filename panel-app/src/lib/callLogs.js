@@ -26,14 +26,12 @@ export const CALL_SOURCE_CODES = {
 // Eski "Sonuç" (tek seçimli dropdown) kaldırıldı — aynı bilgiyi bu ikisiyle
 // çakışarak tekrarlıyordu. call_logs.sonuc kolonu DB'de duruyor (geçmiş veri
 // kaybolmuyor), sadece artık UI'da gösterilmiyor/düzenlenmiyor.
-export const GORUSULDU_CYCLE = [null, false, true]
-export const PORTFOY_CYCLE = [null, true, false]
-
-// Tek tıkla bir sonraki duruma geçer, sonuncudan sonra başa döner.
-export function cycleValue(current, order) {
-  const idx = order.indexOf(current ?? null)
-  return order[(idx + 1) % order.length]
-}
+//
+// Bu iki alan eskiden tek tıkla döngülenen bir rozetti (GORUSULDU_CYCLE/
+// PORTFOY_CYCLE/cycleValue) — "tıklamadan önce ne olacağını kestiremiyorum"
+// geri bildirimi üzerine kaldırıldı: artık CallTable.jsx'te rozete tıklayınca
+// olası 3 durumu açıkça listeleyen bir menü açılıyor, seçilen değer DİREKT
+// yazılıyor (bkz. StatusPickerPill, 2026-09-17).
 
 // Telsam entegrasyonuyla gelen HER Santral çağrısı call_logs'a otomatik
 // düşüyor ama çoğu portföy talebi değil (bilgi/alıcı görüşmesi vb.) —
