@@ -7,6 +7,31 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-17 — Güvenlik: Telsam şifresi hata loglarında açık metin duruyordu
+
+`telsam-cdr-sync` Edge Function, Telsam CDR API'sine kullanıcı adı/şifreyi
+URL query string'inde taşıyarak bağlanıyordu. Bağlantı hatası (timeout/DNS
+vb.) oluştuğunda Deno'nun fetch hatası TAM URL'yi (şifre dahil) mesajına
+gömüyordu, bu da olduğu gibi `telsam_webhook_errors.hata_mesaji`'na
+yazılıyordu — kontrol edildiğinde 10 satırda (2026-08-13 tarihli) gerçek
+Telsam santral şifresi açık metin halde bulundu (bir aydır DB'de
+bekliyordu). Düzeltme: `logError()` artık `redactTelsamSecrets()` ile
+mesajı DB'ye yazmadan önce maskeliyor (hem `password=...` deseni hem
+`TELSAM_PASS`'in kendisi temizleniyor — env değişse de çalışır). Mevcut
+10 satır ayrı bir migrationla (`20260917120000`) temizlendi. Broker
+şifreyi ayrıca kendisi değiştirecek (Telsam panelinden, kod tarafı bunu
+kapsamıyor).
+
+## Watch: call_logs satır sayısı (performans)
+
+2026-09-17'de ölçüldü: call_logs 1.461, event_attendance 265,
+calendar_events 118, leads 70, opportunities 58 satır (~aylık 96 satır
+organik büyüme call_logs'ta). `.select('*')` ile sınırsız çekilen 5 tablo
+için pagination/tarih filtresi şimdilik ÖNERİLMİYOR (Panel.jsx,
+FirsatlarTab, TakvimTab, GlobalSearch gibi ekranlar tüm-zamanlar verisine
+dayanıyor, hazır bir desen yok) — broker onayladı. **call_logs ~5.000
+satıra yaklaşınca bu konu tekrar değerlendirilmeli.**
+
 ## 2026-09-17 — Rehber: "yönetime özel" klasör görünürlüğü (rol bazlı RLS)
 
 Broker isteği: Rehber'e broker/owner/ofis'in gördüğü, danışmanın hiç

@@ -41,7 +41,18 @@ function normalizePhone(raw: string) {
 
 // deno-lint-ignore no-explicit-any
 async function logError(admin: any, tur: string, rawPayload: unknown, hataMesaji: string) {
-  await admin.from('telsam_webhook_errors').insert({ kaynak: 'cdr_sync', tur, raw_payload: rawPayload, hata_mesaji: hataMesaji })
+  await admin.from('telsam_webhook_errors').insert({ kaynak: 'cdr_sync', tur, raw_payload: rawPayload, hata_mesaji: redactTelsamSecrets(hataMesaji) })
+}
+
+// cdrUrl kullanıcı adı/şifreyi query string'de taşıyor — ağ hatalarında
+// (ör. Deno'nun fetch TypeError'ı) bu URL olduğu gibi err.message'a
+// gömülüyor. DB'ye yazılmadan önce burada temizleniyor (bkz. AI_NOTLARI
+// 2026-09-17: hata_mesaji'nda açık metin Telsam şifresi bulundu — mevcut
+// kayıtlar ayrı bir migration'la temizlendi).
+function redactTelsamSecrets(text: string): string {
+  let redacted = text.replace(/password=[^&\s)]+/gi, 'password=***')
+  if (TELSAM_PASS) redacted = redacted.split(TELSAM_PASS).join('***')
+  return redacted
 }
 
 Deno.serve(async (req) => {
