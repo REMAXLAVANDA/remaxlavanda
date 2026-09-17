@@ -1,10 +1,15 @@
 import { useState } from 'react'
-import { Upload } from 'lucide-react'
+import { Upload, Sparkles } from 'lucide-react'
 import Modal from '../common/Modal'
 import { validateFile } from '../../lib/storage'
 import { capitalizeFirst, capitalizeWords } from '../../lib/format'
+import { suggestSubcategory } from '../../lib/subcategorySuggest'
 
 const NEW_DOC = '__new__'
+const NEW_SUBCATEGORY = '__new__'
+// Alt kategori sadece SSS'de destekleniyor (bkz. broker isteği,
+// 2026-09-17) — başka kategorilerde bu alan hiç gösterilmiyor.
+const SUBCATEGORY_PARENT_KEY = 'sss'
 
 function formatSize(bytes) {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
@@ -25,6 +30,7 @@ export default function UploadDocModal({
   docsInCategory,
   defaultCategory,
   categories,
+  allCategories = [],
   editingDoc,
 }) {
   const isEditingText = Boolean(editingDoc) && editingDoc.contentText != null
@@ -36,6 +42,8 @@ export default function UploadDocModal({
   const [contentText, setContentText] = useState(editingDoc?.contentText ?? '')
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
+  const [subcategoryChoice, setSubcategoryChoice] = useState('')
+  const [newSubcategoryLabel, setNewSubcategoryLabel] = useState('')
 
   const isNewDoc = docId === NEW_DOC
   const canSubmit = isEditingFile
@@ -43,6 +51,29 @@ export default function UploadDocModal({
     : mode === 'file'
       ? Boolean(file) && (isNewDoc ? baslik.trim().length > 0 : true)
       : baslik.trim().length > 0 && contentText.trim().length > 0
+
+  // Alt kategori öner/seç — sadece yeni bir SSS yazı dokümanı eklenirken
+  // gösteriliyor (var olan dokümanı düzenlerken veya başka bir kategoride
+  // değil).
+  const showSubcategoryPicker = !editingDoc && mode === 'text' && categoryKey === SUBCATEGORY_PARENT_KEY
+  const sssParent = allCategories.find((c) => c.key === SUBCATEGORY_PARENT_KEY)
+  const sssSubcategories = sssParent
+    ? allCategories.filter((c) => c.parentId === sssParent.id).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    : []
+
+  function handleSuggestSubcategory() {
+    const suggestion = suggestSubcategory(`${baslik} ${contentText}`)
+    if (!suggestion) return
+    const existing = sssSubcategories.find(
+      (s) => s.label.toLocaleLowerCase('tr-TR') === suggestion.toLocaleLowerCase('tr-TR'),
+    )
+    if (existing) {
+      setSubcategoryChoice(existing.key)
+    } else {
+      setSubcategoryChoice(NEW_SUBCATEGORY)
+      setNewSubcategoryLabel(suggestion)
+    }
+  }
 
   function handleFileChange(e) {
     const selected = e.target.files?.[0] ?? null
@@ -83,6 +114,12 @@ export default function UploadDocModal({
         docId: isNewDoc ? null : docId,
         baslik: isNewDoc ? capitalizeWords(baslik) : null,
         contentText: capitalizeFirst(contentText.trim()),
+        subcategoryKey:
+          showSubcategoryPicker && subcategoryChoice && subcategoryChoice !== NEW_SUBCATEGORY ? subcategoryChoice : null,
+        newSubcategoryLabel:
+          showSubcategoryPicker && subcategoryChoice === NEW_SUBCATEGORY && newSubcategoryLabel.trim()
+            ? newSubcategoryLabel.trim()
+            : null,
       })
     }
   }
@@ -182,6 +219,44 @@ export default function UploadDocModal({
               Biçimlendirme: <strong>**kalın metin**</strong>, satır başında "- " ile madde işareti, satır başında
               "# " ile başlık.
             </p>
+          </div>
+        )}
+
+        {showSubcategoryPicker && (
+          <div className="space-y-1.5">
+            <div className="flex gap-1.5">
+              <select
+                value={subcategoryChoice}
+                onChange={(e) => setSubcategoryChoice(e.target.value)}
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              >
+                <option value="">Alt kategori yok</option>
+                {sssSubcategories.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+                <option value={NEW_SUBCATEGORY}>+ Yeni alt kategori</option>
+              </select>
+              <button
+                type="button"
+                onClick={handleSuggestSubcategory}
+                disabled={!baslik.trim() && !contentText.trim()}
+                title="Soru/cevap metnine göre alt kategori öner (anahtar kelime eşleştirmesi, ücretsiz)"
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-ink-50 px-3 py-2 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
+              >
+                <Sparkles size={13} /> Öner
+              </button>
+            </div>
+            {subcategoryChoice === NEW_SUBCATEGORY && (
+              <input
+                value={newSubcategoryLabel}
+                onChange={(e) => setNewSubcategoryLabel(e.target.value)}
+                onBlur={(e) => setNewSubcategoryLabel(capitalizeWords(e.target.value))}
+                placeholder="Yeni alt kategori adı (ör. Komisyon)"
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              />
+            )}
           </div>
         )}
 

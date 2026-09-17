@@ -7,6 +7,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { docs as docsProvider, categories as categoriesProvider } from '../lib/dataProvider'
 import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
 import { canViewManagerCategories } from '../lib/roles'
+import { slugify } from '../lib/categories'
 import { uploadDocFile, deleteDocFile } from '../lib/storage'
 import FolderList from '../components/rehber/FolderList'
 import DocCard from '../components/rehber/DocCard'
@@ -52,9 +53,12 @@ export default function Rehber() {
   const allCategories = data?.categories ?? EMPTY
   // "Yönetime özel" klasörler zaten RLS ile gelmiyor (broker/owner/ofis
   // dışındaki rollere) — bu filtre mock modda (RLS yok) aynı davranışı
-  // sağlamak ve UI'nin tutarlı kalması için (bkz. lib/roles.js).
+  // sağlamak ve UI'nin tutarlı kalması için (bkz. lib/roles.js). Sadece
+  // üst seviye (parentId yok) klasörler — SSS alt kategorileri sol menüde
+  // ayrı bir klasör olarak GÖRÜNMEZ, sadece SSS görünümü içinde gruplama
+  // için kullanılır (bkz. lib/subcategorySuggest.js).
   const categories = useMemo(
-    () => allCategories.filter((c) => c.visibility !== 'yonetim' || canViewManager),
+    () => allCategories.filter((c) => !c.parentId && (c.visibility !== 'yonetim' || canViewManager)),
     [allCategories, canViewManager],
   )
   const userName = (id) => knownUsers[id]?.name ?? '—'
@@ -64,13 +68,47 @@ export default function Rehber() {
     if (categories.length > 0 && !selectedCategory) setSelectedCategory(categories[0].key)
   }, [categories, selectedCategory])
 
-  const docsInCategory = useMemo(
-    () => docs.filter((d) => d.categoryKey === selectedCategory),
-    [docs, selectedCategory],
+  const selectedCategoryRow = useMemo(
+    () => allCategories.find((c) => c.key === selectedCategory) ?? null,
+    [allCategories, selectedCategory],
   )
+  // Seçili klasörün alt kategorileri varsa (bkz. SSS) onlara ait
+  // dokümanlar da aynı görünümde listelenir — sadece klasörün kendisine
+  // bağlı dokümanlarla sınırlı kalmaz.
+  const sssSubcategories = useMemo(
+    () =>
+      selectedCategoryRow
+        ? allCategories
+            .filter((c) => c.parentId === selectedCategoryRow.id)
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        : EMPTY,
+    [allCategories, selectedCategoryRow],
+  )
+  const docsInCategory = useMemo(() => {
+    const childKeys = sssSubcategories.map((c) => c.key)
+    return docs.filter((d) => d.categoryKey === selectedCategory || childKeys.includes(d.categoryKey))
+  }, [docs, selectedCategory, sssSubcategories])
+
+  // SSS görünümünde her dokümanın hangi alt kategoriye ait olduğunu (varsa)
+  // ve o alt kategori başlığının ilk kez mi gösterileceğini önceden
+  // hesaplıyoruz — docsInCategory ile aynı sırada, index hizalı.
+  const sssGroupLabels = useMemo(() => {
+    if (selectedCategory !== FAQ_CATEGORY_KEY) return EMPTY
+    let lastKey
+    return docsInCategory.map((doc) => {
+      const isSubcategory = doc.categoryKey !== selectedCategory
+      const label = isSubcategory && doc.categoryKey !== lastKey
+        ? allCategories.find((c) => c.key === doc.categoryKey)?.label ?? null
+        : null
+      lastKey = doc.categoryKey
+      return label
+    })
+  }, [selectedCategory, docsInCategory, allCategories])
 
   function countFor(categoryKey) {
-    return docs.filter((d) => d.categoryKey === categoryKey).length
+    const category = allCategories.find((c) => c.key === categoryKey)
+    const childKeys = category ? allCategories.filter((c) => c.parentId === category.id).map((c) => c.key) : []
+    return docs.filter((d) => d.categoryKey === categoryKey || childKeys.includes(d.categoryKey)).length
   }
 
   async function handleSubmitDoc(form) {
@@ -89,12 +127,35 @@ export default function Rehber() {
         return
       }
 
+      // SSS'de broker yeni bir alt kategori adı yazdıysa (öneriyi kabul
+      // ettiyse ya da elle girdiyse) doküman oluşturulmadan ÖNCE o alt
+      // kategori (categories satırı, parentId=üst kategori) oluşturuluyor
+      // — üst kategorinin visibility'si aynen kopyalanıyor.
+      let targetCategoryKey = form.categoryKey
+      if (form.newSubcategoryLabel) {
+        const parent = allCategories.find((c) => c.key === form.categoryKey)
+        const siblings = allCategories.filter((c) => c.parentId === parent?.id)
+        const maxSubOrder = siblings.reduce((max, c) => Math.max(max, c.sortOrder ?? 0), 0)
+        const createdSub = await categoriesProvider.create({
+          module: 'docs',
+          key: slugify(form.newSubcategoryLabel),
+          label: form.newSubcategoryLabel,
+          sortOrder: maxSubOrder + 1,
+          visibility: parent?.visibility ?? 'herkes',
+          parentId: parent?.id ?? null,
+        })
+        setData((prev) => ({ ...prev, categories: [...prev.categories, createdSub] }))
+        targetCategoryKey = createdSub.key
+      } else if (form.subcategoryKey) {
+        targetCategoryKey = form.subcategoryKey
+      }
+
       let targetDocId = form.docId
       if (!targetDocId) {
-        const sameCategory = docs.filter((d) => d.categoryKey === form.categoryKey)
+        const sameCategory = docs.filter((d) => d.categoryKey === targetCategoryKey)
         const maxOrder = sameCategory.reduce((max, d) => Math.max(max, d.sortOrder ?? 0), 0)
         const created = await docsProvider.createDoc(
-          { categoryKey: form.categoryKey, baslik: form.baslik, sortOrder: maxOrder + 1 },
+          { categoryKey: targetCategoryKey, baslik: form.baslik, sortOrder: maxOrder + 1 },
           user.id,
         )
         targetDocId = created.id
@@ -215,16 +276,22 @@ export default function Rehber() {
             ) : (
               docsInCategory.map((doc, index) =>
                 selectedCategory === FAQ_CATEGORY_KEY ? (
-                  <FaqAccordionItem
-                    key={doc.id}
-                    doc={doc}
-                    canManage={canManage}
-                    onEdit={() => setEditingDoc(doc)}
-                    onDeleteRequest={() => setDeleteTarget(doc)}
-                    onMove={(direction) => handleMoveDoc(doc.id, direction)}
-                    isFirst={index === 0}
-                    isLast={index === docsInCategory.length - 1}
-                  />
+                  <div key={doc.id}>
+                    {sssGroupLabels[index] && (
+                      <p className="mb-1.5 mt-4 px-1 text-xs font-semibold uppercase tracking-wide text-text-disabled first:mt-0">
+                        {sssGroupLabels[index]}
+                      </p>
+                    )}
+                    <FaqAccordionItem
+                      doc={doc}
+                      canManage={canManage}
+                      onEdit={() => setEditingDoc(doc)}
+                      onDeleteRequest={() => setDeleteTarget(doc)}
+                      onMove={(direction) => handleMoveDoc(doc.id, direction)}
+                      isFirst={index === 0}
+                      isLast={index === docsInCategory.length - 1}
+                    />
+                  </div>
                 ) : (
                   <DocCard
                     key={doc.id}
@@ -257,6 +324,7 @@ export default function Rehber() {
           docsInCategory={docsInCategory}
           defaultCategory={selectedCategory}
           categories={categories}
+          allCategories={allCategories}
         />
       )}
 
@@ -268,6 +336,7 @@ export default function Rehber() {
           submitting={submitting}
           docsInCategory={docsInCategory}
           categories={categories}
+          allCategories={allCategories}
         />
       )}
 

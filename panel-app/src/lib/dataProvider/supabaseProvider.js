@@ -728,6 +728,7 @@ function mapCategory(row) {
     sortOrder: row.sort_order,
     isActive: row.is_active,
     visibility: row.visibility,
+    parentId: row.parent_id,
   }
 }
 
@@ -749,9 +750,10 @@ export const categories = {
     )
     return data.map(mapCategory)
   },
-  async create({ module, key, label, sortOrder, visibility }) {
+  async create({ module, key, label, sortOrder, visibility, parentId }) {
     const insertRow = { module, key, label, sort_order: sortOrder }
     if (visibility !== undefined) insertRow.visibility = visibility
+    if (parentId !== undefined) insertRow.parent_id = parentId
     const data = await run(client().from('categories').insert(insertRow).select().single())
     return mapCategory(data)
   },

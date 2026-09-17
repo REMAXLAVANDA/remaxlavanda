@@ -22,13 +22,23 @@ export const MOCK_DOCS = [
   },
   {
     id: 'doc-7',
-    categoryKey: 'sss',
+    categoryKey: 'sss-sifre-erisim',
     baslik: 'Şifremi unuttum, ne yapmalıyım?',
     contentText:
       '# Şifre Sıfırlama\nKendi şifreni sıfırlayamazsın — bunu sadece **broker veya ofis personeli** yapabilir.\n\n' +
       'Ayarlar > Kullanıcılar sayfasından ilgili kullanıcının yanındaki "Şifre Sıfırla" butonunu kullanmaları yeterli.',
     createdBy: 'u-ofis',
-    sortOrder: 2,
+    sortOrder: 1,
+  },
+  {
+    id: 'doc-9',
+    categoryKey: 'sss-komisyon',
+    baslik: 'Satışta komisyon oranı ne kadar, kim öder?',
+    contentText:
+      'Yasal tavan satış bedelinin **%4\'üdür** (KDV hariç) — yönetmelik gereği alıcı ve satıcı eşit paylaşır ' +
+      '(her biri %2 + KDV), ancak yazılı sözleşmeyle farklı bir paylaşım kararlaştırılabilir.',
+    createdBy: 'u-broker',
+    sortOrder: 1,
   },
   {
     id: 'doc-8',
