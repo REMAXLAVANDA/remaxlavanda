@@ -7,6 +7,31 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-24 — Panel "sürekli donuyor" hatası: veri yüklemeye zaman aşımı eklendi
+
+Geri bildirim: Panel bazen "Yükleniyor..." ekranında süresiz takılı
+kalıyordu (ekran görüntüsüyle bildirildi). Kök neden: Panel açılırken
+`Promise.all` ile 10+ sorgu paralel çekiliyor, ama `hooks/useAsyncList.js`'te
+HİÇ zaman aşımı yoktu — mobil ağda bu isteklerden biri bile takılırsa
+(WiFi'den mobil veriye geçiş, zayıf çekim, arka plana alınan sekme)
+`Promise.all` hiç sonuçlanmıyor, ekran süresiz bekliyor ve ne hata ne
+"Tekrar Dene" butonu çıkıyordu (buton sadece gerçek bir hata oluşunca
+render ediliyor, istek hiç bitmediği için o da tetiklenmiyordu).
+
+- `hooks/useAsyncList.js`'e 20 saniyelik bir zaman aşımı eklendi —
+  `lib/push.js`'teki AYNI `Promise.race` deseni (`withTimeout`). Süre
+  dolarsa istek artık hataya düşüyor, kullanıcı net bir mesaj ("İstek
+  zaman aşımına uğradı, tekrar dene.") ve gerçek bir "Tekrar Dene"
+  butonu görüyor.
+- Bu hook'u kullanan HER sayfa (Panel, Takvim, Fırsatlar, Takip, Lig...)
+  otomatik olarak korunuyor — tek tek dokunmaya gerek yok.
+- Yeni `hooks/useAsyncList.test.js` (3 test) — normal başarı/hata
+  akışları + asıl düzeltilen senaryo: fetcher hiç sonuçlanmazsa (sahte
+  zamanlayıcıyla simüle edildi) artık zaman aşımına uğrayıp hataya
+  düşüyor.
+
+Migration yok — tamamen frontend.
+
 ## 2026-09-24 — Planlama (Takvim): katılım oranı gösterimi
 
 Geri bildirim: `event_attendance` ve `lib/takip.js` -> `meetingAttendPercent()`
