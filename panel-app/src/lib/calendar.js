@@ -155,6 +155,30 @@ export function isPastEvent(event) {
   return new Date(event.endAt ?? event.startAt).getTime() < Date.now()
 }
 
+// Bir etkinliğin GERÇEKLEŞEN katılım oranı — lib/takip.js'teki
+// meetingAttendPercent() ile AYNI "çözümlenmiş" tanımı kullanılır (katıldı/
+// katılmadı/reddedilen mazeret sayılır; bekleyen/onaylanan mazeret ve henüz
+// işaretlenmemiş davetli/katılacak durumları nötr — "gec" de BİLEREK dışarıda,
+// meetingAttendPercent ile birebir tutarlı kalsın diye) ama KİŞİ değil
+// ETKİNLİK bazında gruplar. Takvim'de geçmiş bir etkinliğin detayında "kaçı
+// gerçekten geldi" sorusuna cevap verir (bkz. EventDetailModal). Çağıran taraf
+// zaten tek bir etkinliğin katılımcı listesini (attendees) geçirdiği için
+// eventId/userId eşleştirmesi burada gerekmiyor.
+export function eventAttendPercent(attendees) {
+  const resolved = attendees.filter(
+    (a) =>
+      a.status === 'katildi' ||
+      a.status === 'katilmadi' ||
+      (a.status === 'mazeretli' && a.mazeretStatus === 'reddedildi'),
+  )
+  const attended = resolved.filter((a) => a.status === 'katildi').length
+  return {
+    resolved: resolved.length,
+    attended,
+    percent: resolved.length === 0 ? 0 : Math.round((attended / resolved.length) * 100),
+  }
+}
+
 // "HH:MM" bir saate dakika ekler, yine "HH:MM" döner — recruiting
 // görüşmesi Takvim'e işlenirken bitiş saatini başlangıç + süreden
 // hesaplamak için (bkz. Recruiting.jsx syncInterviewEvent). Gün sınırını

@@ -12,9 +12,11 @@ import {
   KATILIM_TIPI_LABELS,
   KATILIM_TIPI_SELF_LABELS,
   KATILIM_TIPI_STYLES,
+  eventAttendPercent,
   eventAudienceBadge,
   formatEventDate,
   formatEventTime,
+  isPastEvent,
 } from '../../lib/calendar'
 import { capitalizeFirst } from '../../lib/format'
 
@@ -47,6 +49,28 @@ function AttendanceSummary({ attendees }) {
         <p className="text-sm font-semibold text-ink-600">{davetli}</p>
         <p className="text-[10px] text-ink-500">Davetli</p>
       </div>
+    </div>
+  )
+}
+
+// Etkinlik geçmişte kaldıysa "kaçı katılacak" değil "kaçı GERÇEKTEN katıldı"
+// sorusu anlamlı — AttendanceSummary'nin (niyet) yerini bu alır (bkz.
+// "Planlama — katılım oranı gösterimi" planı, 2026-09-23). Henüz kimse
+// işaretlenmemişse (resolved=0) oran yerine nötr bir bekleme notu gösterilir
+// — "%0 katılım" gibi yanıltıcı bir sayı yerine.
+function PastAttendanceSummary({ attendees }) {
+  const { percent, attended, resolved } = eventAttendPercent(attendees)
+  if (resolved === 0) {
+    return (
+      <div className="mb-3 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-center text-xs text-ink-400">
+        Katılım henüz işaretlenmedi
+      </div>
+    )
+  }
+  return (
+    <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-center">
+      <p className="text-lg font-semibold text-emerald-700">%{percent}</p>
+      <p className="text-[11px] text-emerald-600">Katılım oranı — {attended}/{resolved} kişi katıldı</p>
     </div>
   )
 }
@@ -208,7 +232,7 @@ export default function EventDetailModal({
       {attendees.length > 0 && (
         <div className="mt-4 border-t border-ink-50 pt-3">
           <p className="mb-2 text-xs font-medium text-ink-400">Katılımcılar ({attendees.length})</p>
-          {isManager && <AttendanceSummary attendees={attendees} />}
+          {isManager && (isPastEvent(event) ? <PastAttendanceSummary attendees={attendees} /> : <AttendanceSummary attendees={attendees} />)}
           <div className="space-y-2">
             {attendees.map((a) => (
               <div key={a.userId} className="text-sm">

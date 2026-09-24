@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Plus, Image, Tv } from 'lucide-react'
+import { Plus, Image, Tv, Users } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { calendarEvents as calendarProvider } from '../../lib/dataProvider'
 import { canViewEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '../../lib/calendar'
+import { meetingAttendPercent } from '../../lib/takip'
 import { sortByName } from '../../lib/format'
 import EventCalendar from '../../components/calendar/EventCalendar'
 import EventDetailModal from '../../components/calendar/EventDetailModal'
@@ -57,6 +58,16 @@ export default function TakvimTab() {
       .filter((e) => canViewEvent(e, user, attendance))
       .filter((e) => typeFilter === 'tumu' || e.type === typeFilter)
   }, [events, attendance, user, typeFilter])
+
+  // Kişisel toplantı katılım oranı — Takip > Sağlık Skoru'ndaki AYNI
+  // hesaba (meetingAttendPercent, kişi bazlı) dayanıyor, burada sadece
+  // Takvim'e girer girmez, tıklamadan görünsün diye kısa bir şerit olarak
+  // tekrar gösteriliyor (bkz. "Planlama — katılım oranı gösterimi" planı,
+  // 2026-09-23). Herkes (danışman dahil) sadece KENDİ oranını görür.
+  const myMeetingPercent = useMemo(
+    () => meetingAttendPercent(user.id, events, attendance),
+    [user.id, events, attendance],
+  )
 
   const selectedEvent = events.find((e) => e.id === selectedEventId)
 
@@ -233,6 +244,13 @@ export default function TakvimTab() {
 
       {!loading && !error && (
         <>
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-ink-100 bg-white px-4 py-2.5">
+            <Users size={15} className="shrink-0 text-ink-400" />
+            <p className="text-sm text-ink-600">
+              Toplantı katılımın: <span className="font-semibold text-ink-900">%{myMeetingPercent}</span>
+            </p>
+          </div>
+
           <div className="mb-4 flex flex-wrap items-center gap-1.5">
             <button
               onClick={() => setTypeFilter('tumu')}

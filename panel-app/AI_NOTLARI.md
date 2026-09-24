@@ -7,6 +7,36 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-24 — Planlama (Takvim): katılım oranı gösterimi
+
+Geri bildirim: `event_attendance` ve `lib/takip.js` -> `meetingAttendPercent()`
+zaten katılım verisini hesaplıyordu ama sadece Takip > Sağlık Skoru'na
+besleniyordu — Takvim'in kendisinde (geçmiş etkinliklerde) hiç katılım oranı
+gösterilmiyordu. Önce yazılı plan sunuldu (`meetingAttendPercent()`'ın KİŞİ
+bazlı olduğu, etkinlik bazlı ayrı bir hesap gerektiği netleştirildi), A+C
+kombinasyonu onaylandı:
+
+- `lib/calendar.js`'e yeni `eventAttendPercent(attendees)` eklendi —
+  `meetingAttendPercent()` ile AYNI "çözümlenmiş katılım" tanımını (katıldı/
+  katılmadı/reddedilen mazeret sayılır; bekleyen/onaylanan mazeret ve
+  davetli/katılacak nötr) kişi yerine ETKİNLİK bazında gruplar.
+- `EventDetailModal.jsx`: geçmiş bir etkinlik açıldığında (`isPastEvent`),
+  yönetimin gördüğü eski "Katılacak/Katılmayacak/Mazeretli/Davetli" niyet
+  özeti (AttendanceSummary) yerine gerçek "%X — Y/Z kişi katıldı" oranı
+  (yeni `PastAttendanceSummary`) gösteriliyor. Gelecekteki etkinliklerde
+  eski davranış aynen duruyor — ikisi farklı soruları cevapladığı için
+  karıştırılmıyor.
+- `TakvimTab.jsx`: sayfanın üstüne herkesin (danışman dahil, sadece kendi
+  oranı) toplantı katılımını tıklamadan gördüğü kısa bir özet şeridi
+  eklendi — `meetingAttendPercent()` OLDUĞU GİBİ tekrar kullanıldı, yeni
+  hesap mantığı yok.
+- Takvim ay görünümüne (FullCalendar hücrelerine) hiç dokunulmadı — daha
+  önce özenle sadeleştirilen yoğunluk dengesini bozmamak için rozet SADECE
+  etkinlik detayında.
+
+Migration yok — tamamen frontend. Görevler'de gecikmiş görev takibi (aynı
+brief'in ikinci maddesi) ayrı bir talimatla ele alınacak.
+
 ## 2026-09-17 — Panel menüsü: Operasyon girişi geri döndü, isim çakışmaları netleştirildi
 
 Geri bildirim: (1) Operasyon sayfası ("çağrı kayıtları") sidebar'da hiç
