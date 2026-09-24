@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canViewEvent, addMinutesToTimeString } from './calendar'
+import { canViewEvent, addMinutesToTimeString, eventAttendPercent } from './calendar'
 
 const danisman = { id: 'u-danisman', role: 'danisman' }
 const broker = { id: 'u-broker', role: 'broker' }
@@ -51,5 +51,37 @@ describe('addMinutesToTimeString', () => {
 
   it('0 dakika eklerse saati değiştirmez', () => {
     expect(addMinutesToTimeString('09:05', 0)).toBe('09:05')
+  })
+})
+
+describe('eventAttendPercent', () => {
+  it('katıldı/katılmadı oranını doğru hesaplar', () => {
+    const attendees = [
+      { status: 'katildi' },
+      { status: 'katildi' },
+      { status: 'katilmadi' },
+      { status: 'katilmadi' },
+    ]
+    expect(eventAttendPercent(attendees)).toEqual({ resolved: 4, attended: 2, percent: 50 })
+  })
+
+  it('reddedilen mazereti katılmadı gibi çözümlenmiş sayar', () => {
+    const attendees = [{ status: 'katildi' }, { status: 'mazeretli', mazeretStatus: 'reddedildi' }]
+    expect(eventAttendPercent(attendees)).toEqual({ resolved: 2, attended: 1, percent: 50 })
+  })
+
+  it('bekleyen/onaylanan mazereti ve henüz işaretlenmemiş davetli/katılacak durumlarını nötr sayar', () => {
+    const attendees = [
+      { status: 'katildi' },
+      { status: 'davetli' },
+      { status: 'onayladi' },
+      { status: 'mazeretli', mazeretStatus: 'bekliyor' },
+      { status: 'mazeretli', mazeretStatus: 'onaylandi' },
+    ]
+    expect(eventAttendPercent(attendees)).toEqual({ resolved: 1, attended: 1, percent: 100 })
+  })
+
+  it('hiç çözümlenmiş katılımcı yoksa 0 döner', () => {
+    expect(eventAttendPercent([])).toEqual({ resolved: 0, attended: 0, percent: 0 })
   })
 })
