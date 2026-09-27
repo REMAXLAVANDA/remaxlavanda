@@ -16,7 +16,14 @@ export { canManageRecruiting } from './roles'
 // Disqualified. Olumsuz = gerçek, görüşülmüş bir adaydı ama işe alınmadı,
 // lead kalitesiyle ilgisi yok -> Meta'ya HİÇBİR sinyal gitmez (zaten
 // İlk Görüşme'de Qualified gönderilmişti, o geçerliliğini koruyor).
-export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'yanlis_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'olumsuz']
+//
+// Sıralama (broker kararı, 2026-09-27, 2. revizyon): "Yanlış Başvuru" ilk
+// başta 2. sıradaydı, broker fikrini değiştirip EN SONA aldırdı — akış
+// mantığı (Yeni Başvuru -> İlk Görüşme -> İkinci Görüşme -> Olumsuz) önde,
+// hiç geçerli olmayan başvurular en arkada. Bu sıra hem kanban panosunun
+// hem üst filtrenin kolon/seçenek sırasını belirliyor (RECRUITING_DURUM_
+// SECILEBILIR üzerinden, bkz. RecruitingBoard/RecruitingFilters).
+export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'olumsuz', 'yanlis_basvuru']
 export const RECRUITING_DURUM_LABELS = {
   yeni_basvuru: 'Yeni Başvuru',
   yanlis_basvuru: 'Yanlış Başvuru',
