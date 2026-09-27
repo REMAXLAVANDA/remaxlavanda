@@ -7,6 +7,28 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — Panel: "hiç donma yaşanmasın" — sessiz yeniden deneme + kısmi hata toleransı
+
+Önceki zaman aşımı düzeltmesinin (bkz. 2026-09-24 kaydı) devamı — broker
+"hiç donma yaşanmasın istesek" diye sordu, 2 seçenekli bir plan sundum,
+onaylandı:
+
+- `hooks/useAsyncList.js`: tek 20 saniyelik zaman aşımı yerine, 8 saniyelik
+  deneme + (zaman aşımı ya da bağlantı hatasında, `kind: 'network'`) sessiz
+  BİR KEZ yeniden deneme. Anlık ağ takılmaları artık kullanıcıya hiç
+  yansımıyor; kalıcı sorun varsa yine en fazla ~16 sn'de hataya düşüyor.
+- `pages/Panel.jsx`: `loadAll()` artık `Promise.all` yerine
+  `Promise.allSettled` kullanıyor — 17 sorgudan biri kalıcı olarak
+  başarısız olsa bile geri kalanı normal render ediliyor (başarısız kısım
+  boş `[]` ile dolduruluyor), sayfanın üstünde küçük bir "Bazı veriler
+  yüklenemedi" şeridi + Tekrar Dene çıkıyor. Artık tek bir sorgu TÜM
+  sayfayı bloklamıyor.
+- Yeni `hooks/useAsyncList.test.js` testi (bağlantı hatasının sessizce
+  yeniden denenip ikinci seferde başarılı olması) + mevcut zaman aşımı
+  testi yeni süreye göre güncellendi.
+
+Migration yok — tamamen frontend.
+
 ## 2026-09-24 — Panel "sürekli donuyor" hatası: veri yüklemeye zaman aşımı eklendi
 
 Geri bildirim: Panel bazen "Yükleniyor..." ekranında süresiz takılı
