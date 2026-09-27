@@ -105,7 +105,7 @@ export default function RecruitingBoard({ candidates, resolveName, onCardClick, 
       )}
       <div className="flex gap-4 overflow-x-auto pb-2">
         {columns.map(({ durum, items }) => (
-        <div key={durum} className="flex w-72 shrink-0 flex-col rounded-2xl border border-border-default bg-surface-sunken">
+        <div key={durum} className="flex min-w-72 flex-1 shrink-0 flex-col rounded-2xl border border-border-default bg-surface-sunken">
           <div className="flex items-center justify-between gap-2 border-b border-border-default px-3.5 py-3">
             <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${RECRUITING_DURUM_STYLES[durum]}`}>
               {RECRUITING_DURUM_LABELS[durum]}

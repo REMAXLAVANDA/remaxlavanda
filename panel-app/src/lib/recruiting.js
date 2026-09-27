@@ -40,11 +40,19 @@ export const RECRUITING_DURUM_LABELS = {
 }
 // RE/MAX marka paletinden (kırmızı + mavi tonları) — mor/amber/sky/emerald
 // gibi markaya ait olmayan stok renkler yerine (bkz. AI_NOTLARI.md).
+//
+// Randevu/Karar Bekliyor BİLEREK birbirine YAKIN iki mavi değil, UZAK iki
+// ton (2026-09-27 düzeltme, broker: "üç kolonu daha anlaşılır bir renkle
+// ayrıştır" — eski blue-mid/blue çifti kanban'da yan yana durunca birbirine
+// çok benziyordu). Randevu = açık gök mavisi (canlı, "sürüyor" hissi),
+// Karar Bekliyor = koyu lacivert (ciddi, "karar eşiği" hissi) — aradaki
+// kontrast blue-mid/blue'dan çok daha belirgin, aynı zamanda akışın
+// ilerledikçe "koyulaşması" anlamlı bir sıra da taşıyor.
 export const RECRUITING_DURUM_STYLES = {
   yeni_basvuru: 'bg-ink-100 text-ink-600',
   yanlis_basvuru: 'bg-ink-200 text-ink-500',
-  ilk_gorusme: 'bg-remax-blue-mid/10 text-remax-blue-mid',
-  ikinci_gorusme: 'bg-remax-blue/10 text-remax-blue',
+  ilk_gorusme: 'bg-remax-blue-light/60 text-remax-blue-dark2',
+  ikinci_gorusme: 'bg-remax-navy/20 text-remax-navy',
   olumlu: 'bg-remax-navy/10 text-remax-navy',
   olumsuz: 'bg-remax-red-dark/10 text-remax-red-dark',
 }
