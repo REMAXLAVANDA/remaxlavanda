@@ -7,6 +7,30 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — RLS performans düzeltmesi (2. tur): sabahki fix'in atladığı auth.uid() çağrıları
+
+Broker: "danışman yine panelin açılmadığını söylüyor." Sabahki büyük RLS
+fix'i (`20260927160000_rls_initplan_performans_duzeltmesi.sql`)
+`current_user_role()`/`is_active()`/`is_manager()` ailesini `(select ...)`
+ile sarmalamıştı ama BİRÇOK politikadaki ÇIPLAK `auth.uid()` çağrılarını
+(ör. `assigned_to = auth.uid()`) atlamıştı — Supabase Performance
+Advisor'da 30 yeni `auth_rls_initplan` bulgusu bunu doğruladı. En çok
+etkilenen, danışmanın panel açar açmaz dokunduğu tablolar: **call_logs
+(Operasyon), tasks (Panel), opportunities (Fırsatlar)**.
+
+- Kanıt: `call_logs_select` politikası authenticated rolüyle EXPLAIN
+  ANALYZE edildiğinde hâlâ Seq Scan + satır başına filtre hesaplanıyordu
+  (assigned_to = auth.uid() InitPlan'a düşmüyordu).
+- Migration `20260927200000_rls_auth_uid_initplan_devami.sql` — 30
+  politikada `auth.uid()` → `(select auth.uid())`. Yetki mantığı BİREBİR
+  AYNI, sadece hesaplama sorgu başına bir kez yapılıyor.
+- Doğrulama: aynı EXPLAIN ANALYZE sonrası `auth.uid()` artık InitPlan'a
+  düşüyor (execution time ~2x düştü bu veri hacminde); Performance
+  Advisor'da `auth_rls_initplan` kategorisi tamamen temizlendi (30 → 0).
+- Ders: bir RLS initplan taramasında SADECE özel yardımcı fonksiyonları
+  değil, çıplak `auth.uid()`/`auth.jwt()`/`auth.role()` çağrılarını da
+  ayrıca aramak gerekiyor — ikisi ayrı bulgu türü.
+
 ## 2026-09-27 — Lead Havuzu: gün filtresi eklendi (ana liste + Yönlendirilenler ortak)
 
 Broker: "lead havuzunda da gün filtresi olsun... filtre her ikisini de
