@@ -1,21 +1,11 @@
 -- ============================================================================
 -- Recruiting aşama sadeleştirmesi — 7 aşamadan 6'ya (broker kararı,
 -- 2026-09-27): Yeni Başvuru / Yanlış Başvuru / İlk Görüşme / İkinci
--- Görüşme / Olumlu / Olumsuz. GERÇEK ADAY VERİSİNİ değiştirir (51 kayıt,
--- bkz. aşağıdaki eşleme) — bu yüzden CLAUDE.md kuralı gereği sadece
--- "onaylıyorum" YETMEZ, broker açıkça "bilgisayardayım, uygula" demeden bu
--- SQL çalıştırılmamalı.
+-- Görüşme / Olumlu / Olumsuz. GERÇEK ADAY VERİSİNİ değiştirir, bkz. aşağıdaki
+-- iki eşleme — bu yüzden CLAUDE.md kuralı gereği sadece "onaylıyorum" YETMEZ,
+-- broker açıkça "bilgisayardayım, uygula" demeden bu SQL çalıştırılmamalı.
 --
--- "Yanlış Başvuru" broker onaylı YENİ bir dal (spam/yanlış numara/hiç
--- geçerli olmayan başvuru — Meta'ya Disqualified gider, "Olumsuz"dan
--- BİLEREK ayrı: Olumsuz artık gerçek/görüşülmüş ama işe alınmamış adayı
--- ifade ediyor, Meta'ya sinyal göndermiyor). Mevcut 250 "olumsuz" kaydın
--- görüşülüp görüşülmediği bilgisi geriye dönük YOK — bu yüzden hiçbiri
--- otomatik "Yanlış Başvuru"ya ÇEVRİLMİYOR, olduğu gibi "olumsuz" kalıyor;
--- sadece bundan sonraki reddedilenler için danışman iki seçenek arasından
--- seçecek.
---
--- Eşleme (yeni_basvuru ve olumsuz DEĞİŞMİYOR, sadece taşıma):
+-- 1) Aşama isim taşıması (51 kayıt, sadece isim değişiyor):
 --   ilk_arama       (29 kayıt) -> ilk_gorusme
 --   on_gorusme      (11 kayıt) -> ikinci_gorusme
 --   ofis_tanitimi    (1 kayıt) -> ikinci_gorusme
@@ -24,6 +14,17 @@
 -- Henüz sonuçlanmamış her şey (Ön Görüşme/Ofis Tanıtımı/Karar Bekliyor)
 -- "İkinci Görüşme"de toplanıyor — kimse otomatik Olumlu/Olumsuz yapılmıyor,
 -- danışman gerçek duruma göre elle ilerletir.
+--
+-- 2) "Yanlış Başvuru" ayrımı (broker onaylı, 2026-09-27 görüşme): mevcut
+-- "olumsuz" kayıtların görüşülüp görüşülmediği bilgisi çoğunlukla geriye
+-- dönük yok — TEK güvenilir sinyal, takvime işlenmiş bir görüşme kaydı
+-- (gorusme_event_id dolu = gerçekten görüşülmüş = Olumsuz kalmalı).
+-- "Geçmiş" (arşivden taşınan, kayit_tipi='gecmis') kayıtlarda bu alan HİÇ
+-- güvenilir değil (takvime işleme özelliği sonradan eklendi, eski sistemde
+-- hiç kullanılmamış) — broker kararı: bunlar TAMAMEN dokunulmadan "olumsuz"
+-- kalsın. SADECE portal içinde oluşturulmuş (kayit_tipi IN ('manuel','lead'))
+-- ve hiç görüşme kaydı OLMAYAN "olumsuz" adaylar "yanlis_basvuru"ya taşınıyor
+-- (manuel: 64 kayıttan 20'si, lead: 50 kayıttan 42'si — toplam 62 kayıt).
 -- ============================================================================
 
 alter table public.recruiting_candidates drop constraint recruiting_candidates_durum_check;
@@ -38,6 +39,12 @@ set durum = case durum
   else durum
 end
 where durum in ('ilk_arama', 'on_gorusme', 'ofis_tanitimi', 'karar_bekliyor', 'evrak');
+
+update public.recruiting_candidates
+set durum = 'yanlis_basvuru'
+where durum = 'olumsuz'
+  and kayit_tipi in ('manuel', 'lead')
+  and gorusme_event_id is null;
 
 alter table public.recruiting_candidates
   add constraint recruiting_candidates_durum_check
