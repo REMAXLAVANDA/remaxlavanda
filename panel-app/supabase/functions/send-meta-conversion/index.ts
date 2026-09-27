@@ -13,10 +13,14 @@
 // aşamalar ARTIK Meta'ya hiç event göndermiyor — sadece iç takip, panelde
 // görünür ama Meta'ya gitmez.
 //
-// 2026-09-27 (3. revizyon): Recruiting 7 aşamadan 5'e sadeleşti (broker
+// 2026-09-27 (3. revizyon): Recruiting 7 aşamadan 6'ya sadeleşti (broker
 // kararı, bkz. AI_NOTLARI.md) — eski ilk_arama/evrak isimleri kalktı,
-// ilk_gorusme/olumlu oldu. 3 kademeli sinyal mantığı DEĞİŞMEDİ, sadece
-// hangi aşama adının hangi sinyali tetiklediği güncellendi.
+// ilk_gorusme/olumlu oldu, ayrıca "Yanlış Başvuru" (yanlis_basvuru) diye
+// yeni bir dal eklendi. "Olumsuz" (gerçek adaydı, görüşüldü, işe
+// alınmadı) ile "Yanlış Başvuru" (hiç geçerli bir aday değildi, spam/
+// yanlış numara) Meta için AYRI anlam taşıyor — sadece Yanlış Başvuru
+// lead kalitesinin kötü olduğunu söylüyor, Olumsuz söylemiyor (bkz.
+// aşağıdaki eşleme notu).
 //
 // Bu fonksiyon, aşağıdaki dört tablodan biri güncellendiğinde bir Database
 // Webhook trigger'ı tarafından çağrılır (bkz. migration
@@ -37,11 +41,12 @@
 //                                  (claimed'a artık event YOK — Qualified
 //                                  sinyali zaten call_logs'tan gitti)
 //   recruiting_candidates.durum:  ilk_gorusme=Qualified, olumlu=Converted,
-//                                  olumsuz=Disqualified
+//                                  yanlis_basvuru=Disqualified
+//                                  (olumsuz'a ARTIK event YOK — bkz. yukarı)
 //   leads.durum:                  elendi=Disqualified
 // Eşlemede olmayan bir geçiş (ör. 'yeni_basvuru', 'ikinci_gorusme',
-// opportunities.status='acik'/'claimed') SESSİZCE atlanır — Meta'ya
-// gönderilecek bir şey yok, hata değil.
+// 'olumsuz', opportunities.status='acik'/'claimed') SESSİZCE atlanır —
+// Meta'ya gönderilecek bir şey yok, hata değil.
 //
 // meta_lead_id boş olan (Meta kaynaklı olmayan — referans/telefon/web vb.)
 // kayıtlar da sessizce atlanır, hata değildir.
@@ -93,7 +98,7 @@ const OPPORTUNITY_STATUS_EVENTS: Record<string, string> = {
 const RECRUITING_DURUM_EVENTS: Record<string, string> = {
   ilk_gorusme: EVENT_QUALIFIED,
   olumlu: EVENT_CONVERTED,
-  olumsuz: EVENT_DISQUALIFIED,
+  yanlis_basvuru: EVENT_DISQUALIFIED,
 }
 
 // deno-lint-ignore no-explicit-any

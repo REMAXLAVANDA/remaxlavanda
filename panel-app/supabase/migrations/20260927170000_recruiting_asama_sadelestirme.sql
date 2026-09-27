@@ -1,9 +1,19 @@
 -- ============================================================================
--- Recruiting aşama sadeleştirmesi — 7 aşamadan 5'e (broker kararı,
--- 2026-09-27): Yeni Başvuru / İlk Görüşme / İkinci Görüşme / Olumlu /
--- Olumsuz. GERÇEK ADAY VERİSİNİ değiştirir (51 kayıt, bkz. aşağıdaki eşleme)
--- — bu yüzden CLAUDE.md kuralı gereği sadece "onaylıyorum" YETMEZ, broker
--- açıkça "bilgisayardayım, uygula" demeden bu SQL çalıştırılmamalı.
+-- Recruiting aşama sadeleştirmesi — 7 aşamadan 6'ya (broker kararı,
+-- 2026-09-27): Yeni Başvuru / Yanlış Başvuru / İlk Görüşme / İkinci
+-- Görüşme / Olumlu / Olumsuz. GERÇEK ADAY VERİSİNİ değiştirir (51 kayıt,
+-- bkz. aşağıdaki eşleme) — bu yüzden CLAUDE.md kuralı gereği sadece
+-- "onaylıyorum" YETMEZ, broker açıkça "bilgisayardayım, uygula" demeden bu
+-- SQL çalıştırılmamalı.
+--
+-- "Yanlış Başvuru" broker onaylı YENİ bir dal (spam/yanlış numara/hiç
+-- geçerli olmayan başvuru — Meta'ya Disqualified gider, "Olumsuz"dan
+-- BİLEREK ayrı: Olumsuz artık gerçek/görüşülmüş ama işe alınmamış adayı
+-- ifade ediyor, Meta'ya sinyal göndermiyor). Mevcut 250 "olumsuz" kaydın
+-- görüşülüp görüşülmediği bilgisi geriye dönük YOK — bu yüzden hiçbiri
+-- otomatik "Yanlış Başvuru"ya ÇEVRİLMİYOR, olduğu gibi "olumsuz" kalıyor;
+-- sadece bundan sonraki reddedilenler için danışman iki seçenek arasından
+-- seçecek.
 --
 -- Eşleme (yeni_basvuru ve olumsuz DEĞİŞMİYOR, sadece taşıma):
 --   ilk_arama       (29 kayıt) -> ilk_gorusme
@@ -31,4 +41,4 @@ where durum in ('ilk_arama', 'on_gorusme', 'ofis_tanitimi', 'karar_bekliyor', 'e
 
 alter table public.recruiting_candidates
   add constraint recruiting_candidates_durum_check
-  check (durum = any (array['yeni_basvuru'::text, 'ilk_gorusme'::text, 'ikinci_gorusme'::text, 'olumlu'::text, 'olumsuz'::text]));
+  check (durum = any (array['yeni_basvuru'::text, 'yanlis_basvuru'::text, 'ilk_gorusme'::text, 'ikinci_gorusme'::text, 'olumlu'::text, 'olumsuz'::text]));

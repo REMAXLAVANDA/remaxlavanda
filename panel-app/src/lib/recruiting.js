@@ -3,15 +3,23 @@
 // BİLEREK ayrı bir fonksiyona bölündü — bkz. lib/roles.js.
 export { canManageRecruiting } from './roles'
 
-// 5 aşamalı basitleştirilmiş huni (2026-09-27, broker kararı — eski 7
+// 6 aşamalı basitleştirilmiş huni (2026-09-27, broker kararı — eski 7
 // aşamalı huniden geldi, bkz. AI_NOTLARI.md "Recruiting aşama sadeleştirme").
 // Ara aşamalar (eski Ön Görüşme/Ofis Tanıtımı/Karar Bekliyor) TEK bir
 // "İkinci Görüşme" aşamasında toplandı — henüz sonuçlanmamış her şey burada,
 // danışman gerçek duruma göre Olumlu/Olumsuz'a ilerletir. GD Onboarding
 // devri (eski 'evrak' notu) artık 'olumlu' aşamasında.
-export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'olumsuz']
+//
+// "Yanlış Başvuru" BİLEREK "Olumsuz"dan AYRI — ikisi Meta'ya farklı anlam
+// taşıyor (bkz. AI_NOTLARI.md): Yanlış Başvuru = hiç geçerli bir aday
+// değildi (spam/yanlış numara), lead kalitesi kötüydü -> Meta'ya
+// Disqualified. Olumsuz = gerçek, görüşülmüş bir adaydı ama işe alınmadı,
+// lead kalitesiyle ilgisi yok -> Meta'ya HİÇBİR sinyal gitmez (zaten
+// İlk Görüşme'de Qualified gönderilmişti, o geçerliliğini koruyor).
+export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'yanlis_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'olumsuz']
 export const RECRUITING_DURUM_LABELS = {
   yeni_basvuru: 'Yeni Başvuru',
+  yanlis_basvuru: 'Yanlış Başvuru',
   ilk_gorusme: 'İlk Görüşme',
   ikinci_gorusme: 'İkinci Görüşme',
   olumlu: 'Olumlu',
@@ -21,6 +29,7 @@ export const RECRUITING_DURUM_LABELS = {
 // gibi markaya ait olmayan stok renkler yerine (bkz. AI_NOTLARI.md).
 export const RECRUITING_DURUM_STYLES = {
   yeni_basvuru: 'bg-ink-100 text-ink-600',
+  yanlis_basvuru: 'bg-ink-200 text-ink-500',
   ilk_gorusme: 'bg-remax-blue-mid/10 text-remax-blue-mid',
   ikinci_gorusme: 'bg-remax-blue/10 text-remax-blue',
   olumlu: 'bg-remax-navy/10 text-remax-navy',
