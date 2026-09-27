@@ -66,3 +66,24 @@ export const MOCK_RECRUITING_CANDIDATES = [
     aciklama: '[Arşivden taşındı]\nEski kaynak: Instagram',
   },
 ]
+
+// Görüşme notları günlüğü (2026-09-27, broker kararı — "parça parça
+// ekleyelim, ne yaptı kaç görüşme yapıldı görülmeli") — recruiting_
+// candidate_notes tablosunun mock karşılığı, candidateId'ye göre ayrı
+// satırlar, EN YENİ ÜSTTE.
+export const MOCK_RECRUITING_NOTES = [
+  {
+    id: 101,
+    candidateId: 2,
+    notMetni: 'İkinci görüşme yapıldı, maaş beklentisi teklifimizin üzerinde.',
+    createdBy: 'u-broker',
+    createdAt: daysAgo(2),
+  },
+  {
+    id: 100,
+    candidateId: 2,
+    notMetni: 'İlk görüşme yapıldı, deneyimi uygun görünüyor, ikinci görüşme planlandı.',
+    createdBy: 'u-broker',
+    createdAt: daysAgo(3),
+  },
+]

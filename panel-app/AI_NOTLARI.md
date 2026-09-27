@@ -7,6 +7,39 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — Recruiting: birikimli "Görüşme Notları" günlüğü + kaynak eşleme düzeltmesi
+
+Broker: "bir danışmanla yapılan görüşmelerin randevuların notlarını parça
+parça ekleyelim, ne yaptı kaç görüşme yapıldı görülmeli." Mevcut tek
+satırlık `aciklama` alanı her düzenlemede ÜZERİNE YAZILIYORDU — bunun
+YERİNE geçmiyor, EK bir append-only günlük eklendi:
+
+- Yeni tablo `recruiting_candidate_notes` (migration
+  `20260927190000_recruiting_gorusme_notlari.sql`) — candidate_id, not_metni,
+  created_by, created_at. Görme/ekleme `recruiting_manage` ile AYNI
+  (broker/owner/ofis), **silme SADECE broker/owner** (broker onaylı: "yanlışlıkla
+  eklenmiş bir notu sadece broker/owner silebilir").
+- `RecruitingDetailModal`'da "Görüşme Notları" bölümü — en yeni üstte,
+  yazan+tarih+metin, "Ekle" ana Kaydet formundan BAĞIMSIZ (ayrı
+  noteSubmitting state, ayrı buton) çalışıyor.
+- Kanban kartında not sayısı rozeti (💬 N) — karta tıklamadan "kaç görüşme
+  yapıldığı" görünsün diye (broker: "kaç görüşme yapıldığı görülmeli").
+  Notlar `loadAll()`'da candidates/events ile BİRLİKTE tek seferde
+  yükleniyor, ayrı bir lazy-load adımı yok.
+- Mock modda Playwright ile doğrulandı: not ekleme sayaç ve listeyi anında
+  güncelliyor, silme ikonu sadece broker/owner'da görünüyor.
+
+**Ayrıca aynı gün fark edilen bir veri hatası düzeltildi**: broker "neden
+kaynak Meta'yken Diğer işaretli" diye sordu — Lead Havuzu'ndan Recruiting'e
+dönüşürken `lead.kaynak='meta_portfoy'` (Meta'dan portföy ilgisiyle gelen
+lead) `LEAD_TO_RECRUITING_KAYNAK` eşlemesinde YANLIŞLIKLA `'diger'`e
+düşüyordu (recruiting'in kaynak listesinde ayrı bir "meta portföy"
+seçeneği hiç yoktu). `meta_portfoy` artık `'meta_recruiting'`e eşleniyor
+(hangi kampanyadan geldiği zaten reklamAdi/kampanyaKodu'nda ayrı duruyor).
+Halihazırda yanlış "Diğer" görünen 6 kayıt (id 601, 611-615) geriye dönük
+`meta_recruiting`'e düzeltildi (küçük, ID'yle hedefli UPDATE, broker
+onaylı).
+
 ## 2026-09-27 — Recruiting: filtre çubuğu, aşama düzeni ve etiketler ince ayarı
 
 Aynı gün içinde broker'dan gelen art arda küçük düzeltmeler:

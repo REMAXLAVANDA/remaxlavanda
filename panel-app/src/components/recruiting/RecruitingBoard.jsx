@@ -1,3 +1,4 @@
+import { MessageSquare } from 'lucide-react'
 import { RECRUITING_DURUM_SECILEBILIR, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
 // Lead Havuzu'ndan dönüşen bir adayın hangi reklamdan geldiği — RecruitingTable
@@ -10,7 +11,7 @@ function candidateDateLabel(createdAt) {
   return new Date(createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function CandidateCard({ c, resolveName, onClick, showCampaign }) {
+function CandidateCard({ c, resolveName, onClick, showCampaign, noteCount }) {
   return (
     <div
       onClick={() => onClick(c)}
@@ -24,7 +25,16 @@ function CandidateCard({ c, resolveName, onClick, showCampaign }) {
       }}
       className="cursor-pointer rounded-xl border border-border-default bg-surface-raised p-3 outline-none transition-colors hover:border-brand-300 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-brand-400"
     >
-      <p className="truncate text-sm font-medium text-text-primary">{c.adSoyad}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="truncate text-sm font-medium text-text-primary">{c.adSoyad}</p>
+        {/* Kaç görüşme yapıldığı kart üzerinden, tıklamadan görünsün diye
+            (broker kararı: "ne yaptı kaç görüşme yapıldı görülmeli"). */}
+        {noteCount > 0 && (
+          <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-ink-100 px-1.5 py-0.5 text-[11px] font-medium text-ink-500">
+            <MessageSquare size={11} /> {noteCount}
+          </span>
+        )}
+      </div>
       <p className="mt-0.5 text-xs text-text-secondary">{c.telefon ?? '—'}</p>
       <div className="mt-2 flex items-center justify-between gap-2 text-xs text-text-disabled">
         <span className="truncate">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</span>
@@ -51,7 +61,7 @@ function CandidateCard({ c, resolveName, onClick, showCampaign }) {
 // olumluya geçince artık gerçek bir kullanıcı — hikayesi Ayarlar >
 // Kullanıcılar'da (kaynak alanıyla) devam ediyor, Recruiting panosunda
 // kartı kalmıyor.
-export default function RecruitingBoard({ candidates, resolveName, onCardClick, showCampaign }) {
+export default function RecruitingBoard({ candidates, resolveName, onCardClick, showCampaign, noteCounts = {} }) {
   if (candidates.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
@@ -80,7 +90,14 @@ export default function RecruitingBoard({ candidates, resolveName, onCardClick, 
               <p className="px-1 py-3 text-center text-xs text-text-disabled">Aday yok</p>
             ) : (
               items.map((c) => (
-                <CandidateCard key={c.id} c={c} resolveName={resolveName} onClick={onCardClick} showCampaign={showCampaign} />
+                <CandidateCard
+                  key={c.id}
+                  c={c}
+                  resolveName={resolveName}
+                  onClick={onCardClick}
+                  showCampaign={showCampaign}
+                  noteCount={noteCounts[c.id]}
+                />
               ))
             )}
           </div>

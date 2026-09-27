@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { RotateCcw, Info, CalendarClock } from 'lucide-react'
+import { RotateCcw, Info, CalendarClock, MessageSquare, Trash2 } from 'lucide-react'
 import Modal from '../common/Modal'
 import { formatPhoneInput } from '../../lib/phone'
-import { capitalizeWords, capitalizeFirst, formatDateOnly } from '../../lib/format'
+import { capitalizeWords, capitalizeFirst, formatDateOnly, relativeTime } from '../../lib/format'
 import {
   RECRUITING_DURUM_SECILEBILIR,
   RECRUITING_DURUM_LABELS,
@@ -57,8 +57,15 @@ export default function RecruitingDetailModal({
   onReactivate,
   onConvertToDanisman,
   submitting,
+  notes = [],
+  resolveName,
+  onAddNote,
+  onDeleteNote,
+  noteSubmitting,
+  canDeleteNotes,
 }) {
   const interviewParts = toDateTimeParts(interviewEvent?.startAt)
+  const [newNote, setNewNote] = useState('')
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
@@ -215,6 +222,64 @@ export default function RecruitingDetailModal({
           >
             Danışman Olarak Ekle
           </button>
+        )}
+
+        {/* Görüşme notları — açıklama alanından AYRI, birikimli günlük
+            (broker kararı: "parça parça ekleyelim, ne yaptı kaç görüşme
+            yapıldı görülmeli"). SADECE kayıtlı bir adayda görünür — henüz
+            kaydedilmemiş yeni adayda not eklenecek bir candidate.id yok. */}
+        {candidate && (
+          <div className="rounded-lg border border-ink-200 p-3">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-500">
+              <MessageSquare size={13} /> Görüşme Notları
+              <span className="font-normal text-ink-400">({notes.length})</span>
+            </p>
+            {notes.length > 0 && (
+              <div className="mb-2 max-h-48 space-y-2 overflow-y-auto">
+                {notes.map((n) => (
+                  <div key={n.id} className="rounded-lg bg-ink-50 p-2 text-xs">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-ink-400">
+                      <span className="font-medium text-ink-600">{resolveName?.(n.createdBy) ?? '—'}</span>
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        {relativeTime(n.createdAt)}
+                        {canDeleteNotes && (
+                          <button
+                            type="button"
+                            onClick={() => onDeleteNote(n.id)}
+                            title="Notu sil"
+                            className="rounded p-0.5 text-ink-300 hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </span>
+                    </div>
+                    <p className="whitespace-pre-wrap text-ink-800">{n.notMetni}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Görüşme/randevu notu ekle..."
+                rows={2}
+                className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-800 placeholder:text-ink-400"
+              />
+              <button
+                type="button"
+                disabled={!newNote.trim() || noteSubmitting}
+                onClick={() => {
+                  onAddNote(capitalizeFirst(newNote.trim()))
+                  setNewNote('')
+                }}
+                className="shrink-0 self-start rounded-lg bg-ink-100 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
+              >
+                Ekle
+              </button>
+            </div>
+          </div>
         )}
 
         <div>

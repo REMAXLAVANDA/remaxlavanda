@@ -705,6 +705,38 @@ export const recruiting = {
     const data = await run(client().from('recruiting_candidates').update(dbPatch).eq('id', id).select().single())
     return mapCandidate(data)
   },
+  // Görüşme notları günlüğü (recruiting_candidate_notes, bkz. migration
+  // 20260927190000) — aciklama'dan AYRI, birikimli/append-only. listNotes()
+  // TÜM adayların notlarını tek seferde döner (candidates ile aynı desen,
+  // bkz. mockProvider notu) — kart rozetindeki sayı ve detaydaki liste aynı
+  // veriden türer. Silme RLS'te SADECE broker/owner'a açık, deleteNote()
+  // ofis'ten çağrılırsa sunucu sessizce reddeder (0 satır silinir).
+  async listNotes() {
+    const data = await run(
+      client().from('recruiting_candidate_notes').select('*').order('created_at', { ascending: false }),
+    )
+    return data.map((n) => ({
+      id: n.id,
+      candidateId: n.candidate_id,
+      notMetni: n.not_metni,
+      createdBy: n.created_by,
+      createdAt: n.created_at,
+    }))
+  },
+  async addNote({ candidateId, notMetni }, createdBy) {
+    const data = await run(
+      client()
+        .from('recruiting_candidate_notes')
+        .insert({ candidate_id: candidateId, not_metni: notMetni, created_by: createdBy })
+        .select()
+        .single(),
+    )
+    return { id: data.id, candidateId: data.candidate_id, notMetni: data.not_metni, createdBy: data.created_by, createdAt: data.created_at }
+  },
+  async deleteNote(id) {
+    await run(client().from('recruiting_candidate_notes').delete().eq('id', id))
+    return { id }
+  },
 }
 
 // --- Docs (Rehber) ------------------------------------------------------------

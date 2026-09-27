@@ -15,7 +15,7 @@ import {
 } from '../../data/mockEducation'
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_LEADS } from '../../data/mockLeads'
-import { MOCK_RECRUITING_CANDIDATES } from '../../data/mockRecruiting'
+import { MOCK_RECRUITING_CANDIDATES, MOCK_RECRUITING_NOTES } from '../../data/mockRecruiting'
 import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
@@ -489,6 +489,24 @@ export const recruiting = {
     if (!row) throw new Error('Aday bulunamadı.')
     Object.assign(row, patch)
     return delay({ ...row })
+  },
+  // Görüşme notları günlüğü — açıklama alanından AYRI, birikimli (bkz.
+  // mockRecruiting.js notu). listNotes() TÜM adayların notlarını döner
+  // (candidates ile aynı desen), sayfa tarafında candidateId'ye göre
+  // filtrelenir — hem kart rozetindeki sayı hem detaydaki liste aynı
+  // veriden türer.
+  async listNotes() {
+    return delay([...MOCK_RECRUITING_NOTES].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  },
+  async addNote({ candidateId, notMetni }, createdBy) {
+    const row = { id: Date.now(), candidateId, notMetni, createdBy, createdAt: new Date().toISOString() }
+    MOCK_RECRUITING_NOTES.unshift(row)
+    return delay(row)
+  },
+  async deleteNote(id) {
+    const idx = MOCK_RECRUITING_NOTES.findIndex((n) => n.id === id)
+    if (idx !== -1) MOCK_RECRUITING_NOTES.splice(idx, 1)
+    return delay({ id })
   },
 }
 

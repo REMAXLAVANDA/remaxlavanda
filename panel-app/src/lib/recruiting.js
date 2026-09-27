@@ -120,13 +120,19 @@ export function matchesKayitTipiFilter(candidate, filterValue) {
 // listesine deterministik çevirir — form boş açılıp elle doldurmaya
 // bırakılmıyor (unutulup veri kirlenmesin diye), personel isterse formda
 // yine değiştirebilir.
+// "meta_portfoy" (Meta'dan portföy/gayrimenkul ilgisiyle gelen lead) BİLEREK
+// 'diger' DEĞİL 'meta_recruiting'e eşleniyor (2026-09-27 düzeltme, broker:
+// "neden kaynak metayken diğer işaretli") — hangi Meta kampanyasından
+// geldiği (recruiting mi portföy mü) zaten reklamAdi/kampanyaKodu'nda ayrı
+// duruyor, kaynak alanı sadece "Meta'dan mı geldi" bilgisini taşıyor,
+// bunu 'diger'e düşürmek kaynağı gizliyordu.
 export const LEAD_TO_RECRUITING_KAYNAK = {
   meta_recruiting: 'meta_recruiting',
   telefon: 'santral',
   referans: 'referans',
   web: 'diger',
   tabela: 'diger',
-  meta_portfoy: 'diger',
+  meta_portfoy: 'meta_recruiting',
   diger: 'diger',
 }
 

@@ -25,14 +25,25 @@ import { LoadingState, ErrorState } from '../components/common/AsyncState'
 // bırakıyor, ayrı bir kayıt-tipi filtresine gerek kalmadı. "Tümü" seçilirse
 // arşiv de dahil her şey görünür.
 const INITIAL_FILTERS = { durum: 'tumu', atananId: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
+// noteCounts useMemo'nun deps'i her render'da yeni bir [] referansıyla
+// "değişti" sanmasın diye — data henüz yüklenmemişken sabit bir referans.
+const EMPTY_NOTES = []
 
 // Adayın "Görüşme / Randevu Tarihi" alanı doldurulunca Takvim'de bir
 // 'recruiting_gorusmesi' etkinliği oluşuyor/güncelleniyor — candidate +
 // events BİRLİKTE yükleniyor ki düzenlerken var olan tarih önceden dolu
-// gelsin (bkz. RecruitingDetailModal interviewEvent notu).
+// gelsin (bkz. RecruitingDetailModal interviewEvent notu). notes de aynı
+// mantıkla BİRLİKTE yükleniyor — TÜM adayların notları tek seferde gelir
+// (candidates gibi), hem kart rozetindeki sayı hem detaydaki liste aynı
+// state'ten türer, ayrı bir "notu şimdi yükle" adımı yok (bkz. broker
+// kararı: "ne yaptı kaç görüşme yapıldı görülmeli").
 async function loadAll() {
-  const [candidates, events] = await Promise.all([recruitingProvider.list(), calendarProvider.list()])
-  return { candidates, events }
+  const [candidates, events, notes] = await Promise.all([
+    recruitingProvider.list(),
+    calendarProvider.list(),
+    recruitingProvider.listNotes(),
+  ])
+  return { candidates, events, notes }
 }
 
 export default function Recruiting() {
@@ -42,13 +53,28 @@ export default function Recruiting() {
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const candidates = data?.candidates ?? []
   const events = data?.events ?? []
+  const notes = data?.notes ?? EMPTY_NOTES
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
   const [editingCandidate, setEditingCandidate] = useState(null)
   const [convertingCandidate, setConvertingCandidate] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [noteSubmitting, setNoteSubmitting] = useState(false)
 
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
+  // Kart rozetindeki "kaç görüşme yapıldı" sayısı — notes tek seferde
+  // yüklenen TAM listeden türetiliyor (bkz. loadAll notu), candidateId'ye
+  // göre gruplanıyor.
+  const noteCounts = useMemo(() => {
+    const counts = {}
+    for (const n of notes) counts[n.candidateId] = (counts[n.candidateId] ?? 0) + 1
+    return counts
+  }, [notes])
+  const editingCandidateNotes = editingCandidate ? notes.filter((n) => n.candidateId === editingCandidate.id) : []
+  // Silme SADECE broker/owner (bkz. migration recruiting_notes_delete RLS'i
+  // — ofis'ten gelen bir silme isteği sunucuda zaten reddedilir, buradaki
+  // kontrol sadece butonu göstermemek için, ikinci savunma katmanı DB'de).
+  const canDeleteNotes = role === ROLES.BROKER || role === ROLES.OWNER
   // Reklam/kampanya bilgisi SADECE broker/owner'a görünsün — ofis Recruiting'e
   // erişebiliyor (canManageRecruiting) ama bu bilgi onun işi değil (bkz.
   // "danışman görmesine gerek yok, broker ve owner görebilsin" isteği —
@@ -197,6 +223,33 @@ export default function Recruiting() {
     }
   }
 
+  // Görüşme notları — açıklama alanından AYRI, birikimli günlük (bkz.
+  // migration 20260927190000, broker: "parça parça ekleyelim, ne yaptı
+  // kaç görüşme yapıldı görülmeli"). Kaydet/submitting'ten AYRI bir
+  // noteSubmitting kullanılıyor ki not eklerken ana "Kaydet" butonu
+  // gereksiz yere pasifleşmesin.
+  async function handleAddNote(notMetni) {
+    if (!editingCandidate) return
+    setNoteSubmitting(true)
+    try {
+      const created = await recruitingProvider.addNote({ candidateId: editingCandidate.id, notMetni }, user.id)
+      setData((prev) => ({ ...prev, notes: [created, ...prev.notes] }))
+    } catch (err) {
+      showToast(err.message ?? 'Not eklenemedi, tekrar dene.', 'error')
+    } finally {
+      setNoteSubmitting(false)
+    }
+  }
+
+  async function handleDeleteNote(noteId) {
+    try {
+      await recruitingProvider.deleteNote(noteId)
+      setData((prev) => ({ ...prev, notes: prev.notes.filter((n) => n.id !== noteId) }))
+    } catch (err) {
+      showToast(err.message ?? 'Not silinemedi, tekrar dene.', 'error')
+    }
+  }
+
   // Lead Havuzu ile aynı ikinci savunma katmanı — recruiting_manage RLS'i
   // zaten veriyi engelliyor (bkz. lib/recruiting.js canManageRecruiting).
   if (!canManageRecruiting(role)) return <Navigate to="/panel" replace />
@@ -217,7 +270,13 @@ export default function Recruiting() {
             />
           </div>
 
-          <RecruitingBoard candidates={visible} resolveName={resolveName} onCardClick={setEditingCandidate} showCampaign={showCampaign} />
+          <RecruitingBoard
+            candidates={visible}
+            resolveName={resolveName}
+            onCardClick={setEditingCandidate}
+            showCampaign={showCampaign}
+            noteCounts={noteCounts}
+          />
         </>
       )}
 
@@ -234,6 +293,12 @@ export default function Recruiting() {
           onReactivate={handleReactivate}
           onConvertToDanisman={handleConvertToDanisman}
           submitting={submitting}
+          notes={editingCandidateNotes}
+          resolveName={resolveName}
+          onAddNote={handleAddNote}
+          onDeleteNote={handleDeleteNote}
+          noteSubmitting={noteSubmitting}
+          canDeleteNotes={canDeleteNotes}
         />
       )}
 
