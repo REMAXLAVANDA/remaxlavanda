@@ -2,27 +2,42 @@
 // Deploy: supabase functions deploy send-meta-conversion --no-verify-jwt
 //
 // Portal -> Meta CAPI (geri bildirim) — 2026-09-27 broker onaylı kapsam:
-// SADECE lead durumu (nitelikli/görüşme planlandı/kapandı/kayıp), parasal
-// değer YOK (ayrı bir aşamada ele alınacak). meta-leads-webhook'un tersi
-// yönü: orada Meta -> bize, burada biz -> Meta.
+// SADECE lead durumu, parasal değer YOK (ayrı bir aşamada ele alınacak).
+// meta-leads-webhook'un tersi yönü: orada Meta -> bize, burada biz -> Meta.
 //
-// Bu fonksiyon, aşağıdaki üç tablodan biri güncellendiğinde bir Database
+// 2026-09-27 (2. revizyon): Meta'nın danışmanına göre 3 kademeli sinyal
+// modeline geçildi — Meta'nın lead-gen dikeyleri için önerdiği standart
+// huni (Lead -> Qualified -> Converted) ile örtüşüyor, ve haftalık hacim
+// düşük olduğu için (Meta'nın öğrenme eşiği ad-set başına ~50 event/hafta)
+// çok parçalı bir event listesi her birini eşiğin altında bırakıyordu. Ara
+// aşamalar (2. Görüşme, Ofis Tanıtımı, Karar Bekliyor vb.) ARTIK Meta'ya
+// hiç event göndermiyor — sadece iç takip, panelde görünür ama Meta'ya
+// gitmez.
+//
+// Bu fonksiyon, aşağıdaki dört tablodan biri güncellendiğinde bir Database
 // Webhook trigger'ı tarafından çağrılır (bkz. migration
-// 20260927120000_meta_capi_geri_bildirim.sql):
-//   - public.opportunities   (status değişince)   — Portföy lead'leri
+// 20260927120000_meta_capi_geri_bildirim.sql ve call_logs trigger'ı için
+// ayrı, sonraki migration):
+//   - public.call_logs       (donus_yapildi_mi/portfoy_alindi_mi değişince)
+//                             — Portföy lead'leri, Operasyon aşaması
+//   - public.opportunities   (status değişince)   — Portföy lead'leri, Fırsat aşaması
 //   - public.recruiting_candidates (durum değişince) — Recruiting lead'leri
 //   - public.leads           (durum='elendi' olunca) — dönüşmeden erken
 //     elenen lead'ler
 //
-// Durum -> Meta event eşlemesi (broker onaylı, bkz. AI_NOTLARI.md):
-//   opportunities.status:        claimed=nitelikli, kapandi=kapandı, iptal=kayıp
-//   recruiting_candidates.durum: ilk_arama=nitelikli, on_gorusme=görüşme
-//                                planlandı, evrak=kapandı, olumsuz=kayıp
-//   leads.durum:                 elendi=kayıp
-// Eşlemede olmayan bir geçiş (ör. 'ofis_tanitimi', 'karar_bekliyor') SESSİZCE
-// atlanır — Meta'ya gönderilecek bir şey yok, hata değil. Portföy'de
-// "görüşme planlandı" karşılığı YOK (opportunities.status bunu ayrı bir
-// aşama olarak tutmuyor) — bilinen, kabul edilmiş bir boşluk (broker onaylı).
+// Durum -> Meta event eşlemesi (broker + danışman onaylı, bkz. AI_NOTLARI.md):
+//   call_logs:                    portfoy_alindi_mi=true → Converted (önce
+//                                  kontrol edilir), yoksa donus_yapildi_mi=true
+//                                  → Qualified
+//   opportunities.status:         kapandi=Converted, iptal=Disqualified
+//                                  (claimed'a artık event YOK — Qualified
+//                                  sinyali zaten call_logs'tan gitti)
+//   recruiting_candidates.durum:  ilk_arama=Qualified, evrak=Converted,
+//                                  olumsuz=Disqualified
+//   leads.durum:                  elendi=Disqualified
+// Eşlemede olmayan bir geçiş (ör. 'ofis_tanitimi', 'karar_bekliyor',
+// 'on_gorusme', opportunities.status='acik'/'claimed') SESSİZCE atlanır —
+// Meta'ya gönderilecek bir şey yok, hata değil.
 //
 // meta_lead_id boş olan (Meta kaynaklı olmayan — referans/telefon/web vb.)
 // kayıtlar da sessizce atlanır, hata değildir.
@@ -38,9 +53,9 @@
 //                            CAPI yazma için ayrı bir token gerekebilir).
 //   META_PIXEL_ID            CAPI event'lerinin gönderileceği Pixel/Dataset ID.
 //   META_GRAPH_API_VERSION   meta-leads-webhook ile AYNI env var (ör. "v25.0").
-//   META_CAPI_EVENT_QUALIFIED / _SCHEDULED / _WON / _LOST
+//   META_CAPI_EVENT_QUALIFIED / _CONVERTED / _DISQUALIFIED
 //                            Meta'ya gönderilecek event adları — Meta'da bu
-//                            dört isim için sabit bir standart YOK, Events
+//                            üç isim için sabit bir standart YOK, Events
 //                            Manager'da kendi custom conversion'larınızı bu
 //                            isimlerle tanımlamanız gerekiyor. Varsayılanlar
 //                            aşağıda; pazarlama tarafı farklı isim isterse
@@ -62,22 +77,19 @@ const META_CAPI_ACCESS_TOKEN = Deno.env.get('META_CAPI_ACCESS_TOKEN') ?? ''
 const META_PIXEL_ID = Deno.env.get('META_PIXEL_ID') ?? ''
 const GRAPH_API_VERSION = Deno.env.get('META_GRAPH_API_VERSION') || 'v25.0'
 
-const EVENT_QUALIFIED = Deno.env.get('META_CAPI_EVENT_QUALIFIED') || 'QualifiedLead'
-const EVENT_SCHEDULED = Deno.env.get('META_CAPI_EVENT_SCHEDULED') || 'MeetingScheduled'
-const EVENT_WON = Deno.env.get('META_CAPI_EVENT_WON') || 'ClosedWon'
-const EVENT_LOST = Deno.env.get('META_CAPI_EVENT_LOST') || 'Disqualified'
+const EVENT_QUALIFIED = Deno.env.get('META_CAPI_EVENT_QUALIFIED') || 'Qualified'
+const EVENT_CONVERTED = Deno.env.get('META_CAPI_EVENT_CONVERTED') || 'Converted'
+const EVENT_DISQUALIFIED = Deno.env.get('META_CAPI_EVENT_DISQUALIFIED') || 'Disqualified'
 
 const OPPORTUNITY_STATUS_EVENTS: Record<string, string> = {
-  claimed: EVENT_QUALIFIED,
-  kapandi: EVENT_WON,
-  iptal: EVENT_LOST,
+  kapandi: EVENT_CONVERTED,
+  iptal: EVENT_DISQUALIFIED,
 }
 
 const RECRUITING_DURUM_EVENTS: Record<string, string> = {
   ilk_arama: EVENT_QUALIFIED,
-  on_gorusme: EVENT_SCHEDULED,
-  evrak: EVENT_WON,
-  olumsuz: EVENT_LOST,
+  evrak: EVENT_CONVERTED,
+  olumsuz: EVENT_DISQUALIFIED,
 }
 
 // deno-lint-ignore no-explicit-any
@@ -139,10 +151,19 @@ async function resolveMetaLeadId(admin: any, table: string, record: Record<strin
   return data?.meta_lead_id ?? null
 }
 
+// call_logs: portfoy_alindi_mi ve donus_yapildi_mi AYNI UPDATE'te birlikte
+// true olabilir (ör. danışman ikisini tek seferde işaretlerse) — bu yüzden
+// Converted (daha ileri aşama) önce kontrol edilir, aksi halde iki aşama
+// da tek bir "Görüşüldü" sinyaline düşer ve "Alındı" hiç Meta'ya gitmez.
 function resolveEventName(table: string, record: Record<string, unknown>): string | null {
   if (table === 'opportunities') return OPPORTUNITY_STATUS_EVENTS[String(record.status)] ?? null
   if (table === 'recruiting_candidates') return RECRUITING_DURUM_EVENTS[String(record.durum)] ?? null
-  if (table === 'leads') return record.durum === 'elendi' ? EVENT_LOST : null
+  if (table === 'leads') return record.durum === 'elendi' ? EVENT_DISQUALIFIED : null
+  if (table === 'call_logs') {
+    if (record.portfoy_alindi_mi === true) return EVENT_CONVERTED
+    if (record.donus_yapildi_mi === true) return EVENT_QUALIFIED
+    return null
+  }
   return null
 }
 

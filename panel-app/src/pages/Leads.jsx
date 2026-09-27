@@ -46,14 +46,18 @@ async function loadAll() {
 }
 
 // Operasyon'a düşen bir çağrının Lead Havuzu'ndaki "aşama" karşılığı —
-// call_logs kendi durum enum'una sahip değil (bkz. lib/callLogs.js), üç
-// ayrı alandan (opportunityId/portfoyAlindiMi/donusYapildiMi) tek bir
-// rozet üretiyoruz.
-function callProcessLabel(call) {
-  if (call.opportunityId) return { label: 'Fırsata Dönüştü', style: 'bg-emerald-50 text-emerald-700', module: 'firsatlar' }
-  if (call.portfoyAlindiMi) return { label: 'Portföy Alındı', style: 'bg-emerald-50 text-emerald-700', module: 'operasyon' }
-  if (call.donusYapildiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700', module: 'operasyon' }
-  return { label: "Operasyon'da Bekliyor", style: 'bg-ink-100 text-ink-600', module: 'operasyon' }
+// broker + danışman onaylı 4 kademeli model (bkz. AI_NOTLARI.md, "sağlıklı/
+// aşama" görüşmesi): Yeni Başvuru / Görüşüldü / Alındı / Olumsuz. Operasyon'un
+// mevcut iki alanına (donusYapildiMi/portfoyAlindiMi) DOKUNULMADI — bu SADECE
+// o iki alandan (+ bağlı fırsatın durumundan) türetilen salt-okunur bir özet.
+// "Ulaşılamadı" (donusYapildiMi===false) BİLEREK "Olumsuz" sayılmıyor — henüz
+// gerçek bir ret değil, süreç devam ediyor (broker onayı: 2026-09-27).
+function callProcessLabel(call, opportunities) {
+  if (!call.donusYapildiMi) return { label: 'Yeni Başvuru', style: 'bg-ink-100 text-ink-600', module: 'operasyon' }
+  if (!call.portfoyAlindiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700', module: 'operasyon' }
+  const opp = call.opportunityId ? opportunities.find((o) => o.id === call.opportunityId) : null
+  if (opp?.status === 'iptal') return { label: 'Olumsuz', style: 'bg-ink-100 text-ink-500', module: 'firsatlar' }
+  return { label: 'Alındı', style: 'bg-emerald-50 text-emerald-700', module: opp ? 'firsatlar' : 'operasyon' }
 }
 
 export default function Leads() {
@@ -101,7 +105,7 @@ export default function Leads() {
       .filter((l) => l.durum === 'atandi')
       .map((lead) => {
         const call = (data?.calls ?? []).find((c) => c.kaynakLeadId === lead.id)
-        if (call) return { ...lead, process: callProcessLabel(call) }
+        if (call) return { ...lead, process: callProcessLabel(call, data?.opportunities ?? []) }
         const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === lead.id)
         if (opp) return { ...lead, process: { label: OPPORTUNITY_STATUS_LABELS[opp.status], style: OPPORTUNITY_STATUS_STYLES[opp.status], module: 'firsatlar' } }
         const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === lead.id)
