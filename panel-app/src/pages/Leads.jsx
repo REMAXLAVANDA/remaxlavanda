@@ -5,30 +5,55 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { leads as leadsProvider, recruiting as recruitingProvider, callLogs as callLogsProvider } from '../lib/dataProvider'
+import {
+  leads as leadsProvider,
+  opportunities as opportunitiesProvider,
+  recruiting as recruitingProvider,
+  callLogs as callLogsProvider,
+} from '../lib/dataProvider'
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
 import { generateTalepKodu, computeReklamKoduConversion } from '../lib/callLogs'
-import { LEAD_TO_RECRUITING_KAYNAK, computeRecruitingReklamConversion } from '../lib/recruiting'
+import {
+  LEAD_TO_RECRUITING_KAYNAK,
+  RECRUITING_DURUM_LABELS,
+  RECRUITING_DURUM_STYLES,
+  computeRecruitingReklamConversion,
+} from '../lib/recruiting'
+import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
 import { sortByName } from '../lib/format'
 import LeadTable from '../components/leads/LeadTable'
+import RoutedLeadsTable from '../components/leads/RoutedLeadsTable'
 import AssignPortfolioLeadModal from '../components/leads/AssignPortfolioLeadModal'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import ReklamKaynaklariTable from '../components/settings/ReklamKaynaklariTable'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-// leads + recruiting_candidates + call_logs BİRLİKTE yükleniyor — leads
-// sadece routing için, diğer ikisi "Reklam Kaynakları" raporu ve aday
-// tekrar-giriş uyarısı için (bkz. handleRecruitingSubmit). opportunities
-// ARTIK burada yüklenmiyor — Lead Havuzu'nda hedef kaydın süreç durumunu
-// gösteren bir kolon yok (bkz. "orada hiçbir işlem veya hiçbir bilgi
-// görmeyeceğiz" kararı, sadece Recruiting/Portföy seçimi kaldı).
+// leads + opportunities + recruiting_candidates + call_logs BİRLİKTE
+// yükleniyor — opportunities/recruiting_candidates/calls, yönlendirilmiş
+// bir lead'in atandığı modülde GÜNCEL aşamasını Lead Havuzu'na salt okunur
+// yansıtmak için lazım (bkz. RoutedLeadsTable, "atanan menüde yapılan
+// işlemlere göre buraya bilgi geçsin" isteği). TEKNİK BORÇ: bu dört liste
+// her seferinde TAMAMEN client-side yükleniyor, kayıt sayısı arttıkça
+// sunucu taraflı sorguya çevrilmeli (bkz. AI_NOTLARI.md).
 async function loadAll() {
-  const [leadRows, candidateRows, callRows] = await Promise.all([
+  const [leadRows, opportunityRows, candidateRows, callRows] = await Promise.all([
     leadsProvider.list(),
+    opportunitiesProvider.list(),
     recruitingProvider.list(),
     callLogsProvider.list(),
   ])
-  return { leads: leadRows, recruitingCandidates: candidateRows, calls: callRows }
+  return { leads: leadRows, opportunities: opportunityRows, recruitingCandidates: candidateRows, calls: callRows }
+}
+
+// Operasyon'a düşen bir çağrının Lead Havuzu'ndaki "aşama" karşılığı —
+// call_logs kendi durum enum'una sahip değil (bkz. lib/callLogs.js), üç
+// ayrı alandan (opportunityId/portfoyAlindiMi/donusYapildiMi) tek bir
+// rozet üretiyoruz.
+function callProcessLabel(call) {
+  if (call.opportunityId) return { label: 'Fırsata Dönüştü', style: 'bg-emerald-50 text-emerald-700', module: 'firsatlar' }
+  if (call.portfoyAlindiMi) return { label: 'Portföy Alındı', style: 'bg-emerald-50 text-emerald-700', module: 'operasyon' }
+  if (call.donusYapildiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700', module: 'operasyon' }
+  return { label: "Operasyon'da Bekliyor", style: 'bg-ink-100 text-ink-600', module: 'operasyon' }
 }
 
 export default function Leads() {
@@ -55,14 +80,38 @@ export default function Leads() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const staleLeads = useMemo(() => leads.filter((l) => isStaleLead(l)), [data])
 
-  // Lead Havuzu SADECE yönlendirilmemiş (durum='yeni') lead'leri gösterir —
-  // yönlendirilen bir lead artık burada gösterilecek/yapılacak hiçbir şey
-  // bırakmıyor (süreci hedef modül — Fırsatlar/Recruiting — takip ediyor).
+  // Lead Havuzu'nun ANA listesi SADECE yönlendirilmemiş (durum='yeni')
+  // lead'leri gösterir — burada tek karar Recruiting mi Portföy mü, başka
+  // hiçbir işlem yok. Yönlendirilenler ayrı, salt-okunur bir bölümde
+  // (bkz. routedLeads / RoutedLeadsTable) — köprü orada, ana listede değil.
   const visible = useMemo(() => {
     if (staleFocus) return leads.filter((l) => isStaleLead(l))
     return leads.filter((l) => l.durum === 'yeni')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, staleFocus])
+
+  // Yönlendirilen bir lead'in hangi kayda gittiğini bulur — ayrı bir FK
+  // yönü YOK, mevcut kaynak_lead_id yönü (call/opportunity/candidate ->
+  // lead) ters taranıyor. Portföy'e yönlendirilenler ÖNCE call_logs'a
+  // düşüyor (bkz. handleAssignPortfolioLead), bu yüzden call önce
+  // kontrol ediliyor; call bir fırsata dönüşmüşse callProcessLabel zaten
+  // 'firsatlar' modülünü döner, opportunities listesine bakmaya gerek yok.
+  const routedLeads = useMemo(() => {
+    return leads
+      .filter((l) => l.durum === 'atandi')
+      .map((lead) => {
+        const call = (data?.calls ?? []).find((c) => c.kaynakLeadId === lead.id)
+        if (call) return { ...lead, process: callProcessLabel(call) }
+        const opp = (data?.opportunities ?? []).find((o) => o.kaynakLeadId === lead.id)
+        if (opp) return { ...lead, process: { label: OPPORTUNITY_STATUS_LABELS[opp.status], style: OPPORTUNITY_STATUS_STYLES[opp.status], module: 'firsatlar' } }
+        const candidate = (data?.recruitingCandidates ?? []).find((c) => c.kaynakLeadId === lead.id)
+        if (candidate)
+          return { ...lead, process: { label: RECRUITING_DURUM_LABELS[candidate.durum], style: RECRUITING_DURUM_STYLES[candidate.durum], module: 'recruiting' } }
+        return { ...lead, process: null }
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data])
 
   // Fırsata/Recruiting'e dönüştürme, ilgili oluşturma modalını
   // (AssignPortfolioLeadModal / RecruitingDetailModal) açar — Lead
@@ -173,6 +222,8 @@ export default function Leads() {
           )}
 
           <LeadTable leads={visible} onQuickConvert={handleQuickConvert} />
+
+          <RoutedLeadsTable rows={routedLeads} />
 
           {/* Reklam Kaynakları artık Ayarlar'da değil, burada — leadler zaten
               reklamdan geliyor, kaynak performansını görmek için ayrı bir

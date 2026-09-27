@@ -7,6 +7,17 @@ export const LEAD_TIP_LABELS = {
   portfoy: 'Portföy',
 }
 
+// Bir lead yönlendirildikten (durum='atandi') SONRA Lead Havuzu'nda hangi
+// modüle gittiği + o modüldeki GÜNCEL aşaması salt-okunur olarak gösterilir
+// (bkz. "atanan menüde yapılan işlemlere göre buraya bilgi geçsin" isteği,
+// broker: seçim yapılabilir ama başka işlem yapılamaz — bu yüzden sadece
+// GÖRÜNTÜLEME, düzenleme burada değil).
+export const LEAD_HEDEF_MODUL_LABELS = {
+  operasyon: 'Operasyon',
+  firsatlar: 'Portföy',
+  recruiting: 'Recruiting',
+}
+
 export const LEAD_KAYNAKLARI = ['meta_recruiting', 'meta_portfoy', 'telefon', 'referans', 'web', 'tabela', 'diger']
 export const LEAD_KAYNAK_LABELS = {
   meta_recruiting: 'Meta (Recruiting)',
