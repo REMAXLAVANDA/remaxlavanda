@@ -1,4 +1,4 @@
-import { RECRUITING_DURUMLARI, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
+import { RECRUITING_DURUM_SECILEBILIR, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
 // Lead Havuzu'ndan dönüşen bir adayın hangi reklamdan geldiği — RecruitingTable
 // ile AYNI desen.
@@ -43,6 +43,14 @@ function CandidateCard({ c, resolveName, onClick, showCampaign }) {
 // filtreler (durum/atanan/kayıt tipi) değişmedi, RecruitingFilters zaten bir
 // durum seçilirse o tek kolonu göstermeye devam eder (bilinçli, ayrı bir
 // "board modu" filtresi eklenmedi).
+//
+// "Olumlu" kolonu BİLEREK yok (2026-09-27, broker: "hiç olumlu menüsü
+// olmasın" — kanban panosunda ayrı bir sütun olması da aynı kurala giriyor,
+// RECRUITING_DURUM_SECILEBILIR kullanılıyor, RecruitingDetailModal/
+// RecruitingFilters ile AYNI desen). Bir aday "Danışman Olarak Ekle" ile
+// olumluya geçince artık gerçek bir kullanıcı — hikayesi Ayarlar >
+// Kullanıcılar'da (kaynak alanıyla) devam ediyor, Recruiting panosunda
+// kartı kalmıyor.
 export default function RecruitingBoard({ candidates, resolveName, onCardClick, showCampaign }) {
   if (candidates.length === 0) {
     return (
@@ -52,7 +60,7 @@ export default function RecruitingBoard({ candidates, resolveName, onCardClick, 
     )
   }
 
-  const columns = RECRUITING_DURUMLARI.map((durum) => ({
+  const columns = RECRUITING_DURUM_SECILEBILIR.map((durum) => ({
     durum,
     items: candidates.filter((c) => c.durum === durum),
   }))

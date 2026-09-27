@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 import {
-  RECRUITING_DURUMLARI,
+  RECRUITING_DURUM_SECILEBILIR,
   RECRUITING_DURUM_LABELS,
   RECRUITING_KAYIT_TIPI_FILTRELERI,
   RECRUITING_KAYIT_TIPI_FILTRE_LABELS,
@@ -26,7 +26,7 @@ export default function RecruitingFilters({ filters, onChange, danismanOptions, 
       <div className="flex flex-wrap gap-2">
         <Select value={filters.durum} onChange={(v) => set({ durum: v })}>
           <option value="tumu">Tüm Durumlar</option>
-          {RECRUITING_DURUMLARI.map((d) => (
+          {RECRUITING_DURUM_SECILEBILIR.map((d) => (
             <option key={d} value={d}>
               {RECRUITING_DURUM_LABELS[d]}
             </option>
