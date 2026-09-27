@@ -32,7 +32,7 @@ body {
 /* 2:3 oranı korunur, ekrana sığacak en büyük boyut */
 .game-frame {
   position: relative;
-  height: min(calc(100vh - 70px), 150vw);
+  height: min(calc(100vh - 90px), 150vw);
   aspect-ratio: 2 / 3;
   max-width: 100%;
   border-radius: 12px;
@@ -128,6 +128,10 @@ body {
   box-shadow: 0 0 36px rgba(90, 215, 255, 0.7);
   outline: none;
 }
+
+.credit { margin: 0; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+.credit strong { color: var(--accent); font-weight: 700; }
+.overlay-credit { margin: 8px 0 0; font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
 
 .controls-hint { margin: 0; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
 

@@ -45,6 +45,9 @@ export default function App() {
       <p className="controls-hint">
         <kbd>←</kbd> <kbd>→</kbd> hareket · <kbd>SPACE</kbd> ateş · <kbd>P</kbd> duraklat
       </p>
+      <p className="credit">
+        Yapımcı: <strong>Ekrem Malik</strong>
+      </p>
     </main>
   );
 }

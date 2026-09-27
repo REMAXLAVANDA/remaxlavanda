@@ -12,6 +12,7 @@ export default function GameOverScreen({ score, highScore, isNewRecord, onRestar
       <button className="btn-primary" onClick={onRestart}>
         Yeniden Başla
       </button>
+      <p className="overlay-credit">Bir Ekrem Malik oyunu</p>
     </div>
   );
 }

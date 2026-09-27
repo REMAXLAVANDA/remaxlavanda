@@ -1,5 +1,7 @@
 # Meteor Avcısı — 2D Uzay Oyunu
 
+Yapımcı: **Ekrem Malik**
+
 React + Vite + HTML5 Canvas. Harici oyun motoru yok.
 
 ## Çalıştırma
