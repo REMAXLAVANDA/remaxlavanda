@@ -104,16 +104,11 @@ export const RECRUITING_KAYNAK_LABELS = {
   diger: 'Diğer',
 }
 
-// Arşiv taşıması (421 kayıt, kayit_tipi='gecmis') sonrası günlük görünümü
-// kirletmesin diye — varsayılan filtre 'aktif' (lead+manuel), geçmiş
-// kayıtlar sadece elle "Geçmiş"/"Tümü" seçilince görünür (bkz.
-// pages/Recruiting.jsx, RecruitingFilters.jsx).
-export const RECRUITING_KAYIT_TIPI_FILTRELERI = ['aktif', 'gecmis', 'tumu']
-export const RECRUITING_KAYIT_TIPI_FILTRE_LABELS = {
-  aktif: 'Aktif',
-  gecmis: 'Geçmiş',
-  tumu: 'Tümü',
-}
+// Recruiting.jsx'in kendi filtre çubuğu artık kayıt tipini değil tarih
+// aralığını kullanıyor (bkz. lib/dateRange, 2026-09-27 broker kararı) —
+// bu fonksiyon SADECE Panel.jsx'in ana sayfa özet kartı için kalıyor
+// ('aktif' sabit değeriyle çağrılıyor, arşiv kayıtlarının özet sayılara
+// karışmaması için).
 export function matchesKayitTipiFilter(candidate, filterValue) {
   if (filterValue === 'tumu') return true
   if (filterValue === 'gecmis') return candidate.kayitTipi === 'gecmis'

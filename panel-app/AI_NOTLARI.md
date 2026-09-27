@@ -7,6 +7,37 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — Recruiting: filtre çubuğu, aşama düzeni ve etiketler ince ayarı
+
+Aynı gün içinde broker'dan gelen art arda küçük düzeltmeler:
+
+- **Kanban panosu + üst filtreden "Olumlu" tamamen kalktı**: broker "olumlu
+  hâlâ görünüyor" dedi, meğer kanban panosunda ayrı bir sütun olarak
+  duruyormuş. `RecruitingBoard`/`RecruitingFilters` artık `RECRUITING_
+  DURUMLARI` yerine `RECRUITING_DURUM_SECILEBILIR` kullanıyor (form
+  dropdown'ıyla AYNI desen) — olumluya geçen aday artık panoda görünmüyor,
+  hikayesi Ayarlar > Kullanıcılar'da devam ediyor.
+- **"Yanlış Başvuru" en sona alındı** — broker fikrini değiştirdi (ilk
+  başta 2. sıradaydı). Sadece `RECRUITING_DURUMLARI` dizisinin sırası
+  değişti.
+- **"İlk Görüşme"/"İkinci Görüşme" etiketleri "Randevu"/"Karar Bekliyor"
+  oldu** — SADECE görünen isim, `ilk_gorusme`/`ikinci_gorusme` durum
+  değerleri ve Meta CAPI eşlemesi (`send-meta-conversion`) aynı kaldı,
+  migration gerekmedi. Doğrulandı: Randevu (ilk_gorusme) hâlâ Meta'ya
+  Qualified, Yanlış Başvuru hâlâ Disqualified gönderiyor.
+- **"Aktif/Geçmiş/Tümü" (kayıt tipi) filtresi standart tarih filtresiyle
+  değiştirildi** (broker: "7 gün 30 gün gibi seçimler olmalı, diğerleri
+  çok mantıksız artık") — Panel/Operasyon'daki AYNI `DateRangeFilter`
+  bileşeni (7 gün/30 gün/4 ay/Bu yıl/Tümü/Özel), varsayılan '7g'. Arşivden
+  taşınan ~418 kayıt hepsi 2026-07-07/14 tarihli (bugünden ~75+ gün eski)
+  olduğu için varsayılan pencere onları zaten doğal olarak dışarıda
+  bırakıyor, "Tümü" seçilince görünüyorlar. "Yeniden Aktifleştir"le geri
+  dönen kayıtlar TAZE sayılsın diye filtre `createdAt` yerine (varsa)
+  `yenidenAktifAt`'i baz alıyor. `matchesKayitTipiFilter` sadece Panel.jsx
+  özet kartı için kaldı (kayıt tipi listesi/etiketleri silindi, artık
+  kullanılmıyordu).
+- Mock modda Playwright ile görsel doğrulandı.
+
 ## 2026-09-27 — Recruiting: "Olumlu" kalktı, yerine "Danışman Olarak Ekle" + "Olumsuz" sebep zorunlu
 
 Broker: "olumlu olanlar zaten direk danışman olarak eklenmeli... o

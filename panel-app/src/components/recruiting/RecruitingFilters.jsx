@@ -1,10 +1,6 @@
 import { Plus } from 'lucide-react'
-import {
-  RECRUITING_DURUM_SECILEBILIR,
-  RECRUITING_DURUM_LABELS,
-  RECRUITING_KAYIT_TIPI_FILTRELERI,
-  RECRUITING_KAYIT_TIPI_FILTRE_LABELS,
-} from '../../lib/recruiting'
+import { RECRUITING_DURUM_SECILEBILIR, RECRUITING_DURUM_LABELS } from '../../lib/recruiting'
+import DateRangeFilter from '../common/DateRangeFilter'
 
 function Select({ value, onChange, children }) {
   return (
@@ -23,7 +19,8 @@ export default function RecruitingFilters({ filters, onChange, danismanOptions, 
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border-default bg-surface-raised p-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <DateRangeFilter value={filters} onChange={onChange} />
         <Select value={filters.durum} onChange={(v) => set({ durum: v })}>
           <option value="tumu">Tüm Durumlar</option>
           {RECRUITING_DURUM_SECILEBILIR.map((d) => (
@@ -38,13 +35,6 @@ export default function RecruitingFilters({ filters, onChange, danismanOptions, 
           {danismanOptions.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
-            </option>
-          ))}
-        </Select>
-        <Select value={filters.kayitTipi} onChange={(v) => set({ kayitTipi: v })}>
-          {RECRUITING_KAYIT_TIPI_FILTRELERI.map((k) => (
-            <option key={k} value={k}>
-              {RECRUITING_KAYIT_TIPI_FILTRE_LABELS[k]}
             </option>
           ))}
         </Select>

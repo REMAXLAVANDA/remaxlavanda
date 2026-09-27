@@ -5,7 +5,8 @@ import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { recruiting as recruitingProvider, calendarEvents as calendarProvider, users as usersProvider } from '../lib/dataProvider'
-import { canManageRecruiting, matchesKayitTipiFilter, candidateKaynakOzeti } from '../lib/recruiting'
+import { canManageRecruiting, candidateKaynakOzeti } from '../lib/recruiting'
+import { isWithinRange } from '../lib/dateRange'
 import { addMinutesToTimeString } from '../lib/calendar'
 import { sortByName } from '../lib/format'
 import { ROLES } from '../lib/roles'
@@ -15,10 +16,15 @@ import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModa
 import CreateUserModal from '../components/settings/CreateUserModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
-// kayitTipi varsayılan 'aktif' — arşiv taşımasıyla gelen ~421 'gecmis'
-// kaydı listeyi kirletmesin diye (bkz. lib/recruiting.js
-// matchesKayitTipiFilter, AI_NOTLARI.md).
-const INITIAL_FILTERS = { durum: 'tumu', atananId: 'tumu', kayitTipi: 'aktif' }
+// "Aktif/Geçmiş/Tümü" (kayıt tipi) filtresi yerine standart tarih filtresi
+// geldi (2026-09-27, broker: "7 gün 30 gün gibi seçimler olmalı, diğerleri
+// çok mantıksız artık") — Panel/Operasyon ile AYNI desen (bkz. lib/dateRange,
+// DateRangeFilter). Arşivden taşınan ~421 'gecmis' kaydın created_at'i
+// import tarihine (2026-07-07/14) sabit — bugünden en az ~75 gün eski,
+// yani varsayılan '7g' penceresi onları zaten doğal olarak dışarıda
+// bırakıyor, ayrı bir kayıt-tipi filtresine gerek kalmadı. "Tümü" seçilirse
+// arşiv de dahil her şey görünür.
+const INITIAL_FILTERS = { durum: 'tumu', atananId: 'tumu', dateRange: '7g', customFrom: '', customTo: '' }
 
 // Adayın "Görüşme / Randevu Tarihi" alanı doldurulunca Takvim'de bir
 // 'recruiting_gorusmesi' etkinliği oluşuyor/güncelleniyor — candidate +
@@ -58,7 +64,11 @@ export default function Recruiting() {
         if (filters.atananId === 'atanmadi') return !c.atananDanismanId
         return c.atananDanismanId === filters.atananId
       })
-      .filter((c) => matchesKayitTipiFilter(c, filters.kayitTipi))
+      // "Yeniden Aktifleştir" ile geri dönen arşiv kayıtları TAZE sayılsın
+      // diye createdAt yerine (varsa) yenidenAktifAt baz alınıyor — yoksa
+      // arşivden dönen bir kayıt "7 gün/30 gün" penceresinde hep eski
+      // görünüp kaybolurdu.
+      .filter((c) => isWithinRange(c.yenidenAktifAt || c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidates, filters])
 
