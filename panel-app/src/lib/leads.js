@@ -7,17 +7,6 @@ export const LEAD_TIP_LABELS = {
   portfoy: 'Portföy',
 }
 
-// Bir lead yönlendirildikten (durum='atandi') SONRA LeadTable'da "Tip"
-// yerine GERÇEK gittiği yer gösterilir — resolveProcessStatus'un döndürdüğü
-// `module` alanından besleniyor (bkz. Leads.jsx). LEAD_TIP_LABELS ise
-// SADECE henüz yönlendirilmemiş lead'lerde (giriş anındaki kampanya
-// türü) kullanılmaya devam ediyor.
-export const LEAD_HEDEF_MODUL_LABELS = {
-  operasyon: 'Operasyon',
-  firsatlar: 'Portföy',
-  recruiting: 'Recruiting',
-}
-
 export const LEAD_KAYNAKLARI = ['meta_recruiting', 'meta_portfoy', 'telefon', 'referans', 'web', 'tabela', 'diger']
 export const LEAD_KAYNAK_LABELS = {
   meta_recruiting: 'Meta (Recruiting)',
@@ -29,25 +18,10 @@ export const LEAD_KAYNAK_LABELS = {
   diger: 'Diğer',
 }
 
-// Meta webhook entegrasyonu baştan otomatik kurulacağı için erken eklendi
-// — elle de girilebilir (LeadDetailModal'da dropdown), opsiyonel.
+// Meta webhook entegrasyonu baştan otomatik kurulacağı için erken eklendi,
+// ingestion'da set edilir — Lead Havuzu artık elle düzenleme sunmuyor
+// (bkz. "sadece Recruiting/Portföy seçimi, başka bilgi/işlem yok" kararı).
 export const LEAD_KAMPANYA_KODLARI = ['RECRUIT', 'SATICI', 'MARKA']
-
-// Sadece 3 durum — 'atandi' BİLEREK bu listede değil, dropdown'da hiçbir
-// zaman seçenek olarak sunulmaz (bkz. LeadDetailModal). Sadece Fırsata/
-// Recruiting'e dönüştürme aksiyonu bu değeri set edebilir; 'elendi' elle
-// seçilebilir (geçersiz numara, ilgisiz, ulaşılamadı vb.).
-export const LEAD_DURUMLARI = ['yeni', 'elendi']
-export const LEAD_DURUM_LABELS = {
-  yeni: 'Yeni',
-  atandi: 'Atandı',
-  elendi: 'Elendi',
-}
-export const LEAD_DURUM_STYLES = {
-  yeni: 'bg-ink-100 text-ink-600',
-  atandi: 'bg-remax-blue-mid/10 text-remax-blue-mid',
-  elendi: 'bg-brand-50 text-brand-700',
-}
 
 // leads_manage RLS kuralıyla aynı: sadece broker/owner erişebilir —
 // bkz. lib/roles.js canManageLeads (aynı fonksiyon, tekrar tanımlamıyoruz).
