@@ -24,7 +24,6 @@ import { sortByName } from '../lib/format'
 import LeadTable from '../components/leads/LeadTable'
 import RoutedLeadsTable from '../components/leads/RoutedLeadsTable'
 import AssignPortfolioLeadModal from '../components/leads/AssignPortfolioLeadModal'
-import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import ReklamKaynaklariTable from '../components/settings/ReklamKaynaklariTable'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -66,7 +65,7 @@ export default function Leads() {
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const [staleFocus, setStaleFocus] = useState(false)
-  const [convertTarget, setConvertTarget] = useState(null) // { type: 'opportunity'|'recruiting', lead }
+  const [convertTarget, setConvertTarget] = useState(null) // { type: 'opportunity', lead } — Recruiting hiç modal açmıyor
   const [submitting, setSubmitting] = useState(false)
 
   const leads = data?.leads ?? []
@@ -117,18 +116,18 @@ export default function Leads() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
-  // Fırsata/Recruiting'e dönüştürme, ilgili oluşturma modalını
-  // (AssignPortfolioLeadModal / RecruitingDetailModal) açar — Lead
-  // Havuzu'nda BAŞKA bir detay/düzenleme penceresi yok, tek karar
-  // Recruiting mi Portföy mü.
+  // Portföy'e giden lead için DANIŞMAN SEÇİMİ zorunlu bilgi (sistemde yok,
+  // tahmin edilemez) — o yüzden AssignPortfolioLeadModal açılıyor, TEK alanı
+  // var (bkz. o dosyanın notu). Recruiting'de ise atanan danışman diye bir
+  // kavram YOK (bkz. RecruitingDetailModal notu) ve lead'de zaten yeterli
+  // bilgi var (ad/telefon/e-posta/kaynak) — bu yüzden hiçbir pencere
+  // açılmadan doğrudan oluşturuluyor (bkz. handleQuickRecruiting), broker
+  // kararı: "Recruiting seçilince de açılan ekranda detaylar olmasın".
   function handleConvertToOpportunity(lead) {
     setConvertTarget({ type: 'opportunity', lead })
   }
-  function handleConvertToRecruiting(lead) {
-    setConvertTarget({ type: 'recruiting', lead })
-  }
   function handleQuickConvert(lead, type) {
-    if (type === 'recruiting') handleConvertToRecruiting(lead)
+    if (type === 'recruiting') handleQuickRecruiting(lead)
     else handleConvertToOpportunity(lead)
   }
 
@@ -171,11 +170,20 @@ export default function Leads() {
     }
   }
 
-  async function handleRecruitingSubmit(form) {
-    const lead = convertTarget.lead
+  async function handleQuickRecruiting(lead) {
     setSubmitting(true)
     try {
-      const createdCandidate = await recruitingProvider.create(form)
+      const createdCandidate = await recruitingProvider.create({
+        adSoyad: lead.adSoyad,
+        telefon: lead.telefon ?? '',
+        email: lead.email ?? '',
+        kaynak: LEAD_TO_RECRUITING_KAYNAK[lead.kaynak] ?? 'diger',
+        durum: 'yeni_basvuru',
+        aciklama: '',
+        kaynakLeadId: lead.id,
+        gorusmeTarih: '',
+        gorusmeSaat: '',
+      })
       const updatedLead = await leadsProvider.update(lead.id, {
         durum: 'atandi',
         ...computeAutoFields(lead, 'atandi'),
@@ -185,7 +193,6 @@ export default function Leads() {
         leads: prev.leads.map((l) => (l.id === lead.id ? updatedLead : l)),
         recruitingCandidates: [createdCandidate, ...prev.recruitingCandidates],
       }))
-      setConvertTarget(null)
       showToast("Recruiting'e gönderildi.", 'success')
     } catch (err) {
       showToast(err.message ?? 'Dönüştürülemedi, tekrar dene.', 'error')
@@ -252,22 +259,6 @@ export default function Leads() {
           assignableOptions={danismanOptions}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleAssignPortfolioLead}
-          submitting={submitting}
-        />
-      )}
-
-      {convertTarget?.type === 'recruiting' && (
-        <RecruitingDetailModal
-          initialValues={{
-            adSoyad: convertTarget.lead.adSoyad,
-            telefon: convertTarget.lead.telefon,
-            email: convertTarget.lead.email,
-            kaynak: LEAD_TO_RECRUITING_KAYNAK[convertTarget.lead.kaynak] ?? 'diger',
-            kaynakLeadId: convertTarget.lead.id,
-          }}
-          existingCandidates={data?.recruitingCandidates ?? []}
-          onClose={() => setConvertTarget(null)}
-          onSubmit={handleRecruitingSubmit}
           submitting={submitting}
         />
       )}
