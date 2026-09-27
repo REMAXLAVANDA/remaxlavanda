@@ -31,8 +31,7 @@ function toDurationMinutes(event) {
 }
 
 // Hem "+ Yeni Aday" (candidate=null) hem satır tıklaması (candidate=mevcut
-// kayıt) AYNI paneli açar — Lead Havuzu'ndaki LeadDetailModal ile aynı
-// desen. initialValues: Lead Havuzu'ndan "Recruiting'e Dönüştür" ile
+// kayıt) AYNI paneli açar. initialValues: Lead Havuzu'ndan "Recruiting'e Dönüştür" ile
 // açıldığında ön-dolu alanlar (bkz. Leads.jsx handleConvertToRecruiting).
 // Bir gayrimenkul danışmanının işe alım adayına atanması hiçbir bağlamda
 // anlamlı değil ("biz herhangi bir gayrimenkul danışmanı da bunu

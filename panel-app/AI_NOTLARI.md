@@ -7,6 +7,73 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — RLS performans düzeltmesi: "portal açılmakta zorlanıyor" kök nedeni
+
+Broker şikayeti: portal yavaş/zorlanarak açılıyor. Kök neden bulundu —
+`current_user_role()`/`is_active()`/`is_manager()`/`is_event_creator()`/
+`is_invited_to_event()`/`period_is_blackout()`/`can_view_period_ranking()`
+RLS politikalarında SATIR BAŞINA yeniden hesaplanıyordu (Postgres'in resmi
+`auth_rls_initplan` performans uyarısıyla aynı desen, 29 politika zaten
+işaretliydi — bu migration `current_user_role()` ailesini de kapsayarak
+genişletti). Kanıt: `call_logs_select` politikası `authenticated` rolüyle
+`EXPLAIN ANALYZE` edildiğinde 1489 satırlık tabloda **1279ms**'ye çıkıyordu
+ve index kullanmıyordu (Seq Scan + satır başına `users` tablosuna sorgu).
+`pg_stat_statements`: aynı sorgu 1363 çağrıda ortalama 1.2sn, en kötü
+7.8sn.
+
+- Migration `20260927160000_rls_initplan_performans_duzeltmesi.sql` —
+  35 tablodaki ~70 politika `ALTER POLICY` ile `(select fonksiyon())`
+  sarmalamasına geçirildi. **Yetki mantığı birebir aynı**, sadece
+  fonksiyon sonucu sorgu başına bir kez hesaplanıyor (InitPlan).
+- Doğrulama: aynı `EXPLAIN ANALYZE` sonrasında **1.37ms** (~930x hızlanma),
+  broker "hızlandı" diye teyit etti.
+- Kalan küçük optimizasyon: birkaç politikada çıplak `auth.uid()` çağrısı
+  hâlâ sarmalanmadı (advisor'da 29 bulgu kaldı) — etkisi çok daha küçük
+  (subquery değil, JWT okuma), ayrı bir işe bırakıldı.
+
+## 2026-09-27 — Meta CAPI: 3 kademeli sinyal modeline geçiş + call_logs köprüsü
+
+Broker + danışılan Meta uzmanının kararı: aşama bazlı çoklu event yerine
+3 kademeli sinyal (Qualified/Converted/Disqualified) — hacim düşük olduğu
+için (Meta'nın öğrenme eşiği ~50 event/hafta/ad-set) çok parçalı liste her
+birini eşiğin altında bırakıyordu.
+
+- `send-meta-conversion` güncellendi: `META_CAPI_EVENT_QUALIFIED/_SCHEDULED/
+  _WON/_LOST` (4) yerine `_QUALIFIED/_CONVERTED/_DISQUALIFIED` (3). Ara
+  aşamalar (2. Görüşme, Ofis Tanıtımı, Karar Bekliyor vb.) artık event
+  üretmiyor. `recruiting_candidates`: `ilk_arama`→Qualified,
+  `evrak`→Converted, `olumsuz`→Disqualified (7 aşamanın kendisi
+  DEĞİŞMEDİ). `opportunities`: `claimed` artık event üretmiyor (Qualified
+  zaten call_logs'tan gidiyor), `kapandi`→Converted, `iptal`→Disqualified.
+- Yeni: `call_logs` de artık bir sinyal kaynağı — migration
+  `20260927150000_meta_capi_call_logs_koprusu.sql` ile yeni trigger
+  `trg_capi_call_durum` (`donus_yapildi_mi`/`portfoy_alindi_mi` değişince).
+  `donus_yapildi_mi=true`→Qualified, `portfoy_alindi_mi=true`→Converted.
+  Operasyon'un mevcut iki-alanlı yapısına (broker: "önceden bilerek
+  ikiye bölünmüştü, dokunma") DOKUNULMADI.
+- Lead Havuzu'ndaki salt-okunur Portföy özeti (bkz. aşağıdaki madde) aynı
+  4 kademeye (Yeni Başvuru/Görüşüldü/Alındı/Olumsuz) güncellendi —
+  "Ulaşılamadı" bilerek "Olumsuz" sayılmıyor (broker onayı: henüz ret
+  değil, süreç devam ediyor).
+
+## 2026-09-27 — Lead Havuzu: sadece Recruiting/Portföy seçimi + aşama köprüsü
+
+Broker kararı: "Lead Havuzu'nda ya Recruiting seçeceğiz ya Portföy, orada
+hiçbir işlem veya hiçbir bilgi görmeyeceğiz." Radikal sadeleştirme:
+
+- `LeadDetailModal.jsx` ve `LeadFilters.jsx` tamamen kaldırıldı — satıra
+  tıklayınca açılan detay penceresi ve Tip/Durum filtreleri yok. Ana liste
+  SADECE yönlendirilmemiş (`durum='yeni'`) lead'leri, iki büyük buton
+  (Recruiting/Portföy) ile gösteriyor.
+- Yan etki (bilerek kabul edildi): lead'i elle "Elendi" işaretleme yolu
+  kalktı, bu yüzden `leads.durum='elendi'` tetikleyicisine bağlı Meta CAPI
+  "Disqualified" sinyali artık hiç tetiklenmiyor.
+- Yeni `RoutedLeadsTable.jsx` — yönlendirilen lead'ler için ayrı, SALT
+  OKUNUR bir "Yönlendirilenler — Aşama Durumu" bölümü: atanan modülde
+  (Recruiting/Operasyon/Fırsatlar) durum değiştikçe burada da otomatik
+  görünüyor, ama buradan tıklanamıyor/düzenlenemiyor — "seçim yapılabilir
+  ama başka işlem yapılamaz" kararına uygun.
+
 ## 2026-09-27 — Portal → Meta CAPI: lead durumu geri bildirimi
 
 meta-leads-webhook'un TERSİ yönü — broker onaylı kapsam: SADECE lead
