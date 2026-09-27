@@ -44,7 +44,7 @@ export const MOCK_RECRUITING_CANDIDATES = [
     telefon: '0555 888 99 00',
     email: null,
     atananDanismanId: null,
-    durum: 'evrak',
+    durum: 'olumlu',
     kayitTipi: 'manuel',
     yenidenAktifAt: null,
     aciklama: 'GD Onboarding\'e devir bekliyor.',

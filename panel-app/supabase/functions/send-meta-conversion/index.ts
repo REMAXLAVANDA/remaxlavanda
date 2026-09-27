@@ -10,9 +10,13 @@
 // huni (Lead -> Qualified -> Converted) ile örtüşüyor, ve haftalık hacim
 // düşük olduğu için (Meta'nın öğrenme eşiği ad-set başına ~50 event/hafta)
 // çok parçalı bir event listesi her birini eşiğin altında bırakıyordu. Ara
-// aşamalar (2. Görüşme, Ofis Tanıtımı, Karar Bekliyor vb.) ARTIK Meta'ya
-// hiç event göndermiyor — sadece iç takip, panelde görünür ama Meta'ya
-// gitmez.
+// aşamalar ARTIK Meta'ya hiç event göndermiyor — sadece iç takip, panelde
+// görünür ama Meta'ya gitmez.
+//
+// 2026-09-27 (3. revizyon): Recruiting 7 aşamadan 5'e sadeleşti (broker
+// kararı, bkz. AI_NOTLARI.md) — eski ilk_arama/evrak isimleri kalktı,
+// ilk_gorusme/olumlu oldu. 3 kademeli sinyal mantığı DEĞİŞMEDİ, sadece
+// hangi aşama adının hangi sinyali tetiklediği güncellendi.
 //
 // Bu fonksiyon, aşağıdaki dört tablodan biri güncellendiğinde bir Database
 // Webhook trigger'ı tarafından çağrılır (bkz. migration
@@ -32,12 +36,12 @@
 //   opportunities.status:         kapandi=Converted, iptal=Disqualified
 //                                  (claimed'a artık event YOK — Qualified
 //                                  sinyali zaten call_logs'tan gitti)
-//   recruiting_candidates.durum:  ilk_arama=Qualified, evrak=Converted,
+//   recruiting_candidates.durum:  ilk_gorusme=Qualified, olumlu=Converted,
 //                                  olumsuz=Disqualified
 //   leads.durum:                  elendi=Disqualified
-// Eşlemede olmayan bir geçiş (ör. 'ofis_tanitimi', 'karar_bekliyor',
-// 'on_gorusme', opportunities.status='acik'/'claimed') SESSİZCE atlanır —
-// Meta'ya gönderilecek bir şey yok, hata değil.
+// Eşlemede olmayan bir geçiş (ör. 'yeni_basvuru', 'ikinci_gorusme',
+// opportunities.status='acik'/'claimed') SESSİZCE atlanır — Meta'ya
+// gönderilecek bir şey yok, hata değil.
 //
 // meta_lead_id boş olan (Meta kaynaklı olmayan — referans/telefon/web vb.)
 // kayıtlar da sessizce atlanır, hata değildir.
@@ -87,8 +91,8 @@ const OPPORTUNITY_STATUS_EVENTS: Record<string, string> = {
 }
 
 const RECRUITING_DURUM_EVENTS: Record<string, string> = {
-  ilk_arama: EVENT_QUALIFIED,
-  evrak: EVENT_CONVERTED,
+  ilk_gorusme: EVENT_QUALIFIED,
+  olumlu: EVENT_CONVERTED,
   olumsuz: EVENT_DISQUALIFIED,
 }
 

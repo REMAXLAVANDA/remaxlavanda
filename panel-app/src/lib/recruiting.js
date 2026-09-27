@@ -3,30 +3,27 @@
 // BİLEREK ayrı bir fonksiyona bölündü — bkz. lib/roles.js.
 export { canManageRecruiting } from './roles'
 
-// 6 aşama + 1 olumsuz dal. Eski (arşivlenmiş) prototipin 8 aşamalı
-// huninisinden 'Başladı'/'İlk 30 Gün' bilerek çıkarıldı — o süreç artık GD
-// Onboarding modülünün 21 maddelik checklist'inde takip ediliyor, aynı
-// süreç iki yerde tutulmayacak. 'evrak' tamamlanınca aday GD Onboarding'e
-// devredilir (bağlanma şekli sonraki fazda).
-export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_arama', 'on_gorusme', 'ofis_tanitimi', 'karar_bekliyor', 'evrak', 'olumsuz']
+// 5 aşamalı basitleştirilmiş huni (2026-09-27, broker kararı — eski 7
+// aşamalı huniden geldi, bkz. AI_NOTLARI.md "Recruiting aşama sadeleştirme").
+// Ara aşamalar (eski Ön Görüşme/Ofis Tanıtımı/Karar Bekliyor) TEK bir
+// "İkinci Görüşme" aşamasında toplandı — henüz sonuçlanmamış her şey burada,
+// danışman gerçek duruma göre Olumlu/Olumsuz'a ilerletir. GD Onboarding
+// devri (eski 'evrak' notu) artık 'olumlu' aşamasında.
+export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'olumsuz']
 export const RECRUITING_DURUM_LABELS = {
   yeni_basvuru: 'Yeni Başvuru',
-  ilk_arama: 'İlk Arama',
-  on_gorusme: 'Ön Görüşme',
-  ofis_tanitimi: 'Ofis Tanıtımı',
-  karar_bekliyor: 'Karar Bekliyor',
-  evrak: 'Evrak',
+  ilk_gorusme: 'İlk Görüşme',
+  ikinci_gorusme: 'İkinci Görüşme',
+  olumlu: 'Olumlu',
   olumsuz: 'Olumsuz',
 }
 // RE/MAX marka paletinden (kırmızı + mavi tonları) — mor/amber/sky/emerald
 // gibi markaya ait olmayan stok renkler yerine (bkz. AI_NOTLARI.md).
 export const RECRUITING_DURUM_STYLES = {
   yeni_basvuru: 'bg-ink-100 text-ink-600',
-  ilk_arama: 'bg-remax-blue-mid/10 text-remax-blue-mid',
-  on_gorusme: 'bg-brand-50 text-brand-700',
-  ofis_tanitimi: 'bg-remax-blue/10 text-remax-blue',
-  karar_bekliyor: 'bg-remax-blue-dark2/10 text-remax-blue-dark2',
-  evrak: 'bg-remax-navy/10 text-remax-navy',
+  ilk_gorusme: 'bg-remax-blue-mid/10 text-remax-blue-mid',
+  ikinci_gorusme: 'bg-remax-blue/10 text-remax-blue',
+  olumlu: 'bg-remax-navy/10 text-remax-navy',
   olumsuz: 'bg-remax-red-dark/10 text-remax-red-dark',
 }
 
@@ -89,10 +86,10 @@ export const LEAD_TO_RECRUITING_KAYNAK = {
 // Recruiting tarafı. lib/callLogs.js computeReklamKoduConversion ile aynı
 // desen: sadece reklamdan gelen (reklamAdi/kampanyaKodu dolu) adaylar
 // sayılır, manuel/ofis girişleri dışarıda kalır. "Birebir görüşme" tek bir
-// alanla tutulmadığı için mevcut durum aşamasından türetiliyor — ön
+// alanla tutulmadığı için mevcut durum aşamasından türetiliyor — ilk
 // görüşme ve sonrası (olumsuz hariç) o kişiyle bire bir görüşüldüğü
 // anlamına gelir.
-const BIREBIR_GORUSME_ASAMALARI = ['on_gorusme', 'ofis_tanitimi', 'karar_bekliyor', 'evrak']
+const BIREBIR_GORUSME_ASAMALARI = ['ilk_gorusme', 'ikinci_gorusme', 'olumlu']
 export function computeRecruitingReklamConversion(candidates) {
   const byAd = {}
   for (const c of candidates) {
@@ -101,7 +98,7 @@ export function computeRecruitingReklamConversion(candidates) {
     if (!byAd[key]) byAd[key] = { total: 0, gorusme: 0, alindi: 0 }
     byAd[key].total += 1
     if (BIREBIR_GORUSME_ASAMALARI.includes(c.durum)) byAd[key].gorusme += 1
-    if (c.durum === 'evrak') byAd[key].alindi += 1
+    if (c.durum === 'olumlu') byAd[key].alindi += 1
   }
   return Object.entries(byAd)
     .map(([reklamAdi, v]) => ({ reklamAdi, ...v }))
