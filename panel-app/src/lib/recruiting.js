@@ -36,6 +36,37 @@ export const RECRUITING_DURUM_STYLES = {
   olumsuz: 'bg-remax-red-dark/10 text-remax-red-dark',
 }
 
+// "Olumlu" formda/dropdown'da SEÇİLEMEZ — sadece "Danışman Olarak Ekle"
+// eylemi (bkz. RecruitingDetailModal, Recruiting.jsx handleCreateDanisman)
+// bu duruma taşıyabilir, çünkü Olumlu = gerçek danışman hesabı açıldı
+// demek (broker kararı: "hiç olumlu menüsü olmasın, seçim olumlu olunca
+// direkt yeni danışman kaydına atsın").
+export const RECRUITING_DURUM_SECILEBILIR = RECRUITING_DURUMLARI.filter((d) => d !== 'olumlu')
+
+// "Olumsuz" seçilince ZORUNLU sorulan sebep (broker kararı, 2026-09-27:
+// "olumsuzların da neden olumsuz olduğunu bilmek için") — "Yanlış
+// Başvuru"da sorulmuyor, o zaten kendi açıklamasını taşıyor (spam/yanlış
+// numara), buradaki liste gerçek görüşülmüş ama işe alınmamış adaylar
+// için Follow Up Boss/HubSpot tarzı "kapanış sebebi" mantığı.
+export const RECRUITING_OLUMSUZ_SEBEPLERI = [
+  'maas_beklentisi',
+  'deneyim_yetersiz',
+  'baska_teklif',
+  'iletisime_gecilemedi',
+  'profile_uygun_degil',
+  'kendi_istegiyle',
+  'diger',
+]
+export const RECRUITING_OLUMSUZ_SEBEP_LABELS = {
+  maas_beklentisi: 'Maaş/hakediş beklentisi uyuşmadı',
+  deneyim_yetersiz: 'Deneyim/yetkinlik yetersiz',
+  baska_teklif: 'Başka bir teklif/fırsat kabul etti',
+  iletisime_gecilemedi: 'İletişime geçilemedi',
+  profile_uygun_degil: 'Aradığımız profile uygun değil',
+  kendi_istegiyle: 'Kendi isteğiyle vazgeçti',
+  diger: 'Diğer',
+}
+
 // Kendi kaynak listesi — leads.kaynak ile AYNI DEĞİL, bilerek. Recruiting
 // kanalları (Kariyer.net, LinkedIn, İşin Olsun...) portföy lead
 // kanallarından (web, tabela, sahibinden) farklı; onlar recruiting için
@@ -112,4 +143,16 @@ export function computeRecruitingReklamConversion(candidates) {
   return Object.entries(byAd)
     .map(([reklamAdi, v]) => ({ reklamAdi, ...v }))
     .sort((a, b) => b.alindi - a.alindi)
+}
+
+// "Danışman Olarak Ekle" eyleminde users.kaynak'a yazılan özet metin —
+// broker kararı: "o danışmanları biz nereden aldığımızı da bilmeliyiz,
+// kaynağını bilelim". Canlı bir FK yerine BİLEREK bir anlık özet (snapshot)
+// — "nereden geldi" tarihsel bir gerçek, recruiting_candidates satırı
+// silinse/değişse bile users tablosunda okunabilir kalmalı.
+export function candidateKaynakOzeti(candidate) {
+  const parts = [RECRUITING_KAYNAK_LABELS[candidate.kaynak] ?? candidate.kaynak]
+  if (candidate.reklamAdi) parts.push(candidate.reklamAdi)
+  else if (candidate.kampanyaKodu) parts.push(candidate.kampanyaKodu)
+  return `Recruiting: ${parts.join(' — ')}`
 }

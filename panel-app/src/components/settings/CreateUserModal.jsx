@@ -3,14 +3,19 @@ import Modal from '../common/Modal'
 import { ROLES, ROLE_LABELS } from '../../lib/roles'
 import { capitalizeWords } from '../../lib/format'
 import { generateSecurePassword } from '../../lib/password'
+import { formatPhoneInput } from '../../lib/phone'
 
 const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
 const TC_NO_PATTERN = /^\d{11}$/
 
-export default function CreateUserModal({ onClose, onSubmit, submitting }) {
+// initialValues: Recruiting'de "Danışman Olarak Ekle" ile açıldığında
+// aday bilgilerini (ad/telefon/email) ön-doldurur (bkz. Recruiting.jsx
+// handleConvertToDanisman) — RecruitingDetailModal ile AYNI desen.
+export default function CreateUserModal({ onClose, onSubmit, submitting, initialValues }) {
   const [form, setForm] = useState({
-    ad: '',
-    email: '',
+    ad: initialValues?.ad ?? '',
+    email: initialValues?.email ?? '',
+    telefon: initialValues?.telefon ?? '',
     password: generateSecurePassword(),
     rol: ROLES.DANISMAN,
     dogumTarihi: '',
@@ -38,14 +43,23 @@ export default function CreateUserModal({ onClose, onSubmit, submitting }) {
           placeholder="Ad Soyad"
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
-        <input
-          required
-          type="email"
-          value={form.email}
-          onChange={(e) => set({ email: e.target.value })}
-          placeholder="E-posta"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            required
+            type="email"
+            value={form.email}
+            onChange={(e) => set({ email: e.target.value })}
+            placeholder="E-posta"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+          <input
+            type="tel"
+            value={form.telefon}
+            onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
+            placeholder="Telefon (opsiyonel)"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        </div>
         <div className="flex gap-2">
           <div className="w-full">
             <label className="mb-1 block text-xs text-ink-500">Doğum tarihi (opsiyonel)</label>

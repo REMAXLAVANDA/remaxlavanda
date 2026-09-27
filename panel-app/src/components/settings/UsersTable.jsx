@@ -51,6 +51,10 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
                 {u.email ?? '—'}
                 {u.createdAt && <> · Kayıt: {relativeTime(u.createdAt)}</>}
               </p>
+              {/* Recruiting'den "Danışman Olarak Ekle" ile açılmış hesaplarda
+                  dolar (bkz. lib/recruiting.js candidateKaynakOzeti, broker
+                  kararı: "o danışmanları biz nereden aldığımızı bilelim"). */}
+              {u.kaynak && <p className="mt-0.5 text-xs text-ink-400">Kaynak: {u.kaynak}</p>}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">

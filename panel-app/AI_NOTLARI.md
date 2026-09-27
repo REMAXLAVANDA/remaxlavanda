@@ -7,6 +7,37 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — Recruiting: "Olumlu" kalktı, yerine "Danışman Olarak Ekle" + "Olumsuz" sebep zorunlu
+
+Broker: "olumlu olanlar zaten direk danışman olarak eklenmeli... o
+danışmanları biz nereden aldığımızı da bilmeliyiz" + "olumsuz seçilince
+sebepler seçilebilsin."
+
+- "Olumlu" artık form/dropdown'da SEÇİLEMEZ (`RECRUITING_DURUM_SECILEBILIR`,
+  bkz. lib/recruiting.js) — TEK yol `RecruitingDetailModal`'daki yeni
+  "Danışman Olarak Ekle" butonu: mevcut `CreateUserModal` (Ayarlar >
+  Kullanıcılar ile AYNI bileşen, ad/telefon/email ön-dolu) üzerinden gerçek
+  bir `users` hesabı açılıyor, AYNI anda aday `durum='olumlu'`ya geçiyor
+  (`Recruiting.jsx handleCreateDanisman`). Aday zaten "olumlu" ise
+  dropdown yerine salt-okunur "Danışman olarak eklendi ✓" rozeti görünür.
+- Kaynak izlenebilirliği: yeni `users.kaynak` (text, nullable) — danışman
+  Recruiting'den açıldığında `candidateKaynakOzeti()` ile bir anlık özet
+  yazılıyor (ör. "Recruiting: Kariyer.net — RECRUIT_..."). BİLEREK canlı bir
+  FK değil, geçmişe dönük okunabilir bir metin — aday kaydı silinse/değişse
+  bile users'ta kalıyor. `create-user` edge function'ı artık `telefon`/
+  `kaynak`'ı da kabul edip `users` insert'ine yazıyor (redeploy edildi).
+  Ayarlar > Kullanıcılar listesinde "Kaynak: ..." satırı olarak görünüyor.
+- "Olumsuz" seçilince yeni bir `olumsuz_sebebi` (text, 7 sabit değer +
+  NULL check constraint) zorunlu soruluyor — "Yanlış Başvuru"da
+  sorulmuyor (o kendi açıklamasını zaten taşıyor, spam/yanlış numara).
+  Mevcut olumsuz kayıtlar geriye dönük etkilenmedi, hepsi NULL kaldı.
+- Migration: `20260927180000_recruiting_danisman_donusum_ve_sebep.sql`
+  (`users.kaynak`, `recruiting_candidates.olumsuz_sebebi` + check).
+- Mock modda Playwright ile görsel doğrulandı: durum "Olumsuz" seçilince
+  Sebep dropdown'ı çıkıyor ve Kaydet düğmesi sebep seçilene kadar disabled
+  kalıyor; "Danışman Olarak Ekle" tıklanınca Kullanıcı Ekle formu aday
+  bilgileriyle ön-dolu açılıyor.
+
 ## 2026-09-27 — RLS performans düzeltmesi: "portal açılmakta zorlanıyor" kök nedeni
 
 Broker şikayeti: portal yavaş/zorlanarak açılıyor. Kök neden bulundu —

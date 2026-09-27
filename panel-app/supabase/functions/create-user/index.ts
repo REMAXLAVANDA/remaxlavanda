@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
 
   // 3) Girdi doğrulama.
   const body = await req.json().catch(() => ({}))
-  const { ad, email, password, rol } = body
+  const { ad, email, password, rol, telefon, kaynak } = body
   const VALID_ROLES = ['broker', 'owner', 'ofis', 'danisman']
   if (!ad || !email || !password || !VALID_ROLES.includes(rol)) {
     return Response.json({ ok: false, error: 'Eksik veya geçersiz bilgi (isim/email/şifre/rol).' }, { status: 400, headers: CORS })
@@ -88,10 +88,22 @@ Deno.serve(async (req) => {
     return Response.json({ ok: false, error: createErr?.message ?? 'Hesap oluşturulamadı.' }, { status: 400, headers: CORS })
   }
 
-  // 5) public.users profilini oluştur.
+  // 5) public.users profilini oluştur. telefon/kaynak opsiyonel — Recruiting'de
+  //    "Danışman Olarak Ekle" akışından çağrıldığında dolar (bkz.
+  //    lib/recruiting.js candidateKaynakOzeti, broker kararı: "o danışmanları
+  //    biz nereden aldığımızı da bilmeliyiz").
   const { data: profile, error: profileInsertErr } = await admin
     .from('users')
-    .insert({ id: created.user.id, ad, email, rol, durum: 'aktif', must_change_password: true })
+    .insert({
+      id: created.user.id,
+      ad,
+      email,
+      telefon: telefon || null,
+      kaynak: kaynak || null,
+      rol,
+      durum: 'aktif',
+      must_change_password: true,
+    })
     .select()
     .single()
   if (profileInsertErr) {

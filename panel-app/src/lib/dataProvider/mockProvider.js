@@ -474,6 +474,7 @@ export const recruiting = {
       email: form.email || null,
       atananDanismanId: form.atananDanismanId || null,
       durum: form.durum,
+      olumsuzSebebi: form.olumsuzSebebi ?? null,
       kayitTipi: form.kaynakLeadId ? 'lead' : 'manuel',
       yenidenAktifAt: null,
       aciklama: form.aciklama || null,
@@ -803,8 +804,17 @@ export const users = {
     }
     return delay({ id, ...patch })
   },
-  async createUser({ ad, email, password: _password, rol }) {
-    const created = { id: `mock-user-${Date.now()}`, name: ad, email, role: rol, durum: 'aktif', createdAt: new Date().toISOString() }
+  async createUser({ ad, email, password: _password, rol, telefon, kaynak }) {
+    const created = {
+      id: `mock-user-${Date.now()}`,
+      name: ad,
+      email,
+      telefon: telefon || null,
+      role: rol,
+      kaynak: kaynak || null,
+      durum: 'aktif',
+      createdAt: new Date().toISOString(),
+    }
     MOCK_EXTRA_USERS.push(created)
     return delay({ ...created })
   },

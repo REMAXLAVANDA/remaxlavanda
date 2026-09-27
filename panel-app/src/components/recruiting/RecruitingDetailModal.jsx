@@ -3,7 +3,14 @@ import { RotateCcw, Info, CalendarClock } from 'lucide-react'
 import Modal from '../common/Modal'
 import { formatPhoneInput } from '../../lib/phone'
 import { capitalizeWords, capitalizeFirst, formatDateOnly } from '../../lib/format'
-import { RECRUITING_DURUMLARI, RECRUITING_DURUM_LABELS, RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
+import {
+  RECRUITING_DURUM_SECILEBILIR,
+  RECRUITING_DURUM_LABELS,
+  RECRUITING_KAYNAKLARI,
+  RECRUITING_KAYNAK_LABELS,
+  RECRUITING_OLUMSUZ_SEBEPLERI,
+  RECRUITING_OLUMSUZ_SEBEP_LABELS,
+} from '../../lib/recruiting'
 
 const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
 
@@ -48,6 +55,7 @@ export default function RecruitingDetailModal({
   onClose,
   onSubmit,
   onReactivate,
+  onConvertToDanisman,
   submitting,
 }) {
   const interviewParts = toDateTimeParts(interviewEvent?.startAt)
@@ -57,13 +65,15 @@ export default function RecruitingDetailModal({
     telefon: candidate?.telefon ?? initialValues?.telefon ?? '',
     email: candidate?.email ?? initialValues?.email ?? '',
     durum: candidate?.durum ?? 'yeni_basvuru',
+    olumsuzSebebi: candidate?.olumsuzSebebi ?? '',
     aciklama: candidate?.aciklama ?? '',
     gorusmeTarih: interviewParts.date,
     gorusmeSaat: interviewParts.time,
     gorusmeSure: toDurationMinutes(interviewEvent),
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const canSubmit = form.adSoyad.trim().length > 0
+  const canSubmit = form.adSoyad.trim().length > 0 && (form.durum !== 'olumsuz' || form.olumsuzSebebi.length > 0)
+  const isOlumlu = candidate?.durum === 'olumlu'
 
   // Aynı numarayla daha önce aday girilmiş mi — sadece YENİ aday eklerken
   // anlamlı (düzenlerken kayıt kendi numarasıyla eşleşip yanlış uyarı
@@ -85,6 +95,7 @@ export default function RecruitingDetailModal({
       telefon: form.telefon ? formatPhoneInput(form.telefon) : '',
       email: form.email.trim(),
       aciklama: capitalizeFirst(form.aciklama.trim()),
+      olumsuzSebebi: form.durum === 'olumsuz' ? form.olumsuzSebebi : null,
       kaynakLeadId: candidate ? undefined : (initialValues?.kaynakLeadId ?? null),
       // Saat girilmeden tarih anlamsız — ikisi birlikte doluysa Takvim'e
       // işleniyor (bkz. Recruiting.jsx handleSave), biri eksikse hiç
@@ -157,18 +168,54 @@ export default function RecruitingDetailModal({
               </option>
             ))}
           </select>
-          <select
-            value={form.durum}
-            onChange={(e) => set({ durum: e.target.value })}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-          >
-            {RECRUITING_DURUMLARI.map((d) => (
-              <option key={d} value={d}>
-                {RECRUITING_DURUM_LABELS[d]}
-              </option>
-            ))}
-          </select>
+          {isOlumlu ? (
+            <div className="flex w-full items-center rounded-lg border border-remax-navy/20 bg-remax-navy/5 px-3 py-2 text-sm font-medium text-remax-navy">
+              Danışman olarak eklendi ✓
+            </div>
+          ) : (
+            <select
+              value={form.durum}
+              onChange={(e) => set({ durum: e.target.value, olumsuzSebebi: e.target.value === 'olumsuz' ? form.olumsuzSebebi : '' })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            >
+              {RECRUITING_DURUM_SECILEBILIR.map((d) => (
+                <option key={d} value={d}>
+                  {RECRUITING_DURUM_LABELS[d]}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
+
+        {!isOlumlu && form.durum === 'olumsuz' && (
+          <div>
+            <select
+              required
+              value={form.olumsuzSebebi}
+              onChange={(e) => set({ olumsuzSebebi: e.target.value })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            >
+              <option value="" disabled>
+                Sebep seç...
+              </option>
+              {RECRUITING_OLUMSUZ_SEBEPLERI.map((s) => (
+                <option key={s} value={s}>
+                  {RECRUITING_OLUMSUZ_SEBEP_LABELS[s]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {candidate && !isOlumlu && (
+          <button
+            type="button"
+            onClick={() => onConvertToDanisman(candidate)}
+            className="w-full rounded-lg bg-remax-navy/10 px-3 py-2 text-sm font-medium text-remax-navy hover:bg-remax-navy/20"
+          >
+            Danışman Olarak Ekle
+          </button>
+        )}
 
         <div>
           <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-ink-500">

@@ -4,14 +4,15 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { recruiting as recruitingProvider, calendarEvents as calendarProvider } from '../lib/dataProvider'
-import { canManageRecruiting, matchesKayitTipiFilter } from '../lib/recruiting'
+import { recruiting as recruitingProvider, calendarEvents as calendarProvider, users as usersProvider } from '../lib/dataProvider'
+import { canManageRecruiting, matchesKayitTipiFilter, candidateKaynakOzeti } from '../lib/recruiting'
 import { addMinutesToTimeString } from '../lib/calendar'
 import { sortByName } from '../lib/format'
 import { ROLES } from '../lib/roles'
 import RecruitingBoard from '../components/recruiting/RecruitingBoard'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
+import CreateUserModal from '../components/settings/CreateUserModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
 // kayitTipi varsayılan 'aktif' — arşiv taşımasıyla gelen ~421 'gecmis'
@@ -38,6 +39,7 @@ export default function Recruiting() {
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showModal, setShowModal] = useState(false)
   const [editingCandidate, setEditingCandidate] = useState(null)
+  const [convertingCandidate, setConvertingCandidate] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
@@ -161,6 +163,30 @@ export default function Recruiting() {
     }
   }
 
+  // "Olumlu" artık formdan seçilemiyor (bkz. lib/recruiting.js
+  // RECRUITING_DURUM_SECILEBILIR) — TEK yol burası: gerçek bir danışman
+  // hesabı açılınca aday otomatik "Olumlu"ya geçer (broker kararı:
+  // "seçim olumlu olunca direkt yeni danışman kaydına atsın").
+  function handleConvertToDanisman(candidate) {
+    setEditingCandidate(null)
+    setConvertingCandidate(candidate)
+  }
+
+  async function handleCreateDanisman(form) {
+    setSubmitting(true)
+    try {
+      const created = await usersProvider.createUser({ ...form, kaynak: candidateKaynakOzeti(convertingCandidate) })
+      const updated = await recruitingProvider.update(convertingCandidate.id, { durum: 'olumlu', olumsuzSebebi: null })
+      setData((prev) => ({ ...prev, candidates: prev.candidates.map((c) => (c.id === updated.id ? updated : c)) }))
+      setConvertingCandidate(null)
+      showToast(`${created.name} danışman olarak eklendi.`, 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Danışman oluşturulamadı, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // Lead Havuzu ile aynı ikinci savunma katmanı — recruiting_manage RLS'i
   // zaten veriyi engelliyor (bkz. lib/recruiting.js canManageRecruiting).
   if (!canManageRecruiting(role)) return <Navigate to="/panel" replace />
@@ -196,6 +222,20 @@ export default function Recruiting() {
           }}
           onSubmit={handleSave}
           onReactivate={handleReactivate}
+          onConvertToDanisman={handleConvertToDanisman}
+          submitting={submitting}
+        />
+      )}
+
+      {convertingCandidate && (
+        <CreateUserModal
+          initialValues={{
+            ad: convertingCandidate.adSoyad,
+            telefon: convertingCandidate.telefon ?? '',
+            email: convertingCandidate.email ?? '',
+          }}
+          onClose={() => setConvertingCandidate(null)}
+          onSubmit={handleCreateDanisman}
           submitting={submitting}
         />
       )}

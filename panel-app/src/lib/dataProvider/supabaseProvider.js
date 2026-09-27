@@ -633,6 +633,7 @@ function mapCandidate(row) {
     email: row.email,
     atananDanismanId: row.atanan_danisman_id,
     durum: row.durum,
+    olumsuzSebebi: row.olumsuz_sebebi,
     kayitTipi: row.kayit_tipi,
     yenidenAktifAt: row.yeniden_aktif_at,
     aciklama: row.aciklama,
@@ -677,6 +678,7 @@ export const recruiting = {
           email: form.email || null,
           atanan_danisman_id: form.atananDanismanId || null,
           durum: form.durum,
+          olumsuz_sebebi: form.olumsuzSebebi || null,
           kayit_tipi: form.kaynakLeadId ? 'lead' : 'manuel',
           aciklama: form.aciklama || null,
           reklam_adi: reklamAdi,
@@ -695,6 +697,7 @@ export const recruiting = {
     if ('email' in patch) dbPatch.email = patch.email || null
     if ('atananDanismanId' in patch) dbPatch.atanan_danisman_id = patch.atananDanismanId || null
     if ('durum' in patch) dbPatch.durum = patch.durum
+    if ('olumsuzSebebi' in patch) dbPatch.olumsuz_sebebi = patch.olumsuzSebebi || null
     if ('kayitTipi' in patch) dbPatch.kayit_tipi = patch.kayitTipi
     if ('yenidenAktifAt' in patch) dbPatch.yeniden_aktif_at = patch.yenidenAktifAt
     if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null
@@ -1147,7 +1150,9 @@ export const users = {
   // amaçlı) — users_select_all RLS'i is_active() ile sadece çağıranın
   // kendisinin aktif olmasını şart koşuyor, hedef satırın durumunu değil.
   async listAll() {
-    const data = await run(client().from('users').select('id, ad, email, rol, durum, test_hesabi, created_at').order('ad'))
+    const data = await run(
+      client().from('users').select('id, ad, email, rol, durum, test_hesabi, kaynak, created_at').order('ad'),
+    )
     return data.map((u) => ({
       id: u.id,
       name: u.ad,
@@ -1155,6 +1160,7 @@ export const users = {
       role: u.rol,
       durum: u.durum,
       testHesabi: u.test_hesabi,
+      kaynak: u.kaynak,
       createdAt: u.created_at,
     }))
   },
@@ -1173,9 +1179,9 @@ export const users = {
   // tarayıcıdan doğrudan değil, create-user Edge Function'ı üzerinden
   // gidiyor (bkz. supabase/functions/create-user). Fonksiyon çağıranın
   // gerçekten broker/owner olduğunu kendi içinde ayrıca doğruluyor.
-  async createUser({ ad, email, password, rol }) {
+  async createUser({ ad, email, password, rol, telefon, kaynak }) {
     const { data, error } = await client().functions.invoke('create-user', {
-      body: { ad, email, password, rol },
+      body: { ad, email, password, rol, telefon, kaynak },
     })
     if (error) throw new Error('Hesap oluşturulamadı, bağlantıyı kontrol edip tekrar dene.')
     if (!data?.ok) throw new Error(data?.error ?? 'Hesap oluşturulamadı.')
