@@ -9,7 +9,7 @@ import { canManageRecruiting, matchesKayitTipiFilter } from '../lib/recruiting'
 import { addMinutesToTimeString } from '../lib/calendar'
 import { sortByName } from '../lib/format'
 import { ROLES } from '../lib/roles'
-import RecruitingTable from '../components/recruiting/RecruitingTable'
+import RecruitingBoard from '../components/recruiting/RecruitingBoard'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -181,7 +181,7 @@ export default function Recruiting() {
             />
           </div>
 
-          <RecruitingTable candidates={visible} resolveName={resolveName} onRowClick={setEditingCandidate} showCampaign={showCampaign} />
+          <RecruitingBoard candidates={visible} resolveName={resolveName} onCardClick={setEditingCandidate} showCampaign={showCampaign} />
         </>
       )}
 

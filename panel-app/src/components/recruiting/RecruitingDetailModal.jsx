@@ -38,7 +38,7 @@ function toDurationMinutes(event) {
 // atamayacağız" kararı) — bu yüzden atananDanismanId seçimi buradan
 // TAMAMEN kaldırıldı (sadece Lead dönüşümünde değil, Recruiting'in kendi
 // yönetim ekranında da). Eski kayıtlarda kolon/veri DB'de durabilir,
-// RecruitingTable/RecruitingFilters'taki salt-okunur gösterim ve filtre
+// RecruitingBoard/RecruitingFilters'taki salt-okunur gösterim ve filtre
 // buna dokunmuyor — sadece BURADAN bir daha set edilemiyor.
 export default function RecruitingDetailModal({
   candidate,
