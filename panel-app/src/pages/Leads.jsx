@@ -20,12 +20,22 @@ import {
   computeRecruitingReklamConversion,
 } from '../lib/recruiting'
 import { OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES } from '../lib/opportunities'
+import { isWithinRange } from '../lib/dateRange'
 import { sortByName } from '../lib/format'
 import LeadTable from '../components/leads/LeadTable'
 import RoutedLeadsTable from '../components/leads/RoutedLeadsTable'
 import AssignPortfolioLeadModal from '../components/leads/AssignPortfolioLeadModal'
 import ReklamKaynaklariTable from '../components/settings/ReklamKaynaklariTable'
+import DateRangeFilter from '../components/common/DateRangeFilter'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
+
+// Recruiting'deki "gün filtresi olsun" isteğinin Lead Havuzu karşılığı
+// (2026-09-27, broker: "filtre her ikisini de etkilesin, tek seçim olsun") —
+// TEK bir DateRangeFilter hem ana bekleyen listeyi HEM "Yönlendirilenler"
+// tablosunu birlikte süzüyor. "24 saattir işlenmemiş" odak modu (staleFocus)
+// BİLEREK bu filtreden MUAF — o zaten unutulmuş/eski lead'leri bulmak için
+// var, bir tarih penceresi onu geçersiz kılmamalı (bkz. handleStaleFocus).
+const INITIAL_DATE_FILTER = { dateRange: '7g', customFrom: '', customTo: '' }
 
 // leads + opportunities + recruiting_candidates + call_logs BİRLİKTE
 // yükleniyor — opportunities/recruiting_candidates/calls, yönlendirilmiş
@@ -65,6 +75,7 @@ export default function Leads() {
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const [staleFocus, setStaleFocus] = useState(false)
+  const [dateFilter, setDateFilter] = useState(INITIAL_DATE_FILTER)
   const [convertTarget, setConvertTarget] = useState(null) // { type: 'opportunity', lead } — Recruiting hiç modal açmıyor
   const [submitting, setSubmitting] = useState(false)
 
@@ -89,9 +100,11 @@ export default function Leads() {
   // (bkz. routedLeads / RoutedLeadsTable) — köprü orada, ana listede değil.
   const visible = useMemo(() => {
     if (staleFocus) return leads.filter((l) => isStaleLead(l))
-    return leads.filter((l) => l.durum === 'yeni')
+    return leads
+      .filter((l) => l.durum === 'yeni')
+      .filter((l) => isWithinRange(l.createdAt, dateFilter.dateRange, dateFilter.customFrom, dateFilter.customTo))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, staleFocus])
+  }, [data, staleFocus, dateFilter])
 
   // Yönlendirilen bir lead'in hangi kayda gittiğini bulur — ayrı bir FK
   // yönü YOK, mevcut kaynak_lead_id yönü (call/opportunity/candidate ->
@@ -102,6 +115,7 @@ export default function Leads() {
   const routedLeads = useMemo(() => {
     return leads
       .filter((l) => l.durum === 'atandi')
+      .filter((l) => isWithinRange(l.createdAt, dateFilter.dateRange, dateFilter.customFrom, dateFilter.customTo))
       .map((lead) => {
         const call = (data?.calls ?? []).find((c) => c.kaynakLeadId === lead.id)
         if (call) return { ...lead, process: callProcessLabel(call, data?.opportunities ?? []) }
@@ -114,7 +128,7 @@ export default function Leads() {
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
+  }, [data, dateFilter])
 
   // Portföy'e giden lead için DANIŞMAN SEÇİMİ zorunlu bilgi (sistemde yok,
   // tahmin edilemez) — o yüzden AssignPortfolioLeadModal açılıyor, TEK alanı
@@ -214,6 +228,15 @@ export default function Leads() {
 
       {!loading && !error && (
         <>
+          {/* staleFocus'ta gizli — o modda TÜM eski/unutulmuş lead'ler
+              gösteriliyor, bir tarih penceresi bunu geçersiz kılmamalı
+              (bkz. INITIAL_DATE_FILTER notu). */}
+          {!staleFocus && (
+            <div className="mb-4 flex items-center gap-2 rounded-2xl border border-border-default bg-surface-raised p-4">
+              <DateRangeFilter value={dateFilter} onChange={setDateFilter} />
+            </div>
+          )}
+
           {staleLeads.length > 0 && (
             <button
               onClick={() => setStaleFocus((v) => !v)}

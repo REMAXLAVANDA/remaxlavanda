@@ -7,6 +7,22 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — Lead Havuzu: gün filtresi eklendi (ana liste + Yönlendirilenler ortak)
+
+Broker: "lead havuzunda da gün filtresi olsun... filtre her ikisini de
+etkilesin, tek seçim olsun." Recruiting'deki AYNI `DateRangeFilter` (7
+gün/30 gün/4 ay/Bu yıl/Tümü/Özel) Lead Havuzu'na da eklendi — TEK bir
+seçim hem ana bekleyen listeyi (durum='yeni') hem alttaki "Yönlendirilenler
+— Aşama Durumu" tablosunu (durum='atandi') birlikte süzüyor, varsayılan
+'7g'.
+
+"24 saattir işlenmemiş" odak modu (staleFocus) BİLEREK bu filtreden MUAF
+bırakıldı — o zaten unutulmuş/eski lead'leri bulmak için var, bir tarih
+penceresi tam da o kayıtları gizleyip amacını boşa çıkarırdı; o modda
+tarih filtresi satırı hiç gösterilmiyor. Mock modda Playwright ile
+doğrulandı: "Tümü" seçilince 7 günden eski bir "Yönlendirilenler" kaydı
+(Halil Sönmez) ortaya çıkıyor.
+
 ## 2026-09-27 — Recruiting: birikimli "Görüşme Notları" günlüğü + kaynak eşleme düzeltmesi
 
 Broker: "bir danışmanla yapılan görüşmelerin randevuların notlarını parça
