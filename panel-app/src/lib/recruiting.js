@@ -6,20 +6,26 @@ export { canManageRecruiting } from './roles'
 // 6 aşamalı basitleştirilmiş huni (2026-09-27, broker kararı — eski 7
 // aşamalı huniden geldi, bkz. AI_NOTLARI.md "Recruiting aşama sadeleştirme").
 // Ara aşamalar (eski Ön Görüşme/Ofis Tanıtımı/Karar Bekliyor) TEK bir
-// "İkinci Görüşme" aşamasında toplandı — henüz sonuçlanmamış her şey burada,
+// "ikinci_gorusme" durumunda toplandı — henüz sonuçlanmamış her şey burada,
 // danışman gerçek duruma göre Olumlu/Olumsuz'a ilerletir. GD Onboarding
 // devri (eski 'evrak' notu) artık 'olumlu' aşamasında.
+//
+// Etiketler (broker kararı, 2026-09-27, 3. revizyon): 'ilk_gorusme' durumu
+// panelde "Randevu", 'ikinci_gorusme' durumu "Karar Bekliyor" olarak
+// gösteriliyor — SADECE görünen isim değişti, durum değerleri/DB şeması
+// (ilk_gorusme/ikinci_gorusme) ve bunlara bağlı Meta CAPI eşlemesi
+// (send-meta-conversion) AYNI kaldı, migration GEREKMEDİ.
 //
 // "Yanlış Başvuru" BİLEREK "Olumsuz"dan AYRI — ikisi Meta'ya farklı anlam
 // taşıyor (bkz. AI_NOTLARI.md): Yanlış Başvuru = hiç geçerli bir aday
 // değildi (spam/yanlış numara), lead kalitesi kötüydü -> Meta'ya
 // Disqualified. Olumsuz = gerçek, görüşülmüş bir adaydı ama işe alınmadı,
 // lead kalitesiyle ilgisi yok -> Meta'ya HİÇBİR sinyal gitmez (zaten
-// İlk Görüşme'de Qualified gönderilmişti, o geçerliliğini koruyor).
+// Randevu'da/ilk_gorusme'de Qualified gönderilmişti, o geçerliliğini korur).
 //
 // Sıralama (broker kararı, 2026-09-27, 2. revizyon): "Yanlış Başvuru" ilk
 // başta 2. sıradaydı, broker fikrini değiştirip EN SONA aldırdı — akış
-// mantığı (Yeni Başvuru -> İlk Görüşme -> İkinci Görüşme -> Olumsuz) önde,
+// mantığı (Yeni Başvuru -> Randevu -> Karar Bekliyor -> Olumsuz) önde,
 // hiç geçerli olmayan başvurular en arkada. Bu sıra hem kanban panosunun
 // hem üst filtrenin kolon/seçenek sırasını belirliyor (RECRUITING_DURUM_
 // SECILEBILIR üzerinden, bkz. RecruitingBoard/RecruitingFilters).
@@ -27,8 +33,8 @@ export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_gorusme', 'ikinci_goru
 export const RECRUITING_DURUM_LABELS = {
   yeni_basvuru: 'Yeni Başvuru',
   yanlis_basvuru: 'Yanlış Başvuru',
-  ilk_gorusme: 'İlk Görüşme',
-  ikinci_gorusme: 'İkinci Görüşme',
+  ilk_gorusme: 'Randevu',
+  ikinci_gorusme: 'Karar Bekliyor',
   olumlu: 'Olumlu',
   olumsuz: 'Olumsuz',
 }
