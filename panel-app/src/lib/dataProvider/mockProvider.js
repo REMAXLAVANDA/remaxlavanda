@@ -925,6 +925,25 @@ export const telsamWebhookErrors = {
   },
 }
 
+// Portal -> Meta CAPI (durum geri bildirimi) hataları — meta-leads-webhook'un
+// TERSİ yönü (bkz. supabase/functions/send-meta-conversion).
+const MOCK_META_CAPI_ERRORS = [
+  {
+    id: 'mce-1',
+    tur: 'gonderim_hatasi',
+    metaLeadId: '1073507478692140',
+    eventName: 'ClosedWon',
+    hataMesaji: "Meta CAPI 400 döndü",
+    createdAt: usersDaysAgo(2),
+  },
+]
+
+export const metaCapiErrors = {
+  async list() {
+    return delay([...MOCK_META_CAPI_ERRORS])
+  },
+}
+
 // --- Görevler (Planlama > Görevler) ------------------------------------------
 export const tasks = {
   async list() {

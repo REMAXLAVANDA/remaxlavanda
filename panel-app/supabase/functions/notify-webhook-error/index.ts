@@ -1,14 +1,16 @@
 // supabase/functions/notify-webhook-error/index.ts
 // Deploy: supabase functions deploy notify-webhook-error --no-verify-jwt
 //
-// meta_webhook_errors VEYA telsam_webhook_errors tablosuna yeni bir hata
-// satırı düştüğünde broker/owner'a push bildirim gönderir. Önceden bu iki
-// tabloya yazılan hatalar Ayarlar > Webhook Hataları'na elle bakılmadan
-// fark edilmiyordu — 27 Temmuz'da Meta token'ı dolunca bir aday tam da bu
-// yüzden kaybolmuştu (bkz. AI_NOTLARI.md). Tek fonksiyon iki tabloyu birden
-// izliyor, `supabase_functions.http_request` trigger'ı standart Database
-// Webhooks payload'ında hangi tablodan geldiğini `table` alanında otomatik
-// gönderir (bkz. migration'daki trigger tanımları).
+// meta_webhook_errors / telsam_webhook_errors / meta_capi_errors
+// tablolarından birine yeni bir hata satırı düştüğünde broker/owner'a push
+// bildirim gönderir. Önceden bu tablolara yazılan hatalar Ayarlar > Webhook
+// Hataları'na elle bakılmadan fark edilmiyordu — 27 Temmuz'da Meta token'ı
+// dolunca bir aday tam da bu yüzden kaybolmuştu (bkz. AI_NOTLARI.md).
+// meta_capi_errors (2026-09-27, Portal -> Meta CAPI geri bildirimi) AYNI
+// fonksiyona sonradan eklendi. Tek fonksiyon üç tabloyu birden izliyor,
+// `supabase_functions.http_request` trigger'ı standart Database Webhooks
+// payload'ında hangi tablodan geldiğini `table` alanında otomatik gönderir
+// (bkz. migration'daki trigger tanımları).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
@@ -29,6 +31,7 @@ function buildMessage(table: string | undefined, record: Record<string, any>) {
   // chanid sadece Telsam'da var).
   const isMeta = table === 'meta_webhook_errors' || 'leadgen_id' in record
   const isTelsam = table === 'telsam_webhook_errors' || 'chanid' in record
+  const isMetaCapi = table === 'meta_capi_errors' || 'event_name' in record
 
   if (isMeta) {
     if (tur === 'graph_api_hatasi' && hataMesaji.startsWith('field_data çekilemedi')) {
@@ -47,6 +50,16 @@ function buildMessage(table: string | undefined, record: Record<string, any>) {
     return {
       title: 'Santral entegrasyonu hata verdi',
       body: hataMesaji.slice(0, 140) || 'Ayarlar > Webhook Hataları\'na bak.',
+    }
+  }
+
+  if (isMetaCapi) {
+    if (tur === 'yapilandirma_hatasi') {
+      return { title: 'Meta CAPI yapılandırma eksik', body: 'META_CAPI_ACCESS_TOKEN/META_PIXEL_ID secret\'ı eksik olabilir. Ayarlar > Webhook Hataları\'na bak.' }
+    }
+    return {
+      title: 'Meta\'ya durum bildirimi gönderilemedi',
+      body: `event: ${record.event_name ?? '—'} — ${hataMesaji.slice(0, 100) || 'Ayarlar > Webhook Hataları\'na bak.'}`,
     }
   }
 

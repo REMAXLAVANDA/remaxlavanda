@@ -1352,6 +1352,27 @@ export const telsamWebhookErrors = {
   },
 }
 
+// meta_capi_errors_select RLS'i sadece broker/owner'a okuma izni veriyor —
+// meta_webhook_errors ile AYNI desen, ama TERS yön (Portal -> Meta durum
+// bildirimi, meta-leads-webhook'un tersi — bkz.
+// supabase/functions/send-meta-conversion).
+export const metaCapiErrors = {
+  async list() {
+    const data = await run(
+      client().from('meta_capi_errors').select('*').order('created_at', { ascending: false }).limit(100),
+    )
+    return data.map((r) => ({
+      id: r.id,
+      createdAt: r.created_at,
+      tur: r.tur,
+      metaLeadId: r.meta_lead_id,
+      eventName: r.event_name,
+      rawPayload: r.raw_payload,
+      hataMesaji: r.hata_mesaji,
+    }))
+  },
+}
+
 // --- Görevler (Planlama > Görevler) -------------------------------------------
 function mapTask(row) {
   return {
