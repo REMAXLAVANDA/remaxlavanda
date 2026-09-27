@@ -1,5 +1,14 @@
-import { MessageSquare } from 'lucide-react'
+import { useState } from 'react'
+import { MessageSquare, ChevronDown, ChevronUp } from 'lucide-react'
 import { RECRUITING_DURUM_SECILEBILIR, RECRUITING_DURUM_LABELS, RECRUITING_DURUM_STYLES, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
+
+// Olumsuz/Yanlış Başvuru BİLEREK varsayılan gizli (2026-09-27, broker:
+// "hiç menüyü kalabalık etmese, bir düğmeye basıldığında görünse") —
+// bunlar kapanmış/terminal aşamalar, günlük operasyonda odaklanılan aktif
+// akış (Yeni Başvuru -> Randevu -> Karar Bekliyor) değil. Bir düğmeyle
+// açılıp kapanıyor, tamamen kaldırılmıyor — veri kaybolmuyor, sadece
+// varsayılan görünümden çıkıyor.
+const NEGATIF_DURUMLAR = ['olumsuz', 'yanlis_basvuru']
 
 // Lead Havuzu'ndan dönüşen bir adayın hangi reklamdan geldiği — RecruitingTable
 // ile AYNI desen.
@@ -62,6 +71,8 @@ function CandidateCard({ c, resolveName, onClick, showCampaign, noteCount }) {
 // Kullanıcılar'da (kaynak alanıyla) devam ediyor, Recruiting panosunda
 // kartı kalmıyor.
 export default function RecruitingBoard({ candidates, resolveName, onCardClick, showCampaign, noteCounts = {} }) {
+  const [showNegatif, setShowNegatif] = useState(false)
+
   if (candidates.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
@@ -70,14 +81,30 @@ export default function RecruitingBoard({ candidates, resolveName, onCardClick, 
     )
   }
 
-  const columns = RECRUITING_DURUM_SECILEBILIR.map((durum) => ({
+  const negatifCount = candidates.filter((c) => NEGATIF_DURUMLAR.includes(c.durum)).length
+  const visibleDurumlar = showNegatif
+    ? RECRUITING_DURUM_SECILEBILIR
+    : RECRUITING_DURUM_SECILEBILIR.filter((d) => !NEGATIF_DURUMLAR.includes(d))
+  const columns = visibleDurumlar.map((durum) => ({
     durum,
     items: candidates.filter((c) => c.durum === durum),
   }))
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2">
-      {columns.map(({ durum, items }) => (
+    <div>
+      {negatifCount > 0 && (
+        <div className="mb-3 flex justify-end">
+          <button
+            onClick={() => setShowNegatif((v) => !v)}
+            className="flex items-center gap-1.5 rounded-full border border-border-default bg-surface-raised px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-sunken"
+          >
+            {showNegatif ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            {showNegatif ? 'Olumsuz / Yanlış Başvuruyu Gizle' : `Olumsuz / Yanlış Başvuruyu Göster (${negatifCount})`}
+          </button>
+        </div>
+      )}
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {columns.map(({ durum, items }) => (
         <div key={durum} className="flex w-72 shrink-0 flex-col rounded-2xl border border-border-default bg-surface-sunken">
           <div className="flex items-center justify-between gap-2 border-b border-border-default px-3.5 py-3">
             <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${RECRUITING_DURUM_STYLES[durum]}`}>
@@ -102,7 +129,8 @@ export default function RecruitingBoard({ candidates, resolveName, onCardClick, 
             )}
           </div>
         </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
