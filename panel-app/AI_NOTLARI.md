@@ -7,6 +7,48 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-27 — Portal → Meta CAPI: lead durumu geri bildirimi
+
+meta-leads-webhook'un TERSİ yönü — broker onaylı kapsam: SADECE lead
+durumu (nitelikli/görüşme planlandı/kapandı/kayıp), parasal değer YOK
+(ayrı aşamada ele alınacak). Önce mevcut şema (leads/opportunities/
+recruiting_candidates) incelenip bir durum-eşleme tablosu sunuldu,
+onaylandı:
+
+- Yeni edge function `send-meta-conversion` — `opportunities.status`,
+  `recruiting_candidates.durum` veya `leads.durum='elendi'` değiştiğinde
+  (Database Webhook trigger) tetiklenir, `kaynak_lead_id` üzerinden
+  `leads.meta_lead_id`'yi bulup (Meta kaynaklı değilse sessizce atlar)
+  Meta CAPI'ye `POST /{pixel}/events` ile durum event'i gönderir.
+  Eşleme: opportunities `claimed`→nitelikli, `kapandi`→kapandı,
+  `iptal`→kayıp; recruiting_candidates `ilk_arama`→nitelikli,
+  `on_gorusme`→görüşme planlandı, `evrak`→kapandı, `olumsuz`→kayıp;
+  leads `elendi`→kayıp. Portföy'de "görüşme planlandı" karşılığı YOK
+  (opportunities.status bunu ayrı bir aşama olarak tutmuyor) — bilinen,
+  broker onaylı bir kapsam boşluğu, kapatılmadı.
+- Event adları (`META_CAPI_EVENT_QUALIFIED/_SCHEDULED/_WON/_LOST`) secret
+  üzerinden yapılandırılabilir — Meta'da bu dört isim için sabit bir
+  standart yok, Events Manager'da custom conversion olarak tanımlanmaları
+  gerekiyor.
+- Yeni `meta_capi_errors` tablosu (migration
+  `20260927120000_meta_capi_geri_bildirim.sql`) — gönderim hatalarını
+  `meta_webhook_errors` ile aynı desende tutuyor, BİLEREK ayrı tablo
+  (yön farklı). `notify-webhook-error` bu üçüncü tabloyu da izleyecek
+  şekilde genişletildi — broker/owner push bildirim alıyor.
+- Ayarlar > Webhook Hataları'na üçüncü bir bölüm eklendi ("Portal → Meta
+  (durum bildirimi)") — `MetaCapiErrorsTable.jsx`, mevcut iki bölümle
+  aynı görsel desen.
+- **Dikkat:** Bu ortamın ağ kısıtı Meta'nın geliştirici dokümantasyonuna
+  erişimi engelliyor (developers.facebook.com bloklu) — CAPI JSON şeması
+  canlı dokümanla birebir doğrulanamadı, genel bilinen şemaya göre
+  yazıldı. İlk canlı denemede Meta Events Manager > Test Events ile
+  kontrol edilmeli; sorun olursa `meta_capi_errors` Meta'nın ham hata
+  yanıtını saklıyor.
+- Çalışması için (benim tarafımdan sağlanamaz, Meta hesabını yöneten
+  kişi eklemeli — Dashboard > Edge Functions > Secrets):
+  `META_CAPI_ACCESS_TOKEN` (Events Manager'dan üretilecek, bilerek
+  `META_PAGE_ACCESS_TOKEN`'dan ayrı) ve `META_PIXEL_ID`.
+
 ## 2026-09-27 — Panel: "hiç donma yaşanmasın" — sessiz yeniden deneme + kısmi hata toleransı
 
 Önceki zaman aşımı düzeltmesinin (bkz. 2026-09-24 kaydı) devamı — broker

@@ -11,6 +11,7 @@ import {
   auditLog as auditLogProvider,
   metaWebhookErrors as metaWebhookErrorsProvider,
   telsamWebhookErrors as telsamWebhookErrorsProvider,
+  metaCapiErrors as metaCapiErrorsProvider,
 } from '../lib/dataProvider'
 import { canManageUsers } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
@@ -24,6 +25,7 @@ import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
 import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
 import TelsamWebhookErrorsTable from '../components/settings/TelsamWebhookErrorsTable'
+import MetaCapiErrorsTable from '../components/settings/MetaCapiErrorsTable'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -80,6 +82,15 @@ export default function Ayarlar() {
     reload: reloadTelsamWebhookErrors,
   } = useAsyncList(
     () => (canManage && tab === 'webhook' ? telsamWebhookErrorsProvider.list() : Promise.resolve([])),
+    [canManage, tab],
+  )
+  const {
+    data: metaCapiErrorRows,
+    loading: loadingMetaCapiErrors,
+    error: metaCapiErrorsError,
+    reload: reloadMetaCapiErrors,
+  } = useAsyncList(
+    () => (canManage && tab === 'webhook' ? metaCapiErrorsProvider.list() : Promise.resolve([])),
     [canManage, tab],
   )
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -462,6 +473,21 @@ export default function Ayarlar() {
             )}
             {!loadingTelsamWebhookErrors && !telsamWebhookErrorsError && (
               <TelsamWebhookErrorsTable rows={telsamWebhookErrorRows ?? []} />
+            )}
+          </div>
+
+          <div className="mt-8 border-t border-border-subtle pt-6">
+            <p className="mb-1 text-sm font-semibold text-text-primary">Portal → Meta (durum bildirimi)</p>
+            <p className="mb-4 text-xs text-text-disabled">
+              Fırsat/aday durumu değiştiğinde Meta'ya gönderilen geri bildirimin başarısız olduğu kayıtlar — son 100
+              hata. Meta kaynaklı olmayan lead'ler için bir şey gönderilmediğinden burada görünmez, bu normaldir.
+            </p>
+            {loadingMetaCapiErrors && <LoadingState />}
+            {!loadingMetaCapiErrors && metaCapiErrorsError && (
+              <ErrorState error={metaCapiErrorsError} onRetry={reloadMetaCapiErrors} />
+            )}
+            {!loadingMetaCapiErrors && !metaCapiErrorsError && (
+              <MetaCapiErrorsTable rows={metaCapiErrorRows ?? []} />
             )}
           </div>
         </>
