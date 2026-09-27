@@ -8,14 +8,41 @@ import { useCallback, useEffect, useState } from 'react'
 // 2026-09-24). withTimeout, lib/push.js'teki AYNI Promise.race deseni —
 // süre dolunca istek "hata"ya düşer, kullanıcı gerçek bir "Tekrar Dene"
 // butonu görür.
-const TIMEOUT_MS = 20000
+//
+// TIMEOUT_MS daha önce 20sn'ydi (tek deneme, yeniden deneme yok) — "hiç
+// donma yaşanmasın" isteği üzerine (2026-09-24) kısaltılıp BİR KEZ sessiz
+// otomatik yeniden deneme eklendi: çoğu "donma" aslında birkaç saniyelik
+// anlık bir ağ takılması (WiFi<->mobil veri geçişi gibi), kullanıcı hiç
+// fark etmeden arka planda düzeliyor. Kalıcı bir sorun varsa (ikinci
+// deneme de zaman aşımına uğrarsa) yine en fazla ~16sn'de gerçek hataya
+// düşüyor — eski tek denemeli 20sn'den bile kısa.
+const TIMEOUT_MS = 8000
+const TIMEOUT_MESSAGE = 'İstek zaman aşımına uğradı, tekrar dene.'
 
 function withTimeout(promise) {
   let timer
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error('İstek zaman aşımına uğradı, tekrar dene.')), TIMEOUT_MS)
+    timer = setTimeout(() => reject(new Error(TIMEOUT_MESSAGE)), TIMEOUT_MS)
   })
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+// Zaman aşımına ya da bağlantı hatasına (kind: 'network', bkz.
+// lib/errors.js mapSupabaseError) uğrayan istekler BİR KEZ, sessizce
+// (loading/error state'i hiç değiştirmeden) yeniden denenir. Başka türden
+// hatalar (403/404/doğrulama vb.) yeniden denemekle düzelmeyeceği için
+// hemen olduğu gibi yukarı fırlatılır.
+function isRetryableError(err) {
+  return err?.message === TIMEOUT_MESSAGE || err?.kind === 'network'
+}
+
+async function fetchWithRetry(fetcher) {
+  try {
+    return await withTimeout(fetcher())
+  } catch (err) {
+    if (!isRetryableError(err)) throw err
+    return await withTimeout(fetcher())
+  }
 }
 
 // Herhangi bir Promise döndüren fetcher'ı {data, setData, loading, error,
@@ -36,7 +63,7 @@ export function useAsyncList(fetcher, deps = []) {
     setLoading(true)
     setError(null)
 
-    withTimeout(fetcher())
+    fetchWithRetry(fetcher)
       .then((result) => {
         if (cancelled) return
         setData(result)

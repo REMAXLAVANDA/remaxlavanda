@@ -60,26 +60,39 @@ import WeeklyLeadersCard from '../components/panel/WeeklyLeadersCard'
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
 
+// Sıra, aşağıdaki Promise.allSettled dizisiyle BİREBİR aynı olmalı —
+// hangi sonucun hangi anahtara ait olduğunu buradan eşleştiriyoruz.
+const LOAD_ALL_KEYS = [
+  'calls',
+  'opps',
+  'events',
+  'attendance',
+  'modules',
+  'progress',
+  'checklistItems',
+  'checklistStatus',
+  'periods',
+  'scores',
+  'activity',
+  'ciroMusterileri',
+  'users',
+  'ciroGirisleri',
+  'musteriReviewCounts',
+  'leads',
+  'recruitingCandidates',
+]
+
+// "Hiç donma yaşanmasın" isteği (2026-09-24) — 17 sorgudan biri gerçekten
+// çökse bile (useAsyncList'in kendi zaman aşımı/yeniden denemesi tükenirse)
+// Promise.all yerine Promise.allSettled kullanılıyor: geri kalan 16 sorgu
+// yine dolduruyor, Panel'in geri kalanı normal çalışıyor. Başarısız olan
+// bölüm boş dizi (`[]`) ile dolduruluyor — her yerde zaten `data.xxx`
+// doğrudan `.filter()/.map()` ile kullanıldığı için (bkz. bileşenin geri
+// kalanı) bu güvenli bir varsayılan. `hasPartialFailure` true ise Panel'in
+// üstünde küçük bir "bazı veriler eksik" şeridi çıkıyor (bkz. aşağıda
+// PartialFailureBanner) — sayfayı BLOKLAMIYOR, sadece bilgilendiriyor.
 async function loadAll() {
-  const [
-    calls,
-    opps,
-    events,
-    attendance,
-    modules,
-    progress,
-    checklistItems,
-    checklistStatus,
-    periods,
-    scores,
-    activity,
-    ciroMusterileri,
-    users,
-    ciroGirisleri,
-    musteriReviewCounts,
-    leads,
-    recruitingCandidates,
-  ] = await Promise.all([
+  const results = await Promise.allSettled([
     callLogsProvider.list(),
     opportunitiesProvider.list(),
     calendarProvider.list(),
@@ -102,25 +115,18 @@ async function loadAll() {
     leadsProvider.list(),
     recruitingProvider.list(),
   ])
-  return {
-    calls,
-    opps,
-    events,
-    attendance,
-    modules,
-    progress,
-    checklistItems,
-    checklistStatus,
-    periods,
-    scores,
-    activity,
-    ciroMusterileri,
-    users,
-    ciroGirisleri,
-    musteriReviewCounts,
-    leads,
-    recruitingCandidates,
-  }
+
+  const data = { hasPartialFailure: false }
+  results.forEach((result, i) => {
+    const key = LOAD_ALL_KEYS[i]
+    if (result.status === 'fulfilled') {
+      data[key] = result.value
+    } else {
+      data[key] = []
+      data.hasPartialFailure = true
+    }
+  })
+  return data
 }
 
 // accent="navy": broker dashboard'daki yeni bölümler için — kırmızı SADECE
@@ -151,6 +157,27 @@ function Widget({ icon: Icon, title, count, description, to, linkLabel, classNam
       </div>
       {description && <p className="mb-4 text-xs text-text-disabled">{description}</p>}
       {children}
+    </div>
+  )
+}
+
+// loadAll()'daki 17 sorgudan biri (yeniden denemesine rağmen) kalıcı olarak
+// başarısız olursa gösterilir — sayfanın geri kalanı normal çalıştığı için
+// tam sayfa ErrorState yerine küçük, bilgilendirici bir şerit (bkz.
+// loadAll() notu).
+function PartialFailureBanner({ onRetry }) {
+  return (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+      <span className="flex items-center gap-2">
+        <AlertTriangle size={15} className="shrink-0" />
+        Bazı veriler yüklenemedi, panel eksik görünüyor olabilir.
+      </span>
+      <button
+        onClick={onRetry}
+        className="shrink-0 rounded-lg bg-white px-3 py-1 text-xs font-medium text-amber-800 shadow-sm hover:bg-amber-100"
+      >
+        Tekrar Dene
+      </button>
     </div>
   )
 }
@@ -976,6 +1003,7 @@ export default function Panel() {
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
+      {!loading && !error && data?.hasPartialFailure && <PartialFailureBanner onRetry={reload} />}
 
       {/* Broker/owner yönetim merkezi — "panele girer girmez 30 saniyede
           ofisin durumuna hakim olmak" isteği (bkz. AI_NOTLARI.md). Sabit
