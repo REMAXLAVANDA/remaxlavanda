@@ -7,6 +7,36 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-28 — Recruiting: Sebep menüsü Karar'la birleşti + Olumsuz sebep listesi genişledi + arşiv açıklamaları temizlendi
+
+Broker'dan üç bağlantılı geri bildirim:
+
+- **"Kaydet butonu gri oluyor, bug mu"** — bug değildi (Olumsuz seçilince
+  Sebep zorunlu, broker'ın kendi isteği), sadece neden pasif kaldığı hiç
+  görünmüyordu. RecruitingDetailModal'a amber uyarı eklendi: "Sebep
+  seçilmeden kaydedilemez."
+- **"Karar kısmına taşı, ben oradan yeni menülerden seçeyim"** — Sebep
+  dropdown'ı artık durum ("Karar") seçiminin AYNI satırında, ayrı bir alt
+  blok değil.
+- **Sebep listesi güncellendi** (broker önerisi) — "Başka bir teklif/
+  fırsat kabul etti" ikiye ayrıldı: "Başka bir emlak ofisiyle anlaştı"
+  (rakip analizi için) / "Farklı bir sektörden iş teklifi kabul etti"
+  (sektör cazibesi için) — broker için bu ikisi FARKLI anlam taşıyor.
+  "Randevuya gelmedi" eklendi (gerçek kullanımda sık ama listede hiç
+  yoktu, elle Açıklama'ya yazılıyordu — bkz. Aysel Çayan kaydı). "Deneyim/
+  yetkinlik yetersiz" ve "İletişime geçilemedi" listeden çıkarıldı
+  (kullanım: sırasıyla 1 ve 0 kayıt). Migration
+  `20260928090000_olumsuz_sebep_listesi_ve_arsiv_temizlik.sql` — CHECK
+  constraint SADECE genişledi, eski değerler DB'de hâlâ geçerli (geçmiş
+  kayıtlar bozulmadı), sadece panel seçim listesinden çıkarıldı.
+- **Arşiv açıklamaları temizlendi** — "[Arşivden taşındı]\nEski kaynak: X"
+  ön eki 344 kayıttan silindi (broker: "onları sil bizim yazdıklarımız
+  kalsın"). 76 kayıt SADECE bu ön eki taşıyordu (temiz sonrası açıklama
+  boş kaldı), 268 kayıtta ön ekin ardından gerçek personel notu vardı
+  (ör. "Randevu: 2026-01-29\n---\nGörüşmeye gelmedi.") — o kısım AYNEN
+  korundu, sadece ön ek silindi (regex tam eşleşen tek satırlık "Eski
+  kaynak: ..." kalıbını hedefledi, başka metne dokunmadı).
+
 ## 2026-09-27 — RLS performans düzeltmesi (2. tur): sabahki fix'in atladığı auth.uid() çağrıları
 
 Broker: "danışman yine panelin açılmadığını söylüyor." Sabahki büyük RLS

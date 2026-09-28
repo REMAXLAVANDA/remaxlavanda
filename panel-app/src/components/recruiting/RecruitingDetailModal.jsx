@@ -163,62 +163,66 @@ export default function RecruitingDetailModal({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <select
-            value={form.kaynak}
-            onChange={(e) => set({ kaynak: e.target.value })}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-          >
-            {RECRUITING_KAYNAKLARI.map((k) => (
-              <option key={k} value={k}>
-                {RECRUITING_KAYNAK_LABELS[k]}
-              </option>
-            ))}
-          </select>
-          {isOlumlu ? (
-            <div className="flex w-full items-center rounded-lg border border-remax-navy/20 bg-remax-navy/5 px-3 py-2 text-sm font-medium text-remax-navy">
-              Danışman olarak eklendi ✓
-            </div>
-          ) : (
-            <select
-              value={form.durum}
-              onChange={(e) => set({ durum: e.target.value, olumsuzSebebi: e.target.value === 'olumsuz' ? form.olumsuzSebebi : '' })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-            >
-              {RECRUITING_DURUM_SECILEBILIR.map((d) => (
-                <option key={d} value={d}>
-                  {RECRUITING_DURUM_LABELS[d]}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+        <select
+          value={form.kaynak}
+          onChange={(e) => set({ kaynak: e.target.value })}
+          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+        >
+          {RECRUITING_KAYNAKLARI.map((k) => (
+            <option key={k} value={k}>
+              {RECRUITING_KAYNAK_LABELS[k]}
+            </option>
+          ))}
+        </select>
 
-        {!isOlumlu && form.durum === 'olumsuz' && (
+        {/* Durum ("Karar") ve Olumsuz'un Sebebi AYNI satırda/bölümde —
+            broker: "karar kısmına taşı, ben oradan yeni menülerden
+            seçeyim" (2026-09-28). Sebep artık durumun hemen yanında,
+            ayrı bir alt blok değil. */}
+        {isOlumlu ? (
+          <div className="flex w-full items-center rounded-lg border border-remax-navy/20 bg-remax-navy/5 px-3 py-2 text-sm font-medium text-remax-navy">
+            Danışman olarak eklendi ✓
+          </div>
+        ) : (
           <div>
-            <select
-              required
-              value={form.olumsuzSebebi}
-              onChange={(e) => set({ olumsuzSebebi: e.target.value })}
-              className={`w-full rounded-lg border px-3 py-2 text-sm text-ink-800 ${
-                form.olumsuzSebebi ? 'border-ink-200' : 'border-amber-300'
-              }`}
-            >
-              <option value="" disabled>
-                Sebep seç...
-              </option>
-              {RECRUITING_OLUMSUZ_SEBEPLERI.map((s) => (
-                <option key={s} value={s}>
-                  {RECRUITING_OLUMSUZ_SEBEP_LABELS[s]}
-                </option>
-              ))}
-            </select>
+            <div className={form.durum === 'olumsuz' ? 'grid grid-cols-2 gap-2' : ''}>
+              <select
+                value={form.durum}
+                onChange={(e) => set({ durum: e.target.value, olumsuzSebebi: e.target.value === 'olumsuz' ? form.olumsuzSebebi : '' })}
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              >
+                {RECRUITING_DURUM_SECILEBILIR.map((d) => (
+                  <option key={d} value={d}>
+                    {RECRUITING_DURUM_LABELS[d]}
+                  </option>
+                ))}
+              </select>
+              {form.durum === 'olumsuz' && (
+                <select
+                  required
+                  value={form.olumsuzSebebi}
+                  onChange={(e) => set({ olumsuzSebebi: e.target.value })}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm text-ink-800 ${
+                    form.olumsuzSebebi ? 'border-ink-200' : 'border-amber-300'
+                  }`}
+                >
+                  <option value="" disabled>
+                    Sebep seç...
+                  </option>
+                  {RECRUITING_OLUMSUZ_SEBEPLERI.map((s) => (
+                    <option key={s} value={s}>
+                      {RECRUITING_OLUMSUZ_SEBEP_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
             {/* Kaydet butonu sessizce pasif kalmasın diye — broker'ın
                 kendisinin "olumsuz seçilince sebep seçilebilsin" isteği
                 zorunlu kıldı, ama neden pasif olduğu görünmeyince
                 "kaydet çalışmıyor" diye bug sanılabiliyordu (bkz.
                 2026-09-28 geri bildirimi). */}
-            {!form.olumsuzSebebi && (
+            {form.durum === 'olumsuz' && !form.olumsuzSebebi && (
               <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
                 <Info size={13} className="mt-0.5 shrink-0" />
                 Sebep seçilmeden kaydedilemez.

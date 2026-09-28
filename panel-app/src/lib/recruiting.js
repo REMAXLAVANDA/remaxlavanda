@@ -69,23 +69,40 @@ export const RECRUITING_DURUM_SECILEBILIR = RECRUITING_DURUMLARI.filter((d) => d
 // Başvuru"da sorulmuyor, o zaten kendi açıklamasını taşıyor (spam/yanlış
 // numara), buradaki liste gerçek görüşülmüş ama işe alınmamış adaylar
 // için Follow Up Boss/HubSpot tarzı "kapanış sebebi" mantığı.
+//
+// Liste 2026-09-28'de broker'ın kendi önerisiyle güncellendi: "baska_teklif"
+// (Başka bir teklif/fırsat kabul etti) İKİYE ayrıldı — rakip bir emlak
+// ofisine mi kaybedildi, yoksa sektör dışı bir işe mi — bunlar broker için
+// FARKLI anlam taşıyor (rakip analizi vs. sektör cazibesi). "Randevuya
+// gelmedi" yeni eklendi (gerçek kullanımda sık karşılaşılan ama listede
+// hiç olmayan bir durumdu, elle "Açıklama"ya yazılıyordu). "Deneyim/
+// yetkinlik yetersiz" ve "İletişime geçilemedi" listeden ÇIKARILDI (broker
+// kararı, kullanım verisi de zaten çok düşüktü: sırasıyla 1 ve 0 kayıt).
+// Eski "baska_teklif"/"deneyim_yetersiz"/"iletisime_gecilemedi" değerleri
+// DB'de (CHECK constraint'te) hâlâ geçerli — geçmiş kayıtlar bozulmasın
+// diye, sadece BURADAN yeni seçim olarak sunulmuyorlar.
 export const RECRUITING_OLUMSUZ_SEBEPLERI = [
   'maas_beklentisi',
-  'deneyim_yetersiz',
-  'baska_teklif',
-  'iletisime_gecilemedi',
   'profile_uygun_degil',
+  'baska_emlak_ofisi',
+  'farkli_sektor_teklifi',
+  'randevuya_gelmedi',
   'kendi_istegiyle',
   'diger',
 ]
 export const RECRUITING_OLUMSUZ_SEBEP_LABELS = {
   maas_beklentisi: 'Maaş/hakediş beklentisi uyuşmadı',
+  profile_uygun_degil: 'Aradığımız profile uygun değil',
+  baska_emlak_ofisi: 'Başka bir emlak ofisiyle anlaştı',
+  farkli_sektor_teklifi: 'Farklı bir sektörden iş teklifi kabul etti',
+  randevuya_gelmedi: 'Randevuya gelmedi',
+  kendi_istegiyle: 'Kendi isteğiyle vazgeçti',
+  diger: 'Diğer',
+  // Artık seçilemiyor ama eski kayıtlarda görünebilir (bkz. yukarı not) —
+  // RECRUITING_OLUMSUZ_SEBEPLERI'nde YOK, sadece etiket çözümü için burada.
   deneyim_yetersiz: 'Deneyim/yetkinlik yetersiz',
   baska_teklif: 'Başka bir teklif/fırsat kabul etti',
   iletisime_gecilemedi: 'İletişime geçilemedi',
-  profile_uygun_degil: 'Aradığımız profile uygun değil',
-  kendi_istegiyle: 'Kendi isteğiyle vazgeçti',
-  diger: 'Diğer',
 }
 
 // Kendi kaynak listesi — leads.kaynak ile AYNI DEĞİL, bilerek. Recruiting
