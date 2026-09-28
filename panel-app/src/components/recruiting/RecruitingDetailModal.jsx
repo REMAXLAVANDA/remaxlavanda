@@ -200,7 +200,9 @@ export default function RecruitingDetailModal({
               required
               value={form.olumsuzSebebi}
               onChange={(e) => set({ olumsuzSebebi: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              className={`w-full rounded-lg border px-3 py-2 text-sm text-ink-800 ${
+                form.olumsuzSebebi ? 'border-ink-200' : 'border-amber-300'
+              }`}
             >
               <option value="" disabled>
                 Sebep seç...
@@ -211,6 +213,17 @@ export default function RecruitingDetailModal({
                 </option>
               ))}
             </select>
+            {/* Kaydet butonu sessizce pasif kalmasın diye — broker'ın
+                kendisinin "olumsuz seçilince sebep seçilebilsin" isteği
+                zorunlu kıldı, ama neden pasif olduğu görünmeyince
+                "kaydet çalışmıyor" diye bug sanılabiliyordu (bkz.
+                2026-09-28 geri bildirimi). */}
+            {!form.olumsuzSebebi && (
+              <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
+                <Info size={13} className="mt-0.5 shrink-0" />
+                Sebep seçilmeden kaydedilemez.
+              </p>
+            )}
           </div>
         )}
 
