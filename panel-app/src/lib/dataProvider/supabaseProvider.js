@@ -494,6 +494,35 @@ export const callLogs = {
     const data = await run(client().from('call_logs').select('*').order('created_at', { ascending: false }))
     return data.map(mapCallLog)
   },
+  // Panel açılışındaki 17 paralel istekten biri — Panel sadece özet
+  // sayılar/uyarılar için (assignedTo/donusYapildiMi/portfoyAlindiMi vb.)
+  // kullanıyor, arayanAd/arayanTelefon/notlar gibi ağır alanları hiç
+  // göstermiyor (bkz. AI_NOTLARI.md "açılışta donma" notu, 2026-09-28).
+  // list()'in TAMAMINI değiştirmiyoruz — Operasyon/Lead Havuzu/Takip hâlâ
+  // tam veriye ihtiyaç duyuyor, sadece Panel bu daha hafif sürümü kullanıyor.
+  async listSummary() {
+    const data = await run(
+      client()
+        .from('call_logs')
+        .select(
+          'id, created_at, assigned_to, donus_yapildi_mi, portfoy_alindi_mi, satildi_mi, kaynak, reklam_kodu, portfoy_talebi_mi, arayan_ad, arayan_telefon',
+        )
+        .order('created_at', { ascending: false }),
+    )
+    return data.map((row) => ({
+      id: row.id,
+      createdAt: row.created_at,
+      assignedTo: row.assigned_to,
+      donusYapildiMi: row.donus_yapildi_mi,
+      portfoyAlindiMi: row.portfoy_alindi_mi,
+      satildiMi: row.satildi_mi,
+      kaynak: row.kaynak,
+      reklamKodu: row.reklam_kodu,
+      portfoyTalebiMi: row.portfoy_talebi_mi,
+      arayanAd: row.arayan_ad,
+      arayanTelefon: row.arayan_telefon,
+    }))
+  },
   async create(form) {
     const data = await run(
       client()

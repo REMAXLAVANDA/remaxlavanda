@@ -382,6 +382,25 @@ export const callLogs = {
   async list() {
     return delay([...MOCK_CALLS])
   },
+  // supabaseProvider.listSummary() ile AYNI arayüz — Panel açılışında
+  // kullanılıyor (bkz. o dosyadaki not).
+  async listSummary() {
+    return delay(
+      MOCK_CALLS.map((c) => ({
+        id: c.id,
+        createdAt: c.createdAt,
+        assignedTo: c.assignedTo,
+        donusYapildiMi: c.donusYapildiMi,
+        portfoyAlindiMi: c.portfoyAlindiMi,
+        satildiMi: c.satildiMi,
+        kaynak: c.kaynak,
+        reklamKodu: c.reklamKodu,
+        portfoyTalebiMi: c.portfoyTalebiMi,
+        arayanAd: c.arayanAd,
+        arayanTelefon: c.arayanTelefon,
+      })),
+    )
+  },
   async create(form) {
     const row = {
       id: `call-${Date.now()}`,

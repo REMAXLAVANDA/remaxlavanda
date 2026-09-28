@@ -93,7 +93,10 @@ const LOAD_ALL_KEYS = [
 // PartialFailureBanner) — sayfayı BLOKLAMIYOR, sadece bilgilendiriyor.
 async function loadAll() {
   const results = await Promise.allSettled([
-    callLogsProvider.list(),
+    // Panel sadece özet sayılar/uyarılar için kullanıyor — tam kayıt
+    // (arayanAd/telefon/notlar) yerine hafif listSummary() (bkz. o
+    // fonksiyonun notu, "açılışta donma" geri bildirimi 2026-09-28).
+    callLogsProvider.listSummary(),
     opportunitiesProvider.list(),
     calendarProvider.list(),
     calendarProvider.listAttendance(),

@@ -7,6 +7,33 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-28 — Panel açılışta "donma": call_logs'un ağır sütunları kesildi
+
+Broker: "donma sorunu var... açılışta." Araştırma: RLS tarafında yeni bir
+sorun yoktu (iki önceki düzeltme hâlâ geçerli, en ağır sorgu bile canlı
+testte 5-6ms) — loglarda gerçek bir kullanıcının (iPhone) panel'i 13
+dakikada 3 kez, ikisini 8 saniye arayla açtığı görüldü (donma hissiyle
+sayfa yenileme davranışına uyuyor).
+
+Kök neden: Panel.jsx açılışta **17 sorguyu paralel** atıyor, bunlardan
+`call_logs` HİÇBİR sınır olmadan (1492 kaydın TAMAMI, `notlar` gibi uzun
+metin sütunları dahil `select('*')`) her açılışta çekiliyordu — oysa
+Panel sadece özet sayılar/uyarılar için 11 alana ihtiyaç duyuyor.
+
+**Denenmeyen/reddedilen çözüm**: "son 7 güne sınırla" — broker önerdi ama
+analiz ettim, İKİ şeyi bozardı: (1) Lig puanları dönem bazlı (çeyreklik),
+son 7 günle sınırlanırsa toplamlar sıfıra yakın görünür; (2) "Dikkat
+Gerekiyor" listesi TAM OLARAK 7+ günden eski unutulmuş kayıtları yakalamak
+için var — sorguyu 7 günle sınırlamak en çok dikkat gerektiren kayıtları
+gizlerdi. Broker'a bunu açıkladım, kabul etti.
+
+**Uygulanan çözüm**: `callLogs.listSummary()` — Panel'in gerçekten
+kullandığı 11 alanla sınırlı yeni, hafif bir sorgu (tam `list()`
+DEĞİŞMEDİ, Operasyon/Lead Havuzu/Takip hâlâ tam veriyi kullanıyor).
+Panel.jsx artık `list()` yerine bunu çağırıyor. Mock modda Playwright ile
+hem broker hem danışman görünümü doğrulandı (Dikkat Gerekiyor, Sana
+Atanan Çağrılar widget'ları — arayanAd/telefon dahil — sorunsuz).
+
 ## 2026-09-28 — Recruiting: Sebep menüsü Karar'la birleşti + Olumsuz sebep listesi genişledi + arşiv açıklamaları temizlendi
 
 Broker'dan üç bağlantılı geri bildirim:
