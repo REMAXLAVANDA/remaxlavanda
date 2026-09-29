@@ -7,6 +7,25 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Lig: period_id indexleri eklendi — "statement timeout" kök nedeni
+
+Broker'a "portalın günlük sağlık durumunu kontrol et" dendiğinde tespit
+edildi: bugün 08:04-16:36 arası en az 10 kez Lig sayfasının paralel
+sorguları (`periods`/`ciro_girisleri`/`ciro_musterileri`/
+`social_activity_log`) 2 dakikalık `statement_timeout`'a takılıp hata
+vermiş (`postgres_logs`: "canceling statement due to statement
+timeout"). Tablolar çok küçük (44-123 satır) olduğu için bu bir hesaplama
+maliyeti değil, kilitlenme sorunuydu — Supabase performance advisor'da
+zaten işaretli olan "unindexed_foreign_keys" bulgusu ile örtüşüyordu:
+`ciro_girisleri`/`ciro_musterileri`/`social_activity_log` tablolarının
+`period_id` (Dönem) yabancı anahtarında index yoktu. Bir Dönem kaydı
+güncellendiğinde veritabanı bu üç tabloyu index olmadan satır satır
+tarayıp kilitliyor, aynı anda Lig'i açan biri bu kilidi bekleyip zaman
+aşımına düşüyordu. Broker'a düz Türkçe 3-soru formatıyla sunuldu
+("onaylıyorum" — düşük riskli, sadece index tier'ı), migration
+(`20260929230000_lig_period_id_indexleri.sql`) önce commit edilip sonra
+uygulandı, 3 index de oluştuğu doğrulandı.
+
 ## 2026-09-29 — Panel Veri Girişi klasörüne 4. bölüm eklendi: Ofis Eşya/Ekipman Koruması (içerik ekleme, kod değişikliği yok)
 
 Broker aynı dosyayı bu sefer 4. bir bölüm eklenmiş halde tekrar gönderdi
