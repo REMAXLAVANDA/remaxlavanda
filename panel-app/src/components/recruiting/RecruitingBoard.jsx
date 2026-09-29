@@ -10,17 +10,15 @@ import { RECRUITING_DURUM_SECILEBILIR, RECRUITING_DURUM_LABELS, RECRUITING_DURUM
 // varsayılan görünümden çıkıyor.
 const NEGATIF_DURUMLAR = ['olumsuz', 'yanlis_basvuru']
 
-// Lead Havuzu'ndan dönüşen bir adayın hangi reklamdan geldiği — RecruitingTable
-// ile AYNI desen.
-function campaignLabel(c) {
-  return [c.kampanyaKodu, c.reklamAdi].filter(Boolean).join(' — ') || null
-}
-
 function candidateDateLabel(createdAt) {
   return new Date(createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function CandidateCard({ c, resolveName, onClick, showCampaign, noteCount }) {
+// Kart BİLEREK sadece 3 alan gösteriyor: isim, kaynak, tarih (broker
+// kararı, 2026-09-29: "isim soyisim kaynak ve tarih olsun, detaylar içine
+// girince olsun") — telefon/reklam bilgisi/atanan danışman gibi geri
+// kalan her şey artık SADECE RecruitingDetailModal'da (karta tıklayınca).
+function CandidateCard({ c, onClick, noteCount }) {
   return (
     <div
       onClick={() => onClick(c)}
@@ -44,24 +42,20 @@ function CandidateCard({ c, resolveName, onClick, showCampaign, noteCount }) {
           </span>
         )}
       </div>
-      <p className="mt-0.5 text-xs text-text-secondary">{c.telefon ?? '—'}</p>
-      <div className="mt-2 flex items-center justify-between gap-2 text-xs text-text-disabled">
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-text-disabled">
         <span className="truncate">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</span>
         <span className="shrink-0">{candidateDateLabel(c.createdAt)}</span>
       </div>
-      {showCampaign && campaignLabel(c) && <p className="mt-1 truncate text-xs text-text-disabled">{campaignLabel(c)}</p>}
-      {c.atananDanismanId && <p className="mt-1 truncate text-xs text-text-muted">{resolveName(c.atananDanismanId)}</p>}
     </div>
   )
 }
 
 // Broker isteği (2026-09-27): "her şey altalta" tek liste yerine, ilk portal
 // prototipindeki gibi her aşama ayrı bir kutuda — Trello/kvCORE tarzı bir
-// pipeline panosu. RecruitingTable (satır tablosu) YERİNE geçiyor, aynı
-// candidates/onCardClick/resolveName/showCampaign prop'larını kullanıyor —
-// filtreler (durum/atanan/kayıt tipi) değişmedi, RecruitingFilters zaten bir
-// durum seçilirse o tek kolonu göstermeye devam eder (bilinçli, ayrı bir
-// "board modu" filtresi eklenmedi).
+// pipeline panosu. RecruitingTable (satır tablosu) YERİNE geçiyor — filtreler
+// (durum/atanan/kayıt tipi) değişmedi, RecruitingFilters zaten bir durum
+// seçilirse o tek kolonu göstermeye devam eder (bilinçli, ayrı bir "board
+// modu" filtresi eklenmedi).
 //
 // "Olumlu" kolonu BİLEREK yok (2026-09-27, broker: "hiç olumlu menüsü
 // olmasın" — kanban panosunda ayrı bir sütun olması da aynı kurala giriyor,
@@ -70,7 +64,7 @@ function CandidateCard({ c, resolveName, onClick, showCampaign, noteCount }) {
 // olumluya geçince artık gerçek bir kullanıcı — hikayesi Ayarlar >
 // Kullanıcılar'da (kaynak alanıyla) devam ediyor, Recruiting panosunda
 // kartı kalmıyor.
-export default function RecruitingBoard({ candidates, resolveName, onCardClick, showCampaign, noteCounts = {} }) {
+export default function RecruitingBoard({ candidates, onCardClick, noteCounts = {} }) {
   const [showNegatif, setShowNegatif] = useState(false)
 
   if (candidates.length === 0) {
@@ -117,14 +111,7 @@ export default function RecruitingBoard({ candidates, resolveName, onCardClick, 
               <p className="px-1 py-3 text-center text-xs text-text-disabled">Aday yok</p>
             ) : (
               items.map((c) => (
-                <CandidateCard
-                  key={c.id}
-                  c={c}
-                  resolveName={resolveName}
-                  onClick={onCardClick}
-                  showCampaign={showCampaign}
-                  noteCount={noteCounts[c.id]}
-                />
+                <CandidateCard key={c.id} c={c} onClick={onCardClick} noteCount={noteCounts[c.id]} />
               ))
             )}
           </div>

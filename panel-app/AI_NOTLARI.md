@@ -7,6 +7,36 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Recruiting Kanban kartları sadeleşti: isim, kaynak, tarih
+
+Broker (ekran görüntüsüyle): "şu ekranda isim soyisim kaynak ve tarih
+olsun. detaylar içine girince olsun." Kart üzerinde telefon numarası ve
+reklam/kampanya bilgisi gösteriliyordu — bunlar kaldırıldı, kart artık
+sadece isim, kaynak ve başvuru tarihini gösteriyor (görüşme notu sayısı
+rozeti aynen kaldı, o da broker'ın "kaç görüşme yapıldı görülmeli"
+isteğiyle ayrı bir karardı). Telefon/reklam/atanan danışman gibi tüm
+detaylar hâlâ kartın tıklanmasıyla açılan Aday Detayı modalında —
+sadece görünürlük yeri değişti, veri kaybı yok. `RecruitingBoard.jsx`
+`resolveName`/`showCampaign` prop'larını artık kullanmadığı için
+`Recruiting.jsx`'teki çağrı noktasından ve `showCampaign` tanımından
+temizlendi (detay modalı hâlâ `resolveName`'e ihtiyaç duyuyor, o
+kaldırılmadı). Mock modda Playwright ile hem kart hem detay modalı
+doğrulandı.
+
+## 2026-09-29 — Recruiting arşivinde 17 tamamen boş kayıt silindi
+
+Broker ekran görüntüsüyle işaret etti: bazı arşiv kayıtlarının isim
+alanında "Kapaklı", "Süleymanpaşa" gibi yer adları/kaynak adları vardı,
+içi boştu. İncelemede tam olarak 17 `recruiting_candidates` kaydının
+(hepsi `kayit_tipi='gecmis'`, `durum='olumsuz'`, `created_at`'i
+2026-07-07 arşiv aktarım anına sabit) ne telefonu, ne e-postası, ne
+açıklaması olduğu, ad alanının da bir yer/kaynak adından ibaret olduğu
+doğrulandı — hiçbir yabancı anahtar referansı (kaynak lead, görüşme
+etkinliği, not) yoktu. Broker "SİL" dedi, 17 kayıt `execute_sql` ile
+silindi (id'ler: 377, 251, 330, 398, 405, 92, 406, 411, 91, 95, 276,
+415, 416, 414, 413, 412, 376). Gerçek isim/not içeren 3 benzer kayıt
+(Okan Akgün, Samet Arslan, Tahir Akay) BİLEREK silinmedi.
+
 ## 2026-09-28 — Panel açılışta "donma": call_logs'un ağır sütunları kesildi
 
 Broker: "donma sorunu var... açılışta." Araştırma: RLS tarafında yeni bir

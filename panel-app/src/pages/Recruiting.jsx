@@ -75,11 +75,6 @@ export default function Recruiting() {
   // — ofis'ten gelen bir silme isteği sunucuda zaten reddedilir, buradaki
   // kontrol sadece butonu göstermemek için, ikinci savunma katmanı DB'de).
   const canDeleteNotes = role === ROLES.BROKER || role === ROLES.OWNER
-  // Reklam/kampanya bilgisi SADECE broker/owner'a görünsün — ofis Recruiting'e
-  // erişebiliyor (canManageRecruiting) ama bu bilgi onun işi değil (bkz.
-  // "danışman görmesine gerek yok, broker ve owner görebilsin" isteği —
-  // danışman zaten sayfaya hiç giremiyor, asıl kısıt burada ofis için).
-  const showCampaign = role === ROLES.BROKER || role === ROLES.OWNER
   const danismanOptions = sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi))
 
   const visible = useMemo(() => {
@@ -272,9 +267,7 @@ export default function Recruiting() {
 
           <RecruitingBoard
             candidates={visible}
-            resolveName={resolveName}
             onCardClick={setEditingCandidate}
-            showCampaign={showCampaign}
             noteCounts={noteCounts}
           />
         </>
