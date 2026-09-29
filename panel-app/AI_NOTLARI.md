@@ -7,6 +7,30 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber > Sosyal Medya: platform başına ayrı doküman (içerik düzenleme, kod değişikliği yok)
+
+Broker: "sosyal medya ile ilgili... her bir sosyal medya platformunun
+içeriğinin ayrı satırlarda olmasını istiyorum... kurumsallığa uygun
+olarak tekrar düzenler misin sen." Önceki durumda "Sosyal Medya"
+klasöründe 3 doküman vardı (genel bir "hesaplarımız" listesi + sadece
+Instagram ve Google Haritalar'a özel detaylı metinler); LinkedIn, TikTok,
+X, YouTube, Pinterest, Facebook gibi hesaplar için ayrı içerik yoktu,
+platforma özgü olmayan genel kurallar (kurumsal kimlik, özel gün takvimi,
+aylık kira artışı paylaşımı) da Instagram dokümanının içine gömülüydü.
+
+Yeniden düzenlendi: ortak kurallar tek bir "Genel Paylaşım Standardı ve
+Kurumsal Kimlik" dokümanına toplandı, sonra kullanılan HER platform
+(Facebook, Instagram, Google Haritalar, LinkedIn, TikTok, X, YouTube,
+Pinterest) kendi ayrı dokümanına ayrıldı — mevcut gerçek içerik
+(Instagram'ın hikaye/etiketleme kuralları, Google Haritalar'ın adım adım
+paylaşım talimatı) taşınıp yeniden yazıldı, platforma özel kuralı
+OLMAYAN hesaplar (LinkedIn/TikTok/X/YouTube/Pinterest) için uydurma
+kural eklenmedi — sadece genel standarda atıf yapan kısa, dürüst bir not
+bırakıldı. Bu SADECE içerik/veri düzenlemesi — `docs` tablosunda 3 satır
+silinip 9 yeni satır eklendi (`execute_sql` ile, broker'ın "sen
+düzenle" onayıyla), kategori/görünürlük (`sosyal-medya`, visibility=
+`yonetim`) ve kod tarafında hiçbir şey değişmedi.
+
 ## 2026-09-29 — Aday detayı: Açıklama kutusu kaldırıldı, notlar en alta taşındı, saat eklendi
 
 Broker: "açıklamalar en altta olmalı... artı ile açıklama ekleme
