@@ -7,6 +7,25 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber > Sosyal Medya: broker'ın gönderdiği detaylı kural dosyası işlendi (içerik düzenleme, kod değişikliği yok)
+
+Bir önceki maddedeki (aynı gün) ilk düzenlemede LinkedIn/TikTok/X/YouTube/
+Pinterest için elimde gerçek kural olmadığından sadece genel standarda
+atıf yapan kısa notlar bırakılmıştı. Broker ardından platform bazlı
+gerçek kuralları içeren bir dosya yükledi
+(`remaxlavanda-sosyal-medya-kurallari.md`) — bu dosyanın içeriği
+`sosyal-medya` klasöründeki 11 dokümana işlendi: 1 "Genel Kurallar" +
+10 platform dokümanı (Instagram, Facebook — Sayfa, Facebook — Kişisel
+Hesap, TikTok, LinkedIn, YouTube, Pinterest, X, Google İşletme Profili,
+WhatsApp). Önceki placeholder'lar silinip yerine gerçek "Amaç/
+Paylaşılır/Paylaşılmaz/Sıklık" yapısı yazıldı; Instagram'ın hikaye/
+etiketleme kuralı ve Google Haritalar'ın adım adım paylaşım talimatı
+(daha önce zaten gerçekti) yeni dokümanların içine taşınıp korundu.
+WhatsApp daha önce hiç kapsanmıyordu, yeni eklendi. Yine sadece `docs`
+tablosunda içerik değişikliği (`execute_sql` ile, broker'ın kendi
+gönderdiği dosya = onay) — kod/kategori/görünürlük tarafında hiçbir şey
+değişmedi.
+
 ## 2026-09-29 — Rehber > Sosyal Medya: platform başına ayrı doküman (içerik düzenleme, kod değişikliği yok)
 
 Broker: "sosyal medya ile ilgili... her bir sosyal medya platformunun
