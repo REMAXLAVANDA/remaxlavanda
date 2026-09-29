@@ -7,6 +7,22 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber'e yeni klasör: Müşteri İletişim Kuralları (içerik ekleme, kod değişikliği yok)
+
+Broker'ın gönderdiği ikinci bir kural dosyası daha işlendi — bu sefer
+farklı bir konu (sosyal medya değil, müşteri iletişimi). Sosyal Medya
+klasörüyle AYNI desen tekrarlandı: yeni bir `categories` satırı
+(`musteri-iletisim`, `visibility='yonetim'` — sadece broker/owner/ofis
+görür) + 6 doküman (Genel Kurallar + Telefon/WhatsApp/Yüz Yüze/E-posta/
+Sosyal Medya-Yorum-DM), her biri Amaç/Kurallar/Yapılmaz/Standart
+yapısında. Dosyanın kendisi zaten bu formatta net ve kısaydı, ekstra
+sadeleştirme gerekmedi — sadece Rehber'in desteklediği biçimlendirmeye
+(kalın etiket + madde listesi) uyarlandı. Dosyada "sıradaki: Portföy Alım
+ve Sunum Standartları" notu var — üçüncü bir dosya daha bekleniyor
+olabilir. Yine sadece `categories`/`docs` tablosunda veri ekleme
+(`execute_sql`, broker'ın kendi gönderdiği dosya = onay), kod tarafında
+hiçbir şey değişmedi.
+
 ## 2026-09-29 — Rehber > Sosyal Medya: eksik/fazla kontrolü (2 küçük düzeltme, kod değişikliği yok)
 
 Broker bir önceki harmanlama sonrası "yeni yaptıklarımızla uyuşuyor mu,
