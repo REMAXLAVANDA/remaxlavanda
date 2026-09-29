@@ -7,6 +7,18 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber > Sosyal Medya'ya "Video Çekim Standartları" eklendi (içerik ekleme, kod değişikliği yok)
+
+Broker aynı Sosyal Medya dosyasını bu sefer başına yeni bir bölüm
+eklenmiş halde tekrar gönderdi — geri kalan tüm içerik (Genel Kurallar +
+10 platform) zaten DB'dekiyle birebir aynıydı, sadece "Video Çekim
+Standartları (Tüm Platformlar İçin Ortak)" bölümü yeniydi. Var olan 11
+dokümana dokunmadan, yeni bir doküman olarak eklendi (format, çözünürlük,
+FPS, sabitlik, ışık, ses, güvenli alan, süre, marka — tüm platformlarda
+ortak çekim kuralları), sırası Genel Kurallar'dan hemen sonra (sort_order
+2, geri kalanlar +1 kaydırıldı). Sadece `docs` tablosunda ekleme
+(`execute_sql`), kod değişikliği yok.
+
 ## 2026-09-29 — Rehber'e yeni klasör: Toplantı, Etkinlik ve Eğitim (içerik ekleme, kod değişikliği yok)
 
 Broker'ın dördüncü kural dosyası: "Planlama: Toplantı, Etkinlik ve
