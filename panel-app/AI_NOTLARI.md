@@ -7,6 +7,19 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Panel Veri Girişi klasörüne 4. bölüm eklendi: Ofis Eşya/Ekipman Koruması (içerik ekleme, kod değişikliği yok)
+
+Broker aynı dosyayı bu sefer 4. bir bölüm eklenmiş halde tekrar gönderdi
+— 1-3. bölümler (Panel Veri Girişi, İlan Portalı Eşleştirme, Kurumsal
+Görünüm) zaten DB'dekiyle birebir aynıydı, sadece "Ofis Eşya ve
+Malzemelerinin Kullanımı ve Korunması" (çizilme/düşürülme/sıvı teması
+önlemleri + hasar bildirimi) yeniydi. Var olan 3 dokümana dokunulmadan
+sort_order 4 olarak eklendi; klasör etiketi de genişleyen kapsamı
+yansıtsın diye "Panel Veri Girişi ve Kurumsal Görünüm" → "Veri Girişi,
+Görünüm ve Ekipman" olarak güncellendi. Sadece `categories`/`docs`
+tablosunda veri ekleme/güncelleme (`execute_sql`), kod tarafında
+değişiklik yok.
+
 ## 2026-09-29 — Rehber'e yeni klasör: Panel Veri Girişi ve Kurumsal Görünüm (içerik ekleme, kod değişikliği yok)
 
 Broker'ın altıncı kural dosyası — üç farklı konuyu tek dosyada
