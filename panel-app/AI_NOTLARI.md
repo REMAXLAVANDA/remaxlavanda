@@ -7,6 +7,19 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber'e yeni klasör: Toplantı, Etkinlik ve Eğitim (içerik ekleme, kod değişikliği yok)
+
+Broker'ın dördüncü kural dosyası: "Planlama: Toplantı, Etkinlik ve
+Eğitim Organizasyon Kuralları". Not: dosyanın başlığı "Planlama" olsa da
+uygulamadaki mevcut "Planlama" sayfasıyla (Takvim/etkinlik modülü) bir
+ilgisi yok — karışmasın diye kategori etiketi bilinçli olarak "Toplantı,
+Etkinlik ve Eğitim" seçildi, "Planlama" değil. Aynı desen: yeni
+`categories` satırı (`toplanti-etkinlik-egitim`, `visibility='yonetim'`)
++ 6 doküman (Ofis Toplantıları — 09:30 başlangıç + hazırlık kontrol
+listesi, Mola Takibi, Sosyal Medya Çekimi, Ofis İçi Eğitimler, Ofis Dışı
+Eğitimler, Sosyal Etkinlikler). Sadece `categories`/`docs` veri ekleme
+(`execute_sql`), kod tarafında değişiklik yok.
+
 ## 2026-09-29 — Rehber'e yeni klasör: Çağrı Karşılama/Yönlendirme + klasör listesi rol bazlı gruplandı
 
 Broker'ın üçüncü kural dosyası: "Çağrı Karşılama, Kapı Müşterisi ve
