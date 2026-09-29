@@ -7,6 +7,16 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber'e yeni klasör: Panel Veri Girişi ve Kurumsal Görünüm (içerik ekleme, kod değişikliği yok)
+
+Broker'ın altıncı kural dosyası — üç farklı konuyu tek dosyada
+birleştiriyordu (panel/CRM veri girişi disiplini, sahibinden.com/
+remax.com.tr ilan eşleştirme sorumluluğu, kurumsal kıyafet standardı).
+Aynı desen: yeni `categories` satırı (`veri-girisi-kurumsal-gorunum`,
+`visibility='yonetim'`) + 3 doküman (Panel Veri Girişi, İlan Portalı
+Eşleştirme, Kurumsal Görünüm/Kıyafet). Sadece `categories`/`docs`
+tablosunda veri ekleme (`execute_sql`), kod tarafında değişiklik yok.
+
 ## 2026-09-29 — Rehber > SSS'ye 6 yeni soru-cevap + ilk kez gerçek alt kategoriler kullanıldı (içerik ekleme, kod değişikliği yok)
 
 Broker "Code'un terminaline yapıştır" diyerek 6 yeni SSS sorusu verdi
