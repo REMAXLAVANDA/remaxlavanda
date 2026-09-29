@@ -7,6 +7,23 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber > Sosyal Medya: tüm kaynaklar tek, yalın haliyle harmanlandı (içerik düzenleme, kod değişikliği yok)
+
+Broker ikinci bir dosya daha gönderdi (aynı 10 platform + her birine "Büyüme
+İpuçları" eklenmiş hali) ve "önceki paylaştığım, sonraki şimdiki
+paylaştığım ve senin eklediklerini harmanlayarak en profesyonel en yalın
+en kısa haliyle rehberi yeniden düzenle" dedi. Üç kaynak birleştirildi:
+(1) orijinal Seren içeriği (Instagram hikâye/etiketleme kuralı, Google
+Haritalar adım adım talimatı — ikisi de gerçek, korunması gereken
+operasyonel detaylardı), (2) broker'ın ilk gönderdiği genel kurallar +
+Amaç/Paylaşılır/Paylaşılmaz/Sıklık yapısı, (3) ikinci dosyadaki büyüme
+ipuçları. Format sıkılaştırıldı: her alan `# Başlık` yerine tek satırlık
+`**Etiket:** metin` haline getirildi (daha az yer kaplıyor), büyüme
+ipuçları 4 ayrı madde yerine yoğun 2-4 cümleye indirildi — hiçbir gerçek
+bilgi çıkarılmadı, sadece anlatım sadeleştirildi. Yine `docs` tablosunda
+içerik güncellemesi (`execute_sql`, broker'ın kendi isteği = onay), kod
+tarafında değişiklik yok.
+
 ## 2026-09-29 — Rehber > Sosyal Medya: broker'ın gönderdiği detaylı kural dosyası işlendi (içerik düzenleme, kod değişikliği yok)
 
 Bir önceki maddedeki (aynı gün) ilk düzenlemede LinkedIn/TikTok/X/YouTube/
