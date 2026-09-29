@@ -119,3 +119,12 @@ export function formatDateOnly(dateIso) {
   if (!dateIso) return '—'
   return new Date(dateIso).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
+
+// relativeTime'dan farklı olarak saati de verir — birikimli not/günlük
+// gibi "ne zaman eklendi" bilginin gün çözünürlüğü yetmediği yerlerde
+// (bkz. Recruiting görüşme notları, broker: "her eklememize otomatik
+// tarih saat versin").
+export function formatDateTime(dateIso) {
+  if (!dateIso) return '—'
+  return new Date(dateIso).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}

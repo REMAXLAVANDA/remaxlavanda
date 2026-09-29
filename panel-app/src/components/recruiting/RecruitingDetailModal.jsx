@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { RotateCcw, Info, CalendarClock, MessageSquare, Trash2 } from 'lucide-react'
 import Modal from '../common/Modal'
 import { formatPhoneInput } from '../../lib/phone'
-import { capitalizeWords, capitalizeFirst, formatDateOnly, relativeTime } from '../../lib/format'
+import { capitalizeWords, capitalizeFirst, formatDateOnly, formatDateTime } from '../../lib/format'
 import {
   RECRUITING_DURUM_SECILEBILIR,
   RECRUITING_DURUM_LABELS,
@@ -241,64 +241,6 @@ export default function RecruitingDetailModal({
           </button>
         )}
 
-        {/* Görüşme notları — açıklama alanından AYRI, birikimli günlük
-            (broker kararı: "parça parça ekleyelim, ne yaptı kaç görüşme
-            yapıldı görülmeli"). SADECE kayıtlı bir adayda görünür — henüz
-            kaydedilmemiş yeni adayda not eklenecek bir candidate.id yok. */}
-        {candidate && (
-          <div className="rounded-lg border border-ink-200 p-3">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-500">
-              <MessageSquare size={13} /> Görüşme Notları
-              <span className="font-normal text-ink-400">({notes.length})</span>
-            </p>
-            {notes.length > 0 && (
-              <div className="mb-2 max-h-48 space-y-2 overflow-y-auto">
-                {notes.map((n) => (
-                  <div key={n.id} className="rounded-lg bg-ink-50 p-2 text-xs">
-                    <div className="mb-1 flex items-center justify-between gap-2 text-ink-400">
-                      <span className="font-medium text-ink-600">{resolveName?.(n.createdBy) ?? '—'}</span>
-                      <span className="flex shrink-0 items-center gap-1.5">
-                        {relativeTime(n.createdAt)}
-                        {canDeleteNotes && (
-                          <button
-                            type="button"
-                            onClick={() => onDeleteNote(n.id)}
-                            title="Notu sil"
-                            className="rounded p-0.5 text-ink-300 hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        )}
-                      </span>
-                    </div>
-                    <p className="whitespace-pre-wrap text-ink-800">{n.notMetni}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-2">
-              <textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Görüşme/randevu notu ekle..."
-                rows={2}
-                className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-800 placeholder:text-ink-400"
-              />
-              <button
-                type="button"
-                disabled={!newNote.trim() || noteSubmitting}
-                onClick={() => {
-                  onAddNote(capitalizeFirst(newNote.trim()))
-                  setNewNote('')
-                }}
-                className="shrink-0 self-start rounded-lg bg-ink-100 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
-              >
-                Ekle
-              </button>
-            </div>
-          </div>
-        )}
-
         <div>
           <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-ink-500">
             <CalendarClock size={13} /> Görüşme / Randevu Tarihi
@@ -331,13 +273,93 @@ export default function RecruitingDetailModal({
           </select>
         </div>
 
-        <textarea
-          value={form.aciklama}
-          onChange={(e) => set({ aciklama: e.target.value })}
-          placeholder="Açıklama"
-          rows={2}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+        {/* Görüşme notları BİLEREK en altta, formun son bloğu (2026-09-29
+            broker: "açıklamalar en altta olmalı... artı ile açıklama
+            ekleme özelliğini en alta alalım") — eskiden burada hem bu
+            birikimli not günlüğü hem de altında ayrı, tek satırlık
+            "Açıklama" kutusu vardı; iki ayrı boş kutu kafa karıştırıyordu.
+            Kayıtlı bir adayda artık TEK blok var: birikimli notlar + üste
+            ekleme kutusu. Yeni not her zaman otomatik created_at alır
+            (DB'de default now(), bkz. migration 20260927190000) — burada
+            gösterimi relativeTime'ın gün çözünürlüğünden (sadece
+            "bugün/dün") formatDateTime'a (gün+saat) geçirildi.
+            Eski recruiting_candidates.aciklama (598 kayıttan 499'unda dolu
+            — çoğunlukla referans/kaynak bilgisi) SİLİNMEDİ/taşınmadı,
+            artık düzenlenemiyor ama veri kaybolmasın diye listenin en
+            altına (en eski kayıt olarak) salt-okunur "Genel not"
+            şeklinde ekleniyor. SADECE kayıtlı bir adayda görünür — henüz
+            kaydedilmemiş yeni adayda not eklenecek bir candidate.id yok,
+            o yüzden yeni aday eklerken açıklama kutusu eskisi gibi kalıyor. */}
+        {candidate ? (
+          <div className="rounded-lg border border-ink-200 p-3">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-500">
+              <MessageSquare size={13} /> Görüşme Notları
+              <span className="font-normal text-ink-400">({notes.length + (form.aciklama.trim() ? 1 : 0)})</span>
+            </p>
+            <div className="flex gap-2">
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Görüşme/randevu notu ekle..."
+                rows={2}
+                className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-800 placeholder:text-ink-400"
+              />
+              <button
+                type="button"
+                disabled={!newNote.trim() || noteSubmitting}
+                onClick={() => {
+                  onAddNote(capitalizeFirst(newNote.trim()))
+                  setNewNote('')
+                }}
+                className="shrink-0 self-start rounded-lg bg-ink-100 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
+              >
+                Ekle
+              </button>
+            </div>
+            {(notes.length > 0 || form.aciklama.trim()) && (
+              <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
+                {notes.map((n) => (
+                  <div key={n.id} className="rounded-lg bg-ink-50 p-2 text-xs">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-ink-400">
+                      <span className="font-medium text-ink-600">{resolveName?.(n.createdBy) ?? '—'}</span>
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        {formatDateTime(n.createdAt)}
+                        {canDeleteNotes && (
+                          <button
+                            type="button"
+                            onClick={() => onDeleteNote(n.id)}
+                            title="Notu sil"
+                            className="rounded p-0.5 text-ink-300 hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </span>
+                    </div>
+                    <p className="whitespace-pre-wrap text-ink-800">{n.notMetni}</p>
+                  </div>
+                ))}
+                {form.aciklama.trim() && (
+                  <div className="rounded-lg bg-ink-50 p-2 text-xs">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-ink-400">
+                      <span className="font-medium text-ink-600">Genel not</span>
+                      <span className="shrink-0">{formatDateOnly(candidate.createdAt)}</span>
+                    </div>
+                    <p className="whitespace-pre-wrap text-ink-800">{form.aciklama}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <textarea
+            value={form.aciklama}
+            onChange={(e) => set({ aciklama: e.target.value })}
+            placeholder="Açıklama"
+            rows={2}
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        )}
 
         <div className="flex justify-end gap-2 pt-2">
           <button

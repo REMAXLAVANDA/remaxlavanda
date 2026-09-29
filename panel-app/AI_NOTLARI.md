@@ -7,6 +7,30 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Aday detayı: Açıklama kutusu kaldırıldı, notlar en alta taşındı, saat eklendi
+
+Broker: "açıklamalar en altta olmalı... artı ile açıklama ekleme
+özelliğini en alta alalım. Bir de her eklememize otomatik tarih saat
+versin." Kayıtlı bir adayı düzenlerken hem "Görüşme Notları" (+) bloğu
+hem de altında ayrı, çoğu zaman boş görünen tek satırlık "Açıklama"
+kutusu vardı — kafa karıştırıyordu.
+
+Kontrol ettim: `recruiting_candidates.aciklama` 598 kayıttan 499'unda
+dolu (çoğunlukla referans/kaynak bilgisi) — kutuyu sessizce kaldırmak bu
+verinin görünürden kaybolması demekti. Onun yerine: kayıtlı bir adayda
+ayrı Açıklama kutusu tamamen kaldırıldı, Görüşme Notları bloğu forma en
+alta (Kaydet'in hemen üstüne) taşındı; eski açıklama artık düzenlenemiyor
+ama silinmedi — notlar listesinin en altına (en eski kayıt gibi)
+salt-okunur "Genel not" olarak ekleniyor. Yeni aday eklerken (henüz
+candidate.id yok, nota bağlanamaz) Açıklama kutusu DEĞİŞMEDEN kaldı.
+
+Not zaman damgası: DB zaten her notu otomatik `created_at` (default
+now()) ile kaydediyordu, ama ekranda sadece `relativeTime` ("bugün/dün")
+gösteriliyordu — saat hiç görünmüyordu. Yeni `formatDateTime` ile artık
+"29.09.2026 15:04" gibi gün+saat gösteriliyor. Mock modda Playwright ile
+hem mevcut adayda (Genel not + yeni not saat damgasıyla) hem yeni aday
+ekleme akışında (Açıklama kutusu aynen duruyor) doğrulandı.
+
 ## 2026-09-29 — Recruiting Kanban kartları sadeleşti: isim, kaynak, tarih
 
 Broker (ekran görüntüsüyle): "şu ekranda isim soyisim kaynak ve tarih
