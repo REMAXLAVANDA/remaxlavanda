@@ -7,6 +7,29 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber'e yeni klasör: Çağrı Karşılama/Yönlendirme + klasör listesi rol bazlı gruplandı
+
+Broker'ın üçüncü kural dosyası: "Çağrı Karşılama, Kapı Müşterisi ve
+Yönlendirme Kuralları" — santral operasyonunun tam olarak sorulan ilk
+kısmı ("santrale nasıl cevap verilir", bkz. bu günkü ilk mesaj).
+Sosyal Medya/Müşteri İletişim'le AYNI desen: yeni `categories` satırı
+(`cagri-karsilama`, `visibility='yonetim'`) + 4 doküman (Zorunlu
+Bilgiler, Yönlendirme Senaryoları A/B/C/D, Santral SMS Bilgilendirmesi,
+Portföy Mahremiyeti).
+
+Aynı mesajda ikinci bir istek daha vardı: "danışmanların gördüğü rehber
+bölümüyle ofis/owner'ın gördüğü bölümler ayrı sıralansın, karışmasın" —
+bu SADECE UI, `FolderList.jsx`'e kod değişikliği gerektirdi. Önceden tüm
+klasörler (herkese açık + yönetime özel) tek düz listede karışık
+görünüyordu (erişim zaten RLS/`canViewManagerCategories` ile
+kısıtlıydı, ama görünürdeki SIRALAMA karışıktı). `FolderList` artık
+`visibility` alanına göre ikiye ayırıyor: üstte herkese açık klasörler,
+altta "YÖNETİME ÖZEL" başlığı + kilit ikonuyla (CategoryManager'daki
+Lock/Unlock ikonuyla aynı dil) ayrı bir grup. Danışmanda ikinci grup
+zaten hiç veri almadığı için render edilmiyor (`yonetim.length > 0`
+kontrolü). Mock modda broker görünümünde doğrulandı (Sözleşmeler/Şirket
+Bilgileri/vb. üstte, "Yönetim Notları" altta kilit ikonuyla ayrı grupta).
+
 ## 2026-09-29 — Rehber'e yeni klasör: Müşteri İletişim Kuralları (içerik ekleme, kod değişikliği yok)
 
 Broker'ın gönderdiği ikinci bir kural dosyası daha işlendi — bu sefer
