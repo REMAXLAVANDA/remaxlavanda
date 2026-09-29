@@ -7,7 +7,21 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
-## 2026-09-29 — Rehber > Sosyal Medya: tüm kaynaklar tek, yalın haliyle harmanlandı (içerik düzenleme, kod değişikliği yok)
+## 2026-09-29 — Rehber > Sosyal Medya: eksik/fazla kontrolü (2 küçük düzeltme, kod değişikliği yok)
+
+Broker bir önceki harmanlama sonrası "yeni yaptıklarımızla uyuşuyor mu,
+eksik fazla bir şey var mı" diye sordu. Kaynak dosyayla dokuman dokuman
+karşılaştırdım: Google İşletme Profili dokümanından "detaylı
+optimizasyon ayrı takip ediliyor" notu sehven düşmüştü, geri eklendi;
+kaynak dosyanın sonundaki "bu doküman ilk sürüm, güncellenmeli" notu da
+Genel Kurallar dokümanının sonuna eklendi. Genel Kurallar/Instagram'daki
+görünüşte "fazla" kısımlar (yapay zekâ ibaresi yasağı, eşzamanlı
+paylaşım, özel gün takvimi, aylık kira artışı, hikâye/etiketleme
+zorunluluğu) hataya bağlı değil — bunlar bu son dosyada yok ama daha
+önceki (Seren'in orijinal içeriği) kaynaktan geliyor, broker'ın "hepsini
+harmanla" talimatı gereği korundu, kendisine açıklandı.
+
+## 2026-09-29 — Rehber > Sosyal Medya: tüm kaynaklar tek, yalın haliyle harmanlandı (içerik değişikliği yok)
 
 Broker ikinci bir dosya daha gönderdi (aynı 10 platform + her birine "Büyüme
 İpuçları" eklenmiş hali) ve "önceki paylaştığım, sonraki şimdiki
