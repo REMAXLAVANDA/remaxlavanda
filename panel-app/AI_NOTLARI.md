@@ -7,6 +7,38 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-29 — Rehber > SSS'ye 6 yeni soru-cevap + ilk kez gerçek alt kategoriler kullanıldı (içerik ekleme, kod değişikliği yok)
+
+Broker "Code'un terminaline yapıştır" diyerek 6 yeni SSS sorusu verdi
+(para transferi kontrolü, mesai dışı sorun prosedürü, uzaktan yetki,
+paralel temsil şikayeti, kiracılı satış, tahliye taahhütnamesi) ve bunları
+mevcut alt-kategori eşleştirme sistemine göre uygun kategorilere
+yerleştirmemi istedi. Not: SSS alt kategori ALTYAPISI 2026-09-17'de
+kurulmuştu (`lib/subcategorySuggest.js`, 7 anahtar kelime grubu) ama
+**hiç kullanılmamıştı** — mevcut 16 SSS sorusunun tamamı düz `sss`
+kategorisinin altındaydı, gerçek bir alt kategori satırı hiç
+oluşturulmamıştı. Bu 6 soru için önerilen 7 gruba tam uymayan (İşlem/
+Finans, Ofis İşleyişi, Sözleşme/Yetki, Meslek Etiği, Kiracı/Tahliye)
+5 yeni alt kategori (`categories`, `parent_id=sss`, `visibility` üst
+kategoriden kopyalandı) oluşturuldu — bu sistemin gerçek bir alt
+kategoriyle İLK kullanımı. Sıralama önemliydi: `listDocs()` sorgusu
+TÜM dokümanları `sort_order`'a göre GLOBAL sıralıyor (kategori bazlı
+değil), bu yüzden yeni sorular mevcut 16 sorunun (`sort_order` 1-16)
+sort_order'ına çakışmayacak şekilde 17-22 aralığına, her alt kategori
+kendi içinde ardışık kalacak şekilde yerleştirildi — aksi halde
+`Rehber.jsx`'teki `sssGroupLabels` mantığı (aynı alt kategoriye ait
+soruların ekranda bitişik durması varsayımı) bozulurdu.
+
+Doğrulama: `execute_sql` ile gerçek bir danışman kullanıcısının
+(rol='danisman') RLS gözünden sorgu çalıştırıldı — 22 SSS sorusunun
+tamamı (16 eski + 6 yeni, doğru alt kategori etiketleriyle) döndü;
+`yonetim` klasörleri (Sosyal Medya, Müşteri İletişim, Çağrı Karşılama,
+Toplantı/Etkinlik) aynı sorguda hiç görünmedi — mahremiyet ayrımı
+sağlam. `oxlint`/`npm run build`/`vitest run` (145/145) de çalıştırıldı
+(kod değişmediği için beklenen şekilde hepsi temiz). Sadece
+`categories`/`docs` tablosunda veri ekleme (`execute_sql`), kod
+tarafında hiçbir şey değişmedi.
+
 ## 2026-09-29 — Rehber > Sosyal Medya'ya "Video Çekim Standartları" eklendi (içerik ekleme, kod değişikliği yok)
 
 Broker aynı Sosyal Medya dosyasını bu sefer başına yeni bir bölüm
