@@ -7,6 +7,30 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-30 — KVKK araştırmasından 2 düzeltme: WhatsApp onayı netleştirildi + SSS'de kimlik fotokopisi kaldırıldı
+
+Dördüncü araştırmanın ("Emlak ofisleri için KVKK'da kritik noktalar")
+bulgusu üzerine broker onayıyla iki içerik düzeltmesi yapıldı:
+
+1. **Sosyal Medya > WhatsApp (Durum/Broadcast):** "onayı alınmış
+   olmalı" maddesi netleştirildi — bu onayın AYRI ve AÇIK olması, başka
+   bir onayla (hizmet sözleşmesi, portföy yetki belgesi) BİRLEŞTİRİLEMEYECEĞİ
+   eklendi (KVKK Kurulu'nun 2025/1072 ilke kararı gereği).
+2. **SSS > "Tapu randevusuna giderken satıcıdan/alıcıdan hangi belgeler
+   istenir?" (2 soru):** "Kimlik (aslı + fotokopi)" ifadesi "Kimlik
+   (sadece görülür, fotokopisi alınmaz/saklanmaz)" olarak değiştirildi
+   — KVKK Kurulu'nun 06/11/2025 tarihli 2025/2120 sayılı ilke kararı
+   (kimlik fotokopisi alıp saklamanın "ölçülülük" ilkesine aykırı
+   bulunması, turizm sektörü kararından genellenerek) referans alındı.
+   Her iki cevabın sonuna "bu uygulama KVKK'nın genel ilkesine dayanır,
+   hukuk danışmanına teyit ettirilmesi önerilir" notu eklendi — karar
+   doğrudan emlak sektörüne özel değil, genelleme olduğu için. "Tapu
+   senedi aslı ve fotokopisi" maddesine DOKUNULMADI (mülkiyet belgesi,
+   kişisel kimlik belgesi değil, kapsam dışı).
+
+Sadece `docs` tablosunda içerik güncellemesi (`execute_sql`), kod
+değişikliği yok.
+
 ## 2026-09-30 — Rehber > Sosyal Medya'ya gerçek hesap linkleri eklendi (içerik ekleme, kod değişikliği yok)
 
 Broker RE/MAX Lavanda'nın 9 gerçek sosyal medya hesabının linkini
