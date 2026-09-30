@@ -66,17 +66,30 @@ Lig modülünü (`lib/league.js`, `pages/Lig.jsx`) koddan inceledim:
   - Memnuniyet kategorisi ham yüzde değil **Wilson score lower bound**
     (`wilsonScoreLowerBound`) kullanıyor — az sayıda yorum alan bir
     danışmanın şans eseri %100 görünüp haksız yere üstte çıkmasını
-    istatistiksel olarak engelliyor. Bu, "adil ölçüm" ilkesiyle
-    doğrudan örtüşüyor.
-- **Risk taşıyan nokta:** `Lig.jsx`'te sıralama listesi (`rankings`)
-  herhangi bir `.slice(0, N)` ile kısıtlanmadan **TAM listeyi**
-  `RankingTable`'a geçiyor (sadece Panel'deki podyum widget'ı ilk 3'le
-  sınırlı) — yani her danışman, kendi sırasının yanında **en alttaki**
-  danışmanı da görebiliyor. Ayrıca sayfada rol bazlı bir görünürlük
-  kısıtı bulunamadı (`canManageScores` sadece kimin PUAN GİREBİLECEĞİNİ
+    istatistiksel olarak engelliyor.
+  - `rankingsFor()` her danışman için mutlak puanı DEĞİL, **üstteki
+    komşuya fark**ı (`diff`) hesaplıyor (`i === 0 ? r.value -
+    ranked[1].value : ranked[i-1].value - r.value`) — bu muhtemelen
+    puan farkının acı vermesini yumuşatmak için bilinçli bir tasarım,
+    "adil ölçüm" ilkesiyle örtüşüyor (broker geri bildirimi,
+    2026-09-30).
+- **Risk taşıyan nokta — ÖNEMLİ AYRIM:** `rankingsFor()` "puan farkını"
+  (`diff`) yumuşatmış olsa da, aynı fonksiyon her satıra ayrıca mutlak
+  bir **`rank`** değeri de veriyor (`i + 1` — yani 1., 2., 3., ... en
+  son) ve bu iki alan da (`diff` VE `rank`) birlikte UI'a geçiyor. Bu
+  ikisi FARKLI şeyler yumuşatıyor: `diff` "ne kadar geridesin" acısını
+  azaltıyor, ama `rank` "kaçıncısın" bilgisini hiç gizlemiyor.
+  `Lig.jsx`'te sıralama listesi (`rankings`) herhangi bir `.slice(0,
+  N)` ile kısıtlanmadan **TAM listeyi** `RankingTable`'a geçiyor
+  (sadece Panel'deki podyum widget'ı ilk 3'le sınırlı) — yani her
+  danışman, kendi rank'ının yanında **en alttaki** danışmanın rank'ını
+  da görebiliyor. Ayrıca sayfada rol bazlı bir görünürlük kısıtı
+  bulunamadı (`canManageScores` sadece kimin PUAN GİREBİLECEĞİNİ
   kısıtlıyor, kimin GÖREBİLECEĞİNİ değil) — araştırmadaki en yüksek
   riskli örüntüyle (tam, herkese açık, alt sıra dahil sıralama) birebir
-  örtüşüyor.
+  örtüşüyor. **Bu yüzden "zaten çözdük" diye kapatılmamalı** — mevcut
+  tasarım sadece PUAN FARKI riskini azaltmış, SIRA NUMARASI riski
+  hâlâ duruyor.
   - Ciro kategorisi TEK BAŞINA ele alınırsa "kontrol edilemeyen faktör"
     riski taşıyabilir (bölge/kaynak farkı gibi) — ama elimde bu konuda
     panelin bölge/kaynak dağılımını nasıl ele aldığına dair yeterli veri
@@ -84,12 +97,20 @@ Lig modülünü (`lib/league.js`, `pages/Lig.jsx`) koddan inceledim:
 
 ## Denetçilere Önerilen Kurallar (taslak — onaysız uygulanmadı)
 
-- **is-degeri-analisti için [Görüş]:** Lig'in tam (alt sıra dahil)
-  herkese açık sıralama gösterimini, araştırmadaki "en yüksek riskli
-  örüntü" ile karşılaştırarak broker'a bir soru olarak ilet: bu bilinçli
-  bir tercih mi (rekabeti körüklemek istiyor), yoksa gözden mi kaçtı?
-  [İhlal] DEĞİL — CLAUDE.md'de bunu yasaklayan bir kural yok, sadece
-  bilinçli karar mı diye sorulmalı.
+- **is-degeri-analisti için [Görüş] — İKİ AYRI ŞEYİ AYIRARAK
+  DEĞERLENDİR (broker düzeltmesi, 2026-09-30):** Lig zaten `diff`
+  (üstteki komşuya puan farkı) göstererek PUAN FARKI riskini bilinçli
+  şekilde yumuşatmış — bunu "eksik" diye raporlama. Ama bununla
+  KARIŞTIRILMAMASI gereken ayrı bir risk var: `rank` (mutlak sıra, 1.,
+  2., ... en son) hâlâ tam listede, alt sıra dahil, rol kısıtı olmadan
+  herkese açık. Bu ikisi FARKLI mekanizmalar — biri (`diff`) zaten
+  çözülmüş, diğeri (`rank`'ın herkese açık tam listede görünmesi) hâlâ
+  açık bir soru. Raporda ikisini net ayır, "zaten çözülmüş" diye tek
+  kalemde kapatma. Broker'a soru olarak ilet: sıra numarasının tam
+  liste halinde herkese açık olması bilinçli bir tercih mi (rekabeti
+  körüklemek istiyor), yoksa gözden mi kaçtı? [İhlal] DEĞİL —
+  CLAUDE.md'de bunu yasaklayan bir kural yok, sadece bilinçli karar mı
+  diye sorulmalı.
 - **is-degeri-analisti için [Görüş]:** Ciro kategorisinin danışmanın
   kontrolü dışındaki faktörlerden (bölge, lead kaynağı) ne kadar
   etkilendiği modül tamamlandığında araştırılabilir — bu araştırmada
