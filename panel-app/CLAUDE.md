@@ -139,6 +139,17 @@ Dosyada karşılığı olmayan bir tasarım kararı gerekiyorsa sor.
   sözleşmeyi hazırlayıp geri yollar; mesai bitimine yakın/mesai dışı
   talepler ertesi gün (hafta sonuna denk gelirse hafta sonu bitiminde)
   işlenir (bkz. Rehber > Müşteri İletişim Kuralları).
+- **Çağrı yönlendirme:** Santralden gelen çağrılar 4 senaryoya göre
+  yönlendirilir (branda/ilan → ilgili danışman; danışmandan bağımsız
+  portföy sahibi → owner/broker onayı; direkt ofis araması → mevcut
+  yönlendirmeye göre; kapı müşterisi → KESİNLİKLE direkt danışmana
+  verilmez, misafir edilir, owner/broker kararı beklenir). Detay:
+  Rehber > Çağrı Karşılama, Kapı Müşterisi ve Yönlendirme Kuralları.
+- **Panel veri girişi:** Portföy ve call log alanlarının aynı gün
+  güncel tutulması (fiyat, durum, dönüş/portföy alındı mı vb.) iş
+  sorumluluğu sayılır, Sağlık Skoru/Lig bu veriye dayanır. Detay:
+  Rehber > Panel Veri Girişi, İlan Portalı Eşleştirme, Kurumsal Görünüm
+  ve Ofis Ekipman Kuralları.
 - **Portföy:** Kodlanmış bir "pasif" durumu yok — `status` alanı
   açık/üstlenildi/kapandı/iptal. "Dikkat Gerekiyor", durumu hâlâ
   "açık" olan bir fırsatın 3 günden uzun süre hareketsiz kalmasını
