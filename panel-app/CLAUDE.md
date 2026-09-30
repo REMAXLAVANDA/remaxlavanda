@@ -94,3 +94,42 @@ Kural:
    politika değişikliği, geniş çaplı veya gerçek müşteri/işlem verisini
    etkileyen DELETE/UPDATE, hangi satırların etkileneceği net olmayan
    (WHERE'siz veya geniş kapsamlı) her değişiklik.
+
+# Portal Kurulu (denetçi ajanlar) — proje kuralları
+
+Aşağıdaki bölümler `portal-kurulu.zip` kurulum şablonundan eklendi
+(2026-09-30) — `/kurul` ve `/kurul-egit` komutlarının ve 6 denetçi
+ajanın ortak kılavuzu. [KÖŞELİ PARANTEZ] içindeki yerler henüz
+DOLDURULMADI — broker tarafından doldurulmalı, gerekmeyen maddeler
+silinebilir.
+
+## Tasarım
+Arayüzle ilgili her işte önce docs/marka-kimligi.md dosyasını oku.
+Renk, font ve boşluk değerlerini sadece oradan al; kendi değer uydurma.
+Dosyada karşılığı olmayan bir tasarım kararı gerekiyorsa sor.
+
+## Roller ve yetkiler
+- admin: [neleri görür ve değiştirir]
+- ofis: [neleri görür ve değiştirir]
+- danisman: [sadece kendi ... ; başkasının ... verisini ASLA görmez]
+
+## İş kuralları
+- Lig puanlaması: [hangi eylem kaç puan, dönem nasıl hesaplanır]
+- Yetki süreci: [adımlar, kim onaylar, süreler]
+- Portföy: [ne zaman "eski/pasif" sayılır]
+- Eğitim / onboarding: [tamamlanma kriteri]
+- [diğer modüller]
+
+## Bilinçli tasarım kararları (denetçiler bunları hata saymaz)
+- [ör. Sil ve iptal butonları bilerek kırmızıdır]
+- [ör. ... bilinçli olarak standarttan farklıdır, çünkü ...]
+
+## Asla olmaması gerekenler
+- Bir danışmanın başka danışmanın müşteri veya kişisel verisini görmesi
+- [ör. Puanın geriye dönük olarak sessizce değişmesi]
+- [ör. Onaysız veri silme]
+
+## Çalışma şekli
+- Büyük değişikliklerden önce kısa bir plan sun, onay bekle.
+- Canlı veritabanında yazma işlemini onaysız yapma.
+- Modül tamamlanınca /kurul ile denetim öner.
