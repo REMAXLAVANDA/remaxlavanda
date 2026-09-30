@@ -71,11 +71,20 @@ Havuzu pipeline DEĞİL, dağıtım noktası") örtüşüyor, eksiklik değil.
   Recruiting modülü zaten sektöre yakın bir yapıda (Yeni Başvuru →
   Randevu → Karar Bekliyor → Olumlu/Olumsuz), bu tarafta ek aşamaya
   gerek görünmüyor.
-- Hız-lead prensibi (ilk yanıt hızı) bizim panelde kısmen karşılığı
-  var: `isStaleLead()` bir lead'in 24 saatten uzun süre `yeni`
-  durumunda kalmasını "eski/unutulmuş" sayıyor — ama sektör 5 dakika
-  gibi çok daha kısa bir eşikten bahsediyor. Bu eşik farkı denetçilere
-  not olarak bırakıldı (aşağıda).
+- Hız-lead prensibinin (ilk yanıt hızı) bizim panelde karşılığı
+  `isStaleLead()` DEĞİL, "Müşteri İletişim Kuralları" dokümanındaki
+  **15 dakikalık ilk dönüş süresi** kuralı — bu ikisi aynı metrik
+  sanılıp karşılaştırılmamalı (bkz. düzeltme notu, broker geri
+  bildirimi). `isStaleLead()` koddan doğrulandı (`lib/leads.js`,
+  `pages/Leads.jsx`, `components/leads/LeadTable.jsx`): tamamen farklı
+  bir amaca hizmet ediyor — Lead Havuzu'nda `durum='yeni'` olarak 24
+  saatten uzun süre HİÇ triyaj edilmemiş (Recruiting/Portföy'e
+  yönlendirilmemiş) lead'leri tabloda vurgulamak ve "staleFocus" adlı
+  ayrı bir filtre moduyla (Leads.jsx'teki "Sadece bunları göster"
+  düğmesi) bunları tek başlarına listelemek için var — yani "bu lead
+  tamamen unutulmuş, hiç işleme alınmamış" diye bir GERİ PLAN
+  denetim/hatırlatma sinyali, "müşteriye ilk yanıt ne kadar hızlı
+  verildi" sinyali değil. İkisi farklı ölçüyor, doğrudan kıyaslanamaz.
 
 ## Denetçilere Önerilen Kurallar (taslak — onaysız uygulanmadı)
 
@@ -85,10 +94,14 @@ Havuzu pipeline DEĞİL, dağıtım noktası") örtüşüyor, eksiklik değil.
   etiketleme — bu CLAUDE.md'nin bilinçli mimari kararıyla (dağıtım
   noktası tasarımı) uyumlu bir sadeleştirme, sadece ileride
   değerlendirilebilecek bir [Görüş] olarak not düşülsün.
-- **veri-zinciri-analisti için [Sapma] adayı:** `isStaleLead()`'in
-  24 saatlik eşiği ile sektörün önerdiği "ilk 5 dakika" hız-lead
-  prensibi arasındaki fark bir [Sapma] olarak işaretlenebilir — broker
-  bilinçli bir tercih mi yaptı yoksa gözden mi kaçtı, sorulmalı.
+- ~~veri-zinciri-analisti için [Sapma] adayı: isStaleLead()'in 24
+  saatlik eşiği ile "ilk 5 dakika" hız-lead prensibi arasındaki fark~~
+  — **GERİ ÇEKİLDİ** (broker geri bildirimi, 2026-09-30): yanlış
+  eşleştirmeydi. `isStaleLead()` (24 saat, "hiç triyaj edilmemiş
+  lead" hatırlatması) ile "ilk 5 dakika" (müşteriye ilk yanıt hızı,
+  bizde 15 dakikalık kural olarak zaten Müşteri İletişim
+  Kuralları'nda var) iki farklı metrik — [Sapma] önerisi doğru değil,
+  denetçiye gitmeden düzeltildi.
 
 ## Kaynak Listesi
 - [Follow Up Boss vs kvCORE: Speed-to-Lead Breakdown](https://keetechnology.com/blog/follow-up-boss-vs-kvcore)
