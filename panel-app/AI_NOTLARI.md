@@ -7,6 +7,20 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-30 — CLAUDE.md: Portal Kurulu bölümü koddan doğrulanarak dolduruldu
+
+`portal-kurulu.zip` kurulumunda eklenen Portal Kurulu şablonundaki
+köşeli parantez placeholder'ları (Roller ve yetkiler, İş kuralları,
+Bilinçli tasarım kararları, Asla olmaması gerekenler) koddan/veritabanından
+doğrulanarak dolduruldu — hiçbir madde uydurulmadı (ör. rol sayısının
+şablonun varsaydığı 3 değil 4 olduğu `lib/roles.js`'ten, Lig puan
+detayları `lib/league.js` ve `social_activity_types` tablosundan
+doğrulandı). Broker satır satır inceledi, onayladı; tek eksik olarak
+İş kuralları'nda bugüne kadar Rehber'e eklenen Çağrı Karşılama ve Panel
+Veri Girişi dokümanlarına atıf olmadığını belirtti — bu ikisine kısa
+referans eklenerek main'e alındı. Sadece dokümantasyon, kod değişikliği
+yok.
+
 ## 2026-09-30 — KVKK araştırmasından 2 düzeltme: WhatsApp onayı netleştirildi + SSS'de kimlik fotokopisi kaldırıldı
 
 Dördüncü araştırmanın ("Emlak ofisleri için KVKK'da kritik noktalar")
