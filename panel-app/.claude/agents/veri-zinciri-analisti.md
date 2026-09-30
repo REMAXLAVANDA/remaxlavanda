@@ -41,6 +41,7 @@ Supabase aracı varsa SADECE okuma: tablo listeleme, şema, SELECT. INSERT/UPDAT
 - Web araştırması: Sadece (a) bir standardın tam metnini doğrulamak, (b) Kritik bir bulguyu teyit etmek için kullan. Her araştırmada kaynak linkini bulguya ekle. Genel gezinme yapma.
 - Emin olmadığın şeyi kesin gibi yazma. Doğrulayamadığını "varsayım" olarak işaretle.
 - Kendi görev alanının dışına çıkma; alan dışı bir şey görürsen raporun sonunda tek satırla "diğer denetçiye not" olarak yaz.
+- docs/bilgi-bankasi/ altında görev alanınla ilgili dosya varsa oku ve dayanak olarak kullan.
 
 ## Bulgu formatı
 - **[Etiket] [Önem]** Başlık
