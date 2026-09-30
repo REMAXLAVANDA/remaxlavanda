@@ -7,6 +7,36 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-30 — Güvenlik: auto_close_periods/auto_resolve_attendance herkese açık RPC uç noktasıydı
+
+`get_advisors` (security) taramasında bulundu: bu iki `SECURITY DEFINER`
+fonksiyonu (Lig dönemini otomatik kapatan ve etkinlik katılımını otomatik
+"katılmadı" yapan zamanlanmış bakım görevleri) hiçbir yetki kontrolü
+yapmıyordu — `/rest/v1/rpc/...` üzerinden giriş yapmadan (anon) tetiklenebiliyordu.
+Etki sınırlıydı (sadece zaten eşiğe yakın kayıtları erken tetikleyebilirdi,
+veri bütünlüğünü bozmuyordu) ama gerçek bir açıktı.
+
+İlk düzeltme (`revoke execute ... from anon, authenticated`) YETERSİZ
+çıktı — advisor'ı tekrar çalıştırınca hâlâ listelendiğini gördük.
+`proacl`'e bakınca sebep anlaşıldı: Postgres fonksiyon oluşturulunca
+varsayılan olarak `PUBLIC` rolüne EXECUTE veriyor, `anon`/`authenticated`
+bunu PUBLIC üzerinden miras alıyor — sadece o iki rolden almak yetmiyor,
+`PUBLIC`'ten de alınması gerekiyor. İkinci bir migration'la (`revoke
+execute ... from public`) düzeltildi, `proacl` doğrudan sorgulanarak
+(sadece advisor'a güvenmeden) doğrulandı.
+
+Aynı taramada 3 fonksiyonda (`period_effective_durum`, `is_current_period`,
+`period_is_blackout`) eksik olan `search_path` de sabitlendi.
+
+Kontrol edilen diğer 10 SECURITY DEFINER fonksiyonda (`get_opportunity_contact`
+dahil — müşteri adı/telefonu döndüren fonksiyon) sorun bulunmadı, hepsinde
+zaten `auth.uid()`/rol kontrolü var.
+
+Ayrıca (aynı görüşmede): Supabase MCP bağlayıcısının `execute_sql` ve
+diğer yazma/yönetim araçları bu oturuma kadar `always_allow` (onaysız)
+yapılandırılmıştı — hesap ayarından (`claude.ai/customize/connectors`)
+`always_ask`'a çekildi (bu bir kod/migration değil, hesap ayarı).
+
 ## 2026-09-30 — CLAUDE.md: Portal Kurulu bölümü koddan doğrulanarak dolduruldu
 
 `portal-kurulu.zip` kurulumunda eklenen Portal Kurulu şablonundaki
