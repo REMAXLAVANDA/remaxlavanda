@@ -3,6 +3,38 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-09-30 — İlk /kurul denetimi: Yetki modülü, 3 hızlı güvenlik düzeltmesi uygulandı
+
+`/kurul yetki` bu oturuma yüklenmediği için 5 denetçi (.claude/agents/
+tanımları birebir) Agent aracıyla manuel çalıştırıldı, sonuç
+docs/kurul/raporlar/2026-09-30-yetki.md'ye kaydedildi. 2 Kritik [İhlal]
+(opportunities PII sızıntısı, hard-delete'te Ciro/Eğitim geçmişi izsiz
+kayboluyor) + kullanılabilirlik denetçisinin bulduğu 2 ek Kritik (rol
+değişikliği onaysız + hatada arayüz yanlış değer gösteriyor) + 3
+denetçinin bağımsız bulduğu ortak bir RLS tutarsızlığı (users_insert_broker
+sadece broker'a izin veriyordu, owner hariç) içeren kapsamlı bir rapor.
+
+Raporun "bugün kapatın" maddesindeki 3 düzeltme uygulandı:
+1. `opportunities.lead_ad/lead_telefon`: authenticated/anon'un DOĞRUDAN
+   SELECT erişimi kaldırıldı — gerçek, istismar edilebilir PII sızıntısıydı
+   (`get_opportunity_contact()` RPC'sinin kısıtlamak istediği erişim DB
+   seviyesinde uygulanmıyordu). İlk deneme (kolon bazlı REVOKE) yetersiz
+   çıktı çünkü tablo seviyesinde daha geniş bir SELECT grantı vardı —
+   (aynı ders, bugün ikinci kez: tablo/PUBLIC seviyesindeki grant, dar
+   REVOKE'u geçersiz kılıyor) tablo grantı kaldırılıp hassas 2 kolon
+   hariç tek tek grant verilerek düzeltildi, `information_schema`
+   üzerinden doğrudan doğrulandı.
+2. `users_insert_broker` RLS politikası owner'ı da kapsayacak şekilde
+   genişletildi.
+3. Sadece trigger olarak çalışması gereken 3 fonksiyonun
+   (log_audit_event, event_attendance_restrict_katilim_tipi,
+   tasks_restrict_assignee_update) gereksiz anon/authenticated EXECUTE
+   yetkisi kaldırıldı.
+
+Raporun geri kalan maddeleri (rol değişikliğine onay diyaloğu, 4 [Sapma]
+sorusu, hard-delete cascade sorunu vb.) broker kararı/kod değişikliği
+bekliyor, uygulanmadı.
+
 **Eski aylar (arşiv):**
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
