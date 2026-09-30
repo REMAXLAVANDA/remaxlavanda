@@ -13,7 +13,7 @@ import {
   telsamWebhookErrors as telsamWebhookErrorsProvider,
   metaCapiErrors as metaCapiErrorsProvider,
 } from '../lib/dataProvider'
-import { canManageUsers } from '../lib/roles'
+import { canManageUsers, ROLE_LABELS } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import UsersTable from '../components/settings/UsersTable'
@@ -98,17 +98,41 @@ export default function Ayarlar() {
   const [editingUser, setEditingUser] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [roleChangeTarget, setRoleChangeTarget] = useState(null)
+  const [changingRole, setChangingRole] = useState(false)
   const [resetTarget, setResetTarget] = useState(null)
   const [resetting, setResetting] = useState(false)
 
-  async function handleChangeRole(id, role) {
+  // Rol değişikliği artık onaysız/anında uygulanmıyor (bkz. Portal Kurulu
+  // /kurul yetki denetimi, 2026-09-30 — kullanilabilirlik-denetci [İhlal]
+  // Kritik: onay yokluğu, broker kendini kazara kilitleyebilir). select'in
+  // onChange'i sadece bunu ÇAĞIRIR — gerçek işlem handleChangeRole'de,
+  // sadece ConfirmDialog onaylanınca çalışır.
+  function requestRoleChange(id, role) {
+    const target = allUsers?.find((u) => u.id === id)
+    if (!target) return
+    setRoleChangeTarget({ id, name: target.name, fromRole: target.role, toRole: role })
+  }
+
+  async function handleChangeRole() {
+    if (!roleChangeTarget) return
+    const { id, toRole } = roleChangeTarget
+    setChangingRole(true)
     try {
-      await usersProvider.updateUser(id, { role })
-      setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role } : u)))
-      patchKnownUser(id, { role })
+      await usersProvider.updateUser(id, { role: toRole })
+      setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: toRole } : u)))
+      patchKnownUser(id, { role: toRole })
       showToast('Rol güncellendi.', 'success')
+      setRoleChangeTarget(null)
     } catch (err) {
+      // Aynı denetimde bulunan ikinci bulgu: hata durumunda state hiç
+      // dokunulmuyordu, arayüz DB'deki gerçek durumu yanlış yansıtabiliyordu.
+      // reload() ile sunucudaki gerçek veriyi zorla tazeliyoruz — varsayıma
+      // (incidental re-render) güvenmek yerine garanti bir düzeltme.
       showToast(err.message ?? 'Rol güncellenemedi, tekrar dene.', 'error')
+      reload()
+    } finally {
+      setChangingRole(false)
     }
   }
 
@@ -401,7 +425,7 @@ export default function Ayarlar() {
             <UsersTable
               rows={allUsers ?? []}
               canManage={canManage}
-              onChangeRole={handleChangeRole}
+              onChangeRole={requestRoleChange}
               onToggleDurum={handleToggleDurum}
               onToggleTestHesabi={handleToggleTestHesabi}
               onEdit={setEditingUser}
@@ -513,6 +537,17 @@ export default function Ayarlar() {
           onClose={() => setResetTarget(null)}
           onSubmit={handleResetPassword}
           submitting={resetting}
+        />
+      )}
+
+      {roleChangeTarget && (
+        <ConfirmDialog
+          title="Rolü değiştir"
+          message={`${roleChangeTarget.name}: ${ROLE_LABELS[roleChangeTarget.fromRole] ?? roleChangeTarget.fromRole} → ${ROLE_LABELS[roleChangeTarget.toRole] ?? roleChangeTarget.toRole} olarak değiştirilecek. Emin misin?`}
+          confirmLabel="Rolü Değiştir"
+          onConfirm={handleChangeRole}
+          onCancel={() => setRoleChangeTarget(null)}
+          confirming={changingRole}
         />
       )}
 
