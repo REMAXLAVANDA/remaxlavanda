@@ -98,10 +98,9 @@ Kural:
 # Portal Kurulu (denetçi ajanlar) — proje kuralları
 
 Aşağıdaki bölümler `portal-kurulu.zip` kurulum şablonundan eklendi
-(2026-09-30) — `/kurul` ve `/kurul-egit` komutlarının ve 6 denetçi
-ajanın ortak kılavuzu. [KÖŞELİ PARANTEZ] içindeki yerler henüz
-DOLDURULMADI — broker tarafından doldurulmalı, gerekmeyen maddeler
-silinebilir.
+(2026-09-30). Köşeli parantezler **taslak olarak dolduruldu**
+(2026-09-30, koddan/veritabanından doğrulanarak) — broker onayı/
+düzeltmesi bekleniyor, kesinleşmedi.
 
 ## Tasarım
 Arayüzle ilgili her işte önce docs/marka-kimligi.md dosyasını oku.
@@ -109,25 +108,72 @@ Renk, font ve boşluk değerlerini sadece oradan al; kendi değer uydurma.
 Dosyada karşılığı olmayan bir tasarım kararı gerekiyorsa sor.
 
 ## Roller ve yetkiler
-- admin: [neleri görür ve değiştirir]
-- ofis: [neleri görür ve değiştirir]
-- danisman: [sadece kendi ... ; başkasının ... verisini ASLA görmez]
+(4 rol var, şablonun varsaydığı 3 değil — bkz. `lib/roles.js`)
+- **broker**: Tek üst yetki (admin). Veri girmez; kullanıcı ekler/
+  düzenler, her modülü yönetir/denetler, Lead Havuzu'na erişen tek rol
+  (owner ile birlikte).
+- **owner**: Broker'a çok yakın yetki — yönetir/denetler ama veri
+  girmez. Lead Havuzu'na erişir. Bazı üst-seviye kısıtlarda broker'dan
+  ayrılabiliyor (bkz. `opportunities.js` içindeki notlar), esası aynı.
+- **ofis**: SADECE veri girer, yönetmez (kullanıcı ekleyemez, Lead
+  Havuzu'na giremez). Recruiting'e girebilir, Rehber'in "yönetime özel"
+  klasörlerini görebilir.
+- **danisman**: Ne veri yönetir ne yönetim yetkisi var. Lead Havuzu'na
+  HİÇ erişemez, Rehber'in "yönetime özel" klasörlerini HİÇ göremez;
+  sadece kendi portföy/müşteri/görev verisini görür — başkasının
+  verisini ASLA görmez.
 
 ## İş kuralları
-- Lig puanlaması: [hangi eylem kaç puan, dönem nasıl hesaplanır]
-- Yetki süreci: [adımlar, kim onaylar, süreler]
-- Portföy: [ne zaman "eski/pasif" sayılır]
-- Eğitim / onboarding: [tamamlanma kriteri]
-- [diğer modüller]
+- **Lig puanlaması:** 3 kategori — Ciro (₺, TEK elle girilen kategori),
+  Memnuniyet ("Yorum Hakkı"ndaki alınan/toplam yorumdan Wilson score
+  lower bound ile otomatik hesaplanır — az yorumlu birinin şansla üste
+  çıkmasını istatistiksel olarak engeller), Sosyal Medya (aktivite
+  başına sabit puan, otomatik toplanır — ör. Google Yorumu 15p,
+  YouTube Videosu 12p, Instagram Post 8p, Meta Reklam Bütçesi/100TL
+  3p, LinkedIn Paylaşımı 3p, Instagram Story 2p — güncel liste
+  `social_activity_types` tablosunda). Dönem 4 aylık (yılda 3 dönem);
+  bitişine 7 gün veya daha az kalınca durum otomatik "kapalı"ya döner,
+  broker/owner sonra "açıklandı" yapar.
+- **Yetki süreci:** Kodlanmış bir modül YOK, manuel süreç — danışman
+  WhatsApp'tan tek seferde eksiksiz bilgi gönderir, ofis aynı gün
+  sözleşmeyi hazırlayıp geri yollar; mesai bitimine yakın/mesai dışı
+  talepler ertesi gün (hafta sonuna denk gelirse hafta sonu bitiminde)
+  işlenir (bkz. Rehber > Müşteri İletişim Kuralları).
+- **Portföy:** Kodlanmış bir "pasif" durumu yok — `status` alanı
+  açık/üstlenildi/kapandı/iptal. "Dikkat Gerekiyor", durumu hâlâ
+  "açık" olan bir fırsatın 3 günden uzun süre hareketsiz kalmasını
+  işaretliyor (`isStaleOpp`).
+- **Eğitim/onboarding:** Kodlanmış bir "tamamlandı" eşiği yok, sadece
+  "geride kalma" eşiği var — eğitim modül tamamlama YÜZDESİ VEYA
+  checklist tamamlama yüzdesi %50'nin altındaysa "Dikkat Gerekiyor"a
+  düşüyor (`isBehindEducation`).
+- **Recruiting:** Yeni Başvuru → Randevu → Karar Bekliyor →
+  Olumlu (danışman olarak eklenir, kaydı Recruiting'den çıkar) /
+  Olumsuz / Yanlış Başvuru.
+- **Lead Havuzu:** BİLİNÇLİ olarak pipeline değil — sadece dağıtım
+  noktası (durum: yeni → atandı/elendi), gerçek süreç hedef modülde
+  (Fırsatlar veya Recruiting) devam eder.
 
 ## Bilinçli tasarım kararları (denetçiler bunları hata saymaz)
-- [ör. Sil ve iptal butonları bilerek kırmızıdır]
-- [ör. ... bilinçli olarak standarttan farklıdır, çünkü ...]
+- Recruiting'de "Olumlu" diye ayrı bir kanban kolonu YOK — bir aday
+  "Danışman Olarak Ekle" ile olumluya geçince gerçek bir kullanıcı
+  oluyor, hikayesi Ayarlar > Kullanıcılar'da devam ediyor.
+- Lig'de her danışmana mutlak puan yerine ÜSTTEKİ KOMŞUYA FARK
+  gösteriliyor (`diff`) — puan farkının acı vermesini yumuşatmak için
+  bilinçli bir tasarım. NOT: bu, sıra NUMARASININ (`rank`, tam liste
+  halinde herkese açık) gizlenmesi anlamına gelmiyor — ayrı bir konu,
+  bkz. `docs/bilgi-bankasi/puanlama-motivasyon.md`.
+- Lead Havuzu bilinçli olarak pipeline değil, dağıtım noktası (yukarı
+  bakın) — sektördeki tek-uçtan-uca-pipeline yaklaşımından bilinçli
+  bir sapma, bkz. `docs/bilgi-bankasi/lead-takip-asamalari.md`.
 
 ## Asla olmaması gerekenler
 - Bir danışmanın başka danışmanın müşteri veya kişisel verisini görmesi
-- [ör. Puanın geriye dönük olarak sessizce değişmesi]
-- [ör. Onaysız veri silme]
+- Puanın geriye dönük olarak sessizce değişmesi
+- Onaysız veri silme
+- Danışmanın Lead Havuzu'na erişmesi (sadece broker/owner)
+- Bir kullanıcının kendi rolünü/durumunu değiştirmesi (DB trigger'ıyla
+  zaten engelleniyor, bkz. migration `20260724140000_rol_yukseltme_koruma.sql`)
 
 ## Çalışma şekli
 - Büyük değişikliklerden önce kısa bir plan sun, onay bekle.
