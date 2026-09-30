@@ -7,6 +7,21 @@ bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı ge
 - [2026-07](docs/AI_NOTLARI_2026-07.md)
 - [2026-08](docs/AI_NOTLARI_2026-08.md)
 
+## 2026-09-30 — Rehber > Sosyal Medya'ya gerçek hesap linkleri eklendi (içerik ekleme, kod değişikliği yok)
+
+Broker RE/MAX Lavanda'nın 9 gerçek sosyal medya hesabının linkini
+verdi (Instagram, Facebook Sayfa + ayrı bir Facebook Profil — "haftalık
+kontrole dahil değil" notuyla, YouTube, TikTok, LinkedIn, X, Pinterest,
+Google İşletme). Her platform dokümanının başına o platformun gerçek
+hesap linki (**Hesap:** satırı) eklendi; Genel Kurallar dokümanına da
+tüm 9 linki tek bakışta gösteren bir "Hesap Linkleri" listesi eklendi
+(hem tek tek dokümanda bağlamla hem toplu listede hızlı erişim için).
+Facebook'un ikinci (kişisel tarz) profili "Facebook — Kişisel Hesap
+(Danışman)" dokümanına DEĞİL, "Facebook — Sayfa" dokümanına eklendi —
+o doküman danışmanların GENEL kişisel hesap kuralları için, bu link
+ise ofis'in kendi ikinci hesabı, farklı bir şey. Sadece `docs`
+tablosunda içerik güncellemesi (`execute_sql`), kod değişikliği yok.
+
 ## 2026-09-29 — Lig: period_id indexleri eklendi — "statement timeout" kök nedeni
 
 Broker'a "portalın günlük sağlık durumunu kontrol et" dendiğinde tespit
