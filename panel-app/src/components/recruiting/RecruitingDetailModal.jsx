@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { RotateCcw, Info, CalendarClock, MessageSquare, Trash2 } from 'lucide-react'
 import Modal from '../common/Modal'
-import { formatPhoneInput } from '../../lib/phone'
+import { formatPhoneInput, whatsappHref } from '../../lib/phone'
+import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import { capitalizeWords, capitalizeFirst, formatDateOnly, formatDateTime } from '../../lib/format'
 import {
   RECRUITING_DURUM_SECILEBILIR,
@@ -140,13 +141,26 @@ export default function RecruitingDetailModal({
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <input
-              type="tel"
-              value={form.telefon}
-              onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
-              placeholder="Telefon"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
+            <div className="flex items-center gap-1.5">
+              <input
+                type="tel"
+                value={form.telefon}
+                onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
+                placeholder="Telefon"
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              />
+              {form.telefon && (
+                <a
+                  href={whatsappHref(form.telefon)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="WhatsApp'ta aç"
+                  className="shrink-0 text-emerald-600 hover:text-emerald-700"
+                >
+                  <WhatsappIcon size={16} />
+                </a>
+              )}
+            </div>
             {duplicateMatch && (
               <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
                 <Info size={13} className="mt-0.5 shrink-0" />
