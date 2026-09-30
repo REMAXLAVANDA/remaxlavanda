@@ -74,4 +74,14 @@ describe('whatsappHref', () => {
   it('boşsa null döner', () => {
     expect(whatsappHref('')).toBe(null)
   })
+
+  it('mesaj verilirse ?text= ile URL-encode edilmiş şekilde ekler', () => {
+    expect(whatsappHref('0 (532) 123 45 67', 'Merhaba, nasılsınız?')).toBe(
+      'https://wa.me/905321234567?text=Merhaba%2C%20nas%C4%B1ls%C4%B1n%C4%B1z%3F'
+    )
+  })
+
+  it('mesaj verilmezse ?text= eklemez', () => {
+    expect(whatsappHref('0 (532) 123 45 67')).toBe('https://wa.me/905321234567')
+  })
 })

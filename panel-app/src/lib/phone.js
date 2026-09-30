@@ -41,9 +41,13 @@ export function telHref(phone) {
   return digits ? `tel:${digits}` : null
 }
 
-export function whatsappHref(phone) {
+// text (opsiyonel): wa.me'nin ?text= parametresiyle mesaj kutusunu ÖN DOLU
+// açar — otomatik göndermez, personel göndermeden önce düzenleyebilir/
+// silebilir (bkz. Recruiting "davet mesajı" isteği).
+export function whatsappHref(phone, text) {
   const digits = (phone ?? '').replace(/\D/g, '')
   if (!digits) return null
   const withCountry = digits.startsWith('90') ? digits : `90${digits.replace(/^0/, '')}`
-  return `https://wa.me/${withCountry}`
+  const base = `https://wa.me/${withCountry}`
+  return text ? `${base}?text=${encodeURIComponent(text)}` : base
 }

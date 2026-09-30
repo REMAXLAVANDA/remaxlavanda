@@ -11,6 +11,7 @@ import {
   RECRUITING_KAYNAK_LABELS,
   RECRUITING_OLUMSUZ_SEBEPLERI,
   RECRUITING_OLUMSUZ_SEBEP_LABELS,
+  candidateInviteMessage,
 } from '../../lib/recruiting'
 
 const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
@@ -151,10 +152,10 @@ export default function RecruitingDetailModal({
               />
               {form.telefon && (
                 <a
-                  href={whatsappHref(form.telefon)}
+                  href={whatsappHref(form.telefon, candidateInviteMessage(form))}
                   target="_blank"
                   rel="noreferrer"
-                  title="WhatsApp'ta aç"
+                  title="Davet mesajıyla WhatsApp'ta aç"
                   className="shrink-0 text-emerald-600 hover:text-emerald-700"
                 >
                   <WhatsappIcon size={16} />

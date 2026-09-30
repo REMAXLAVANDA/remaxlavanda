@@ -34,6 +34,15 @@ export const OFIS_MAPS_URL = `https://www.google.com/maps/dir/?api=1&destination
 // alınıp burada güncellenmeli.
 export const GOOGLE_REVIEW_URL = 'https://g.page/r/CYUrvJDVP6tpEBM/review'
 
+// Ofisin kurumsal sosyal hesapları (Rehber > Sosyal Medya > Genel Kurallar'daki
+// 9 hesaptan, kod içinde kullanılan tek tek) — Recruiting davet mesajında
+// adayın gelmeden önce ofisi tanıyabileceği iki hesap: Instagram (genel marka/
+// kültür izlenimi) ve LinkedIn (Rehber'de özellikle "recruiting/danışman adayı
+// çekme" amaçlı tanımlı). Link değişirse Rehber'deki karşılığı da güncellenmeli
+// — iki ayrı yerde durduğunun bilinçli bir tercih olduğu not edilsin.
+export const OFIS_INSTAGRAM_URL = 'https://www.instagram.com/remaxlavanda/'
+export const OFIS_LINKEDIN_URL = 'https://www.linkedin.com/company/remax-lavanda/'
+
 export const SOSYAL_MEDYA_FIELDS = [
   { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/kullaniciadi' },
   { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/kullaniciadi' },

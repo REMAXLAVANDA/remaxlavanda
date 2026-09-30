@@ -3,6 +3,29 @@
 // BİLEREK ayrı bir fonksiyona bölündü — bkz. lib/roles.js.
 export { canManageRecruiting } from './roles'
 
+import { OFIS_ADRESI, OFIS_MAPS_URL, OFIS_INSTAGRAM_URL, OFIS_LINKEDIN_URL } from './kartvizit'
+
+// WhatsApp'ta aç butonuna tıklanınca ön dolu açılan davet mesajı (broker
+// onayı, 2026-09-30: "biz herkese konum atıyoruz, gelmeden önce araştırma
+// fırsatı olsa") — adres/yol tarifi + adayın gelmeden önce ofisi tanıyabileceği
+// iki hesap (bkz. lib/kartvizit.js'teki not). Randevu tarihi/saati doluysa
+// (gorusmeTarih + gorusmeSaat) mesaja eklenir — no-show azaltma amaçlı da
+// (RECRUITING_OLUMSUZ_SEBEPLERI'nde "randevuya_gelmedi" zaten gerçek bir
+// sebep). Otomatik GÖNDERİLMİYOR, sadece mesaj kutusunu dolduruyor —
+// personel göndermeden önce düzenleyebilir/silebilir.
+export function candidateInviteMessage({ adSoyad, gorusmeTarih, gorusmeSaat } = {}) {
+  const selamlama = adSoyad ? `Merhaba ${adSoyad}` : 'Merhaba'
+  const lines = [`${selamlama}, RE/MAX Lavanda'ya hoş geldiniz!`]
+  if (gorusmeTarih && gorusmeSaat) {
+    const [yil, ay, gun] = gorusmeTarih.split('-')
+    lines.push(`Görüşmemiz ${gun}.${ay}.${yil} saat ${gorusmeSaat}.`)
+  }
+  lines.push('', `Ofis adresimiz: ${OFIS_ADRESI}`, `Yol tarifi: ${OFIS_MAPS_URL}`)
+  lines.push('', 'Bizi tanımak isterseniz:', `Instagram: ${OFIS_INSTAGRAM_URL}`, `LinkedIn: ${OFIS_LINKEDIN_URL}`)
+  lines.push('', 'Görüşmek üzere!')
+  return lines.join('\n')
+}
+
 // 6 aşamalı basitleştirilmiş huni (2026-09-27, broker kararı — eski 7
 // aşamalı huniden geldi, bkz. AI_NOTLARI.md "Recruiting aşama sadeleştirme").
 // Ara aşamalar (eski Ön Görüşme/Ofis Tanıtımı/Karar Bekliyor) TEK bir
