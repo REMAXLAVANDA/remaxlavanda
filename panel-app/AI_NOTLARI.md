@@ -3,6 +3,26 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-03 — Genel görsel denetim + mock modda Playwright doğrulaması
+
+İlk kez bu ortamda Playwright çalıştırıldı — üretim/Supabase'e ağ erişimi
+engelli olduğu için gerçek giriş yapılamıyordu, bunun yerine yerel `npm
+run dev`'in varsayılan MOCK veri modu (gerçek backend gerektirmiyor)
+kullanıldı. Genel panel görsel denetimi 18 bulgu çıkardı, en kritik 3'ü
+gerçek ekran görüntüsüyle doğrulanıp düzeltildi:
+1. Takip > Eğitim sekmesinde aynı satırda iki "Tümü" butonu farklı
+   renkteydi (bg-remax-blue vs DateRangeFilter'ın bg-brand-600) —
+   DateRangeFilter'ın Chip bileşeni dışa açılıp paylaşıldı.
+2. RecruitingDetailModal.jsx tamamen eski ink-* token katmanındaydı
+   (liste görünümü zaten yeni sistemdeydi) — semantik tokenlere taşındı.
+3. Fırsatlar/Operasyon sarmalayıcısı (border-ink-100 bg-white) semantik
+   tokenlere taşındı, navy aksan korunarak.
+
+Kalan 15 bulgu (Panel'de iki farklı "kritik" kırmızısı + WCAG kontrast
+sorunu, Rehber modallerinin eski sistemde kalması, kullanılmayan paylaşılan
+bileşenler — Button/Badge/Card — vb.) henüz uygulanmadı, broker'ın
+sırayla değerlendirmesi bekleniyor.
+
 ## 2026-10-03 — Yetki raporunun 5 kararı uygulandı
 
 Broker 5 karar verdi: (1) hard-delete'te Ciro/Eğitim/Sosyal Medya/Rozet
