@@ -42,7 +42,7 @@ export default function ActivityPointsSettings({ activityTypes, onUpdatePoint, e
                         onUpdatePoint(t.id, Number(draft) || 0)
                         setEditingId(null)
                       }}
-                      className="rounded p-1 text-brand-600 hover:bg-brand-50"
+                      className="rounded p-1.5 text-brand-600 hover:bg-brand-50"
                     >
                       <Check size={14} />
                     </button>

@@ -46,7 +46,7 @@ export function Tr({ children, urgent = false, onClick, ariaLabel, className = '
       aria-label={interactive ? ariaLabel : undefined}
       className={`outline-none transition-colors hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400 ${
         interactive ? 'cursor-pointer' : ''
-      } ${urgent ? 'shadow-[inset_3px_0_0_#DC1C2E]' : ''} ${className}`}
+      } ${urgent ? 'shadow-[inset_3px_0_0_var(--color-brand-600)]' : ''} ${className}`}
     >
       {children}
     </tr>
