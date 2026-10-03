@@ -1,0 +1,21 @@
+-- ACİL PRODÜKSİYON DÜZELTMESİ (2026-10-03): "Portal bazı danışmanlarda
+-- açılmıyor" bildirimi araştırıldı. Kök neden: periods_select RLS politikası
+-- period_is_blackout()'u çağırıyor, o da içeride periods tablosunu
+-- sorguluyor. Dün (20260930160000) bu fonksiyona search_path sabitlemesi
+-- eklenince (gerçek bir güvenlik düzeltmesiydi) Postgres bu fonksiyonu artık
+-- sorgunun içine inline edemez oldu — gerçek, ayrı bir fonksiyon çağrısına
+-- dönüştü. Sonuç: periods sorgulanınca -> policy period_is_blackout()'u
+-- çağırıyor -> o periods'u sorguluyor -> bu yeni sorgu yeniden policy'e
+-- takılıyor -> period_is_blackout() tekrar çağrılıyor -> sonsuz döngü ->
+-- "stack depth limit exceeded". broker/owner'da policy'nin ilk koşulu
+-- (is_manager()) true olduğu için bu kısım hiç tetiklenmiyor, danışman/
+-- ofis'te her seferinde tetikleniyor (ciro_girisleri/ciro_musterileri/
+-- social_activity_log de aynı sebeple etkileniyor, hepsi aynı fonksiyonu
+-- kullanıyor).
+--
+-- current_user_role()/is_active()/is_manager() zaten SECURITY DEFINER
+-- (doğru desen) — period_is_blackout/is_current_period bu desenin dışında
+-- kalmıştı. SECURITY DEFINER eklenince içerideki periods sorgusu RLS'e
+-- takılmadan (fonksiyon sahibi ayrıcalığıyla) çalışır, döngü kırılır.
+alter function public.period_is_blackout(p_period_id uuid) security definer;
+alter function public.is_current_period(p_period_id uuid) security definer;
