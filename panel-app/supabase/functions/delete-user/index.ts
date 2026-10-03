@@ -3,9 +3,16 @@
 //
 // Ayarlar > Kullanıcılar'dan hesap silme — auth.users kaydını silmek
 // service_role gerektirir (create-user ile aynı kalıp). auth.users silinince
-// public.users (ve ona "on delete cascade" ile bağlı ciro_musterileri,
-// event_attendance, score_entries, user_private_info vb. KİŞİSEL geçmişi)
-// de silinir — bu kasıtlı, broker onaylı (2026-08-15).
+// public.users de silinir. Buna bağlı KİMLİK verisi (user_private_info: TC
+// no/doğum tarihi) "on delete cascade" ile kalıcı silinir — bu kasıtlı,
+// broker onaylı (2026-08-15, KVKK silme hakkı).
+//
+// Ciro/puan/eğitim/sosyal medya/rozet GEÇMİŞİ (score_entries/ciro_girisleri/
+// ciro_musterileri/education_progress/social_activity_log/user_badges) ise
+// ARTIK SİLİNMİYOR (2026-10 broker kararı, Yetki denetim raporu) — bu
+// tablolarda user_id "on delete set null"a çevrildi (20261003171500
+// migration), satır kalır, sahibi NULL olur. Lig "açıklandı" dönem
+// geçmişinin kalıcı silinmemesi için.
 //
 // Müşteri/iş kayıtları (fırsatlar, çağrı kayıtları, lead/recruiting
 // atamaları, görevler) ise ARTIK SİLİNMİYOR — broker kararı: "hiçbir

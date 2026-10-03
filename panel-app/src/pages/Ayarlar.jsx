@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus, Lock, Webhook } from 'lucide-react'
+import { Users, Shield, Tag, ScrollText, Plus, Webhook } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -27,7 +27,7 @@ import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
 import TelsamWebhookErrorsTable from '../components/settings/TelsamWebhookErrorsTable'
 import MetaCapiErrorsTable from '../components/settings/MetaCapiErrorsTable'
 import ConfirmDialog from '../components/common/ConfirmDialog'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
 const TABS = [
   { key: 'kullanicilar', label: 'Kullanıcılar', icon: Users },
@@ -379,13 +379,7 @@ export default function Ayarlar() {
   }
 
   if (!canManage) {
-    return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center">
-        <Lock size={28} className="text-text-disabled" />
-        <p className="text-sm font-medium text-text-secondary">Bu sayfaya erişim yetkin yok.</p>
-        <p className="text-xs text-text-disabled">Ayarlar sadece broker ve owner rollerine açıktır.</p>
-      </div>
-    )
+    return <RestrictedAccess message="Ayarlar sadece broker ve owner rollerine açıktır." />
   }
 
   return (
@@ -425,6 +419,7 @@ export default function Ayarlar() {
             <UsersTable
               rows={allUsers ?? []}
               canManage={canManage}
+              currentUserId={user?.id}
               onChangeRole={requestRoleChange}
               onToggleDurum={handleToggleDurum}
               onToggleTestHesabi={handleToggleTestHesabi}

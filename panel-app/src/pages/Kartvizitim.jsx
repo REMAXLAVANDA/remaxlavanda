@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { Copy, Upload, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -10,7 +9,7 @@ import { SOSYAL_MEDYA_FIELDS, hasKartvizit, kartvizitUrl } from '../lib/kartvizi
 import { formatPhoneInput, isPhoneComplete } from '../lib/phone'
 import KartvizitCard from '../components/kartvizit/KartvizitCard'
 import AvatarCropModal from '../components/kartvizit/AvatarCropModal'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
 export default function Kartvizitim() {
   const { user, role } = useAuth()
@@ -94,7 +93,7 @@ export default function Kartvizitim() {
   // Ofis menüde bu linki hiç görmüyor (bkz. lib/kartvizit.js hasKartvizit) —
   // ama route guard'ı yoktu, URL'den doğrudan girilebiliyordu. Leads.jsx'teki
   // aynı desen: tüm hook'lardan SONRA, en son kontrol edilir.
-  if (!hasKartvizit(role)) return <Navigate to="/panel" replace />
+  if (!hasKartvizit(role)) return <RestrictedAccess message="Kartvizit sadece broker, owner ve danışman rollerine açıktır." />
 
   return (
     <div>

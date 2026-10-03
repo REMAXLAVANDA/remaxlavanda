@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Loader2, Lock, RotateCcw } from 'lucide-react'
 
 // Paylaşılan yükleniyor/hata durumları — useAsyncList ile birlikte tüm
 // sayfalarda aynı görünüm/davranışı sağlar.
@@ -28,6 +28,18 @@ export function ErrorState({ error, onRetry }) {
           Tekrar Dene
         </button>
       )}
+    </div>
+  )
+}
+
+// Yetkisiz erişim — tüm sayfalarda sessiz yönlendirme yerine AYNI açık
+// mesaj (2026-10 broker kararı: "hepsi mesaj göstersin").
+export function RestrictedAccess({ message = 'Bu sayfa senin rolüne açık değil.' }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center">
+      <Lock size={28} className="text-text-disabled" />
+      <p className="text-sm font-medium text-text-secondary">Bu sayfaya erişim yetkin yok.</p>
+      <p className="text-xs text-text-disabled">{message}</p>
     </div>
   )
 }

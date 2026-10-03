@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -14,7 +13,7 @@ import RecruitingBoard from '../components/recruiting/RecruitingBoard'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
 import CreateUserModal from '../components/settings/CreateUserModal'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
 // "Aktif/Geçmiş/Tümü" (kayıt tipi) filtresi yerine standart tarih filtresi
 // geldi (2026-09-27, broker: "7 gün 30 gün gibi seçimler olmalı, diğerleri
@@ -247,7 +246,7 @@ export default function Recruiting() {
 
   // Lead Havuzu ile aynı ikinci savunma katmanı — recruiting_manage RLS'i
   // zaten veriyi engelliyor (bkz. lib/recruiting.js canManageRecruiting).
-  if (!canManageRecruiting(role)) return <Navigate to="/panel" replace />
+  if (!canManageRecruiting(role)) return <RestrictedAccess message="Recruiting sadece broker, owner ve ofis rollerine açıktır." />
 
   return (
     <div>

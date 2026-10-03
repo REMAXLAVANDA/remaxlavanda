@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { AlertTriangle, Megaphone } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -27,7 +26,7 @@ import RoutedLeadsTable from '../components/leads/RoutedLeadsTable'
 import AssignPortfolioLeadModal from '../components/leads/AssignPortfolioLeadModal'
 import ReklamKaynaklariTable from '../components/settings/ReklamKaynaklariTable'
 import DateRangeFilter from '../components/common/DateRangeFilter'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
+import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
 // Recruiting'deki "gün filtresi olsun" isteğinin Lead Havuzu karşılığı
 // (2026-09-27, broker: "filtre her ikisini de etkilesin, tek seçim olsun") —
@@ -219,7 +218,7 @@ export default function Leads() {
   // broker/owner) — leads_manage RLS'i zaten veriyi engelliyor, bu ikinci
   // (UI seviyesi) savunma katmanı (bkz. lib/roles.js canManageLeads).
   // Hook sırasını bozmamak için tüm hook'lardan SONRA, en son kontrol edilir.
-  if (!canManageLeads(role)) return <Navigate to="/panel" replace />
+  if (!canManageLeads(role)) return <RestrictedAccess message="Lead Havuzu sadece broker ve owner rollerine açıktır." />
 
   return (
     <div>

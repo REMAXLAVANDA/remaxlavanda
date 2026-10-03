@@ -18,7 +18,17 @@ function sortRows(rows, sortKey) {
   return list.sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 }
 
-export default function UsersTable({ rows, canManage, onChangeRole, onToggleDurum, onToggleTestHesabi, onEdit, onDeleteRequest, onResetPasswordRequest }) {
+export default function UsersTable({
+  rows,
+  canManage,
+  currentUserId,
+  onChangeRole,
+  onToggleDurum,
+  onToggleTestHesabi,
+  onEdit,
+  onDeleteRequest,
+  onResetPasswordRequest,
+}) {
   const [sortKey, setSortKey] = useState('ad')
   const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
 
@@ -58,7 +68,12 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              {canManage ? (
+              {/* Kendi rolünü/durumunu değiştirme — broker/owner dahil —
+                  artık DB trigger'ıyla da engelleniyor (20261003170000
+                  migration, broker kararı: "en az bir broker kalmalı"
+                  riskini kapatmak için). Burada önceden devre dışı
+                  bırakılıyor ki kullanıcı DB hatası almadan anlasın. */}
+              {canManage && u.id !== currentUserId ? (
                 <select
                   value={u.role}
                   onChange={(e) => onChangeRole(u.id, e.target.value)}
@@ -71,17 +86,21 @@ export default function UsersTable({ rows, canManage, onChangeRole, onToggleDuru
                   ))}
                 </select>
               ) : (
-                <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600">
+                <span
+                  title={canManage && u.id === currentUserId ? 'Kendi rolünü değiştiremezsin.' : undefined}
+                  className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600"
+                >
                   {ROLE_LABELS[u.role] ?? u.role}
                 </span>
               )}
 
               <button
-                disabled={!canManage}
+                disabled={!canManage || u.id === currentUserId}
+                title={canManage && u.id === currentUserId ? 'Kendi durumunu değiştiremezsin.' : undefined}
                 onClick={() => onToggleDurum(u.id, u.durum === 'aktif' ? 'pasif' : 'aktif')}
                 className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                   u.durum === 'aktif' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
-                } ${canManage ? 'hover:opacity-80' : ''}`}
+                } ${canManage && u.id !== currentUserId ? 'hover:opacity-80' : ''}`}
               >
                 {u.durum === 'aktif' ? 'Aktif' : 'Pasif'}
               </button>
