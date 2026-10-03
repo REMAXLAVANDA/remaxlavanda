@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-03 — Yetki raporunun 5 kararı uygulandı
+
+Broker 5 karar verdi: (1) hard-delete'te Ciro/Eğitim/Sosyal Medya/Rozet
+geçmişi artık silinmiyor (user_id NULL'a düşüyor — education_progress/
+user_badges'de birleşik PK surrogate id'ye çevrildi), (2) broker/owner
+dahil kimse kendi rolünü değiştiremez (DB trigger + UI), (3) ofis'in
+recruiting'i bitirememesi bilinçli (dokümante edildi), (4) yetki
+ekranları yeni tasarım tokenlerine taşındı, (5) yetkisiz erişimde tüm
+sayfalar aynı mesajı gösteriyor (RestrictedAccess bileşeni).
+
+## 2026-10-03 — Portal danışmanlarda açılmıyordu: periods RLS sonsuz döngüsü
+
+Kök neden: `period_is_blackout()`/`is_current_period()` SECURITY DEFINER
+değildi, periods_select politikası bunları çağırıyor, onlar da periods'u
+sorguluyordu — bir önceki gün eklenen search_path sabitlemesi bu
+fonksiyonların inline edilmesini engelleyince sonsuz döngüye döndü
+("stack depth limit exceeded"). SECURITY DEFINER eklenerek düzeltildi.
+Detaylı ders CLAUDE.md'deki "RLS/Performans Dersleri" bölümüne eklendi.
+
 ## 2026-09-30 — İlk /kurul denetimi: Yetki modülü, 3 hızlı güvenlik düzeltmesi uygulandı
 
 `/kurul yetki` bu oturuma yüklenmediği için 5 denetçi (.claude/agents/
