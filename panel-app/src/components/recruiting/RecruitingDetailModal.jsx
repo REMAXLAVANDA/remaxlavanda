@@ -121,11 +121,11 @@ export default function RecruitingDetailModal({
             — kayit_tipi='gecmis' olan HER kayıtta görünür, durum fark
             etmez (bkz. lib/recruiting.js / Recruiting.jsx handleReactivate). */}
         {candidate?.kayitTipi === 'gecmis' && (
-          <div className="rounded-lg bg-ink-50 p-3">
+          <div className="rounded-lg bg-surface-sunken p-3">
             <button
               type="button"
               onClick={() => onReactivate(candidate)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-brand-700 shadow-sm hover:bg-brand-50"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-surface-raised px-3 py-2 text-sm font-medium text-brand-700 shadow-sm hover:bg-brand-50"
             >
               <RotateCcw size={14} /> Yeniden Aktifleştir
             </button>
@@ -137,7 +137,7 @@ export default function RecruitingDetailModal({
           onChange={(e) => set({ adSoyad: e.target.value })}
           onBlur={(e) => set({ adSoyad: capitalizeWords(e.target.value) })}
           placeholder="Ad Soyad"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
         />
 
         <div className="grid grid-cols-2 gap-2">
@@ -148,7 +148,7 @@ export default function RecruitingDetailModal({
                 value={form.telefon}
                 onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
                 placeholder="Telefon"
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
               />
               {form.telefon && (
                 <a
@@ -174,14 +174,14 @@ export default function RecruitingDetailModal({
             value={form.email}
             onChange={(e) => set({ email: e.target.value })}
             placeholder="E-posta"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
           />
         </div>
 
         <select
           value={form.kaynak}
           onChange={(e) => set({ kaynak: e.target.value })}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
         >
           {RECRUITING_KAYNAKLARI.map((k) => (
             <option key={k} value={k}>
@@ -204,7 +204,7 @@ export default function RecruitingDetailModal({
               <select
                 value={form.durum}
                 onChange={(e) => set({ durum: e.target.value, olumsuzSebebi: e.target.value === 'olumsuz' ? form.olumsuzSebebi : '' })}
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
               >
                 {RECRUITING_DURUM_SECILEBILIR.map((d) => (
                   <option key={d} value={d}>
@@ -217,8 +217,8 @@ export default function RecruitingDetailModal({
                   required
                   value={form.olumsuzSebebi}
                   onChange={(e) => set({ olumsuzSebebi: e.target.value })}
-                  className={`w-full rounded-lg border px-3 py-2 text-sm text-ink-800 ${
-                    form.olumsuzSebebi ? 'border-ink-200' : 'border-amber-300'
+                  className={`w-full rounded-lg border px-3 py-2 text-sm text-text-primary ${
+                    form.olumsuzSebebi ? 'border-border-default' : 'border-amber-300'
                   }`}
                 >
                   <option value="" disabled>
@@ -257,28 +257,28 @@ export default function RecruitingDetailModal({
         )}
 
         <div>
-          <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-ink-500">
+          <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
             <CalendarClock size={13} /> Görüşme / Randevu Tarihi
-            <span className="font-normal text-ink-400">(opsiyonel — Takvim'e işlenir)</span>
+            <span className="font-normal text-text-disabled">(opsiyonel — Takvim'e işlenir)</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="date"
               value={form.gorusmeTarih}
               onChange={(e) => set({ gorusmeTarih: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
             />
             <input
               type="time"
               value={form.gorusmeSaat}
               onChange={(e) => set({ gorusmeSaat: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
             />
           </div>
           <select
             value={form.gorusmeSure}
             onChange={(e) => set({ gorusmeSure: Number(e.target.value) })}
-            className="mt-2 w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            className="mt-2 w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
           >
             {DURATION_OPTIONS.map((dk) => (
               <option key={dk} value={dk}>
@@ -306,10 +306,10 @@ export default function RecruitingDetailModal({
             kaydedilmemiş yeni adayda not eklenecek bir candidate.id yok,
             o yüzden yeni aday eklerken açıklama kutusu eskisi gibi kalıyor. */}
         {candidate ? (
-          <div className="rounded-lg border border-ink-200 p-3">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-500">
+          <div className="rounded-lg border border-border-default p-3">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
               <MessageSquare size={13} /> Görüşme Notları
-              <span className="font-normal text-ink-400">({notes.length + (form.aciklama.trim() ? 1 : 0)})</span>
+              <span className="font-normal text-text-disabled">({notes.length + (form.aciklama.trim() ? 1 : 0)})</span>
             </p>
             <div className="flex gap-2">
               <textarea
@@ -317,7 +317,7 @@ export default function RecruitingDetailModal({
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Görüşme/randevu notu ekle..."
                 rows={2}
-                className="w-full rounded-lg border border-ink-200 px-2.5 py-1.5 text-xs text-ink-800 placeholder:text-ink-400"
+                className="w-full rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-disabled"
               />
               <button
                 type="button"
@@ -326,7 +326,7 @@ export default function RecruitingDetailModal({
                   onAddNote(capitalizeFirst(newNote.trim()))
                   setNewNote('')
                 }}
-                className="shrink-0 self-start rounded-lg bg-ink-100 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
+                className="shrink-0 self-start rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-border-subtle disabled:opacity-50"
               >
                 Ekle
               </button>
@@ -334,9 +334,9 @@ export default function RecruitingDetailModal({
             {(notes.length > 0 || form.aciklama.trim()) && (
               <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
                 {notes.map((n) => (
-                  <div key={n.id} className="rounded-lg bg-ink-50 p-2 text-xs">
-                    <div className="mb-1 flex items-center justify-between gap-2 text-ink-400">
-                      <span className="font-medium text-ink-600">{resolveName?.(n.createdBy) ?? '—'}</span>
+                  <div key={n.id} className="rounded-lg bg-surface-sunken p-2 text-xs">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-text-disabled">
+                      <span className="font-medium text-text-secondary">{resolveName?.(n.createdBy) ?? '—'}</span>
                       <span className="flex shrink-0 items-center gap-1.5">
                         {formatDateTime(n.createdAt)}
                         {canDeleteNotes && (
@@ -344,23 +344,23 @@ export default function RecruitingDetailModal({
                             type="button"
                             onClick={() => onDeleteNote(n.id)}
                             title="Notu sil"
-                            className="rounded p-0.5 text-ink-300 hover:bg-red-50 hover:text-red-600"
+                            className="rounded p-0.5 text-text-disabled hover:bg-red-50 hover:text-red-600"
                           >
                             <Trash2 size={12} />
                           </button>
                         )}
                       </span>
                     </div>
-                    <p className="whitespace-pre-wrap text-ink-800">{n.notMetni}</p>
+                    <p className="whitespace-pre-wrap text-text-primary">{n.notMetni}</p>
                   </div>
                 ))}
                 {form.aciklama.trim() && (
-                  <div className="rounded-lg bg-ink-50 p-2 text-xs">
-                    <div className="mb-1 flex items-center justify-between gap-2 text-ink-400">
-                      <span className="font-medium text-ink-600">Genel not</span>
+                  <div className="rounded-lg bg-surface-sunken p-2 text-xs">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-text-disabled">
+                      <span className="font-medium text-text-secondary">Genel not</span>
                       <span className="shrink-0">{formatDateOnly(candidate.createdAt)}</span>
                     </div>
-                    <p className="whitespace-pre-wrap text-ink-800">{form.aciklama}</p>
+                    <p className="whitespace-pre-wrap text-text-primary">{form.aciklama}</p>
                   </div>
                 )}
               </div>
@@ -372,7 +372,7 @@ export default function RecruitingDetailModal({
             onChange={(e) => set({ aciklama: e.target.value })}
             placeholder="Açıklama"
             rows={2}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
           />
         )}
 
@@ -380,7 +380,7 @@ export default function RecruitingDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-sunken"
           >
             Vazgeç
           </button>

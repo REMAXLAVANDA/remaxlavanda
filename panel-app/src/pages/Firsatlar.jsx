@@ -29,9 +29,9 @@ export default function Firsatlar() {
 
       <section
         id="operasyon-bolumu"
-        className="mt-10 scroll-mt-6 rounded-2xl border border-t-4 border-ink-100 border-t-remax-navy bg-white p-5"
+        className="mt-10 scroll-mt-6 rounded-2xl border border-t-4 border-border-default border-t-remax-navy bg-surface-raised p-5"
       >
-        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-900">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Wrench size={16} className="text-remax-navy" /> Operasyon
         </h2>
         <OperasyonTab />
