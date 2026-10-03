@@ -3,6 +3,28 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-03 — Genel görsel denetimin kalan 10 bulgusu tamamlandı
+
+Önceki "Genel görsel denetim" girdisindeki 15 bekleyen bulgudan 10'u
+sırayla uygulandı: Takip kritik kırmızısı + WCAG kontrast (lib/takip.js),
+Leads rozet renk tutarlılığı, SegmentedControl/Table/Button'daki
+hardcoded hex'ler, Panel.jsx'teki tekrarlanan InitialsBadge paylaşılan
+Avatar'a taşındı (bu sırada Avatar'da TR locale case bug'ı da
+düzeltildi), Panel.jsx'teki durum pill dokunma hedefleri ve
+text-ink-300 kalıntıları, Rehber PreviewModal/UploadDocModal'ın ink-*
+tokenlerden taşınması, ActivityPointsSettings onay butonunun dokunma
+alanı. Hepsi lint/test/build ile ve mock modda Playwright ekran
+görüntüsüyle doğrulandı.
+
+Bilinçli olarak ERTELENDİ (ayrı, kapsamı netleşmiş bir iş gerektiriyor):
+- Button/Badge/Card/SegmentedControl'ün uygulama genelinde benimsenmesi
+  (şu an bu bileşenlerin gerçek kullanım yeri yok).
+- Kullanılmayan dosyaların (ör. HealthScoreRow.jsx) silinmesi.
+- Paylaşılan `text-disabled`/ink-400 tokeninin hex değerinin WCAG
+  kontrastını düzeltecek şekilde yeniden tanımlanması (marka-kimligi.md'de
+  bilinen/dokümante bir sorun olarak işaretli, token tüm uygulamayı
+  etkiliyor — tek başına karar gerektiriyor).
+
 ## 2026-10-03 — Genel görsel denetim + mock modda Playwright doğrulaması
 
 İlk kez bu ortamda Playwright çalıştırıldı — üretim/Supabase'e ağ erişimi
