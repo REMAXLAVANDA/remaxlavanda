@@ -61,10 +61,10 @@ async function loadAll() {
 // "Ulaşılamadı" (donusYapildiMi===false) BİLEREK "Olumsuz" sayılmıyor — henüz
 // gerçek bir ret değil, süreç devam ediyor (broker onayı: 2026-09-27).
 function callProcessLabel(call, opportunities) {
-  if (!call.donusYapildiMi) return { label: 'Yeni Başvuru', style: 'bg-ink-100 text-ink-600', module: 'operasyon' }
+  if (!call.donusYapildiMi) return { label: 'Yeni Başvuru', style: 'bg-surface-sunken text-text-secondary', module: 'operasyon' }
   if (!call.portfoyAlindiMi) return { label: 'Görüşüldü', style: 'bg-brand-50 text-brand-700', module: 'operasyon' }
   const opp = call.opportunityId ? opportunities.find((o) => o.id === call.opportunityId) : null
-  if (opp?.status === 'iptal') return { label: 'Olumsuz', style: 'bg-ink-100 text-ink-500', module: 'firsatlar' }
+  if (opp?.status === 'iptal') return { label: 'Olumsuz', style: 'bg-surface-sunken text-text-secondary', module: 'firsatlar' }
   return { label: 'Alındı', style: 'bg-emerald-50 text-emerald-700', module: opp ? 'firsatlar' : 'operasyon' }
 }
 

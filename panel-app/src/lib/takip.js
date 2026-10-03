@@ -162,10 +162,16 @@ export function computeHealthScore(
 }
 
 export const STATUS_LABELS = { good: 'İyi', warn: 'Dikkat', critical: 'Kritik' }
+// critical BİLEREK stok Tailwind kırmızısı değil, marka kırmızısı
+// (Badge.jsx'in 'red' varyantıyla aynı kombinasyon) — 2026-10-03 görsel
+// denetim bulgusu: eski değer (red-50/red-600) hem Panel'deki marka
+// kırmızısından (brand-700) farklıydı hem de WCAG 1.4.3 kontrast
+// eşiğinin (4.5:1) az altındaydı (~4.41:1). brand-700/tint-red daha
+// yüksek kontrast verir.
 export const STATUS_STYLES = {
   good: 'bg-emerald-50 text-emerald-700',
   warn: 'bg-amber-50 text-amber-700',
-  critical: 'bg-red-50 text-red-600',
+  critical: 'bg-tint-red text-brand-700',
 }
 export const METRIC_LABELS = {
   ciro: 'Ciro Hedefi',
