@@ -133,7 +133,7 @@ export default function UploadDocModal({
               type="button"
               onClick={() => setMode('file')}
               className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                mode === 'file' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                mode === 'file' ? 'bg-brand-600 text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
               }`}
             >
               Dosya Yükle
@@ -142,7 +142,7 @@ export default function UploadDocModal({
               type="button"
               onClick={() => setMode('text')}
               className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                mode === 'text' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                mode === 'text' ? 'bg-brand-600 text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
               }`}
             >
               Yazı Yaz
@@ -157,7 +157,7 @@ export default function UploadDocModal({
               setCategoryKey(e.target.value)
               setDocId(NEW_DOC)
             }}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
           >
             {categories.map((c) => (
               <option key={c.key} value={c.key}>
@@ -171,7 +171,7 @@ export default function UploadDocModal({
           <select
             value={docId}
             onChange={(e) => setDocId(e.target.value)}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
           >
             <option value={NEW_DOC}>+ Yeni doküman</option>
             {docsInCategory
@@ -191,14 +191,14 @@ export default function UploadDocModal({
             onChange={(e) => setBaslik(e.target.value)}
             onBlur={(e) => setBaslik(capitalizeWords(e.target.value))}
             placeholder="Doküman başlığı"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
           />
         )}
 
         {isEditingFile ? null : mode === 'file' ? (
           <div>
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-ink-300 bg-ink-50 px-3 py-3 text-sm text-ink-600 hover:bg-ink-100">
-              <Upload size={16} className="shrink-0 text-ink-400" />
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border-default bg-surface-sunken px-3 py-3 text-sm text-text-secondary hover:bg-border-subtle">
+              <Upload size={16} className="shrink-0 text-text-disabled" />
               <span className="truncate">{file ? `${file.name} (${formatSize(file.size)})` : 'Dosya seç (PDF, resim, Office, ZIP — 20 MB\'a kadar)'}</span>
               <input type="file" onChange={handleFileChange} className="hidden" />
             </label>
@@ -213,9 +213,9 @@ export default function UploadDocModal({
               onBlur={(e) => setContentText(capitalizeFirst(e.target.value))}
               placeholder="Metni buraya yaz..."
               rows={8}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
             />
-            <p className="mt-1 text-xs text-ink-400">
+            <p className="mt-1 text-xs text-text-disabled">
               Biçimlendirme: <strong>**kalın metin**</strong>, satır başında "- " ile madde işareti, satır başında
               "# " ile başlık.
             </p>
@@ -228,7 +228,7 @@ export default function UploadDocModal({
               <select
                 value={subcategoryChoice}
                 onChange={(e) => setSubcategoryChoice(e.target.value)}
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
               >
                 <option value="">Alt kategori yok</option>
                 {sssSubcategories.map((s) => (
@@ -243,7 +243,7 @@ export default function UploadDocModal({
                 onClick={handleSuggestSubcategory}
                 disabled={!baslik.trim() && !contentText.trim()}
                 title="Soru/cevap metnine göre alt kategori öner (anahtar kelime eşleştirmesi, ücretsiz)"
-                className="flex shrink-0 items-center gap-1 rounded-lg bg-ink-50 px-3 py-2 text-xs font-medium text-ink-600 hover:bg-ink-100 disabled:opacity-50"
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-surface-sunken px-3 py-2 text-xs font-medium text-text-secondary hover:bg-border-subtle disabled:opacity-50"
               >
                 <Sparkles size={13} /> Öner
               </button>
@@ -254,7 +254,7 @@ export default function UploadDocModal({
                 onChange={(e) => setNewSubcategoryLabel(e.target.value)}
                 onBlur={(e) => setNewSubcategoryLabel(capitalizeWords(e.target.value))}
                 placeholder="Yeni alt kategori adı (ör. Komisyon)"
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
               />
             )}
           </div>
@@ -264,7 +264,7 @@ export default function UploadDocModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-sunken"
           >
             Vazgeç
           </button>

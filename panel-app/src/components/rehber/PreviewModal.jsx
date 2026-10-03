@@ -39,12 +39,12 @@ export default function PreviewModal({ version, onClose }) {
         aria-modal="true"
         aria-label={version.filename}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-lg"
+        className="relative w-full max-w-lg rounded-2xl bg-surface-raised p-6 shadow-lg"
       >
         <button
           onClick={onClose}
           aria-label="Kapat"
-          className="absolute right-4 top-4 rounded-lg p-1 text-ink-400 hover:bg-ink-50"
+          className="absolute right-4 top-4 rounded-lg p-1 text-text-disabled hover:bg-surface-sunken"
         >
           <X size={18} />
         </button>
@@ -56,8 +56,8 @@ export default function PreviewModal({ version, onClose }) {
             <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
               <FileText size={26} />
             </div>
-            <p className="text-sm font-semibold text-ink-900">{version.filename}</p>
-            <p className="mt-1 text-xs text-ink-400">v{version.versionNo}</p>
+            <p className="text-sm font-semibold text-text-primary">{version.filename}</p>
+            <p className="mt-1 text-xs text-text-disabled">v{version.versionNo}</p>
             {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
           </div>
         )}
@@ -67,7 +67,7 @@ export default function PreviewModal({ version, onClose }) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 flex items-center justify-center gap-1.5 rounded-lg bg-ink-50 px-3 py-2 text-xs font-medium text-ink-600 hover:bg-ink-100"
+            className="mt-4 flex items-center justify-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-2 text-xs font-medium text-text-secondary hover:bg-border-subtle"
           >
             <ExternalLink size={13} /> Yeni sekmede aç
           </a>
