@@ -416,10 +416,13 @@ export const education = {
   },
   async toggleModuleProgress(moduleId, userId, done) {
     if (done) {
+      // onConflict AÇIKÇA belirtiliyor — tablo artık surrogate id PK
+      // kullanıyor (20261003172000 migration), upsert varsayılan olarak
+      // PK'ye göre çakışır, o zaman her çağrı yeni satır eklerdi.
       await run(
         client()
           .from('education_progress')
-          .upsert({ module_id: moduleId, user_id: userId, done_at: new Date().toISOString() }),
+          .upsert({ module_id: moduleId, user_id: userId, done_at: new Date().toISOString() }, { onConflict: 'user_id,module_id' }),
       )
     } else {
       await run(
