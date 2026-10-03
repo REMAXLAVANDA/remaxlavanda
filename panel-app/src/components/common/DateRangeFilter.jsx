@@ -1,6 +1,10 @@
 import { DATE_RANGES } from '../../lib/dateRange'
 
-function Chip({ active, children, ...props }) {
+// Dışa açık — aynı filtre satırında DateRangeFilter'a ek bir "Tümü" gibi
+// özel bir seçenek eklenmesi gerektiğinde (bkz. EgitimTab.jsx) AYNI chip
+// kullanılsın diye (2026-10-03 görsel denetim bulgusu: EgitimTab kendi
+// "Tümü" butonunu farklı bir renkle — bg-remax-blue — elle yazmıştı).
+export function Chip({ active, children, ...props }) {
   return (
     <button
       {...props}

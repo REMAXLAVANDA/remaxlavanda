@@ -16,7 +16,7 @@ import AwardBadgeModal from '../../components/education/AwardBadgeModal'
 import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../../components/education/TeamProgressTable'
-import DateRangeFilter from '../../components/common/DateRangeFilter'
+import DateRangeFilter, { Chip } from '../../components/common/DateRangeFilter'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -249,14 +249,14 @@ export default function EgitimTab() {
               </span>
             </div>
             <div className="mb-3 flex flex-wrap items-center gap-1.5">
-              <button
-                onClick={() => setModuleFilters((f) => ({ ...f, dateRange: 'tumu' }))}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  moduleFilters.dateRange === 'tumu' ? 'bg-remax-blue text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
-                }`}
-              >
+              {/* 2026-10-03 görsel denetim düzeltmesi: bu buton aynı satırdaki
+                  DateRangeFilter'ın chip'leriyle AYNI bileşeni (Chip) kullanıyor
+                  — önceden elle yazılmış farklı bir renkti (bg-remax-blue vs
+                  DateRangeFilter'ın bg-brand-600), aynı satırda iki "Tümü"
+                  farklı renkte görünüyordu. */}
+              <Chip active={moduleFilters.dateRange === 'tumu'} onClick={() => setModuleFilters((f) => ({ ...f, dateRange: 'tumu' }))}>
                 Tümü
-              </button>
+              </Chip>
               <DateRangeFilter value={moduleFilters} onChange={setModuleFilters} />
             </div>
             <ModuleProgressList
