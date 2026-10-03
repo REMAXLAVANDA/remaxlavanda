@@ -38,7 +38,7 @@ export default function DikkatGerekiyorList({ items }) {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-text-disabled">Dikkat Gerekiyor</h2>
         {/* Üstteki tarih filtresinden BAĞIMSIZ — her zaman güncel, hâlâ açık
             konuları gösterir (bkz. "Tarih Filtresi Kararları"). */}
-        <span className="text-[11px] font-normal normal-case tracking-normal text-ink-300">Açık konular</span>
+        <span className="text-[11px] font-normal normal-case tracking-normal text-text-disabled">Açık konular</span>
       </div>
       <div className="divide-y divide-surface-sunken overflow-hidden rounded-2xl border border-border-default bg-surface-raised">
         {items.length === 0 ? (

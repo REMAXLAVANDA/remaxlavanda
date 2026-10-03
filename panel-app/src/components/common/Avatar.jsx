@@ -5,7 +5,7 @@ function initialsOf(name) {
     .map((part) => part[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toLocaleUpperCase('tr-TR')
 }
 
 export default function Avatar({ name, size = 34 }) {

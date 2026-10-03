@@ -56,6 +56,7 @@ import PeriodSummaryBoard from '../components/league/PeriodSummaryBoard'
 import OfisinNabziGrid from '../components/panel/OfisinNabziGrid'
 import DikkatGerekiyorList from '../components/panel/DikkatGerekiyorList'
 import WeeklyLeadersCard from '../components/panel/WeeklyLeadersCard'
+import Avatar from '../components/common/Avatar'
 
 const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
@@ -196,7 +197,7 @@ function EmptyRow({ text }) {
 // Yüzdelik halka — SVG stroke-dasharray tekniğiyle, ortasında yüzde metni.
 // Hem büyük StatCard'larda hem küçük satır ikonlarında (Portal Kullanımı,
 // Eksik Eğitim kişi satırları) aynı bileşen kullanılıyor.
-function ProgressRing({ percent, size = 88, strokeWidth = 8, color = '#003da5', fontSize }) {
+function ProgressRing({ percent, size = 88, strokeWidth = 8, color = 'var(--color-remax-blue)', fontSize }) {
   const clamped = Math.max(0, Math.min(100, Math.round(percent || 0)))
   const r = (size - strokeWidth) / 2
   const c = 2 * Math.PI * r
@@ -226,33 +227,12 @@ function ProgressRing({ percent, size = 88, strokeWidth = 8, color = '#003da5', 
   )
 }
 
-// Uygulamada profil fotoğrafı YOK — mevcut kural (bkz. ProfileMenu,
-// HealthScoreRow) daireye baş harf koymak, mockup'taki avatar fotoğrafları
-// yerine bu kullanılıyor.
-function InitialsBadge({ name, size = 36 }) {
-  const initials = (name ?? '?')
-    .split(' ')
-    .filter(Boolean)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toLocaleUpperCase('tr-TR')
-  return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-700"
-      style={{ width: size, height: size, fontSize: size * 0.36 }}
-    >
-      {initials}
-    </div>
-  )
-}
-
 // %100 tamamlanan yeşil, yarı yolda turuncu, geride kırmızı — Eksik Eğitim
 // satırlarındaki modül/checklist halkalarında kullanılıyor.
 function ringColorFor(percent) {
   if (percent >= 100) return '#16a34a'
   if (percent >= 50) return '#f59e0b'
-  return '#dc1c2e'
+  return 'var(--color-brand-600)'
 }
 
 // Panel'deki "Açık Fırsatlar" satırı — tek bakışta ne olduğu belli olsun diye
@@ -292,7 +272,7 @@ function OpportunityMiniBlock({ dotColor, label, items }) {
       <div className="mb-2 flex items-center gap-1.5">
         <span className={`h-2 w-2 rounded-full ${dotColor}`} />
         <h3 className="text-xs font-semibold text-text-muted">
-          {label} <span className="font-normal text-ink-300">({items.length})</span>
+          {label} <span className="font-normal text-text-disabled">({items.length})</span>
         </h3>
       </div>
       {items.length === 0 ? (
@@ -877,14 +857,14 @@ export default function Panel() {
                   </div>
                   {myAttendance && !needsResponse && myAttendance.status !== 'mazeretli' && (
                     <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[myAttendance.status]}`}
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[myAttendance.status]}`}
                     >
                       {ATTENDANCE_STATUS_LABELS[myAttendance.status]}
                     </span>
                   )}
                   {myAttendance?.status === 'mazeretli' && (
                     <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${MAZERET_STATUS_STYLES[myAttendance.mazeretStatus]}`}
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${MAZERET_STATUS_STYLES[myAttendance.mazeretStatus]}`}
                     >
                       Mazeret: {MAZERET_STATUS_LABELS[myAttendance.mazeretStatus]}
                     </span>
@@ -1069,8 +1049,8 @@ export default function Panel() {
                 <div className="space-y-1.5">
                   {[
                     { key: 'bugun', label: 'Bugün giriş yapanlar', color: '#16a34a' },
-                    { key: 'son7gun', label: 'Son 7 gün içinde giriş yapanlar', color: '#003da5' },
-                    { key: 'uzunSuredir', label: '7 günden uzun süredir giriş yapmayanlar', color: '#dc1c2e' },
+                    { key: 'son7gun', label: 'Son 7 gün içinde giriş yapanlar', color: 'var(--color-remax-blue)' },
+                    { key: 'uzunSuredir', label: '7 günden uzun süredir giriş yapmayanlar', color: 'var(--color-brand-600)' },
                   ].map((b) => {
                     const people = usageBuckets[b.key]
                     const percent = activityRanking.length ? (people.length / activityRanking.length) * 100 : 0
@@ -1134,7 +1114,7 @@ export default function Panel() {
                 <div className="space-y-2.5">
                   {educationGaps.slice(0, 3).map((r) => (
                     <div key={r.id} className="flex items-center gap-3">
-                      <InitialsBadge name={r.name} size={28} />
+                      <Avatar name={r.name} size={28} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate text-sm font-medium text-text-primary">{r.name}</span>
@@ -1232,7 +1212,7 @@ export default function Panel() {
               <div className="flex items-center gap-3 rounded-xl border border-border-default px-3 py-2.5">
                 <span className="shrink-0 text-lg">🏆</span>
                 <span className="min-w-0 flex-1 text-sm text-text-secondary">{bestHealth.user.name}</span>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[bestHealth.status]}`}>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[bestHealth.status]}`}>
                   {bestHealth.score} · {STATUS_LABELS[bestHealth.status]}
                 </span>
               </div>
@@ -1240,7 +1220,7 @@ export default function Panel() {
                 <div className="flex items-center gap-3 rounded-xl border border-border-default px-3 py-2.5">
                   <span className="shrink-0 text-lg">⚠️</span>
                   <span className="min-w-0 flex-1 text-sm text-text-secondary">{worstHealth.user.name}</span>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[worstHealth.status]}`}>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[worstHealth.status]}`}>
                     {worstHealth.score} · {STATUS_LABELS[worstHealth.status]}
                   </span>
                 </div>
