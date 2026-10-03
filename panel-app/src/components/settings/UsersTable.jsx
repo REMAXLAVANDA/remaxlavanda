@@ -33,7 +33,7 @@ export default function UsersTable({
   const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
 
   if (rows.length === 0) {
-    return <p className="py-8 text-center text-sm text-ink-400">Henüz kullanıcı yok.</p>
+    return <p className="py-8 text-center text-sm text-text-disabled">Henüz kullanıcı yok.</p>
   }
 
   return (
@@ -42,7 +42,7 @@ export default function UsersTable({
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value)}
-          className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+          className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-secondary"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>
@@ -54,17 +54,17 @@ export default function UsersTable({
 
       <div className="space-y-2">
         {sorted.map((u) => (
-          <div key={u.id} className="flex flex-col gap-3 rounded-xl border border-ink-100 bg-white p-3.5 sm:flex-row sm:flex-wrap sm:items-center">
+          <div key={u.id} className="flex flex-col gap-3 rounded-xl border border-border-subtle bg-surface-raised p-3.5 sm:flex-row sm:flex-wrap sm:items-center">
             <div className="min-w-0 sm:flex-1">
-              <p className="text-sm font-medium text-ink-900">{u.name}</p>
-              <p className="text-xs text-ink-400">
+              <p className="text-sm font-medium text-text-primary">{u.name}</p>
+              <p className="text-xs text-text-disabled">
                 {u.email ?? '—'}
                 {u.createdAt && <> · Kayıt: {relativeTime(u.createdAt)}</>}
               </p>
               {/* Recruiting'den "Danışman Olarak Ekle" ile açılmış hesaplarda
                   dolar (bkz. lib/recruiting.js candidateKaynakOzeti, broker
                   kararı: "o danışmanları biz nereden aldığımızı bilelim"). */}
-              {u.kaynak && <p className="mt-0.5 text-xs text-ink-400">Kaynak: {u.kaynak}</p>}
+              {u.kaynak && <p className="mt-0.5 text-xs text-text-disabled">Kaynak: {u.kaynak}</p>}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -77,7 +77,7 @@ export default function UsersTable({
                 <select
                   value={u.role}
                   onChange={(e) => onChangeRole(u.id, e.target.value)}
-                  className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
+                  className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-secondary"
                 >
                   {ASSIGNABLE_ROLES.map((r) => (
                     <option key={r} value={r}>
@@ -88,7 +88,7 @@ export default function UsersTable({
               ) : (
                 <span
                   title={canManage && u.id === currentUserId ? 'Kendi rolünü değiştiremezsin.' : undefined}
-                  className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600"
+                  className="rounded-full bg-border-subtle px-2.5 py-1 text-xs font-medium text-text-secondary"
                 >
                   {ROLE_LABELS[u.role] ?? u.role}
                 </span>
@@ -114,7 +114,7 @@ export default function UsersTable({
                   onClick={() => onToggleTestHesabi(u.id, !u.testHesabi)}
                   title="Test hesabı — Lig/Takip/Panel listelerinde görünmez"
                   className={`rounded-full px-2.5 py-1 text-xs font-medium hover:opacity-80 ${
-                    u.testHesabi ? 'bg-amber-50 text-amber-700' : 'bg-ink-100 text-ink-500'
+                    u.testHesabi ? 'bg-amber-50 text-amber-700' : 'bg-border-subtle text-text-secondary'
                   }`}
                 >
                   Test hesabı
@@ -127,7 +127,7 @@ export default function UsersTable({
                     <button
                       onClick={() => window.open(kartvizitUrl(u.id), '_blank', 'noopener')}
                       title="Kartvizitini görüntüle"
-                      className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                      className="rounded-lg p-1.5 text-text-disabled hover:bg-brand-50 hover:text-brand-600"
                     >
                       <CreditCard size={15} />
                     </button>
@@ -135,21 +135,21 @@ export default function UsersTable({
                   <button
                     onClick={() => onEdit(u)}
                     title="Düzenle"
-                    className="rounded-lg p-1.5 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                    className="rounded-lg p-1.5 text-text-disabled hover:bg-brand-50 hover:text-brand-600"
                   >
                     <Pencil size={15} />
                   </button>
                   <button
                     onClick={() => onResetPasswordRequest(u)}
                     title="Şifre Sıfırla"
-                    className="rounded-lg p-1.5 text-ink-400 hover:bg-amber-50 hover:text-amber-600"
+                    className="rounded-lg p-1.5 text-text-disabled hover:bg-amber-50 hover:text-amber-600"
                   >
                     <KeyRound size={15} />
                   </button>
                   <button
                     onClick={() => onDeleteRequest(u)}
                     title="Sil"
-                    className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-lg p-1.5 text-text-disabled hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 size={15} />
                   </button>

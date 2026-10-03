@@ -23,17 +23,17 @@ const CAPABILITIES = [
 export default function PermissionMatrix() {
   return (
     <div>
-      <p className="mb-4 text-xs text-ink-400">
+      <p className="mb-4 text-xs text-text-disabled">
         Sistemde 4 sabit rol var, ayrı bir yetki tablosu yok — her yetkinlik kodda kontrol ediliyor. Bu tablo salt
         okunur bir özet.
       </p>
-      <div className="overflow-x-auto rounded-2xl border border-ink-100">
+      <div className="overflow-x-auto rounded-2xl border border-border-subtle">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-ink-100 bg-ink-50">
-              <th className="px-4 py-2.5 text-left font-medium text-ink-500">Yetkinlik</th>
+            <tr className="border-b border-border-subtle bg-surface-sunken">
+              <th className="px-4 py-2.5 text-left font-medium text-text-secondary">Yetkinlik</th>
               {ROLE_ORDER.map((r) => (
-                <th key={r} className="px-3 py-2.5 text-center font-medium text-ink-500">
+                <th key={r} className="px-3 py-2.5 text-center font-medium text-text-secondary">
                   {ROLE_LABELS[r]}
                 </th>
               ))}
@@ -41,8 +41,8 @@ export default function PermissionMatrix() {
           </thead>
           <tbody>
             {CAPABILITIES.map((cap) => (
-              <tr key={cap.label} className="border-b border-ink-50 last:border-0">
-                <td className="px-4 py-2.5 text-ink-700">{cap.label}</td>
+              <tr key={cap.label} className="border-b border-border-subtle last:border-0">
+                <td className="px-4 py-2.5 text-text-primary">{cap.label}</td>
                 {ROLE_ORDER.map((r) => (
                   <td key={r} className="px-3 py-2.5 text-center">
                     {cap.roles.includes(r) && <Check size={15} className="mx-auto text-emerald-600" />}

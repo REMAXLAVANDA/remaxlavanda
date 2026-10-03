@@ -26,7 +26,7 @@ function ProfileMenuBody({
   return (
     <>
       {showDevRoleSwitcher && (
-        <div className="border-b border-ink-100 px-2 py-2">
+        <div className="border-b border-border-subtle px-2 py-2">
           <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-amber-600">
             DEV ONLY — Rol olarak görüntüle
           </p>
@@ -37,7 +37,7 @@ function ProfileMenuBody({
                 setRole(r)
                 setOpen(false)
               }}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-sm text-ink-700 hover:bg-ink-50"
+              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-sm text-text-primary hover:bg-surface-sunken"
             >
               {ROLE_LABELS[r]}
               {r === role && <Check size={14} className="text-brand-600" />}
@@ -48,7 +48,7 @@ function ProfileMenuBody({
 
       <div className="p-2">
         {isPushSupported() && permission === 'granted' && (
-          <div className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-500">
+          <div className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-secondary">
             <BellRing size={16} className="text-emerald-600" />
             Bildirimler açık
           </div>
@@ -57,7 +57,7 @@ function ProfileMenuBody({
           <button
             onClick={handleEnableNotifications}
             disabled={subscribing}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50 disabled:opacity-50"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-primary hover:bg-surface-sunken disabled:opacity-50"
           >
             {permission === 'denied' ? <BellOff size={16} /> : <Bell size={16} />}
             {subscribing ? 'Açılıyor...' : permission === 'denied' ? 'Bildirimler kapalı' : 'Bildirimleri Aç'}
@@ -69,7 +69,7 @@ function ProfileMenuBody({
               setOpen(false)
               navigate('/kartvizitim')
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-primary hover:bg-surface-sunken"
           >
             <CreditCard size={16} />
             Kartvizitim
@@ -81,7 +81,7 @@ function ProfileMenuBody({
               setOpen(false)
               navigate('/ayarlar')
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-700 hover:bg-ink-50"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-primary hover:bg-surface-sunken"
           >
             <Settings size={16} />
             Ayarlar
@@ -193,17 +193,17 @@ export default function ProfileMenu({ variant = 'sidebar' }) {
     return (
       <div className="relative" ref={ref}>
         {open && (
-          <div className="absolute bottom-full left-0 z-40 mb-2 w-full overflow-hidden rounded-xl border border-ink-100 bg-white shadow-lg">
-            <div className="border-b border-ink-100 px-4 py-3">
-              <p className="text-sm font-semibold text-ink-900">{user.name}</p>
-              <p className="text-xs text-ink-400">{ROLE_LABELS[role]}</p>
+          <div className="absolute bottom-full left-0 z-40 mb-2 w-full overflow-hidden rounded-xl border border-border-subtle bg-surface-raised shadow-lg">
+            <div className="border-b border-border-subtle px-4 py-3">
+              <p className="text-sm font-semibold text-text-primary">{user.name}</p>
+              <p className="text-xs text-text-disabled">{ROLE_LABELS[role]}</p>
             </div>
             <ProfileMenuBody {...bodyProps} />
           </div>
         )}
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center gap-2 rounded-xl bg-white/[0.07] px-3 py-2.5 text-left hover:bg-white/10"
+          className="flex w-full items-center gap-2 rounded-xl bg-surface-raised/[0.07] px-3 py-2.5 text-left hover:bg-surface-raised/10"
         >
           <Avatar name={user.name} size={34} />
           <div className="min-w-0 flex-1 leading-tight">
@@ -224,19 +224,19 @@ export default function ProfileMenu({ variant = 'sidebar' }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-ink-50"
+        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-surface-sunken"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
           {initials}
         </div>
-        <ChevronDown size={16} className="text-ink-400" />
+        <ChevronDown size={16} className="text-text-disabled" />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-xl border border-ink-100 bg-white shadow-lg">
-          <div className="border-b border-ink-100 px-4 py-3">
-            <p className="text-sm font-semibold text-ink-900">{user.name}</p>
-            <p className="text-xs text-ink-400">{ROLE_LABELS[role]}</p>
+        <div className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-xl border border-border-subtle bg-surface-raised shadow-lg">
+          <div className="border-b border-border-subtle px-4 py-3">
+            <p className="text-sm font-semibold text-text-primary">{user.name}</p>
+            <p className="text-xs text-text-disabled">{ROLE_LABELS[role]}</p>
           </div>
           <ProfileMenuBody {...bodyProps} />
         </div>

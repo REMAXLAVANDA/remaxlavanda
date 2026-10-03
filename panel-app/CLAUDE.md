@@ -202,7 +202,9 @@ Dosyada karşılığı olmayan bir tasarım kararı gerekiyorsa sor.
   düşüyor (`isBehindEducation`).
 - **Recruiting:** Yeni Başvuru → Randevu → Karar Bekliyor →
   Olumlu (danışman olarak eklenir, kaydı Recruiting'den çıkar) /
-  Olumsuz / Yanlış Başvuru.
+  Olumsuz / Yanlış Başvuru. "Danışman Olarak Ekle" (gerçek hesap açma)
+  BİLİNÇLİ olarak sadece broker/owner'da — ofis süreci "Olumlu"ya kadar
+  taşıyabilir ama bitiremez (2026-10 broker onayı: bilinçli tek imza).
 - **Lead Havuzu:** BİLİNÇLİ olarak pipeline değil — sadece dağıtım
   noktası (durum: yeni → atandı/elendi), gerçek süreç hedef modülde
   (Fırsatlar veya Recruiting) devam eder.
