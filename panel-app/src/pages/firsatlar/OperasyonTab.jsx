@@ -214,9 +214,16 @@ export default function OperasyonTab() {
     if (!notingCall) return
     setSubmitting(true)
     try {
-      await updateCall(notingCall.id, { notlar })
+      const updated = await callLogsProvider.update(notingCall.id, { notlar })
+      setCalls((prev) => prev.map((c) => (c.id === notingCall.id ? updated : c)))
       setNotingCall(null)
       showToast('Not kaydedildi.', 'success')
+    } catch (err) {
+      // updateCall'dan FARKLI olarak hatayı burada kendi try/catch'imizle
+      // yakalıyoruz — pencere açık kalsın, yazılan not kaybolmasın ve
+      // yanlışlıkla "Not kaydedildi." başarı mesajı gösterilmesin (bkz.
+      // /kurul görsel+kullanılabilirlik raporu, 2026-10-04, madde 1).
+      showToast(err.message ?? 'Not kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }

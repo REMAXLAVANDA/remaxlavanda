@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Çağrı notu kaydedilemezse artık "kaydedildi" demiyor
+
+`/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) 1. kritik
+bulgusu: `OperasyonTab.jsx`'teki `handleEditNote`, genel `updateCall`
+yardımcısını kullanıyordu — `updateCall` hatayı kendi içinde yutup kırmızı
+toast gösteriyordu, `handleEditNote` bu hatayı hiç görmüyor, pencereyi
+kapatıp üstüne bir de yeşil "Not kaydedildi." mesajı gösteriyordu. Yazılan
+not kayboluyordu. Düzeltme: `handleEditNote` artık `callLogsProvider.update`'i
+doğrudan kendi try/catch'iyle çağırıyor — hata olursa pencere açık kalıyor,
+not silinmiyor, sadece kırmızı hata mesajı gösteriliyor. 154/154 test, lint,
+build temiz.
+
 ## 2026-10-04 — Operasyon ikonu anahtardan eve çevrildi
 
 Broker isteği: kenar çubuğundaki ve Fırsatlar sayfasındaki "Operasyon"
