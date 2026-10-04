@@ -46,7 +46,7 @@ import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
-import { LEAGUE_CATEGORIES, latestUpdate, rankingsFor, wilsonScoreLowerBound } from '../lib/league'
+import { LEAGUE_CATEGORIES, latestUpdate, periodScoresFor, rankingsByCategoryFor } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
 import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation, isRecruitingStalled } from '../lib/attention'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
@@ -693,45 +693,29 @@ export default function Panel() {
   )
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
+  // Hesaplama artık lib/league.js'teki periodScoresFor/rankingsByCategoryFor
+  // üzerinden — Lig sayfasıyla AYNI fonksiyonlar (2026-10-04 /kurul bulgusu:
+  // Panel eskiden kendi kopyasını tutuyordu — saf Wilson formülü (katkı
+  // terimi yok) ve hakSayisi=0 olanı da dahil eden bir filtre kullanıyordu,
+  // ayrıca pasif kullanıcıları periodScores'tan çıkarmıyordu — iki ekran
+  // farklı kişiye "lider" tacı verebiliyordu).
   const resolveUserName = useMemo(() => (id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const activePeriod = data?.periods?.[0] ?? null
-  // Test hesabının skoru sıralamada görünmesin diye (bkz. Lig.jsx'teki
-  // aynı filtre).
   const periodScores = useMemo(
-    () => (data?.scores ?? []).filter((s) => s.periodId === activePeriod?.id && !knownUsers[s.userId]?.testHesabi),
+    () => periodScoresFor(data?.scores, activePeriod?.id, knownUsers),
     [data, activePeriod, knownUsers],
   )
-  // Memnuniyet score_entries'e HİÇ yazılmaz (bkz. Lig.jsx) — Wilson skoru
-  // her render'da ciro_musterileri'nden canlı hesaplanır. Panel eskiden bu
-  // kategori için de periodScores'a bakıyordu, orada hiçbir zaman satır
-  // olmadığı için Memnuniyet lideri hep "—" görünüyordu — Lig sayfasıyla
-  // aynı hesaba geçildi.
-  // NOT: data.ciroMusterileri DEĞİL, listMusteriReviewCounts() RPC'si
-  // kullanılıyor — ciro_musterileri_select RLS'i danışmana sadece kendi
-  // müşterilerini gösterdiği için, ham veriden hesaplarsak danışman
-  // girişinde sıralama yanlış çıkıyordu (bkz. migration 20260725110000).
-  const memnuniyetScores = useMemo(() => {
-    if (!activePeriod) return []
-    const countsByUser = {}
-    for (const c of data?.musteriReviewCounts ?? []) {
-      if (c.periodId === activePeriod.id) countsByUser[c.userId] = c
-    }
-    return teamMembers.map((u) => {
-      const c = countsByUser[u.id]
-      return {
-        userId: u.id,
-        type: 'memnuniyet',
-        value: Math.round(wilsonScoreLowerBound(c?.alinanSayisi ?? 0, c?.hakSayisi ?? 0) * 100),
-      }
-    })
-  }, [data, activePeriod, teamMembers])
-  const rankingsByCategory = useMemo(() => {
-    const map = {}
-    for (const c of LEAGUE_CATEGORIES) {
-      map[c.key] = c.key === 'memnuniyet' ? rankingsFor(c.key, memnuniyetScores, resolveUserName) : rankingsFor(c.key, periodScores, resolveUserName)
-    }
-    return map
-  }, [periodScores, memnuniyetScores, resolveUserName])
+  const rankingsByCategory = useMemo(
+    () =>
+      rankingsByCategoryFor({
+        periodScores,
+        musteriReviewCounts: data?.musteriReviewCounts,
+        periodId: activePeriod?.id,
+        danismanOptions: teamMembers,
+        userName: resolveUserName,
+      }),
+    [periodScores, data, activePeriod, teamMembers, resolveUserName],
+  )
   const lastLeagueUpdate = useMemo(() => latestUpdate(periodScores), [periodScores])
 
   // --- Takip: en iyi/en kötü 360° sağlık skoru — Takip'e girmeden Panel'de

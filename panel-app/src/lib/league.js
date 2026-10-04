@@ -149,6 +149,55 @@ export function latestUpdate(scores) {
   return dates.reduce((max, d) => (d > max ? d : max))
 }
 
+// Bir dönemin skorlarını sıralamaya hazırlar: test hesabı VE pasife
+// alınmış (knownUsers'ta artık olmayan) kullanıcılar çıkarılır. knownUsers
+// SADECE aktif kullanıcıları içerir (listKnown() RLS'i) — "kullanıcı
+// knownUsers'ta yok" ile "test hesabı değil" ayrı şeylerdir, biri
+// eksikken diğerine bakmak pasif bir danışmanı yanlışlıkla sıralamaya
+// dahil eder (bkz. Lig.jsx'teki "Esra Sever pasif ama hesaba katılıyor"
+// düzeltmesi, Panel'in bu düzeltmeyi hiç almadığı /kurul bulgusuyla
+// birlikte).
+export function periodScoresFor(scores, periodId, knownUsers) {
+  return (scores ?? []).filter((s) => s.periodId === periodId && knownUsers[s.userId] && !knownUsers[s.userId].testHesabi)
+}
+
+// Üç kategorinin (Ciro/Memnuniyet/Sosyal Medya) sıralaması — Lig sayfası
+// VE Panel'in "Lig Durumu" podyumu AYNI fonksiyonu çağırır. 2026-10-04
+// /kurul bulgusu: ikisi ayrı kod kopyası tutuyordu, Panel farklı bir
+// Memnuniyet formülü (saf Wilson, "katkı" terimi yok) ve farklı bir
+// filtre (hakSayisi=0 olanı da dahil ediyordu) kullanıyordu — aktif
+// dönemde kimse yorum almamışken iki ekran farklı kişiye "lider" tacı
+// verebiliyordu. Artık tek kaynak burası.
+export function rankingsByCategoryFor({ periodScores, musteriReviewCounts, periodId, danismanOptions, userName }) {
+  const map = {}
+  const countsByUser = {}
+  for (const c of musteriReviewCounts ?? []) {
+    if (c.periodId === periodId) countsByUser[c.userId] = c
+  }
+  // Beraberlikte ciro puanı yüksek olan üstte (2026-09-02 broker kararı).
+  const ciroByUser = Object.fromEntries(periodScores.filter((s) => s.type === 'ciro').map((s) => [s.userId, s.value]))
+  for (const cat of LEAGUE_CATEGORIES) {
+    if (cat.key === 'memnuniyet') {
+      // Hiç müşteri girilmemiş (hakSayisi 0) danışman sıralamaya hiç
+      // girmesin — yoksa herkes 0 puanken biri rastgele "Lider" gösterilir.
+      const memnuniyetScores = danismanOptions
+        .filter((u) => (countsByUser[u.id]?.hakSayisi ?? 0) > 0)
+        .map((u) => {
+          const c = countsByUser[u.id]
+          return {
+            userId: u.id,
+            type: 'memnuniyet',
+            value: Math.round(memnuniyetPuani(c?.hakSayisi ?? 0, c?.alinanSayisi ?? 0)),
+          }
+        })
+      map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName, (id) => ciroByUser[id])
+    } else {
+      map[cat.key] = rankingsFor(cat.key, periodScores, userName)
+    }
+  }
+  return map
+}
+
 // diff===0 lider dışı bir sırada da mümkün (Wilson skoru yuvarlanınca iki
 // kişi eşitlenebilir) — eskiden bu durumda hiçbir şey basılmıyordu (boş
 // görünüyordu, "bir şey takılmış" gibi algılanıyordu), artık "Eşit" yazıyor.

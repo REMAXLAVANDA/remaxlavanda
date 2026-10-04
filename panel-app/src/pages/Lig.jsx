@@ -14,8 +14,8 @@ import {
   canManageScores,
   canSeeCiroAmounts,
   periodEffectiveDurum,
-  rankingsFor,
-  memnuniyetPuani,
+  periodScoresFor,
+  rankingsByCategoryFor,
 } from '../lib/league'
 import { sortByName, formatDateOnly } from '../lib/format'
 import LeagueBoard from '../components/league/LeagueBoard'
@@ -113,9 +113,10 @@ export default function Lig() {
   // önceki filtre pasif bir kullanıcı için knownUsers[id] undefined
   // döndüğünde "!undefined?.testHesabi" = true olup satırı YANLIŞLIKLA
   // İÇERİDE bırakıyordu (broker: "Esra Sever pasif ama hesaba katılıyor").
-  // Artık kullanıcının knownUsers'ta (yani aktif) olması da şart.
+  // Artık kullanıcının knownUsers'ta (yani aktif) olması da şart (bkz.
+  // lib/league.js periodScoresFor — Panel.jsx de aynı fonksiyonu kullanıyor).
   const periodScores = useMemo(
-    () => (data?.scores ?? []).filter((s) => s.periodId === periodId && knownUsers[s.userId] && !knownUsers[s.userId].testHesabi),
+    () => periodScoresFor(data?.scores, periodId, knownUsers),
     [data, periodId, knownUsers],
   )
 
@@ -165,48 +166,24 @@ export default function Lig() {
 
   // Üç kategorinin sıralaması tek yerde hesaplanır — hem "Dönem Özeti"
   // podyum panosu hem "Kopyala" metni bunu paylaşır, aktif sekmeden bağımsız.
-  // Memnuniyet artık serbest bir puan değil — Wilson skoru (bkz. lib/league)
-  // ile hesaplanıyor: hem oran hem işlem hacmi birlikte tartılıyor. Ham
-  // yüzdeyle sıralarsak 1 işlemden %100 alan, 17 işlemden %70 alanın önüne
-  // geçerdi (az veri = yanıltıcı yüksek yüzde) — Wilson bunu düzeltiyor.
-  // Memnuniyet sıralaması reviewCreditRows'tan DEĞİL, listMusteriReviewCounts()
-  // RPC'sinden besleniyor — reviewCreditRows, ciro_musterileri_select RLS'i
-  // yüzünden bir danışman girişinde sadece kendi verisini içeriyor, bu da
-  // sıralamayı bozuyordu (bkz. migration 20260725110000). RPC herkesin
-  // TOPLAM sayısını (isim vermeden) döndüğü için sıralama artık kim
-  // baktığından bağımsız, her zaman doğru.
-  const rankingsByCategory = useMemo(() => {
-    const map = {}
-    const countsByUser = {}
-    for (const c of data?.musteriReviewCounts ?? []) {
-      if (c.periodId === periodId) countsByUser[c.userId] = c
-    }
-    // Beraberlikte ciro puanı yüksek olan üstte (2026-09-02 broker kararı).
-    const ciroByUser = Object.fromEntries(periodScores.filter((s) => s.type === 'ciro').map((s) => [s.userId, s.value]))
-    for (const cat of LEAGUE_CATEGORIES) {
-      if (cat.key === 'memnuniyet') {
-        // Hiç müşteri girilmemiş (hakSayisi 0) danışman sıralamaya hiç
-        // girmesin — yoksa herkes 0 puanken biri rastgele "Lider" gösterilir
-        // (broker: "aynı şey memnuniyette de Alper'de görünüyor" — Sosyal
-        // Medya'daki "hayalet lider" hatasıyla aynı kök neden, buradaki
-        // karşılığı).
-        const memnuniyetScores = danismanOptions
-          .filter((u) => (countsByUser[u.id]?.hakSayisi ?? 0) > 0)
-          .map((u) => {
-            const c = countsByUser[u.id]
-            return {
-              userId: u.id,
-              type: 'memnuniyet',
-              value: Math.round(memnuniyetPuani(c?.hakSayisi ?? 0, c?.alinanSayisi ?? 0)),
-            }
-          })
-        map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName, (id) => ciroByUser[id])
-      } else {
-        map[cat.key] = rankingsFor(cat.key, periodScores, userName)
-      }
-    }
-    return map
-  }, [periodScores, userName, data, periodId, danismanOptions])
+  // Memnuniyet artık serbest bir puan değil — memnuniyetPuani (bkz.
+  // lib/league) ile hesaplanıyor: hem oran hem işlem hacmi birlikte
+  // tartılıyor. Ham yüzdeyle sıralarsak 1 işlemden %100 alan, 17 işlemden
+  // %70 alanın önüne geçerdi (az veri = yanıltıcı yüksek yüzde) — bu
+  // formül bunu düzeltiyor. Memnuniyet sıralaması reviewCreditRows'tan
+  // DEĞİL, listMusteriReviewCounts() RPC'sinden besleniyor —
+  // reviewCreditRows, ciro_musterileri_select RLS'i yüzünden bir danışman
+  // girişinde sadece kendi verisini içeriyor, bu da sıralamayı bozuyordu
+  // (bkz. migration 20260725110000). RPC herkesin TOPLAM sayısını (isim
+  // vermeden) döndüğü için sıralama artık kim baktığından bağımsız, her
+  // zaman doğru. Hesaplamanın kendisi artık lib/league.js'teki
+  // rankingsByCategoryFor'da — Panel.jsx'teki "Lig Durumu" podyumu da AYNI
+  // fonksiyonu çağırıyor (2026-10-04 /kurul bulgusu: eskiden iki ayrı kod
+  // kopyası farklı sonuç verebiliyordu).
+  const rankingsByCategory = useMemo(
+    () => rankingsByCategoryFor({ periodScores, musteriReviewCounts: data?.musteriReviewCounts, periodId, danismanOptions, userName }),
+    [periodScores, userName, data, periodId, danismanOptions],
+  )
 
   const rankings = rankingsByCategory[tab] ?? []
 

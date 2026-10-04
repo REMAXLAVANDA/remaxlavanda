@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Panel'in "Dönem Liderleri" podyumu artık Lig sayfasıyla gerçekten aynı
+
+`/kurul` denetiminin yayına-engel bulgusu: Panel kendi Lig podyum
+hesaplamasının ayrı bir kopyasını tutuyordu — Memnuniyet için farklı bir
+formül (saf Wilson, Lig'in kullandığı "katkı" terimi yok) ve hakSayisi=0
+olan danışmanı da dahil eden bir filtre kullanıyordu, ayrıca pasif
+kullanıcıları periodScores'tan çıkarmıyordu. Aktif dönemde kimse henüz
+yorum almamışken iki ekran Memnuniyet'te farklı kişiye "lider" tacı
+verebiliyordu. İki hesaplama `lib/league.js`'teki tek paylaşılan
+fonksiyona taşındı (`periodScoresFor`, `rankingsByCategoryFor`) — Lig.jsx
+ve Panel.jsx artık aynısını çağırıyor. Mock modda doğrulandı: Panel ve
+Lig'deki üç kategori podyumu (Ciro/Memnuniyet/Sosyal Medya) birebir aynı
+isim/sıra. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Sağlık Skoru artık yapısal olarak 80'de tıkanmıyor
 
 `/kurul` denetiminin ("danışman takip menüleri") yayına-engel bulgusu:
