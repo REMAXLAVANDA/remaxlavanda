@@ -60,6 +60,10 @@ export default function OpportunityDetailModal({
   const [assignDraft, setAssignDraft] = useState('')
   // Native window.confirm() yerine portalın kendi ConfirmDialog'u — bkz. render'daki kullanım.
   const [assignConfirm, setAssignConfirm] = useState(null)
+  // Kapatma (Müşteri Bulundu/Bulunamadı) kalıcı ve geri alınamaz bir işlem —
+  // önceden tek dokunuşla, onaysız yapılıyordu (bkz. /kurul görsel+
+  // kullanılabilirlik raporu, 2026-10-04, madde 2). Atama onayıyla AYNI desen.
+  const [closeConfirm, setCloseConfirm] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -302,14 +306,14 @@ export default function OpportunityDetailModal({
           </p>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => onCloseRequest('kapandi')}
+              onClick={() => setCloseConfirm('kapandi')}
               disabled={closing}
               className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               <CheckCircle2 size={14} /> Müşteri Bulundu
             </button>
             <button
-              onClick={() => onCloseRequest('iptal')}
+              onClick={() => setCloseConfirm('iptal')}
               disabled={closing}
               className="flex items-center gap-1.5 rounded-lg bg-ink-200 px-3 py-2 text-xs font-medium text-ink-700 hover:bg-ink-300 disabled:opacity-50"
             >
@@ -330,6 +334,24 @@ export default function OpportunityDetailModal({
         }}
         onCancel={() => setAssignConfirm(null)}
         confirming={assigning}
+      />
+    )}
+    {closeConfirm && (
+      <ConfirmDialog
+        title={closeConfirm === 'kapandi' ? 'Fırsatı kapat' : 'Fırsatı iptal et'}
+        message={
+          closeConfirm === 'kapandi'
+            ? 'Bu fırsat "müşteri bulundu" olarak kapatılsın mı? Bu işlem geri alınamaz.'
+            : 'Bu fırsat "müşteri bulunamadı" olarak iptal edilsin mi? Bu işlem geri alınamaz.'
+        }
+        confirmLabel={closeConfirm === 'kapandi' ? 'Evet, kapat' : 'Evet, iptal et'}
+        tone={closeConfirm === 'kapandi' ? 'primary' : 'danger'}
+        onConfirm={() => {
+          onCloseRequest(closeConfirm)
+          setCloseConfirm(null)
+        }}
+        onCancel={() => setCloseConfirm(null)}
+        confirming={closing}
       />
     )}
     </>

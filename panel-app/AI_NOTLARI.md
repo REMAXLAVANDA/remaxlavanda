@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Fırsat kapatma (Müşteri Bulundu/Bulunamadı) artık onay istiyor
+
+`/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) 2. kritik
+bulgusu: `OpportunityDetailModal.jsx`'teki "Müşteri Bulundu"/"Müşteri
+Bulunamadı" düğmeleri tek dokunuşla, onaysız kalıcı bir işlem yapıyordu —
+aynı ekrandaki atama işlemi zaten onay istiyordu, tutarsızdı. Atama
+onayıyla AYNI desen (`ConfirmDialog` + yerel state) eklendi: artık her iki
+düğme de önce "...geri alınamaz" uyarılı bir onay penceresi açıyor, sadece
+onaylanırsa `onCloseRequest` çağrılıyor. Kapatılan bir fırsatı yeniden
+açma (undo) ayrı bir karar — sunucu tarafında (RLS/RPC) değişiklik
+gerektiriyor, bu turda kapsam dışı bırakıldı. 154/154 test, lint, build
+temiz.
+
 ## 2026-10-04 — Çağrı notu kaydedilemezse artık "kaydedildi" demiyor
 
 `/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) 1. kritik
