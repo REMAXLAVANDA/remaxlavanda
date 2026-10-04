@@ -237,6 +237,11 @@ Dosyada karşılığı olmayan bir tasarım kararı gerekiyorsa sor.
 - Lead Havuzu bilinçli olarak pipeline değil, dağıtım noktası (yukarı
   bakın) — sektördeki tek-uçtan-uca-pipeline yaklaşımından bilinçli
   bir sapma, bkz. `docs/bilgi-bankasi/lead-takip-asamalari.md`.
+- Danışman panelinde Lig Durumu podyumu bilinçli olarak en üstte
+  (sadece "Dikkat Gerekiyor" uyarı kutusunun altında) — operasyonel
+  widget'lardan (Açık Fırsatlar, Çağrılar, Etkinlikler) önce geliyor,
+  broker onayı (2026-10-04, `/kurul` "danışman takip menüleri"
+  denetimi Sapma-4 sorusu).
 
 ## Asla olmaması gerekenler
 - Bir danışmanın başka danışmanın müşteri veya kişisel verisini görmesi
