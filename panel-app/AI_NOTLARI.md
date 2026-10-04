@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Panel'de dönem kapalıyken Lig podyumu artık Lig'le çelişmiyor
+
+`/kurul` denetiminin yayına-engel bulgusu: dönem bitişine 7 gün kalıp
+"kapalı"ya düştüğünde Lig sayfası danışmana "sonuçlar hazırlanıyor,
+sürpriz kalsın" derken, Panel'deki "Lig Durumu" aynı anda tam podyumu
+göstermeye devam ediyordu — iki ekran çelişiyordu. `Panel.jsx`'teki
+`ligDurumuBlock` artık Lig.jsx'teki AYNI `periodEffectiveDurum` kontrolünü
+ve kilit mesajını kullanıyor (bu blok zaten sadece danışman/ofis'e
+gösteriliyor, broker/owner hiç görmüyor). 154/154 test, lint, build
+temiz.
+
 ## 2026-10-04 — Takvim'de pasif danışmanın mazereti artık isimsiz görünmüyor
 
 Broker geri bildirimi: bir etkinlikte "şehir dışında olacağım" mazereti

@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Megaphone,
   HeartPulse,
+  Lock,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -46,7 +47,7 @@ import { moduleProgressFor, checklistProgress } from '../lib/education'
 import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
-import { LEAGUE_CATEGORIES, latestUpdate, periodScoresFor, rankingsByCategoryFor } from '../lib/league'
+import { LEAGUE_CATEGORIES, latestUpdate, periodEffectiveDurum, periodScoresFor, rankingsByCategoryFor } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
 import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation, isRecruitingStalled } from '../lib/attention'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
@@ -963,6 +964,14 @@ export default function Panel() {
   // aynı — herkese açık (danışman dahil, Lig sayfasında zaten aynı podyumu
   // görüyor). Kriter/"Nasıl Hesaplanır?" panelleri kasıtlı olarak burada
   // YOK, sadece Lig menüsüne girince gösteriliyor.
+  // Bu blok SADECE danışman/ofis'e gösteriliyor (bkz. render sırası
+  // aşağıda — broker/owner için hiç render edilmiyor), bu yüzden "dönem
+  // kapalı" kilidi her zaman geçerli. 2026-10-04 /kurul bulgusu: Lig
+  // sayfası dönem kapanınca danışmana "sonuçlar hazırlanıyor, sürpriz
+  // kalsın" derken Panel aynı anda tam podyumu gösteriyordu — artık
+  // Lig'deki AYNI `periodEffectiveDurum` kontrolü ve kilit mesajı burada da var.
+  const effectivePeriodDurum = periodEffectiveDurum(activePeriod)
+  const isLeagueLocked = activePeriod && effectivePeriodDurum === 'kapali'
   const ligDurumuBlock = (
     <div>
       <div className="mb-3 flex items-center justify-between">
@@ -975,6 +984,12 @@ export default function Panel() {
       </div>
       {!activePeriod ? (
         <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
+      ) : isLeagueLocked ? (
+        <div className="rounded-2xl border border-border-default bg-surface-raised p-6 text-center">
+          <Lock size={20} className="mx-auto mb-2 text-text-disabled" />
+          <p className="text-sm font-medium text-text-primary">Bu dönemin sonuçları hazırlanıyor</p>
+          <p className="mt-1 text-xs text-text-disabled">Yakında açıklanacak — o zamana kadar sürpriz kalsın!</p>
+        </div>
       ) : (
         <>
           <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
