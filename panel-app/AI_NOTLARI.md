@@ -3,6 +3,22 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Pasif danışmana atanmış kayıtlar "Atanmadı" ile karışmıyor
+
+Broker geri bildirimi: Operasyon'da Görüşüldü/Portföy Alındı işaretlenmiş
+bazı çağrılar "atanmadı" gibi görünüyordu. Kök neden: `knownUsers` sadece
+aktif kullanıcıları içeriyor (bilerek — atama listelerinde pasif kişi
+görünmesin diye), ama isim ÇÖZME için de aynı kaynak kullanılıyordu;
+pasife alınmış bir danışmana atanmış kayıtların ismi bulunamayınca "—"
+gösteriliyordu, bu da "Atanmadı" ile karışıyordu. Canlıda doğrulandı:
+Birsen Kahraman ve Esra Sever (ikisi de pasif) üzerinde 7 çağrı. Operasyon
+ve Fırsatlar artık (sadece yönetici görünümünde, ek bir sorguyla) pasif
+kullanıcıları da çözüp "(pasif)" etiketiyle gösteriyor. Atama dropdown'ı
+(kime YENİ atanabileceği) bilerek değişmedi — hâlâ sadece aktif
+kullanıcıları listeliyor. Not: bu, aynı gün yapılan geniş /kurul
+taramasında zaten bulunmuş bir sorunla (pasife alma, açık kayıtları
+devretmiyor) aynı kökten — devretme akışı henüz ayrı bir iş.
+
 ## 2026-10-04 — Panel: tek yavaş sorgu artık tüm sayfayı kilitlemiyor (10. "donma" olayı)
 
 Broker geri bildirimi: danışmanlar sürekli "portal açılmıyor" şikayeti
