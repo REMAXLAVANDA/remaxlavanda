@@ -37,9 +37,9 @@ export function ErrorState({ error, onRetry }) {
 export function RestrictedAccess({ message = 'Bu sayfa senin rolüne açık değil.' }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center">
-      <Lock size={28} className="text-text-disabled" />
+      <Lock size={28} className="text-text-muted" />
       <p className="text-sm font-medium text-text-secondary">Bu sayfaya erişim yetkin yok.</p>
-      <p className="text-xs text-text-disabled">{message}</p>
+      <p className="text-xs text-text-muted">{message}</p>
     </div>
   )
 }

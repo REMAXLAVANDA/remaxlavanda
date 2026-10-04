@@ -33,7 +33,7 @@ export default function LeagueBoard({
   const [nameDraft, setNameDraft] = useState('')
 
   if (rankings.length === 0) {
-    return <p className="py-8 text-center text-sm text-text-disabled">Bu kategoride henüz veri yok.</p>
+    return <p className="py-8 text-center text-sm text-text-muted">Bu kategoride henüz veri yok.</p>
   }
 
   function submitName(userId) {
@@ -64,9 +64,9 @@ export default function LeagueBoard({
             >
               {canExpand &&
                 (isExpanded ? (
-                  <ChevronDown size={14} className="shrink-0 text-text-disabled" />
+                  <ChevronDown size={14} className="shrink-0 text-text-muted" />
                 ) : (
-                  <ChevronRight size={14} className="shrink-0 text-text-disabled" />
+                  <ChevronRight size={14} className="shrink-0 text-text-muted" />
                 ))}
               <span className="w-7 shrink-0 text-center text-lg">{MEDALS[r.rank - 1] ?? r.rank}</span>
               <span className="min-w-0 flex-1 text-sm font-medium text-text-primary">{r.name}</span>
@@ -87,7 +87,7 @@ export default function LeagueBoard({
             {isExpanded && historyByUser && (
               <div className="border-t border-border-default px-4 py-2">
                 {history.length === 0 ? (
-                  <p className="py-1 text-xs text-text-disabled">Bu dönem için giriş kaydı yok.</p>
+                  <p className="py-1 text-xs text-text-muted">Bu dönem için giriş kaydı yok.</p>
                 ) : (
                   <div className="space-y-1">
                     {history.map((h) => (
@@ -100,7 +100,7 @@ export default function LeagueBoard({
                           {onRemoveHistory && (
                             <button
                               onClick={() => onRemoveHistory(h.id)}
-                              className="shrink-0 rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary"
+                              className="shrink-0 rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary"
                               title="Yanlış girildiyse sil"
                             >
                               <X size={12} />
@@ -117,7 +117,7 @@ export default function LeagueBoard({
             {isExpanded && activityByUser && (
               <div className="border-t border-border-default px-4 py-2">
                 {activity.length === 0 ? (
-                  <p className="py-1 text-xs text-text-disabled">Bu dönem için giriş kaydı yok.</p>
+                  <p className="py-1 text-xs text-text-muted">Bu dönem için giriş kaydı yok.</p>
                 ) : (
                   <div className="space-y-1">
                     {activity.map((a) => (
@@ -130,7 +130,7 @@ export default function LeagueBoard({
                           {onRemoveActivity && (
                             <button
                               onClick={() => onRemoveActivity(a.id)}
-                              className="shrink-0 rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary"
+                              className="shrink-0 rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary"
                               title="Yanlış girildiyse sil"
                             >
                               <X size={12} />
@@ -146,11 +146,11 @@ export default function LeagueBoard({
 
             {isExpanded && reviewByUser && (
               <div className="space-y-1.5 border-t border-border-default px-4 py-3">
-                <p className="text-xs text-text-disabled">
+                <p className="text-xs text-text-muted">
                   {review?.hakSayisi ?? 0} hak · {review?.alinanSayisi ?? 0} alındı · %
                   {(review?.hakSayisi ?? 0) === 0 ? 0 : Math.round(((review?.alinanSayisi ?? 0) / review.hakSayisi) * 100)}
                 </p>
-                {musteriler.length === 0 && <p className="py-1 text-xs text-text-disabled">Bu dönem için müşteri girilmedi.</p>}
+                {musteriler.length === 0 && <p className="py-1 text-xs text-text-muted">Bu dönem için müşteri girilmedi.</p>}
                 {musteriler.map((m) => (
                   <div key={m.id} className="flex items-center gap-2 text-xs">
                     <label className="flex min-w-0 flex-1 items-center gap-1.5 text-text-secondary">
@@ -160,13 +160,13 @@ export default function LeagueBoard({
                         onChange={(e) => onToggleAlindi(m.id, e.target.checked)}
                         className="h-3.5 w-3.5 shrink-0 rounded border-border-default"
                       />
-                      <span className={`min-w-0 flex-1 truncate ${m.alindiMi ? 'text-text-disabled line-through' : ''}`}>
+                      <span className={`min-w-0 flex-1 truncate ${m.alindiMi ? 'text-text-muted line-through' : ''}`}>
                         {m.adSoyad}
                       </span>
                     </label>
                     <button
                       onClick={() => onRemoveMusteri(m.id)}
-                      className="shrink-0 rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary"
+                      className="shrink-0 rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary"
                       title="Sil"
                     >
                       <X size={12} />
@@ -184,7 +184,7 @@ export default function LeagueBoard({
                       }
                     }}
                     placeholder="İsim soyisim"
-                    className="w-full rounded-lg border border-border-default px-2 py-1 text-xs text-text-primary placeholder:text-text-disabled"
+                    className="w-full rounded-lg border border-border-default px-2 py-1 text-xs text-text-primary placeholder:text-text-muted"
                   />
                   <button
                     onClick={() => submitName(r.userId)}

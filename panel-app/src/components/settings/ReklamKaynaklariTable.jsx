@@ -12,7 +12,7 @@ function ReklamTable({ title, columns, rows, emptyText }) {
     return (
       <div>
         <h3 className="mb-2 text-sm font-semibold text-text-primary">{title}</h3>
-        <p className="rounded-xl border border-dashed border-border-default py-6 text-center text-sm text-text-disabled">{emptyText}</p>
+        <p className="rounded-xl border border-dashed border-border-default py-6 text-center text-sm text-text-muted">{emptyText}</p>
       </div>
     )
   }

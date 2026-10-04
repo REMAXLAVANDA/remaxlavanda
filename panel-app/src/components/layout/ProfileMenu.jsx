@@ -196,7 +196,7 @@ export default function ProfileMenu({ variant = 'sidebar' }) {
           <div className="absolute bottom-full left-0 z-40 mb-2 w-full overflow-hidden rounded-xl border border-border-subtle bg-surface-raised shadow-lg">
             <div className="border-b border-border-subtle px-4 py-3">
               <p className="text-sm font-semibold text-text-primary">{user.name}</p>
-              <p className="text-xs text-text-disabled">{ROLE_LABELS[role]}</p>
+              <p className="text-xs text-text-muted">{ROLE_LABELS[role]}</p>
             </div>
             <ProfileMenuBody {...bodyProps} />
           </div>
@@ -229,14 +229,14 @@ export default function ProfileMenu({ variant = 'sidebar' }) {
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
           {initials}
         </div>
-        <ChevronDown size={16} className="text-text-disabled" />
+        <ChevronDown size={16} className="text-text-muted" />
       </button>
 
       {open && (
         <div className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-xl border border-border-subtle bg-surface-raised shadow-lg">
           <div className="border-b border-border-subtle px-4 py-3">
             <p className="text-sm font-semibold text-text-primary">{user.name}</p>
-            <p className="text-xs text-text-disabled">{ROLE_LABELS[role]}</p>
+            <p className="text-xs text-text-muted">{ROLE_LABELS[role]}</p>
           </div>
           <ProfileMenuBody {...bodyProps} />
         </div>

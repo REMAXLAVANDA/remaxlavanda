@@ -19,7 +19,7 @@ export default function FaqAccordionItem({ doc, canManage, onEdit, onDeleteReque
               onClick={() => onMove('up')}
               disabled={isFirst}
               aria-label="Yukarı taşı"
-              className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
+              className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
             >
               <ChevronUp size={14} />
             </button>
@@ -27,7 +27,7 @@ export default function FaqAccordionItem({ doc, canManage, onEdit, onDeleteReque
               onClick={() => onMove('down')}
               disabled={isLast}
               aria-label="Aşağı taşı"
-              className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
+              className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
             >
               <ChevronDown size={14} />
             </button>
@@ -41,7 +41,7 @@ export default function FaqAccordionItem({ doc, canManage, onEdit, onDeleteReque
           <span className="text-sm font-semibold text-text-primary">{doc.baslik}</span>
           <ChevronDown
             size={16}
-            className={`shrink-0 text-text-disabled transition-transform ${open ? 'rotate-180' : ''}`}
+            className={`shrink-0 text-text-muted transition-transform ${open ? 'rotate-180' : ''}`}
           />
         </button>
         {canManage && (
@@ -49,14 +49,14 @@ export default function FaqAccordionItem({ doc, canManage, onEdit, onDeleteReque
             <button
               onClick={onEdit}
               title="Düzenle"
-              className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-600"
+              className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-600"
             >
               <Pencil size={15} />
             </button>
             <button
               onClick={onDeleteRequest}
               title="Sil"
-              className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-700"
+              className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-700"
             >
               <Trash2 size={15} />
             </button>

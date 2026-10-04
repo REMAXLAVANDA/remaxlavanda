@@ -50,7 +50,7 @@ export default function Login() {
           <div className="mb-8 text-center md:hidden">
             <img src="/panel/remax-balloon.png" alt="RE/MAX Lavanda" className="mx-auto mb-3 h-14 w-14 object-contain" />
             <h1 className="text-lg font-semibold text-text-primary">RE/MAX Lavanda</h1>
-            <p className="mt-1 text-sm text-text-disabled">Ofis Portalı</p>
+            <p className="mt-1 text-sm text-text-muted">Ofis Portalı</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -59,7 +59,7 @@ export default function Login() {
                 E-posta
               </label>
               <div className="relative">
-                <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-disabled" />
+                <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   id="email"
                   type="email"
@@ -79,7 +79,7 @@ export default function Login() {
                 Şifre
               </label>
               <div className="relative">
-                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-disabled" />
+                <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   id="password"
                   type="password"
@@ -107,7 +107,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-text-disabled">
+          <p className="mt-6 text-center text-xs text-text-muted">
             Hesabınla ilgili bir sorun varsa ofis yöneticine başvur.
           </p>
         </div>

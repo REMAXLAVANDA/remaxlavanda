@@ -44,7 +44,7 @@ export default function PreviewModal({ version, onClose }) {
         <button
           onClick={onClose}
           aria-label="Kapat"
-          className="absolute right-4 top-4 rounded-lg p-1 text-text-disabled hover:bg-surface-sunken"
+          className="absolute right-4 top-4 rounded-lg p-1 text-text-muted hover:bg-surface-sunken"
         >
           <X size={18} />
         </button>
@@ -57,7 +57,7 @@ export default function PreviewModal({ version, onClose }) {
               <FileText size={26} />
             </div>
             <p className="text-sm font-semibold text-text-primary">{version.filename}</p>
-            <p className="mt-1 text-xs text-text-disabled">v{version.versionNo}</p>
+            <p className="mt-1 text-xs text-text-muted">v{version.versionNo}</p>
             {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
           </div>
         )}

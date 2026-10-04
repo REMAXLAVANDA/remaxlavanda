@@ -18,7 +18,7 @@ export default function ActivityPointsSettings({ activityTypes, onUpdatePoint, e
         <span className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Settings2 size={16} className="text-brand-600" /> Sosyal Medya Puanları
         </span>
-        <span className="text-xs text-text-disabled">{open ? 'Gizle' : 'Göster/Düzenle'}</span>
+        <span className="text-xs text-text-muted">{open ? 'Gizle' : 'Göster/Düzenle'}</span>
       </button>
       {open && (
         <div className="mt-3 space-y-1.5 border-t border-border-subtle pt-3">

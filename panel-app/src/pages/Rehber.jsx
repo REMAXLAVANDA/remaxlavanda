@@ -270,7 +270,7 @@ export default function Rehber() {
 
           <div className="space-y-3">
             {docsInCategory.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
+              <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
                 Bu klasörde henüz doküman yok.
               </div>
             ) : (
@@ -278,7 +278,7 @@ export default function Rehber() {
                 selectedCategory === FAQ_CATEGORY_KEY ? (
                   <div key={doc.id}>
                     {sssGroupLabels[index] && (
-                      <p className="mb-1.5 mt-4 px-1 text-xs font-semibold uppercase tracking-wide text-text-disabled first:mt-0">
+                      <p className="mb-1.5 mt-4 px-1 text-xs font-semibold uppercase tracking-wide text-text-muted first:mt-0">
                         {sssGroupLabels[index]}
                       </p>
                     )}

@@ -26,14 +26,14 @@ export default function TaskRow({ task, assigneeName, canToggle, canManage, onTo
         {done ? (
           <CheckCircle2 size={20} className="text-emerald-600" />
         ) : (
-          <Circle size={20} className={overdue ? 'text-brand-500' : 'text-text-disabled'} />
+          <Circle size={20} className={overdue ? 'text-brand-500' : 'text-text-muted'} />
         )}
       </button>
 
       <div className="min-w-0 flex-1">
-        <p className={`text-sm font-medium ${done ? 'text-text-disabled line-through' : 'text-text-primary'}`}>{task.title}</p>
+        <p className={`text-sm font-medium ${done ? 'text-text-muted line-through' : 'text-text-primary'}`}>{task.title}</p>
         {task.description && <p className="mt-0.5 text-xs text-text-muted">{task.description}</p>}
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-disabled">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
           <span>{assigneeName}</span>
           {dueLabel && (
             <span className={overdue ? 'font-medium text-brand-700' : ''}>
@@ -49,14 +49,14 @@ export default function TaskRow({ task, assigneeName, canToggle, canManage, onTo
           <button
             onClick={() => onEdit(task)}
             title="Düzenle"
-            className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-600"
+            className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-600"
           >
             <Pencil size={15} />
           </button>
           <button
             onClick={() => onDeleteRequest(task)}
             title="Sil"
-            className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-700"
+            className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-700"
           >
             <Trash2 size={15} />
           </button>

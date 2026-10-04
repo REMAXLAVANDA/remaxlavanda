@@ -172,7 +172,7 @@ export default function GorevlerTab() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && visible.length === 0 && (
-        <p className="rounded-xl bg-surface-sunken px-4 py-6 text-center text-sm text-text-disabled">Henüz görev yok.</p>
+        <p className="rounded-xl bg-surface-sunken px-4 py-6 text-center text-sm text-text-muted">Henüz görev yok.</p>
       )}
 
       {!loading && !error && visible.length > 0 && (
@@ -181,7 +181,7 @@ export default function GorevlerTab() {
             const colors = ROLE_WIDGET_COLORS[g.key]
             return (
             <div key={g.key} className={`rounded-2xl border border-border-default bg-surface-raised border-t-4 ${colors.border} p-4`}>
-              <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
                 <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
                 {g.label}
                 <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-[11px] font-medium text-text-muted">

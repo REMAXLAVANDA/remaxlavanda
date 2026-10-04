@@ -33,7 +33,7 @@ export default function UsersTable({
   const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
 
   if (rows.length === 0) {
-    return <p className="py-8 text-center text-sm text-text-disabled">Henüz kullanıcı yok.</p>
+    return <p className="py-8 text-center text-sm text-text-muted">Henüz kullanıcı yok.</p>
   }
 
   return (
@@ -57,14 +57,14 @@ export default function UsersTable({
           <div key={u.id} className="flex flex-col gap-3 rounded-xl border border-border-subtle bg-surface-raised p-3.5 sm:flex-row sm:flex-wrap sm:items-center">
             <div className="min-w-0 sm:flex-1">
               <p className="text-sm font-medium text-text-primary">{u.name}</p>
-              <p className="text-xs text-text-disabled">
+              <p className="text-xs text-text-muted">
                 {u.email ?? '—'}
                 {u.createdAt && <> · Kayıt: {relativeTime(u.createdAt)}</>}
               </p>
               {/* Recruiting'den "Danışman Olarak Ekle" ile açılmış hesaplarda
                   dolar (bkz. lib/recruiting.js candidateKaynakOzeti, broker
                   kararı: "o danışmanları biz nereden aldığımızı bilelim"). */}
-              {u.kaynak && <p className="mt-0.5 text-xs text-text-disabled">Kaynak: {u.kaynak}</p>}
+              {u.kaynak && <p className="mt-0.5 text-xs text-text-muted">Kaynak: {u.kaynak}</p>}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -127,7 +127,7 @@ export default function UsersTable({
                     <button
                       onClick={() => window.open(kartvizitUrl(u.id), '_blank', 'noopener')}
                       title="Kartvizitini görüntüle"
-                      className="rounded-lg p-1.5 text-text-disabled hover:bg-brand-50 hover:text-brand-600"
+                      className="rounded-lg p-1.5 text-text-muted hover:bg-brand-50 hover:text-brand-600"
                     >
                       <CreditCard size={15} />
                     </button>
@@ -135,21 +135,21 @@ export default function UsersTable({
                   <button
                     onClick={() => onEdit(u)}
                     title="Düzenle"
-                    className="rounded-lg p-1.5 text-text-disabled hover:bg-brand-50 hover:text-brand-600"
+                    className="rounded-lg p-1.5 text-text-muted hover:bg-brand-50 hover:text-brand-600"
                   >
                     <Pencil size={15} />
                   </button>
                   <button
                     onClick={() => onResetPasswordRequest(u)}
                     title="Şifre Sıfırla"
-                    className="rounded-lg p-1.5 text-text-disabled hover:bg-amber-50 hover:text-amber-600"
+                    className="rounded-lg p-1.5 text-text-muted hover:bg-amber-50 hover:text-amber-600"
                   >
                     <KeyRound size={15} />
                   </button>
                   <button
                     onClick={() => onDeleteRequest(u)}
                     title="Sil"
-                    className="rounded-lg p-1.5 text-text-disabled hover:bg-red-50 hover:text-red-600"
+                    className="rounded-lg p-1.5 text-text-muted hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 size={15} />
                   </button>

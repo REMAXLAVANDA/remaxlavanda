@@ -494,7 +494,7 @@ export default function Ayarlar() {
           {!loadingCategories && categoriesError && <ErrorState error={categoriesError} onRetry={reloadCategories} />}
           {!loadingCategories && !categoriesError && (
             <>
-              <p className="mb-4 text-xs text-text-disabled">
+              <p className="mb-4 text-xs text-text-muted">
                 Rehber sayfasındaki klasörler — ekle, yeniden adlandır, sil veya sırasını değiştir.
               </p>
               <CategoryManager
@@ -514,7 +514,7 @@ export default function Ayarlar() {
 
       {tab === 'log' && (
         <>
-          <p className="mb-4 text-xs text-text-disabled">
+          <p className="mb-4 text-xs text-text-muted">
             Kullanıcı, fırsat ve skor değişiklikleri — en son 200 kayıt.
           </p>
           {loadingAudit && <LoadingState />}
@@ -527,7 +527,7 @@ export default function Ayarlar() {
         <>
           <div>
             <p className="mb-1 text-sm font-semibold text-text-primary">Meta (Facebook/Instagram) Lead Ads</p>
-            <p className="mb-4 text-xs text-text-disabled">
+            <p className="mb-4 text-xs text-text-muted">
               Webhook'un işleyemediği kayıtlar — son 100 hata. "Lead kaybolmuş olabilir" etiketli kayıtlar en
               öncelikli: Meta lead verisini sınırlı süre saklıyor, gecikmeden incelenmeli.
             </p>
@@ -540,7 +540,7 @@ export default function Ayarlar() {
 
           <div className="mt-8 border-t border-border-subtle pt-6">
             <p className="mb-1 text-sm font-semibold text-text-primary">Santral (Telsam)</p>
-            <p className="mb-4 text-xs text-text-disabled">
+            <p className="mb-4 text-xs text-text-muted">
               Santral webhook'u ve dakikalık CDR senkronizasyonunun hataları — son 100 hata.
             </p>
             {loadingTelsamWebhookErrors && <LoadingState />}
@@ -554,7 +554,7 @@ export default function Ayarlar() {
 
           <div className="mt-8 border-t border-border-subtle pt-6">
             <p className="mb-1 text-sm font-semibold text-text-primary">Portal → Meta (durum bildirimi)</p>
-            <p className="mb-4 text-xs text-text-disabled">
+            <p className="mb-4 text-xs text-text-muted">
               Fırsat/aday durumu değiştiğinde Meta'ya gönderilen geri bildirimin başarısız olduğu kayıtlar — son 100
               hata. Meta kaynaklı olmayan lead'ler için bir şey gönderilmediğinden burada görünmez, bu normaldir.
             </p>

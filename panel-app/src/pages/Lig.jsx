@@ -466,7 +466,7 @@ export default function Lig() {
             ))}
           </select>
         ) : isManager && !isBlackedOut ? (
-          <p className="text-xs text-text-disabled">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
+          <p className="text-xs text-text-muted">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
         ) : (
           <PastPeriodsMenu
             periods={announcedPeriods}
@@ -561,9 +561,9 @@ export default function Lig() {
           tabloya bakmak yerine ne olduğunu açıkça söylüyoruz. */}
       {!loading && !error && period && isBlackedOut && (
         <div className="mt-5 rounded-2xl border border-border-default bg-surface-raised p-8 text-center">
-          <Lock size={24} className="mx-auto mb-3 text-text-disabled" />
+          <Lock size={24} className="mx-auto mb-3 text-text-muted" />
           <p className="text-sm font-medium text-text-primary">Bu dönemin sonuçları hazırlanıyor</p>
-          <p className="mt-1 text-sm text-text-disabled">Yakında açıklanacak — o zamana kadar sürpriz kalsın!</p>
+          <p className="mt-1 text-sm text-text-muted">Yakında açıklanacak — o zamana kadar sürpriz kalsın!</p>
         </div>
       )}
 
@@ -596,7 +596,7 @@ export default function Lig() {
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
       {!loading && !error && !period && (
-        <p className="py-8 text-center text-sm text-text-disabled">
+        <p className="py-8 text-center text-sm text-text-muted">
           Henüz hiç dönem tanımlanmamış{isBroker ? ' — "Yeni Dönem" ile ekleyebilirsin.' : '.'}
         </p>
       )}
@@ -671,7 +671,7 @@ export default function Lig() {
             <div className="overflow-x-auto rounded-lg border border-border-default">
               <table className="w-full min-w-[420px] text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border-default bg-surface-sunken text-text-disabled">
+                  <tr className="border-b border-border-default bg-surface-sunken text-text-muted">
                     <th className="px-3 py-2 font-medium">İşlem</th>
                     <th className="px-3 py-2 font-medium">Alınan</th>
                     <th className="px-3 py-2 font-medium">Ham yüzde</th>
@@ -700,7 +700,7 @@ export default function Lig() {
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-text-disabled">
+            <p className="text-xs text-text-muted">
               1 işlemden %100 alan, 17 işlemden %71 alandan (12 yorum) daha az puan alır — çünkü ikincisinin arkasında
               çok daha fazla kanıt var. İşlem sayısı arttıkça puan gerçek yüzdene yaklaşır.
             </p>

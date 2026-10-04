@@ -41,7 +41,7 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
           onChange={(e) => set({ ad: e.target.value })}
           onBlur={(e) => set({ ad: capitalizeWords(e.target.value) })}
           placeholder="Ad Soyad"
-          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
         />
         <div className="grid grid-cols-2 gap-2">
           <input
@@ -50,14 +50,14 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
             value={form.email}
             onChange={(e) => set({ email: e.target.value })}
             placeholder="E-posta"
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <input
             type="tel"
             value={form.telefon}
             onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
             placeholder="Telefon (opsiyonel)"
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
         </div>
         <div className="flex gap-2">
@@ -78,7 +78,7 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
               value={form.tcNo}
               onChange={(e) => set({ tcNo: e.target.value.replace(/\D/g, '') })}
               placeholder="11 haneli"
-              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
             />
             {!tcNoValid && <p className="mt-1 text-xs text-red-600">TC Kimlik No 11 haneli olmalı.</p>}
           </div>

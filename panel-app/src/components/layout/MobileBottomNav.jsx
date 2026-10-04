@@ -23,7 +23,7 @@ export default function MobileBottomNav() {
           to={item.path}
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 px-3 py-1 text-[11px] font-medium ${
-              isActive ? 'text-brand-600' : 'text-text-disabled'
+              isActive ? 'text-brand-600' : 'text-text-muted'
             }`
           }
         >
@@ -46,7 +46,7 @@ export default function MobileBottomNav() {
           to={item.path}
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 px-3 py-1 text-[11px] font-medium ${
-              isActive ? 'text-brand-600' : 'text-text-disabled'
+              isActive ? 'text-brand-600' : 'text-text-muted'
             }`
           }
         >

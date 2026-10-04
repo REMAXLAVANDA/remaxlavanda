@@ -3,7 +3,7 @@ import { relativeTime } from '../../lib/format'
 
 export default function ChecklistPanel({ entries, isManager, onToggle, onMove, resolveName }) {
   if (entries.length === 0) {
-    return <p className="text-sm text-text-disabled">Bu listede madde yok.</p>
+    return <p className="text-sm text-text-muted">Bu listede madde yok.</p>
   }
 
   return (
@@ -25,7 +25,7 @@ export default function ChecklistPanel({ entries, isManager, onToggle, onMove, r
           <div className="min-w-0 flex-1">
             <p className={`text-sm leading-tight ${done ? 'text-text-primary' : 'text-text-secondary'}`}>{item.baslik}</p>
             {done && doneAt && (
-              <p className="text-xs text-text-disabled">
+              <p className="text-xs text-text-muted">
                 {relativeTime(doneAt)}
                 {doneBy && ` · ${resolveName(doneBy)} işaretledi`}
               </p>
@@ -37,7 +37,7 @@ export default function ChecklistPanel({ entries, isManager, onToggle, onMove, r
                 onClick={() => onMove(item.id, 'up')}
                 disabled={index === 0}
                 aria-label="Yukarı taşı"
-                className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
+                className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
               >
                 <ChevronUp size={14} />
               </button>
@@ -45,7 +45,7 @@ export default function ChecklistPanel({ entries, isManager, onToggle, onMove, r
                 onClick={() => onMove(item.id, 'down')}
                 disabled={index === entries.length - 1}
                 aria-label="Aşağı taşı"
-                className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
+                className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
               >
                 <ChevronDown size={14} />
               </button>

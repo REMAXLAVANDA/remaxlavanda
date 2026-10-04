@@ -42,7 +42,7 @@ function CandidateCard({ c, onClick, noteCount }) {
           </span>
         )}
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-text-disabled">
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-text-muted">
         <span className="truncate">{RECRUITING_KAYNAK_LABELS[c.kaynak]}</span>
         <span className="shrink-0">{candidateDateLabel(c.createdAt)}</span>
       </div>
@@ -69,7 +69,7 @@ export default function RecruitingBoard({ candidates, onCardClick, noteCounts = 
 
   if (candidates.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
+      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
         Bu filtrelere uyan aday yok.
       </div>
     )
@@ -108,7 +108,7 @@ export default function RecruitingBoard({ candidates, onCardClick, noteCounts = 
           </div>
           <div className="flex flex-col gap-2 p-2.5">
             {items.length === 0 ? (
-              <p className="px-1 py-3 text-center text-xs text-text-disabled">Aday yok</p>
+              <p className="px-1 py-3 text-center text-xs text-text-muted">Aday yok</p>
             ) : (
               items.map((c) => (
                 <CandidateCard key={c.id} c={c} onClick={onCardClick} noteCount={noteCounts[c.id]} />

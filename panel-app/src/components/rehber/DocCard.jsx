@@ -57,7 +57,7 @@ export default function DocCard({
               onClick={() => onMove('up')}
               disabled={isFirst}
               aria-label="Yukarı taşı"
-              className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
+              className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
             >
               <ChevronUp size={16} />
             </button>
@@ -65,7 +65,7 @@ export default function DocCard({
               onClick={() => onMove('down')}
               disabled={isLast}
               aria-label="Aşağı taşı"
-              className="rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
+              className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary disabled:opacity-30"
             >
               <ChevronDown size={16} />
             </button>
@@ -77,12 +77,12 @@ export default function DocCard({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-text-primary">{doc.baslik}</p>
           {current ? (
-            <p className="text-xs text-text-disabled">
+            <p className="text-xs text-text-muted">
               v{current.versionNo} · {current.filename} · {resolveName(current.uploadedBy)} tarafından{' '}
               {relativeTime(current.uploadedAt)}
             </p>
           ) : doc.contentText ? null : (
-            <p className="text-xs text-text-disabled">Henüz dosya yüklenmedi</p>
+            <p className="text-xs text-text-muted">Henüz dosya yüklenmedi</p>
           )}
         </div>
         {canManage && (
@@ -90,14 +90,14 @@ export default function DocCard({
             <button
               onClick={onEdit}
               title="Düzenle"
-              className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-600"
+              className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-600"
             >
               <Pencil size={15} />
             </button>
             <button
               onClick={onDeleteRequest}
               title="Sil"
-              className="rounded-lg p-1.5 text-text-disabled hover:bg-tint-red hover:text-brand-700"
+              className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-700"
             >
               <Trash2 size={15} />
             </button>
@@ -146,7 +146,7 @@ export default function DocCard({
           {history.length > 1 && (
             <button
               onClick={() => setShowHistory((v) => !v)}
-              className="ml-auto flex items-center gap-1 text-xs text-text-disabled hover:text-text-secondary"
+              className="ml-auto flex items-center gap-1 text-xs text-text-muted hover:text-text-secondary"
             >
               Geçmiş ({history.length})
               <ChevronDown size={13} className={`transition-transform ${showHistory ? 'rotate-180' : ''}`} />

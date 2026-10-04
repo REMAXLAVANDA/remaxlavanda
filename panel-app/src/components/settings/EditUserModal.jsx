@@ -30,7 +30,7 @@ export default function EditUserModal({ user, privateInfo, onClose, onSubmit, su
           onChange={(e) => set({ ad: e.target.value })}
           onBlur={(e) => set({ ad: capitalizeWords(e.target.value) })}
           placeholder="Ad Soyad"
-          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
         />
         <div className="flex gap-2">
           <div className="w-full">
@@ -50,7 +50,7 @@ export default function EditUserModal({ user, privateInfo, onClose, onSubmit, su
               value={form.tcNo}
               onChange={(e) => set({ tcNo: e.target.value.replace(/\D/g, '') })}
               placeholder="11 haneli"
-              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
             />
             {!tcNoValid && <p className="mt-1 text-xs text-red-600">TC Kimlik No 11 haneli olmalı.</p>}
           </div>

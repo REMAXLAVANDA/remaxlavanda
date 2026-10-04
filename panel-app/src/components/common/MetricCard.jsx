@@ -12,7 +12,7 @@ export default function MetricCard({ label, value, sublabel, danger = false }) {
         {value}
       </p>
       {sublabel ? (
-        <p className={`mt-1 text-xs ${danger ? 'text-brand-600' : 'text-text-disabled'}`}>{sublabel}</p>
+        <p className={`mt-1 text-xs ${danger ? 'text-brand-600' : 'text-text-muted'}`}>{sublabel}</p>
       ) : null}
     </div>
   )

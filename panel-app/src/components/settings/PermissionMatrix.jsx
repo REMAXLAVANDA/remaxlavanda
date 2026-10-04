@@ -23,7 +23,7 @@ const CAPABILITIES = [
 export default function PermissionMatrix() {
   return (
     <div>
-      <p className="mb-4 text-xs text-text-disabled">
+      <p className="mb-4 text-xs text-text-muted">
         Sistemde 4 sabit rol var, ayrı bir yetki tablosu yok — her yetkinlik kodda kontrol ediliyor. Bu tablo salt
         okunur bir özet.
       </p>

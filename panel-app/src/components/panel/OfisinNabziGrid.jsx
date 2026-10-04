@@ -21,12 +21,12 @@ const ACCENT_BORDER = {
 function Tile({ icon: Icon, label, value, detail, to, onClick, accent = 'navy' }) {
   const inner = (
     <>
-      <div className="mb-1.5 flex items-center gap-1.5 text-text-disabled">
+      <div className="mb-1.5 flex items-center gap-1.5 text-text-muted">
         <Icon size={14} strokeWidth={1.75} />
         <span className="text-xs font-medium">{label}</span>
       </div>
       <p className="text-2xl font-bold leading-none text-text-primary">{value}</p>
-      {detail && <p className="mt-1 text-xs leading-snug text-text-disabled">{detail}</p>}
+      {detail && <p className="mt-1 text-xs leading-snug text-text-muted">{detail}</p>}
     </>
   )
   const className = `block w-full rounded-xl border border-border-default bg-surface-raised border-t-4 ${ACCENT_BORDER[accent]} p-3.5 text-left transition-colors hover:bg-surface-sunken`
@@ -47,7 +47,7 @@ function Tile({ icon: Icon, label, value, detail, to, onClick, accent = 'navy' }
 export default function OfisinNabziGrid({ tiles }) {
   return (
     <div>
-      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">Ofisin Nabzı</h2>
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Ofisin Nabzı</h2>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
         {tiles.map((t) => (
           <Tile key={t.label} {...t} />

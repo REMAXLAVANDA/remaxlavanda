@@ -15,12 +15,12 @@ export default function PeriodSummaryBoard({ categories, rankingsByCategory }) {
         const colors = LEAGUE_CATEGORY_COLORS[c.key]
         return (
           <div key={c.key} className={`rounded-2xl border border-border-default bg-surface-raised border-t-4 ${colors.border} p-4`}>
-            <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-text-disabled">
+            <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
               <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
               {c.label}
             </h3>
             {top3.length === 0 ? (
-              <p className="py-6 text-center text-xs text-text-disabled">Veri yok</p>
+              <p className="py-6 text-center text-xs text-text-muted">Veri yok</p>
             ) : (
               <div>
                 {top3.map((r, i) => (
@@ -33,7 +33,7 @@ export default function PeriodSummaryBoard({ categories, rankingsByCategory }) {
                       {r.isLeader && <Crown size={14} className="shrink-0 text-brand-600" />}
                     </div>
                     {i < top3.length - 1 && (
-                      <div className="flex items-center gap-1 py-1 pl-3 text-[11px] font-medium text-text-disabled">
+                      <div className="flex items-center gap-1 py-1 pl-3 text-[11px] font-medium text-text-muted">
                         <ArrowDown size={11} />
                         {formatGap(r.value - top3[i + 1].value, c.unit)}
                       </div>

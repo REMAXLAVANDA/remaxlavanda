@@ -43,21 +43,21 @@ export default function WeeklyLeadersCard({ categories, rankingsByCategory }) {
           </h2>
           {/* Üstteki tarih filtresinden BAĞIMSIZ — Lig'in kendi aktif
               dönemini gösterir (bkz. "Tarih Filtresi Kararları"). */}
-          <p className="mt-0.5 text-xs text-text-disabled">Aktif lig dönemi</p>
+          <p className="mt-0.5 text-xs text-text-muted">Aktif lig dönemi</p>
         </div>
         <Link to="/lig" className="shrink-0 text-xs font-medium text-text-primary hover:text-brand-700">
           Lig'e git →
         </Link>
       </div>
       {sections.length === 0 ? (
-        <p className="py-4 text-center text-xs text-text-disabled">Bu dönemde henüz veri girilmedi.</p>
+        <p className="py-4 text-center text-xs text-text-muted">Bu dönemde henüz veri girilmedi.</p>
       ) : (
         <div className="space-y-4">
           {sections.map(({ category, top3 }) => {
             const colors = LEAGUE_CATEGORY_COLORS[category.key]
             return (
               <div key={category.key}>
-                <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-text-disabled">
+                <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-text-muted">
                   <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
                   {category.label}
                 </h3>

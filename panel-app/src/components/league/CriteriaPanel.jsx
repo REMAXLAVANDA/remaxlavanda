@@ -13,7 +13,7 @@ export default function CriteriaPanel({ title, children, className = '' }) {
         <span className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Settings2 size={16} className="text-brand-600" /> {title}
         </span>
-        <span className="text-xs text-text-disabled">{open ? 'Gizle' : 'Nasıl hesaplanır?'}</span>
+        <span className="text-xs text-text-muted">{open ? 'Gizle' : 'Nasıl hesaplanır?'}</span>
       </button>
       {open && <div className="mt-3 border-t border-border-subtle pt-3 text-sm text-text-secondary">{children}</div>}
     </div>

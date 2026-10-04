@@ -23,7 +23,7 @@ export default function RecentEntriesPanel({ entries }) {
             <span className="min-w-0 flex-1 truncate text-text-secondary">
               <span className="font-medium text-text-primary">{e.danismanName}</span> — {e.detail}
             </span>
-            <span className="shrink-0 text-xs text-text-disabled">{e.when}</span>
+            <span className="shrink-0 text-xs text-text-muted">{e.when}</span>
           </div>
         ))}
       </div>

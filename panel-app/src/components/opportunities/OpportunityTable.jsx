@@ -32,7 +32,7 @@ function IslemTipiBadge({ islemTipi }) {
 export default function OpportunityTable({ opportunities, onRowClick, onExpressInterest, expressingId, user, interestedIds }) {
   if (opportunities.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border-default bg-surface-raised py-10 text-center text-sm text-text-disabled">
+      <div className="rounded-xl border border-dashed border-border-default bg-surface-raised py-10 text-center text-sm text-text-muted">
         Bu filtrelere uyan fırsat yok.
       </div>
     )
@@ -77,7 +77,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
               <Td className="text-text-muted">{categoryLabel(opp.category)}</Td>
               <Td className="font-medium text-text-primary">{priceLabel}</Td>
               <Td className="max-w-[260px] truncate text-text-muted">{opp.ozet || '—'}</Td>
-              <Td className={`whitespace-nowrap ${urgent ? 'font-medium text-brand-700' : 'text-text-disabled'}`}>
+              <Td className={`whitespace-nowrap ${urgent ? 'font-medium text-brand-700' : 'text-text-muted'}`}>
                 {relativeTime(opp.createdAt)}
               </Td>
               <Td>
@@ -102,7 +102,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
                     {expressingId === opp.id ? 'Gönderiliyor...' : 'İlgileniyorum'}
                   </button>
                 ) : (
-                  <span className="text-xs text-text-disabled">—</span>
+                  <span className="text-xs text-text-muted">—</span>
                 )}
               </Td>
             </Tr>

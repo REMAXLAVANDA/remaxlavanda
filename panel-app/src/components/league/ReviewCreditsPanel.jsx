@@ -36,7 +36,7 @@ export default function ReviewCreditsPanel({
       <div className="mb-3 flex items-center gap-2">
         <MessageSquareText size={16} className="text-brand-600" />
         <h3 className="text-sm font-semibold text-text-primary">Yorum Hakkı</h3>
-        <span className="text-xs text-text-disabled">Girilen her müşteri 1 hak getirir</span>
+        <span className="text-xs text-text-muted">Girilen her müşteri 1 hak getirir</span>
       </div>
       <div className="space-y-1.5">
         {rows.map((r) => {
@@ -51,13 +51,13 @@ export default function ReviewCreditsPanel({
                   className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
                 >
                   {isExpanded ? (
-                    <ChevronDown size={14} className="shrink-0 text-text-disabled" />
+                    <ChevronDown size={14} className="shrink-0 text-text-muted" />
                   ) : (
-                    <ChevronRight size={14} className="shrink-0 text-text-disabled" />
+                    <ChevronRight size={14} className="shrink-0 text-text-muted" />
                   )}
                   <span className="min-w-0 flex-1 truncate text-sm text-text-primary">{r.name}</span>
                 </button>
-                <span className="shrink-0 text-xs text-text-disabled">{r.hakSayisi} hak</span>
+                <span className="shrink-0 text-xs text-text-muted">{r.hakSayisi} hak</span>
                 <span
                   className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                     percent >= 100 ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-sunken text-text-secondary'
@@ -77,7 +77,7 @@ export default function ReviewCreditsPanel({
 
               {isExpanded && (
                 <div className="ml-5 mb-2 space-y-1.5 border-l border-border-default pl-3">
-                  {r.musteriler.length === 0 && <p className="text-xs text-text-disabled">Henüz müşteri girilmedi.</p>}
+                  {r.musteriler.length === 0 && <p className="text-xs text-text-muted">Henüz müşteri girilmedi.</p>}
                   {r.musteriler.map((m) => (
                     <div key={m.id} className="flex items-center gap-2 text-xs">
                       <label className="flex min-w-0 flex-1 items-center gap-1.5 text-text-secondary">
@@ -88,14 +88,14 @@ export default function ReviewCreditsPanel({
                           onChange={(e) => onToggleAlindi(m.id, e.target.checked)}
                           className="h-3.5 w-3.5 shrink-0 rounded border-border-default"
                         />
-                        <span className={`min-w-0 flex-1 truncate ${m.alindiMi ? 'text-text-disabled line-through' : ''}`}>
+                        <span className={`min-w-0 flex-1 truncate ${m.alindiMi ? 'text-text-muted line-through' : ''}`}>
                           {m.adSoyad}
                         </span>
                       </label>
                       {isManager && (
                         <button
                           onClick={() => onRemoveMusteri(m.id)}
-                          className="shrink-0 rounded p-0.5 text-text-disabled hover:bg-surface-sunken hover:text-text-secondary"
+                          className="shrink-0 rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-secondary"
                           title="Sil"
                         >
                           <X size={12} />
@@ -115,7 +115,7 @@ export default function ReviewCreditsPanel({
                           }
                         }}
                         placeholder="İsim soyisim"
-                        className="w-full rounded-lg border border-border-default px-2 py-1 text-xs text-text-primary placeholder:text-text-disabled"
+                        className="w-full rounded-lg border border-border-default px-2 py-1 text-xs text-text-primary placeholder:text-text-muted"
                       />
                       <button
                         onClick={() => submitName(r.userId)}

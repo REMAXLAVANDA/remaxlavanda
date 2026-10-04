@@ -27,7 +27,7 @@ const OPTIONS = [
 export default function AddEntryChooserModal({ onClose, onChoose }) {
   return (
     <Modal title="Veri Gir" onClose={onClose}>
-      <p className="mb-3 text-xs text-text-disabled">Hangi kategoriye veri gireceksin?</p>
+      <p className="mb-3 text-xs text-text-muted">Hangi kategoriye veri gireceksin?</p>
       <div className="space-y-2">
         {OPTIONS.map((o) => (
           <button
@@ -40,9 +40,9 @@ export default function AddEntryChooserModal({ onClose, onChoose }) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-text-primary">{o.label}</span>
-              <span className="block truncate text-xs text-text-disabled">{o.desc}</span>
+              <span className="block truncate text-xs text-text-muted">{o.desc}</span>
             </span>
-            <ChevronRight size={16} className="shrink-0 text-text-disabled" />
+            <ChevronRight size={16} className="shrink-0 text-text-muted" />
           </button>
         ))}
       </div>

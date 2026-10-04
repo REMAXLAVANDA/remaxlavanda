@@ -69,7 +69,7 @@ export default function GlobalSearch() {
   return (
     <div className="relative w-full max-w-sm" ref={ref}>
       <div className="flex h-9 items-center gap-2 rounded-[11px] border border-border-default bg-surface-sunken px-3 focus-within:border-remax-blue">
-        <Search size={16} className="shrink-0 text-text-disabled" />
+        <Search size={16} className="shrink-0 text-text-muted" />
         <input
           value={query}
           onChange={(e) => {
@@ -81,7 +81,7 @@ export default function GlobalSearch() {
             ensureLoaded()
           }}
           placeholder="Kişi, portföy, fırsat ara"
-          className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-disabled focus:outline-none"
+          className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
         />
       </div>
 

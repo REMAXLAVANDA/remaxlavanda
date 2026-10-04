@@ -12,7 +12,7 @@ export default function ListRow({ name, subtitle, trailing, action, urgent = fal
         <p className="truncate text-sm font-medium text-text-primary">{name}</p>
         {subtitle ? <p className="truncate text-xs text-text-muted">{subtitle}</p> : null}
       </div>
-      {trailing ? <div className="shrink-0 text-xs text-text-disabled">{trailing}</div> : null}
+      {trailing ? <div className="shrink-0 text-xs text-text-muted">{trailing}</div> : null}
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   )

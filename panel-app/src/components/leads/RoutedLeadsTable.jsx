@@ -12,7 +12,7 @@ function leadDateLabel(createdAt) {
 }
 
 function StageBadge({ process }) {
-  if (!process) return <span className="text-text-disabled">—</span>
+  if (!process) return <span className="text-text-muted">—</span>
   return (
     <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${process.style}`}>
       {process.label}
@@ -48,7 +48,7 @@ export default function RoutedLeadsTable({ rows }) {
           <Tbody>
             {rows.map((lead) => (
               <Tr key={lead.id}>
-                <Td className="whitespace-nowrap text-xs text-text-disabled">{leadDateLabel(lead.createdAt)}</Td>
+                <Td className="whitespace-nowrap text-xs text-text-muted">{leadDateLabel(lead.createdAt)}</Td>
                 <Td className="font-medium text-text-primary">{lead.adSoyad}</Td>
                 <Td className="text-text-secondary">{lead.process?.module ? LEAD_HEDEF_MODUL_LABELS[lead.process.module] : '—'}</Td>
                 <Td>
@@ -67,7 +67,7 @@ export default function RoutedLeadsTable({ rows }) {
               <p className="truncate font-medium text-text-primary">{lead.adSoyad}</p>
               <StageBadge process={lead.process} />
             </div>
-            <div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2 text-xs text-text-disabled">
+            <div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2 text-xs text-text-muted">
               <span>{lead.process?.module ? LEAD_HEDEF_MODUL_LABELS[lead.process.module] : '—'}</span>
               <span>{leadDateLabel(lead.createdAt)}</span>
             </div>

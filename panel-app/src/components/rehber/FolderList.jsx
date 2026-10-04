@@ -11,7 +11,7 @@ function FolderButton({ c, selected, onSelect, countFor }) {
     >
       {c.visibility === 'yonetim' ? <Lock size={16} /> : <Folder size={16} />}
       <span className="flex-1">{c.label}</span>
-      <span className="text-xs text-text-disabled">{countFor(c.key)}</span>
+      <span className="text-xs text-text-muted">{countFor(c.key)}</span>
     </button>
   )
 }
@@ -37,7 +37,7 @@ export default function FolderList({ categories, selected, onSelect, countFor })
 
       {yonetim.length > 0 && (
         <div>
-          <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-text-disabled">Yönetime Özel</p>
+          <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-text-muted">Yönetime Özel</p>
           <div className="space-y-1">
             {yonetim.map((c) => (
               <FolderButton key={c.key} c={c} selected={selected} onSelect={onSelect} countFor={countFor} />

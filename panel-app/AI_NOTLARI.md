@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — `text-text-disabled` kontrast sorunu uygulama genelinde düzeltildi
+
+`/kurul` denetiminin bulgusu: `text-text-disabled` (#9AA1AD, beyaz
+zemin üzerinde 2.60:1 — WCAG 1.4.3'ün 4.5:1 eşiğinin altında) aslında
+hiçbir yerde gerçek bir "disabled" UI durumuna bağlı değildi (172
+kullanımın tamamı kontrol edildi) — sadece genel "soluk/ikincil metin"
+rengi olarak kullanılıyordu: başlık altı açıklamalar, rozet metinleri,
+ikonlar, boş durum mesajları. Rapor danışman ekranlarındaki 21 yeri
+işaretlemişti, ama aynı sorun 42 dosyada 172 yerde aynı şekilde
+mevcuttu — broker onayıyla kapsam tüm uygulamaya genişletildi. Hepsi
+`text-text-muted` (#6B7280, 4.83:1) ile değiştirildi — marka-kimligi.md
+zaten bunu önerilen alternatif olarak işaretlemişti. 154/154 test, lint,
+build temiz; mock modda görsel olarak doğrulandı (Panel/Lig/Rehber).
+
 ## 2026-10-04 — Danışman pasife alınırken açık işler artık devrediliyor
 
 `/kurul` denetiminin ("danışman takip menüleri") yayına-engel bulgusu:

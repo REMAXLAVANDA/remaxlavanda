@@ -75,7 +75,7 @@ export default function OpportunityCategoryTree({
                   {cat.total}
                 </span>
               </span>
-              <ChevronDown size={18} className={`text-text-disabled transition-transform ${catOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={18} className={`text-text-muted transition-transform ${catOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {catOpen && (
@@ -95,7 +95,7 @@ export default function OpportunityCategoryTree({
                             {tipi.total}
                           </span>
                         </span>
-                        <ChevronDown size={16} className={`text-text-disabled transition-transform ${tipiOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={16} className={`text-text-muted transition-transform ${tipiOpen ? 'rotate-180' : ''}`} />
                       </button>
 
                       {tipiOpen && (
@@ -128,7 +128,7 @@ export default function OpportunityCategoryTree({
                                   </span>
                                   <ChevronDown
                                     size={15}
-                                    className={`text-text-disabled transition-transform ${tarafOpen ? 'rotate-180' : ''}`}
+                                    className={`text-text-muted transition-transform ${tarafOpen ? 'rotate-180' : ''}`}
                                   />
                                 </button>
 

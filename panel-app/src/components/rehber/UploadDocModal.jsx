@@ -191,14 +191,14 @@ export default function UploadDocModal({
             onChange={(e) => setBaslik(e.target.value)}
             onBlur={(e) => setBaslik(capitalizeWords(e.target.value))}
             placeholder="Doküman başlığı"
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
         )}
 
         {isEditingFile ? null : mode === 'file' ? (
           <div>
             <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border-default bg-surface-sunken px-3 py-3 text-sm text-text-secondary hover:bg-border-subtle">
-              <Upload size={16} className="shrink-0 text-text-disabled" />
+              <Upload size={16} className="shrink-0 text-text-muted" />
               <span className="truncate">{file ? `${file.name} (${formatSize(file.size)})` : 'Dosya seç (PDF, resim, Office, ZIP — 20 MB\'a kadar)'}</span>
               <input type="file" onChange={handleFileChange} className="hidden" />
             </label>
@@ -213,9 +213,9 @@ export default function UploadDocModal({
               onBlur={(e) => setContentText(capitalizeFirst(e.target.value))}
               placeholder="Metni buraya yaz..."
               rows={8}
-              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
             />
-            <p className="mt-1 text-xs text-text-disabled">
+            <p className="mt-1 text-xs text-text-muted">
               Biçimlendirme: <strong>**kalın metin**</strong>, satır başında "- " ile madde işareti, satır başında
               "# " ile başlık.
             </p>
@@ -254,7 +254,7 @@ export default function UploadDocModal({
                 onChange={(e) => setNewSubcategoryLabel(e.target.value)}
                 onBlur={(e) => setNewSubcategoryLabel(capitalizeWords(e.target.value))}
                 placeholder="Yeni alt kategori adı (ör. Komisyon)"
-                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
               />
             )}
           </div>

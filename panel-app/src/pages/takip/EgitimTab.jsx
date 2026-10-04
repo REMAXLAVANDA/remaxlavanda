@@ -234,7 +234,7 @@ export default function EgitimTab() {
 
   return (
     <div className="space-y-8">
-      <p className="text-xs text-text-disabled">Power Camp modülleri, rozetler ve checklist</p>
+      <p className="text-xs text-text-muted">Power Camp modülleri, rozetler ve checklist</p>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
@@ -244,7 +244,7 @@ export default function EgitimTab() {
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-text-primary">Modüllerim</h2>
-              <span className="text-xs text-text-disabled">
+              <span className="text-xs text-text-muted">
                 {myModuleProgress.completed}/{myModuleProgress.total} tamamlandı ({myModuleProgress.percent}%)
               </span>
             </div>
@@ -328,7 +328,7 @@ export default function EgitimTab() {
                 </div>
               </div>
               {!isManager && (
-                <p className="mb-2 text-xs text-text-disabled">
+                <p className="mb-2 text-xs text-text-muted">
                   Bu liste yönetim tarafından işaretlenir, kendin değiştiremezsin.
                 </p>
               )}

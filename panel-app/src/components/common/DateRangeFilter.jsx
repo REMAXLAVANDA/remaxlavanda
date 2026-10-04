@@ -37,7 +37,7 @@ export default function DateRangeFilter({ value, onChange }) {
             onChange={(e) => set({ dateRange: 'ozel', customFrom: e.target.value })}
             className="rounded-lg border border-ink-200 px-2 py-1 text-xs text-ink-600"
           />
-          <span className="text-xs text-text-disabled">—</span>
+          <span className="text-xs text-text-muted">—</span>
           <input
             type="date"
             value={value.customTo}

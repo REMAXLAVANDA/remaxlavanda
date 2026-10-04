@@ -85,7 +85,7 @@ export default function TakipTab() {
 
   return (
     <div>
-      <p className="mb-3 text-xs text-text-disabled">{seeTeam ? 'Danışman 360° sağlık skoru' : 'Kendi performans özetin'}</p>
+      <p className="mb-3 text-xs text-text-muted">{seeTeam ? 'Danışman 360° sağlık skoru' : 'Kendi performans özetin'}</p>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}

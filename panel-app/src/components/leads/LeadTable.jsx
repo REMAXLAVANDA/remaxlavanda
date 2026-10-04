@@ -53,7 +53,7 @@ function RouteButtons({ lead, onQuickConvert, submitting }) {
 export default function LeadTable({ leads, onQuickConvert, submitting }) {
   if (leads.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
+      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
         Bekleyen lead yok.
       </div>
     )
@@ -77,10 +77,10 @@ export default function LeadTable({ leads, onQuickConvert, submitting }) {
               const campaign = campaignLabel(lead)
               return (
                 <Tr key={lead.id} urgent={stale}>
-                  <Td className="whitespace-nowrap text-xs text-text-disabled">{leadDateLabel(lead.createdAt)}</Td>
+                  <Td className="whitespace-nowrap text-xs text-text-muted">{leadDateLabel(lead.createdAt)}</Td>
                   <Td className="font-medium text-text-primary">
                     {lead.adSoyad}
-                    {campaign && <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-text-disabled">{campaign}</div>}
+                    {campaign && <div className="mt-0.5 max-w-[220px] truncate text-xs font-normal text-text-muted">{campaign}</div>}
                   </Td>
                   <Td className="text-text-secondary">{lead.telefon ?? '—'}</Td>
                   <Td>
@@ -105,10 +105,10 @@ export default function LeadTable({ leads, onQuickConvert, submitting }) {
               <div className="min-w-0">
                 <p className="truncate font-medium text-text-primary">{lead.adSoyad}</p>
                 <p className="mt-0.5 text-sm text-text-secondary">{lead.telefon ?? '—'}</p>
-                {campaign && <p className="mt-0.5 truncate text-xs text-text-disabled">{campaign}</p>}
+                {campaign && <p className="mt-0.5 truncate text-xs text-text-muted">{campaign}</p>}
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2">
-                <span className="text-xs text-text-disabled">{leadDateLabel(lead.createdAt)}</span>
+                <span className="text-xs text-text-muted">{leadDateLabel(lead.createdAt)}</span>
                 <RouteButtons lead={lead} onQuickConvert={onQuickConvert} submitting={submitting} />
               </div>
             </div>

@@ -10,7 +10,7 @@ const METRIC_KEYS = Object.keys(METRIC_LABELS)
 export default function HealthScoreTable({ people, onRowClick }) {
   if (people.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
+      <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
         Gösterilecek danışman yok.
       </div>
     )
@@ -67,7 +67,7 @@ export default function HealthScoreTable({ people, onRowClick }) {
               <Avatar name={p.user.name} size={40} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-text-primary">{p.user.name}</p>
-                <p className="text-xs text-text-disabled">Skor: {p.score}</p>
+                <p className="text-xs text-text-muted">Skor: {p.score}</p>
               </div>
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[p.status]}`}>
                 {STATUS_LABELS[p.status]}
@@ -76,7 +76,7 @@ export default function HealthScoreTable({ people, onRowClick }) {
             <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border-subtle pt-3">
               {METRIC_KEYS.map((key) => (
                 <div key={key} className="flex items-center justify-between text-xs">
-                  <span className="text-text-disabled">{METRIC_SHORT_LABELS[key]}</span>
+                  <span className="text-text-muted">{METRIC_SHORT_LABELS[key]}</span>
                   <span className={`font-medium ${metricValueStyle(p.metrics[key])}`}>%{p.metrics[key]}</span>
                 </div>
               ))}

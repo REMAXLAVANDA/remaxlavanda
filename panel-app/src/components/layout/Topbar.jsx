@@ -14,7 +14,7 @@ export default function Topbar({ title, subtitle, onMenuClick }) {
         </button>
         <div className="min-w-0 leading-tight">
           <h1 className="truncate text-lg font-semibold text-text-primary">{title}</h1>
-          {subtitle ? <p className="truncate text-xs text-text-disabled">{subtitle}</p> : null}
+          {subtitle ? <p className="truncate text-xs text-text-muted">{subtitle}</p> : null}
         </div>
       </div>
 

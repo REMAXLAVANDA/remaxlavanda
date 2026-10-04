@@ -137,7 +137,7 @@ export default function RecruitingDetailModal({
           onChange={(e) => set({ adSoyad: e.target.value })}
           onBlur={(e) => set({ adSoyad: capitalizeWords(e.target.value) })}
           placeholder="Ad Soyad"
-          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
         />
 
         <div className="grid grid-cols-2 gap-2">
@@ -148,7 +148,7 @@ export default function RecruitingDetailModal({
                 value={form.telefon}
                 onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
                 placeholder="Telefon"
-                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
               />
               {form.telefon && (
                 <a
@@ -174,7 +174,7 @@ export default function RecruitingDetailModal({
             value={form.email}
             onChange={(e) => set({ email: e.target.value })}
             placeholder="E-posta"
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
         </div>
 
@@ -259,7 +259,7 @@ export default function RecruitingDetailModal({
         <div>
           <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
             <CalendarClock size={13} /> Görüşme / Randevu Tarihi
-            <span className="font-normal text-text-disabled">(opsiyonel — Takvim'e işlenir)</span>
+            <span className="font-normal text-text-muted">(opsiyonel — Takvim'e işlenir)</span>
           </label>
           <div className="grid grid-cols-2 gap-2">
             <input
@@ -309,7 +309,7 @@ export default function RecruitingDetailModal({
           <div className="rounded-lg border border-border-default p-3">
             <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-text-secondary">
               <MessageSquare size={13} /> Görüşme Notları
-              <span className="font-normal text-text-disabled">({notes.length + (form.aciklama.trim() ? 1 : 0)})</span>
+              <span className="font-normal text-text-muted">({notes.length + (form.aciklama.trim() ? 1 : 0)})</span>
             </p>
             <div className="flex gap-2">
               <textarea
@@ -317,7 +317,7 @@ export default function RecruitingDetailModal({
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Görüşme/randevu notu ekle..."
                 rows={2}
-                className="w-full rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-disabled"
+                className="w-full rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
               />
               <button
                 type="button"
@@ -335,7 +335,7 @@ export default function RecruitingDetailModal({
               <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
                 {notes.map((n) => (
                   <div key={n.id} className="rounded-lg bg-surface-sunken p-2 text-xs">
-                    <div className="mb-1 flex items-center justify-between gap-2 text-text-disabled">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-text-muted">
                       <span className="font-medium text-text-secondary">{resolveName?.(n.createdBy) ?? '—'}</span>
                       <span className="flex shrink-0 items-center gap-1.5">
                         {formatDateTime(n.createdAt)}
@@ -344,7 +344,7 @@ export default function RecruitingDetailModal({
                             type="button"
                             onClick={() => onDeleteNote(n.id)}
                             title="Notu sil"
-                            className="rounded p-0.5 text-text-disabled hover:bg-red-50 hover:text-red-600"
+                            className="rounded p-0.5 text-text-muted hover:bg-red-50 hover:text-red-600"
                           >
                             <Trash2 size={12} />
                           </button>
@@ -356,7 +356,7 @@ export default function RecruitingDetailModal({
                 ))}
                 {form.aciklama.trim() && (
                   <div className="rounded-lg bg-surface-sunken p-2 text-xs">
-                    <div className="mb-1 flex items-center justify-between gap-2 text-text-disabled">
+                    <div className="mb-1 flex items-center justify-between gap-2 text-text-muted">
                       <span className="font-medium text-text-secondary">Genel not</span>
                       <span className="shrink-0">{formatDateOnly(candidate.createdAt)}</span>
                     </div>
@@ -372,7 +372,7 @@ export default function RecruitingDetailModal({
             onChange={(e) => set({ aciklama: e.target.value })}
             placeholder="Açıklama"
             rows={2}
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
         )}
 

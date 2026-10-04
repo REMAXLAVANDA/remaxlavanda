@@ -180,7 +180,7 @@ function Widget({ icon: Icon, title, count, description, to, linkLabel, classNam
           </Link>
         )}
       </div>
-      {description && <p className="mb-4 text-xs text-text-disabled">{description}</p>}
+      {description && <p className="mb-4 text-xs text-text-muted">{description}</p>}
       {children}
     </div>
   )
@@ -209,7 +209,7 @@ function PartialFailureBanner({ onRetry }) {
 
 function EmptyRow({ text }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-surface-sunken px-4 py-6 text-sm text-text-disabled">
+    <div className="flex items-center gap-2 rounded-xl bg-surface-sunken px-4 py-6 text-sm text-text-muted">
       <Inbox size={16} /> {text}
     </div>
   )
@@ -275,12 +275,12 @@ function OpportunityMiniRow({ o }) {
         </span>
         <span className="truncate text-sm font-medium text-text-primary">{o.konum ?? '—'}</span>
         {detailBits.length > 0 && (
-          <span className="shrink-0 text-xs text-text-disabled">{detailBits.join(' · ')}</span>
+          <span className="shrink-0 text-xs text-text-muted">{detailBits.join(' · ')}</span>
         )}
       </div>
       <div className="shrink-0 whitespace-nowrap text-right text-xs">
         <span className="font-medium text-text-secondary">{priceLabel}</span>
-        <span className="ml-2 text-text-disabled">{relativeTime(o.createdAt)}</span>
+        <span className="ml-2 text-text-muted">{relativeTime(o.createdAt)}</span>
       </div>
     </div>
   )
@@ -293,17 +293,17 @@ function OpportunityMiniBlock({ dotColor, label, items }) {
       <div className="mb-2 flex items-center gap-1.5">
         <span className={`h-2 w-2 rounded-full ${dotColor}`} />
         <h3 className="text-xs font-semibold text-text-muted">
-          {label} <span className="font-normal text-text-disabled">({items.length})</span>
+          {label} <span className="font-normal text-text-muted">({items.length})</span>
         </h3>
       </div>
       {items.length === 0 ? (
-        <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
+        <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-muted">Yok</p>
       ) : (
         <div className="space-y-1.5">
           {items.slice(0, 4).map((o) => (
             <OpportunityMiniRow key={o.id} o={o} />
           ))}
-          {items.length > 4 && <p className="pt-0.5 text-center text-xs text-text-disabled">+{items.length - 4} tane daha</p>}
+          {items.length > 4 && <p className="pt-0.5 text-center text-xs text-text-muted">+{items.length - 4} tane daha</p>}
         </div>
       )}
     </div>
@@ -759,15 +759,15 @@ export default function Panel() {
             <div key={call.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
               <div>
                 <p className="text-sm font-medium text-text-primary">{call.arayanAd}</p>
-                <p className="text-xs text-text-disabled">
+                <p className="text-xs text-text-muted">
                   {call.kaynak} · {maskPhone(call.arayanTelefon)}
                 </p>
               </div>
-              <span className="text-xs text-text-disabled">{relativeTime(call.createdAt)}</span>
+              <span className="text-xs text-text-muted">{relativeTime(call.createdAt)}</span>
             </div>
           ))}
           {pendingCalls.length > 5 && (
-            <p className="pt-1 text-center text-xs text-text-disabled">+{pendingCalls.length - 5} tane daha</p>
+            <p className="pt-1 text-center text-xs text-text-muted">+{pendingCalls.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -812,17 +812,17 @@ export default function Panel() {
             <div key={o.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
               <div>
                 <p className="text-sm font-medium text-text-primary">{o.ozet ?? (o.type === 'satici' ? 'Satıcı' : 'Alıcı')}</p>
-                <p className="text-xs text-text-disabled">
+                <p className="text-xs text-text-muted">
                   {categoryLabel(o.category)} · {o.konum}
                   {(o.fiyatMin != null || o.fiyatMax != null) &&
                     ` · ${formatPrice(o.type === 'alici' ? o.fiyatMin : o.fiyat ?? o.fiyatMin)}`}
                 </p>
               </div>
-              <span className="text-xs text-text-disabled">{relativeTime(o.createdAt)}</span>
+              <span className="text-xs text-text-muted">{relativeTime(o.createdAt)}</span>
             </div>
           ))}
           {openOpportunities.length > 5 && (
-            <p className="pt-1 text-center text-xs text-text-disabled">+{openOpportunities.length - 5} tane daha</p>
+            <p className="pt-1 text-center text-xs text-text-muted">+{openOpportunities.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -860,7 +860,7 @@ export default function Panel() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-text-disabled">
+                    <p className="text-xs text-text-muted">
                       {EVENT_TYPE_LABELS[e.type]} · {formatEventDate(e.startAt)} {formatEventTime(e.startAt)}
                     </p>
                   </div>
@@ -906,7 +906,7 @@ export default function Panel() {
                           onBlur={(ev) => setMazeretDraft(capitalizeFirst(ev.target.value))}
                           placeholder="Neden katılamıyorsun?"
                           rows={2}
-                          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-disabled"
+                          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
                         />
                         <button
                           disabled={busy || !mazeretDraft.trim()}
@@ -947,13 +947,13 @@ export default function Panel() {
           {educationGaps.slice(0, 5).map((r) => (
             <div key={r.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
               <p className="text-sm font-medium text-text-primary">{r.name}</p>
-              <span className="text-xs text-text-disabled">
+              <span className="text-xs text-text-muted">
                 Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
               </span>
             </div>
           ))}
           {educationGaps.length > 5 && (
-            <p className="pt-1 text-center text-xs text-text-disabled">+{educationGaps.length - 5} tane daha</p>
+            <p className="pt-1 text-center text-xs text-text-muted">+{educationGaps.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -986,14 +986,14 @@ export default function Panel() {
         <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
       ) : isLeagueLocked ? (
         <div className="rounded-2xl border border-border-default bg-surface-raised p-6 text-center">
-          <Lock size={20} className="mx-auto mb-2 text-text-disabled" />
+          <Lock size={20} className="mx-auto mb-2 text-text-muted" />
           <p className="text-sm font-medium text-text-primary">Bu dönemin sonuçları hazırlanıyor</p>
-          <p className="mt-1 text-xs text-text-disabled">Yakında açıklanacak — o zamana kadar sürpriz kalsın!</p>
+          <p className="mt-1 text-xs text-text-muted">Yakında açıklanacak — o zamana kadar sürpriz kalsın!</p>
         </div>
       ) : (
         <>
           <PeriodSummaryBoard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
-          <p className="-mt-3 text-xs text-text-disabled">
+          <p className="-mt-3 text-xs text-text-muted">
             {lastLeagueUpdate ? `Son güncelleme: ${relativeTime(lastLeagueUpdate)}` : 'Bu dönemde henüz veri girilmedi.'}
           </p>
         </>
@@ -1111,13 +1111,13 @@ export default function Panel() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-text-primary">{nextEventAlways.title}</p>
-                      <p className="mt-0.5 text-xs text-text-disabled">
+                      <p className="mt-0.5 text-xs text-text-muted">
                         {EVENT_TYPE_LABELS[nextEventAlways.type]} · {formatEventDate(nextEventAlways.startAt)} {formatEventTime(nextEventAlways.startAt)}
                       </p>
                     </div>
                   </div>
                   {nextEventsAlways.length > 1 && (
-                    <p className="mt-2 text-center text-xs text-text-disabled">+{nextEventsAlways.length - 1} etkinlik daha</p>
+                    <p className="mt-2 text-center text-xs text-text-muted">+{nextEventsAlways.length - 1} etkinlik daha</p>
                   )}
                 </>
               )}
@@ -1173,7 +1173,7 @@ export default function Panel() {
                 <div className="min-w-0">
                   <h3 className="mb-2 text-xs font-semibold text-text-muted">Portföy</h3>
                   {topPortfoyReklamlari.length === 0 ? (
-                    <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
+                    <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-muted">Yok</p>
                   ) : (
                     <div className="space-y-1.5">
                       {topPortfoyReklamlari.map((r) => (
@@ -1190,7 +1190,7 @@ export default function Panel() {
                 <div className="min-w-0">
                   <h3 className="mb-2 text-xs font-semibold text-text-muted">Recruiting</h3>
                   {topRecruitingReklamlari.length === 0 ? (
-                    <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-disabled">Yok</p>
+                    <p className="rounded-lg bg-surface-sunken px-3 py-4 text-center text-xs text-text-muted">Yok</p>
                   ) : (
                     <div className="space-y-1.5">
                       {topRecruitingReklamlari.map((r) => (
