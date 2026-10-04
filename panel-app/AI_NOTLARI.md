@@ -3,6 +3,24 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Panel: tek yavaş sorgu artık tüm sayfayı kilitlemiyor (10. "donma" olayı)
+
+Broker geri bildirimi: danışmanlar sürekli "portal açılmıyor" şikayeti
+ediyordu, somut bir hata yoktu. `pg_stat_statements` incelemesi kök nedeni
+buldu: Panel.jsx girişte 17 sorguyu paralel çekiyor (`Promise.allSettled`),
+sorgular ortalama 50-350ms ama ara sıra (muhtemelen sabah yoğun giriş
+saatinde bağlantı havuzu sıkışması) 5-8sn'ye sıçrıyor. Eskiden bu 17
+sorgu TEK bir dış `useAsyncList` zaman aşımının (8sn) içindeydi — biri
+sıçradığında `Promise.allSettled` tümünü beklediği için dış sınır TÜM
+sayfayı "zaman aşımı" hatasına düşürüyordu, diğer 16 sorgu bitmiş olsa
+bile. Artık her sorgu kendi `fetchWithRetry()`'siyle ayrı sarmalanıyor
+(`useAsyncList.js`'ten dışa açıldı), dıştaki sarmalayıcı yeni `timeoutMs`
+opsiyonuyla 20sn'ye çıkarıldı (içteki en kötü senaryoya — tek sorgunun
+8+8sn'lik döngüsüne — yetecek pay). Tek bir yavaş sorgu artık sadece
+kendi verisini boş bırakıp mevcut `PartialFailureBanner`'ı gösteriyor.
+3 yeni test + mock modda Playwright regresyon kontrolü. CLAUDE.md'nin
+"RLS/Performans Dersleri" listesine 8. madde olarak işlendi.
+
 ## 2026-10-04 — Fırsat tipine göre gizli fiyat alanı artık temizleniyor
 
 `/kurul` denetiminin Bölüm 2'deki en çok tekrarlanan (4 denetçi) bulgusu:
