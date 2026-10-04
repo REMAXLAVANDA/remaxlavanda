@@ -3,6 +3,48 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Fırsatı kapat/iptal et RPC'si herkes için kırıktı, düzeltildi
+
+Önceki (RPC-atlama) düzeltmesini test ederken bağımsız, önceden var olan
+kritik bir bug ortaya çıktı: `close_opportunity()` RPC'si `p_status`
+(text) değerini `opportunity_status` enum koluna cast'siz atıyordu —
+"column status is of type opportunity_status but expression is of type
+text" hatasıyla HERKES için başarısız oluyordu, yani portalda hiç kimse
+bir fırsatı "kapandı"/"iptal" olarak işaretleyemiyordu. Bu oturumdaki
+değişikliklerle ilgisiz, muhtemelen uzun süredir böyleydi. Fonksiyona
+`::opportunity_status` cast'i eklendi. Canlıda bir transaction içinde
+(`begin ... rollback`) veri değiştirmeden test edildi, çalıştığı
+doğrulandı.
+
+## 2026-10-04 — Fırsat durum/atama alanları artık RPC'yi atlayarak doğrudan yazılamıyor
+
+`/kurul` denetiminin (hem "kademeli menü" hem "danışman takip menüleri"
+taramalarında bağımsız bulunan) yayına-engel bulgusu: `close_opportunity`/
+`assign_opportunity_to` RPC'leri "sadece üstlenen/yönetici kapatabilir",
+"sadece broker/owner atayabilir" kurallarını kontrol ediyordu, ama
+`opportunities_update_manage` RLS'i fırsatın sahibine (owner_id=kendisi)
+zaten doğrudan UPDATE izni verdiği için bu kurallar RPC hiç çağrılmadan
+atlanabiliyordu — ör. bir danışman kendi sahibi olduğu fırsatı RPC'yi
+hiç çağırmadan doğrudan "üstlenildi" yapabilirdi.
+
+İlk denenen çözüm (kolon bazlı `REVOKE UPDATE`) canlıda ETKİSİZ çıktı —
+Supabase'de `authenticated`/`anon` rollerine zaten TABLONUN TAMAMI için
+UPDATE yetkisi veriliyor, kolon bazlı REVOKE bunun üzerine yazamıyor.
+Gerçek çözüm bir BEFORE UPDATE trigger'ı oldu (users tablosundaki G1
+düzeltmesiyle aynı desen): `status`/`claimer_id`/`owner_id`/`closed_at`/
+`closed_by`/`claimed_at` alanlarına doğrudan yazma girişimi artık
+engelleniyor — ama SADECE PostgREST'in doğrudan ilettiği isteklerde
+(`current_user = 'authenticated'`); RPC'ler `postgres` sahipli
+`SECURITY DEFINER` fonksiyonlar olduğu için trigger'ın içinden
+etkilenmeden çalışmaya devam ediyor. (Not: trigger fonksiyonunun kendisi
+YANLIŞLIKLA `security definer` yapılmıştı ilk halinde — bu da
+`current_user`'ı fonksiyon sahibine çevirip kontrolü işe yaramaz
+kılıyordu, aynı kaçış yolunu kendi içinde tekrarlıyordu; fark edilip
+düzeltildi.) Broker/owner (`is_manager()`) doğrudan düzenlemeye devam
+ediyor. Canlıda 4 senaryoyla doğrulandı: danışman-sahip engellendi,
+danışman normal alan (özet) güncelleyebildi, danışman RPC'yi denedi
+RPC'nin kendi kuralı reddetti, broker RPC ile atama yaptı başarılı oldu.
+
 ## 2026-10-04 — Panel'de dönem kapalıyken Lig podyumu artık Lig'le çelişmiyor
 
 `/kurul` denetiminin yayına-engel bulgusu: dönem bitişine 7 gün kalıp
