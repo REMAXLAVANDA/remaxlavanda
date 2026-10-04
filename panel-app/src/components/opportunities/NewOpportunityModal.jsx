@@ -117,80 +117,113 @@ export default function NewOpportunityModal({
             </span>
           </label>
         )}
-        <div className="flex gap-1.5">
-          {Object.keys(OPPORTUNITY_TYPE_LABELS).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => set({ type: key })}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                form.type === key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-              }`}
-            >
-              {tarafLabel(form.category, form.islemTipi, key)}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex gap-1.5">
-          {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => set({ islemTipi: key })}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                form.islemTipi === key ? 'bg-ink-800 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <select
-          value={form.category}
-          onChange={(e) => set({ category: e.target.value, odaSayisi: '' })}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-        >
-          {OPPORTUNITY_CATEGORIES.map((c) => (
-            <option key={c.key} value={c.key}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-
-        <input
-          required
-          value={form.leadAd}
-          onChange={(e) => set({ leadAd: e.target.value })}
-          onBlur={(e) => set({ leadAd: capitalizeWords(e.target.value) })}
-          placeholder="Ad Soyad"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
         <div>
+          <span className="mb-1 block text-xs font-medium text-ink-600">Müşteri ne istiyor?</span>
+          <div className="flex gap-1.5">
+            {Object.keys(OPPORTUNITY_TYPE_LABELS).map((key) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={form.type === key}
+                onClick={() => set({ type: key })}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                  form.type === key ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                }`}
+              >
+                {tarafLabel(form.category, form.islemTipi, key)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <span className="mb-1 block text-xs font-medium text-ink-600">Satılık mı, kiralık mı?</span>
+          <div className="flex gap-1.5">
+            {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={form.islemTipi === key}
+                onClick={() => set({ islemTipi: key })}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                  form.islemTipi === key ? 'bg-ink-800 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-kategori">
+            Kategori
+          </label>
+          <select
+            id="opp-new-kategori"
+            value={form.category}
+            onChange={(e) => set({ category: e.target.value, odaSayisi: '' })}
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          >
+            {OPPORTUNITY_CATEGORIES.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-ad">
+            Ad Soyad <span className="text-red-600">*</span>
+          </label>
           <input
+            id="opp-new-ad"
+            required
+            value={form.leadAd}
+            onChange={(e) => set({ leadAd: e.target.value })}
+            onBlur={(e) => set({ leadAd: capitalizeWords(e.target.value) })}
+            placeholder="Ad Soyad"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-telefon">
+            Telefon <span className="text-red-600">*</span>
+          </label>
+          <input
+            id="opp-new-telefon"
             ref={phoneRef}
             type="tel"
             value={form.leadTelefon}
             onChange={(e) => set({ leadTelefon: formatPhoneInput(e.target.value) })}
-            placeholder="Telefon"
+            placeholder="0 (5XX) XXX XX XX"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
           {!isPhoneComplete(form.leadTelefon) && (
             <p className="mt-1 text-xs text-red-600">Telefon 11 haneli olmalı — 0 (5XX) XXX XX XX</p>
           )}
         </div>
-        <input
-          required
-          value={form.konum}
-          onChange={(e) => set({ konum: e.target.value })}
-          onBlur={(e) => set({ konum: capitalizeWords(e.target.value) })}
-          placeholder="Mahalle (ör. Hürriyet Mahallesi) — zorunlu"
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+        <div>
+          <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-mahalle">
+            Mahalle <span className="text-red-600">*</span>
+          </label>
+          <input
+            id="opp-new-mahalle"
+            required
+            value={form.konum}
+            onChange={(e) => set({ konum: e.target.value })}
+            onBlur={(e) => set({ konum: capitalizeWords(e.target.value) })}
+            placeholder="ör. Hürriyet Mahallesi"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        </div>
 
         {isAlici ? (
           <div>
+            <span className="mb-1 block text-xs font-medium text-ink-600">
+              {isKiralik ? 'Kira bütçesi' : 'Bütçe'}
+            </span>
             <div className="flex gap-2">
               <input
                 inputMode="numeric"
@@ -210,48 +243,72 @@ export default function NewOpportunityModal({
             {budgetRangeInvalid && <p className="mt-1 text-xs text-red-600">Bütçe min, max'tan büyük olamaz.</p>}
           </div>
         ) : (
-          <input
-            inputMode="numeric"
-            value={form.fiyat}
-            onChange={(e) => set({ fiyat: formatThousands(e.target.value) })}
-            placeholder={isKiralik ? 'Aylık Kira (₺)' : 'Yaklaşık Fiyat (₺)'}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-fiyat">
+              {isKiralik ? 'Aylık Kira' : 'Fiyat'}
+            </label>
+            <input
+              id="opp-new-fiyat"
+              inputMode="numeric"
+              value={form.fiyat}
+              onChange={(e) => set({ fiyat: formatThousands(e.target.value) })}
+              placeholder={isKiralik ? 'Aylık Kira (₺)' : 'Yaklaşık Fiyat (₺)'}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </div>
         )}
 
         <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            min="0"
-            value={form.m2}
-            onChange={(e) => set({ m2: e.target.value })}
-            placeholder="m²"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-m2">
+              m²
+            </label>
+            <input
+              id="opp-new-m2"
+              type="number"
+              min="0"
+              value={form.m2}
+              onChange={(e) => set({ m2: e.target.value })}
+              placeholder="m²"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </div>
           {isKonut && (
-            <select
-              value={form.odaSayisi}
-              onChange={(e) => set({ odaSayisi: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-            >
-              <option value="">Oda sayısı seç</option>
-              {ODA_SAYISI_OPTIONS.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-oda">
+                Oda sayısı
+              </label>
+              <select
+                id="opp-new-oda"
+                value={form.odaSayisi}
+                onChange={(e) => set({ odaSayisi: e.target.value })}
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+              >
+                <option value="">Oda sayısı seç</option>
+                {ODA_SAYISI_OPTIONS.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
 
-        <textarea
-          value={form.ozet}
-          onChange={(e) => set({ ozet: e.target.value })}
-          onBlur={(e) => set({ ozet: capitalizeFirst(e.target.value) })}
-          placeholder="Ek notlar (konum yukarıdaki Mahalle alanına yazılmalı, buraya değil)"
-          rows={3}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
+        <div>
+          <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-ozet">
+            Ek notlar
+          </label>
+          <textarea
+            id="opp-new-ozet"
+            value={form.ozet}
+            onChange={(e) => set({ ozet: e.target.value })}
+            onBlur={(e) => set({ ozet: capitalizeFirst(e.target.value) })}
+            placeholder="Konum yukarıdaki Mahalle alanına yazılmalı, buraya değil"
+            rows={3}
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <button

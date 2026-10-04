@@ -3,6 +3,22 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Yeni Fırsat / Fırsatı Düzenle formlarına görünür etiket eklendi
+
+`/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) iki
+denetçinin de ayrı ayrı işaret ettiği bulgusu: form alanları sadece
+placeholder metniyle tanımlıydı (yazmaya başlayınca kayboluyordu),
+zorunlu alanlar işaretsizdi, Satıcı/Alıcı ve Satılık/Kiralık düğme
+gruplarının başlığı yoktu. `NewOpportunityModal.jsx` ve
+`EditOpportunityModal.jsx`'teki her alana kalıcı `<label>` eklendi
+(zorunlu olan Ad Soyad/Telefon/Mahalle'ye kırmızı `*`), düğme
+gruplarına "Müşteri ne istiyor?" / "Satılık mı, kiralık mı?" başlığı
+eklendi, seçim düğmelerine `aria-pressed` eklendi. "Kaydet"in pasif
+kalma davranışı DEĞİŞMEDİ (hangi alanın eksik olduğu artık etiketten
+belli, ayrı bir inline hata UI'ı eklenmedi — kapsam dışı bırakıldı).
+Playwright ile mock modda görsel doğrulandı. 154/154 test, lint, build
+temiz.
+
 ## 2026-10-04 — Fırsat tablosu mobilde kart görünümüne geçti, ikon düğmeler büyüdü
 
 `/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) iki
