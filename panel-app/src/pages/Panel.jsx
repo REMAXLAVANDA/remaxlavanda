@@ -268,17 +268,17 @@ function OpportunityMiniRow({ o }) {
       : formatPrice(o.fiyat)
   const detailBits = [o.odaSayisi, o.m2 ? `${o.m2} m²` : null].filter(Boolean)
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border-default px-3 py-2">
-      <div className="flex min-w-0 items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border border-border-default px-3 py-2">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
         <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
           {categoryLabel(o.category)}
         </span>
-        <span className="truncate text-sm font-medium text-text-primary">{o.konum ?? '—'}</span>
+        <span className="min-w-0 truncate text-sm font-medium text-text-primary">{o.konum ?? '—'}</span>
         {detailBits.length > 0 && (
           <span className="shrink-0 text-xs text-text-muted">{detailBits.join(' · ')}</span>
         )}
       </div>
-      <div className="shrink-0 whitespace-nowrap text-right text-xs">
+      <div className="ml-auto shrink-0 whitespace-nowrap text-right text-xs">
         <span className="font-medium text-text-secondary">{priceLabel}</span>
         <span className="ml-2 text-text-muted">{relativeTime(o.createdAt)}</span>
       </div>

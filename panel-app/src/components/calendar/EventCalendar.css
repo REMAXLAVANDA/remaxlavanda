@@ -35,6 +35,21 @@
   opacity: 0.75;
 }
 
+/* 375px'te 7 sütunluk ay görünümünde hücre ~35-40px'e düşüyor — "konu
+   her zaman tam, satır kayabilir" kararı (yukarıdaki not) burada tersine
+   dönüyor: uzun bir kelime (ör. "Toplantısı") satıra hiç sığmadığı için
+   break-word harf harf bölüyor, okunmaz hale geliyor (bkz. /kurul görsel
+   denetim bulgusu #14). Sadece telefon genişliğinde tek satır + "..." —
+   etkinliğe dokununca zaten EventDetailModal tam başlığı gösteriyor,
+   masaüstü/tablette orijinal "tam görünsün" davranışı değişmiyor. */
+@media (max-width: 480px) {
+  .fc-event-custom-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 /* Recruiting görüşmesi ikonu — renk marka paleti kısıtı yüzünden diğer
    türlerle aynı gri kaldığı için (bkz. lib/calendar.js), öncelik sinyalini
    burada, başlığın önündeki küçük ikon veriyor. */

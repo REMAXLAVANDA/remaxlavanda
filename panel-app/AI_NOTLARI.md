@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — İki mobil (375px) taşma/okunamama bulgusu düzeltildi
+
+`/kurul` görsel denetiminin iki bulgusu:
+1. **Panel'deki "Açık Fırsatlar" satırları** (`OpportunityMiniRow`,
+   Panel.jsx) 375px'te sağdaki fiyat/tarih bloğu kart kenarından taşıp
+   kırpılıyordu — satır tek sıraya zorlanıyordu (`shrink-0` + `flex`,
+   wrap yok). `flex-wrap` + fiyat/tarih bloğuna `ml-auto` eklendi: dar
+   ekranda blok ikinci satıra düşüyor, hiçbir şey kırpılmıyor.
+2. **Takvim ay görünümü** 375px'te (7 sütun, hücre ~35-40px) uzun
+   etkinlik adları (`overflow-wrap: break-word`, bilerek "tam görünsün"
+   diye satır kaymasına izin veriliyordu) kelime sığmadığı için harf
+   harf bölünüp okunmaz hale geliyordu. `EventCalendar.css`'e `@media
+   (max-width: 480px)` ile sadece telefon genişliğinde tek satır +
+   "..." eklendi — masaüstü/tablette "tam başlık" davranışı aynı kaldı,
+   dokununca zaten EventDetailModal tam başlığı gösteriyor.
+
+Mock modda 375px viewport'ta görsel olarak doğrulandı (öncesi/sonrası
+ekran görüntüleri). 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — `text-text-disabled` kontrast sorunu uygulama genelinde düzeltildi
 
 `/kurul` denetiminin bulgusu: `text-text-disabled` (#9AA1AD, beyaz
