@@ -8,10 +8,11 @@ import OperasyonTab from './firsatlar/OperasyonTab'
 // — sayfa yapısı sekme yerine ÜST ÜSTE iki bölüm olarak birleşik kalıyor:
 // en üstte Fırsatlar, altında Operasyon (bu karar değişmedi). /operasyon
 // linki aynı component'i render edip sayfayı doğrudan Operasyon bölümüne
-// kaydırır (Panel'den gelen bağlantılar dahil). Kenar çubuğundaki ayrı giriş
-// önce "menüyü sadeleştir" kararıyla kaldırılmıştı, "Operasyon'u nerede
-// bulacağım" geri bildirimi üzerine (2026-09-17) yeniden eklendi (bkz.
-// lib/modules.js) — sayfa/route yapısına dokunulmadı.
+// kaydırır — artık SADECE Panel'den gelen derin bağlantılar (Dikkat
+// Gerekiyor, Ofisin Nabzı kartı) bu route'u kullanıyor; kenar çubuğundaki
+// ayrı "Operasyon" girişi 2026-10-04'te kaldırıldı (Fırsatlar kısayken
+// ikisi ekranda neredeyse aynı görünüyordu, broker canlıda kafa karıştırıcı
+// buldu — bkz. lib/modules.js notu). Sayfa/route yapısına dokunulmadı.
 export default function Firsatlar() {
   const location = useLocation()
 

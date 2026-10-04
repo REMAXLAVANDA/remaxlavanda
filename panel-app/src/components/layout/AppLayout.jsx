@@ -10,10 +10,13 @@ function useCurrentTitle() {
   const { pathname } = useLocation()
   if (pathname.startsWith('/ayarlar')) return 'Ayarlar'
   // /egitim artık ayrı bir menü değil, Takip sayfasının bir bölümü (bkz.
-  // pages/Takip.jsx) — ama link olarak hâlâ çalışıyor. /operasyon ise
-  // yeniden kendi sidebar girişine sahip (2026-09-17, bkz. lib/modules.js)
-  // — MODULES üzerinden aşağıda otomatik eşleşiyor, özel case'e gerek yok.
+  // pages/Takip.jsx) — ama link olarak hâlâ çalışıyor. /operasyon da AYNI
+  // şekilde: kendi sidebar girişi 2026-10-04'te kaldırıldı (bkz.
+  // lib/modules.js), ama Panel'den gelen derin bağlantılar hâlâ /operasyon'a
+  // gidiyor — o yüzden başlık burada Fırsatlar'a eşleniyor, gerçekte
+  // olduğu sayfa bu.
   if (pathname.startsWith('/egitim')) return 'Takip'
+  if (pathname.startsWith('/operasyon')) return 'Fırsatlar'
   const active = MODULES.find((m) => pathname.startsWith(m.path))
   return active?.label ?? 'RE/MAX Lavanda'
 }

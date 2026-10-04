@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — "Operasyon" kenar çubuğu girişi kaldırıldı (2026-09-17 kararının tersine çevrilmesi)
+
+Broker canlıda fark etti: Fırsatlar ve Operasyon aynı sayfanın (pages/
+Firsatlar.jsx) iki üst-üste bölümü olduğu için, Fırsatlar kısa/kapalıyken
+"Fırsatlar"a tıklamak bile ekranda Operasyon'un çağrı listesini gösteriyor
+— iki ayrı menü girdisi varmış gibi ama içerik aynı görünüyordu (ekran
+görüntüleriyle doğrulandı). Bu, 2026-09-17'de "Operasyon'u nerede
+bulacağım" geri bildirimiyle eklenen kenar çubuğu girişini tersine
+çevirme kararına yol açtı: `lib/modules.js`'teki `operasyon` modülü
+kaldırıldı, SADECE Panel'den gelen derin bağlantılar (`/operasyon`
+route'u, Dikkat Gerekiyor ve Ofisin Nabzı kartları) hâlâ çalışıyor.
+`AppLayout.jsx`'teki sayfa başlığı artık `/operasyon` için de "Fırsatlar"
+gösteriyor (`/egitim`→"Takip" ile aynı desen) — MODULES'tan silinen bir
+girişle eşleşmediği için önceden "RE/MAX Lavanda"ya düşerdi. Playwright
+ile hem sidebar hem Panel'den gelen derin bağlantı mock modda doğrulandı.
+154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Yeni Fırsat / Fırsatı Düzenle formlarına görünür etiket eklendi
 
 `/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) iki

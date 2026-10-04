@@ -11,7 +11,6 @@ import {
   BookOpen,
   Inbox,
   UserSearch,
-  Home,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -58,21 +57,15 @@ export const MODULES = [
     roles: ALL_ROLES,
     group: 'operasyon',
   },
-  {
-    key: 'operasyon',
-    path: '/operasyon',
-    label: 'Operasyon',
-    // Fırsatlar ve Operasyon aynı sayfanın (pages/Firsatlar.jsx) iki üst-üste
-    // bölümü — bu mimari DEĞİŞMEDİ. Sidebar girişi önce sadeleştirme
-    // kararıyla kaldırılmıştı, "Operasyon'u nerede bulacağım" geri
-    // bildirimi üzerine (2026-09-17) geri eklendi: tıklanınca zaten var olan
-    // /operasyon route'una gidip sayfayı doğrudan Operasyon bölümüne
-    // kaydırıyor (bkz. Firsatlar.jsx) — yeni bir route/component yok.
-    description: 'Gelen çağrıların görüşme ve portföy takibi',
-    icon: Home,
-    roles: ALL_ROLES,
-    group: 'operasyon',
-  },
+  // "Operasyon" 2026-09-17'de ayrı bir sidebar girişi olarak eklenmişti
+  // ("Operasyon'u nerede bulacağım" geri bildirimi) ama Fırsatlar ve
+  // Operasyon aynı sayfanın (pages/Firsatlar.jsx) iki üst-üste bölümü
+  // olduğu için Fırsatlar kısa/kapalıyken ikisi ekranda neredeyse aynı
+  // görünüyordu — broker canlıda bunu kafa karıştırıcı buldu (2026-10-04,
+  // bkz. /kurul görsel+kullanılabilirlik raporunun B13 bulgusuyla da
+  // örtüşüyor). Sidebar girişi bu yüzden KALDIRILDI — ama /operasyon
+  // route'u ve Panel'deki derin bağlantılar (Dikkat Gerekiyor, Ofisin
+  // Nabzı kartı) hâlâ çalışıyor, sadece ayrı bir menü maddesi yok artık.
   {
     key: 'leads',
     path: '/leads',
