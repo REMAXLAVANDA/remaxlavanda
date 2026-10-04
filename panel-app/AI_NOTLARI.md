@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Takvim'de pasif danışmanın mazereti artık isimsiz görünmüyor
+
+Broker geri bildirimi: bir etkinlikte "şehir dışında olacağım" mazereti
+vardı ama kimin bildirdiği belli değildi. Kök neden Operasyon/Fırsatlar'da
+daha önce bulunanla aynı: `TakvimTab.jsx`'teki `userName`, sadece aktif
+kullanıcıları içeren `knownUsers`'a bakıyordu — mazereti bildiren danışman
+o sırada pasife alınmışsa ismi "—" gösteriliyordu. Yönetici rolleri için
+artık `usersProvider.listAll()` ile pasif kullanıcılar da çözülüyor,
+isim bulunamazsa "(pasif)" etiketiyle gösteriliyor. 154/154 test, lint,
+build temiz.
+
 ## 2026-10-04 — Takvim davetli listesinde broker/owner/ofis/test hesabı çıkmıyor
 
 Broker isteği: etkinlik oluştururken "Davetliler ve Katılım Tipi"

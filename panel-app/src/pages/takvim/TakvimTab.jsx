@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { calendarEvents as calendarProvider } from '../../lib/dataProvider'
+import { calendarEvents as calendarProvider, users as usersProvider } from '../../lib/dataProvider'
 import { canViewEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS } from '../../lib/calendar'
 import { meetingAttendPercent } from '../../lib/takip'
 import { sortByName } from '../../lib/format'
@@ -29,11 +29,14 @@ export default function TakvimTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
+  const isManager = CAN_MANAGE_ROLES.includes(role)
   const { data, setData, loading, error, reload } = useAsyncList(
-    () => Promise.all([calendarProvider.list(), calendarProvider.listAttendance()]).then(([events, attendance]) => ({
-      events,
-      attendance,
-    })),
+    () =>
+      Promise.all([
+        calendarProvider.list(),
+        calendarProvider.listAttendance(),
+        isManager ? usersProvider.listAll() : Promise.resolve([]),
+      ]).then(([events, attendance, allUsers]) => ({ events, attendance, allUsers })),
     [],
   )
   const [typeFilter, setTypeFilter] = useState('tumu')
@@ -47,11 +50,23 @@ export default function TakvimTab() {
   const [joining, setJoining] = useState(false)
   const [addingInvitees, setAddingInvitees] = useState(false)
 
-  const isManager = CAN_MANAGE_ROLES.includes(role)
   const events = data?.events ?? EMPTY
   const attendance = data?.attendance ?? EMPTY
 
-  const userName = (id) => knownUsers[id]?.name ?? '—'
+  // knownUsers SADECE aktif kullanıcıları içeriyor (listKnown() RLS'i) —
+  // bir mazeret/davetli ismi pasif bir danışmana aitse "—" gösteriliyordu,
+  // broker kimin mazeret bildirdiğini anlayamıyordu (bkz. Operasyon/
+  // Fırsatlar'daki aynı düzeltme, 2026-10-04 broker geri bildirimi).
+  const allUsersById = useMemo(() => {
+    const map = {}
+    for (const u of data?.allUsers ?? EMPTY) map[u.id] = u
+    return map
+  }, [data])
+  const userName = (id) => {
+    if (knownUsers[id]) return knownUsers[id].name
+    const u = allUsersById[id]
+    return u ? `${u.name} (pasif)` : '—'
+  }
 
   const visible = useMemo(() => {
     return events
