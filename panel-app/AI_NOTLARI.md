@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Form pencereleri artık yanlışlıkla kapanıp veri silmiyor
+
+`/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) 3. kritik
+bulgusu: `Modal.jsx` arka plana tıklanınca veya ESC'ye basılınca her zaman
+onaysız kapanıyordu — mobilde pencere kenarındaki dar boşluğa (16px)
+kayarken değen başparmak, yazılmakta olan formu sessizce siliyordu.
+`Modal`'a `dismissible` prop'u eklendi (varsayılan `true`, davranış
+değişmedi); `false` verilince arka plan tıklaması ve ESC artık hiçbir şey
+yapmıyor — X düğmesi ve formun kendi "Vazgeç" düğmesi (bilerek hedeflenen
+kapatma yolları) hâlâ çalışıyor. Bu, veri girilen 4 form penceresine
+uygulandı: Yeni Fırsat (Fırsata Çevir de aynı bileşeni kullanıyor),
+Fırsatı Düzenle, Yeni Çağrı, Müşteri Notu. `useEscapeKey` hook'u da
+`onEscape` tanımsızken artık güvenle no-op oluyor (`onEscape?.()`).
+154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Fırsat kapatma (Müşteri Bulundu/Bulunamadı) artık onay istiyor
 
 `/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) 2. kritik

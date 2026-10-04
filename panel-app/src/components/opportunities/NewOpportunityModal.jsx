@@ -74,7 +74,7 @@ export default function NewOpportunityModal({
     isPhoneComplete(form.leadTelefon)
 
   return (
-    <Modal title="Yeni Fırsat" onClose={onClose}>
+    <Modal title="Yeni Fırsat" onClose={onClose} dismissible={false}>
       <form
         onSubmit={(e) => {
           e.preventDefault()

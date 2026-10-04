@@ -8,11 +8,19 @@ const FOCUSABLE_SELECTOR =
 // Paylaşılan modal kabuğu — TÜM modallar bunu kullanır. Tek yerden:
 // ESC ile kapatma, arka plana tıklayınca kapatma, ilk form alanına otomatik
 // odak, Tab ile modal içinde döngü (focus trap), ARIA (role=dialog).
-export default function Modal({ title, onClose, children, maxWidth = 'max-w-md' }) {
+//
+// dismissible=false: form içeren pencerelerde (Yeni Fırsat, Fırsatı
+// Düzenle, Yeni Çağrı, Müşteri Notu) arka plana dokunma veya ESC artık
+// pencereyi KAPATMIYOR — mobilde pencere kenarındaki dar boşluğa (p-4)
+// kayarken değen başparmak yazılmış formu sessizce siliyordu (bkz. /kurul
+// görsel+kullanılabilirlik raporu, 2026-10-04, madde 3). X düğmesi ve
+// formun kendi "Vazgeç" düğmesi hâlâ çalışır — bunlar kazara değil,
+// bilerek hedeflenen kapatma yolları.
+export default function Modal({ title, onClose, children, maxWidth = 'max-w-md', dismissible = true }) {
   const panelRef = useRef(null)
   const contentRef = useRef(null)
 
-  useEscapeKey(onClose)
+  useEscapeKey(dismissible ? onClose : undefined)
 
   // Tab / Shift+Tab modalın dışına kaçmasın — klavye ile tamamen kullanılabilir olsun.
   useEffect(() => {
@@ -41,7 +49,10 @@ export default function Modal({ title, onClose, children, maxWidth = 'max-w-md' 
   }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      onClick={dismissible ? onClose : undefined}
+    >
       <div
         ref={panelRef}
         role="dialog"
