@@ -97,7 +97,7 @@ Kural:
 
 ## RLS/Performans Dersleri — "Donma" Olayları Kontrol Listesi (2026-10-03)
 
-2026-09-03'ten bugüne 9 ayrı "portal açılmıyor/donuyor" olayı yaşandı
+2026-09-03'ten bugüne 10 ayrı "portal açılmıyor/donuyor" olayı yaşandı
 (tam döküm için AI_NOTLARI.md'de o tarihlerdeki kayıtlara bakılabilir).
 4'ü aynı kök kalıba düşüyor: RLS politikaları ve içlerinde kullanılan
 fonksiyonlar. İkisi aynı gün art arda oldu (09-27 sabah fix, öğleden
@@ -131,11 +131,27 @@ RLS/fonksiyon değişikliklerinde aşağıdaki kontrol listesi ZORUNLU:
    duyuyor" sorusu sorulmalı (bkz. 09-28 call_logs olayı).
 6. Yeni sayfa/veri yükleme her zaman `useAsyncList` hook'u üzerinden
    gitmeli, kendi `Promise.all` deseni kurulmamalı — zaman aşımı/sessiz
-   yeniden deneme/kısmi hata toleransı (`Promise.allSettled`) hazır
-   gelir, tek bir yavaş sorgu tüm sayfayı kilitlemez.
+   yeniden deneme hazır gelir. AMA bir sayfa `loadAll()` içinde BİRDEN
+   FAZLA sorguyu `Promise.allSettled` ile paralel çekiyorsa (Panel gibi),
+   her sorgu `fetchWithRetry()` ile AYRI AYRI sarmalanmalı — sadece
+   dıştaki `useAsyncList` sarmalamasına güvenmek yetmez, çünkü dıştaki tek
+   zaman aşımı TÜM `loadAll()`'un bitmesini bekler; 17 sorgudan biri ara
+   sıra yavaşlarsa (bkz. 10. olay, 2026-10-04 — "portal açılmıyor"
+   şikayeti, pg_stat_statements'ta doğrulandı) dıştaki sınır erken dolup
+   TÜM sayfayı "zaman aşımı" hatasına düşürür, diğer 16 sorgu bitmiş olsa
+   bile. Bu durumda dıştaki `useAsyncList`'e de `{ timeoutMs }`
+   opsiyonuyla, içteki en kötü senaryoya (tek sorgunun kendi 8+8sn'lik
+   döngüsü) yetecek bir üst sınır verilmeli.
 7. Yeni bir foreign key eklenen migration'da, o kolona index eklemek
    varsayılan adım olmalı — sonradan ayrı bir "kilitlenme" turu
    beklenmemeli (bkz. 09-29 Lig period_id olayı).
+8. "Donma" her zaman RLS/fonksiyon kaynaklı değildir — bağlantı havuzu
+   sıkışması gibi geçici gecikmeler de (ortalama hızlı, ara sıra 5-8sn'ye
+   sıçrayan sorgular) aynı belirtiyi (sayfa açılmıyor) verir.
+   `pg_stat_statements`'taki `max_exec_time`/`mean_exec_time` farkı bu
+   ayrımı yapmanın hızlı bir yolu — fark büyükse (10. olaydaki gibi) kök
+   neden muhtemelen eşzamanlılık/havuz, sürekli yüksekse muhtemelen
+   eksik indeks/RLS.
 
 # Portal Kurulu (denetçi ajanlar) — proje kuralları
 
