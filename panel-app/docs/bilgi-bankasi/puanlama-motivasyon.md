@@ -111,6 +111,14 @@ Lig modülünü (`lib/league.js`, `pages/Lig.jsx`) koddan inceledim:
   körüklemek istiyor), yoksa gözden mi kaçtı? [İhlal] DEĞİL —
   CLAUDE.md'de bunu yasaklayan bir kural yok, sadece bilinçli karar mı
   diye sorulmalı.
+
+  **Broker kararı (2026-10-04):** Bilinçli tercih — "işini iyi yapan
+  vezir yapmayan rezil olsun istiyorum." Tam sıralama (rank dahil,
+  diff'le birlikte) artık AÇIK dönemde de danışmana gösteriliyor,
+  "aciklandi" beklemiyor (bkz. Lig.jsx, /kurul "danışman takip
+  menüleri" denetimi). Yukarıdaki araştırmanın "yumuşat" önerisi
+  bilerek reddedildi — not düşülüyor ki ileride "zaten biliniyordu,
+  neden böyle" diye tekrar sorulmasın.
 - **is-degeri-analisti için [Görüş]:** Ciro kategorisinin danışmanın
   kontrolü dışındaki faktörlerden (bölge, lead kaynağı) ne kadar
   etkilendiği modül tamamlandığında araştırılabilir — bu araştırmada

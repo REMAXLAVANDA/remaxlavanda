@@ -3,6 +3,29 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Danışman Lig'de artık açık dönemde de tam listeyi görüyor
+
+`/kurul` denetiminin Sapma maddesi: danışman açık dönemde sadece
+podyumdaki ilk 3'ü görüyordu, 4-17. sıradaki 14 danışman dönem boyunca
+(4 ay) hiç geri bildirim almıyordu. İki seçenek sunuldu (sadece kendi
+sırası/farkı özel olarak gösterilsin, ya da tam liste herkese açılsın)
+— broker net karar verdi: "işini iyi yapan vezir yapmayan rezil olsun
+istiyorum." Tam liste (rank dahil) artık AÇIK dönemde de gösteriliyor,
+"açıklandı" beklemiyor.
+
+Teknik not: bu sadece bir ekran kısıtıydı — backend zaten izin
+veriyordu (`can_view_period_ranking()` SQL fonksiyonu dönem 'acik'
+iken herkese true dönüyor, migration gerekmedi). `Lig.jsx`'teki
+`(isManager || effectiveDurum === 'aciklandi')` koşulu kaldırıldı,
+sadece `!isBlackedOut` kaldı. Ham müşteri/aktivite satırları (ciro_
+musterileri vb.) hâlâ sadece kendi satırına açık — sadece toplam
+skor/sıra herkese açıldı, kişisel detay sızmıyor (RLS kontrol edildi).
+`docs/bilgi-bankasi/puanlama-motivasyon.md`'ye broker'ın bu kararı not
+düşüldü (araştırma "yumuşat" öneriyordu, bilerek reddedildi). Mock
+modda (geçici tarih değişikliğiyle, commit edilmedi) açık dönemde
+danışmanın tam Ciro/Memnuniyet/Sosyal Medya listelerini gördüğü
+doğrulandı. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Danışman için de "Dikkat Gerekiyor" eklendi
 
 `/kurul` denetiminin ("danışman takip menüleri") Sapma maddesi (3

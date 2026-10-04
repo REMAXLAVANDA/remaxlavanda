@@ -602,17 +602,24 @@ export default function Lig() {
       )}
 
       {/* Detaylı sıralama listesi (herkesin adı + görece farkı). Yönetime
-          (broker/owner/ofis) her zaman açık. Danışman normalde sadece
-          podyumdaki ilk 3'ü ve kendi Yorum Hakkı satırını görür — ama dönem
-          "açıklandı" olduysa broker kararı gereği (2026-09-02: "'aciklandi'
-          olunca danışman o dönemin TAM sıralamasını görür, hep") tam liste
-          burada da açılıyor. Danışman görünümünde ekleme/silme/expand
+          (broker/owner/ofis) her zaman açık. 2026-10-04 broker kararı
+          (/kurul "danışman takip menüleri" denetimi Sapma maddesi):
+          danışman eskiden sadece podyumdaki ilk 3'ü görüyordu, 4-17.
+          sıradaki 14 danışman dönem boyunca hiç geri bildirim almıyordu.
+          Broker açıkça "işini iyi yapan ödüllensin, yapmayan görsün"
+          dedi — tam liste artık AÇIK dönemde de danışmana gösteriliyor,
+          "açıklandı" beklemiyor (bkz. docs/bilgi-bankasi/
+          puanlama-motivasyon.md'deki "yumuşat" önerisinin broker
+          tarafından bilinçli olarak reddedildiği not). Bu zaten backend'in
+          izin verdiği bir şeydi (can_view_period_ranking() SQL fonksiyonu
+          dönem 'acik' iken HERKESE true dönüyor) — sadece burdaki ekran
+          kısıtı kaldırıldı. Danışman görünümünde ekleme/silme/expand
           prop'ları hiç verilmiyor: bu veriye zaten arka planda erişimi yok
-          (ciro_musterileri/ciro_girisleri/social_activity_log RLS'i
-          "aciklandi" ile genişlemiyor — sadece score_entries toplamı
-          açılıyor, bkz. migration notu), satırlar boş açılan bir tıklama
-          gibi görünmesin diye. */}
-      {(isManager || effectiveDurum === 'aciklandi') && !isBlackedOut && !loading && !error && period && (
+          (ciro_musterileri/ciro_girisleri/social_activity_log'un HAM
+          satırları hâlâ sadece kendi satırına açık, sadece score_entries/
+          musteriReviewCounts TOPLAMI herkese açılıyor), satırlar boş
+          açılan bir tıklama gibi görünmesin diye. */}
+      {!isBlackedOut && !loading && !error && period && (
         <>
           <div className="mb-5 flex gap-1 border-b border-border-default">
             {LEAGUE_CATEGORIES.map((c) => {
