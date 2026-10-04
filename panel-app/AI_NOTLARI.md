@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Etkinlik katılımında geriye dönük düzenleme sınırlandı (G1)
+
+`/kurul` kademeli menü denetiminin yayına-engel bulgusu: danışman, geçmiş
+bir etkinlikte (otomatik "katilmadi" yazılmış ya da reddedilmiş mazeret)
+"Katılacağım"/"Mazeret Bildir" ile sağlık skorundaki cezayı geriye dönük
+sessizce silebiliyordu. Broker kararı: danışman etkinlik bitmeden önce
+değiştirebilir, bittikten sonra hiç dokunamaz; owner/ofis katılımcı
+durumunu en fazla 7 gün geriye dönük düzeltebilir (ofis bu kayıtları
+genelde ertesi gün/haftada işliyor); broker'da zaman sınırı yok.
+`event_attendance_update_self`/`_manager` RLS politikaları buna göre
+güncellendi, rol simülasyonuyla 4 senaryo (danışman geçmişte engellendi,
+ofis 7 gün içinde/dışında, broker sınırsız) doğrulandı. Arayüz
+(`EventDetailModal.jsx`) aynı kuralı `canSelfEditAttendance`/
+`canManagerEditAttendance` (lib/calendar.js) ile yansıtıyor.
+
 ## 2026-10-03 — Genel görsel denetimin kalan 10 bulgusu tamamlandı
 
 Önceki "Genel görsel denetim" girdisindeki 15 bekleyen bulgudan 10'u
