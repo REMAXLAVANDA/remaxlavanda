@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Panel'deki bekleyen-iş widget'ları tarih filtresinden bağımsız
+
+`/kurul` denetiminin yayına-engel bulgusu: "Sana Atanan Çağrılar" ve
+"Açık Fırsatlar" widget'ları Panel'in üstteki 7 günlük varsayılan tarih
+filtresine tabiydi — bu bir bekleyen-iş listesiydi, rapor aralığı değil.
+Canlıda takip gerektiren çağrıların %76'sı bu yüzden danışmana hiç
+görünmüyordu, ekran "Bekleyen çağrı yok, harika!" diyordu. Broker/owner'ın
+"Dikkat Gerekiyor" bloğu zaten aynı sebeple tarih filtresinden
+bağımsızdı — aynı mantık bu iki widget'a da uygulandı
+(`pendingCalls`/`openOpportunities`, Panel.jsx). Mock modda doğrulandı:
+"7 gün" filtresi seçiliyken 10 gün ve 2 ay önceki kayıtlar artık
+görünüyor.
+
 ## 2026-10-04 — Danışman kendi users satırında skor-etkileyen alanları değiştiremiyor (G1)
 
 `/kurul` denetiminin ("danışman takip menüleri") yayına-engel bulgusu:
