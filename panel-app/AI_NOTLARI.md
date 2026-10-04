@@ -3,6 +3,32 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Çağrı detay koruması genişletildi (G2), katılım kaydı kimliği kilitlendi (G4)
+
+`/kurul` denetiminin iki güvenlik bulgusu — ikisi de arayüzde hiç
+görünmeyen, doğrudan veritabanına yazarak atlanabilen açıklar:
+
+- **G2:** `enforce_call_logs_detail_edit_window()` trigger'ı zaten
+  `arayan_ad`/`arayan_telefon`/`kaynak`'ı koruyordu (broker her zaman,
+  owner/ofis 7 gün içinde, danışman asla) ama aynı ekranın (Çağrı
+  Bilgilerini Düzenle) düzenlediği `reklam_kodu`/`portfoy_talebi_mi`'yi
+  ve hiçbir ekranda düzenlenmeyen `created_at`'i unutmuştu — danışman
+  kendi çağrısında bunları doğrudan UPDATE ile değiştirebiliyordu. Aynı
+  trigger'a eklendi.
+- **G4:** `event_attendance.event_id`/`user_id`/`katilim_tipi`
+  uygulamanın hiçbir akışında (yönetim dahil) UPDATE ile
+  değiştirilmiyor — sadece satır oluşturulurken bir kere yazılıyor.
+  Danışman kendi katılım satırının `event_id`'sini başka bir etkinliğe
+  taşıyıp zorunlu bir toplantının takibinden kaçabiliyordu. Yeni
+  trigger (`trg_prevent_event_attendance_identity_change`) bu 3 alanı
+  HERKES için (yönetim dahil, kimsenin ihtiyacı yok) UPDATE sonrası
+  değişmez yapıyor.
+
+Canlıda transaction+rollback ile (veri değiştirmeden) 4 senaryoyla
+doğrulandı: danışman reklam_kodu değiştirmeyi denedi engellendi,
+normal alan (donus_yapildi_mi) güncelleyebildi, event_id taşımayı
+denedi engellendi, normal mazeret bildirebildi.
+
 ## 2026-10-04 — Broker/owner/ofis/test hesapları artık Katılımcılar listesinde de görünmüyor
 
 Daha önce sadece YENİ davet eklerken (davetli seçici) broker/owner/ofis/
