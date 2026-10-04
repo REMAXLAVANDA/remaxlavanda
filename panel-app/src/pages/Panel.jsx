@@ -27,6 +27,7 @@ import {
   users as usersProvider,
   leads as leadsProvider,
   recruiting as recruitingProvider,
+  tasks as tasksProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
 import { matchesKayitTipiFilter, computeRecruitingReklamConversion } from '../lib/recruiting'
@@ -50,6 +51,7 @@ import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, periodEffectiveDurum, periodScoresFor, rankingsByCategoryFor } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
 import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation, isRecruitingStalled } from '../lib/attention'
+import { isOverdue } from '../lib/tasks'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 import DateRangeFilter from '../components/common/DateRangeFilter'
@@ -82,6 +84,7 @@ const LOAD_ALL_KEYS = [
   'musteriReviewCounts',
   'leads',
   'recruitingCandidates',
+  'tasks',
 ]
 
 // "Hiç donma yaşanmasın" isteği (2026-09-24) — 17 sorgudan biri gerçekten
@@ -131,6 +134,7 @@ async function loadAll() {
     // burada koşulsuz çekiliyor (Panel'in geri kalanıyla aynı desen).
     fetchWithRetry(() => leadsProvider.list()),
     fetchWithRetry(() => recruitingProvider.list()),
+    fetchWithRetry(() => tasksProvider.list()),
   ])
 
   const data = { hasPartialFailure: false }
@@ -631,6 +635,53 @@ export default function Panel() {
     return items
   }, [data, activityRanking, educationGaps])
 
+  // --- Danışman: broker/owner'ın "Dikkat Gerekiyor"una eşdeğer, ama
+  // SADECE kendi kayıtlarına bakıyor. 2026-10-04 /kurul bulgusu ("Sapma",
+  // 3 denetçi): danışman kendi gecikmelerini (bekleyen çağrı, süresi
+  // geçmiş görev, eski açık fırsat) görmek için birkaç ayrı sayfaya
+  // girmeyi hatırlamak zorundaydı, Panel'de hiçbir eşdeğer sinyal yoktu.
+  // Fırsatlar için ownerId (kendi listelediği) kullanılıyor — claimerId
+  // değil, çünkü üstlenilen bir fırsat 'claimed' durumuna geçiyor,
+  // isStaleOpp sadece hâlâ 'acik' olanı yakalıyor (kendi girip de
+  // ilerletmediği bir kayıt).
+  const myAttentionItems = useMemo(() => {
+    if (!data || !isDanisman) return []
+    const now = Date.now()
+    const items = []
+
+    const myStaleReturns = data.calls.filter((c) => c.assignedTo === user.id && isStaleReturn(c, now))
+    if (myStaleReturns.length > 0) {
+      items.push({
+        id: 'my-stale-returns',
+        severity: 'kritik',
+        to: '/operasyon?odak=cagri',
+        text: `${myStaleReturns.length} çağrıda 2 günden uzun süredir dönüş yapmadın`,
+      })
+    }
+
+    const myStaleOpps = data.opps.filter((o) => o.ownerId === user.id && isStaleOpp(o, now))
+    if (myStaleOpps.length > 0) {
+      items.push({
+        id: 'my-stale-opps',
+        severity: 'uyari',
+        to: '/firsatlar?odak=firsat',
+        text: `${myStaleOpps.length} fırsatın 3 günden uzun süredir hareketsiz`,
+      })
+    }
+
+    const myOverdueTasks = (data.tasks ?? []).filter((t) => t.assigneeId === user.id && isOverdue(t))
+    if (myOverdueTasks.length > 0) {
+      items.push({
+        id: 'my-overdue-tasks',
+        severity: 'uyari',
+        to: '/gorevler',
+        text: `${myOverdueTasks.length} görevinin süresi geçti`,
+      })
+    }
+
+    return items
+  }, [data, isDanisman, user.id])
+
   // --- Broker raporu: "Ofisin Nabzı" — 6 küçük KPI kutusu (bkz.
   // OfisinNabziGrid). Lead Havuzu ayrı kutu DEĞİL, Operasyon'un detay
   // satırına dahil edildi (bkz. brief). Kritik Uyarılar kutusu bir sayfaya
@@ -1024,12 +1075,13 @@ export default function Panel() {
         </div>
       )}
 
-      {/* Danışman: açıkça istenen sabit sıra — Lig Durumu, Açık Fırsatlar,
-          Sana Atanan Çağrılar, Yaklaşan Etkinlikler, Eğitim/Checklist
-          Durumun. Tek sütun kullanılıyor ki md:grid-flow-row-dense sırayı
-          karıştırmasın. */}
+      {/* Danışman: açıkça istenen sabit sıra — Dikkat Gerekiyor (kendi
+          gecikmeleri), Lig Durumu, Açık Fırsatlar, Sana Atanan Çağrılar,
+          Yaklaşan Etkinlikler, Eğitim/Checklist Durumun. Tek sütun
+          kullanılıyor ki md:grid-flow-row-dense sırayı karıştırmasın. */}
       {!loading && !error && isDanisman && (
         <div className="flex flex-col gap-4">
+          <DikkatGerekiyorList items={myAttentionItems} />
           {ligDurumuBlock}
           {opportunitiesWidgetDanisman}
           {callsWidget}

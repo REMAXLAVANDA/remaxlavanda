@@ -3,6 +3,28 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Danışman için de "Dikkat Gerekiyor" eklendi
+
+`/kurul` denetiminin ("danışman takip menüleri") Sapma maddesi (3
+denetçi): broker/owner'ın Panel'inde gecikmeleri otomatik toplayan
+"Dikkat Gerekiyor" kutusu var, danışmanın yoktu — kendi gecikmelerini
+görmek için Operasyon/Fırsatlar/Görevler'e tek tek girip hatırlaması
+gerekiyordu. Broker onayıyla eklendi: Panel.jsx'teki `myAttentionItems`
+— SADECE o danışmanın kendi kayıtlarına bakıyor (broker'ınkiyle aynı
+kriterler, `lib/attention.js`'teki `isStaleReturn`/`isStaleOpp` ve
+`lib/tasks.js`'teki `isOverdue` yeniden kullanıldı, sadece kullanıcı
+ID'sine göre filtrelendi):
+- 2 günden uzun dönüş yapılmamış kendi çağrıları,
+- kendi listelediği (ownerId), 3 günden uzun hareketsiz kalmış açık
+  fırsatlar (üstlendiği/claimed olanlar değil — isStaleOpp zaten sadece
+  'acik' durumunu yakalıyor),
+- süresi geçmiş kendi görevleri (yeni eklenen `tasks` sorgusu, 18.
+  paralel istek).
+
+Danışman panelinde en üstte (Lig Durumu'ndan önce) gösteriliyor, aynı
+`DikkatGerekiyorList` bileşeni yeniden kullanıldı. Mock modda hem
+masaüstü hem 375px'te doğrulandı. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — İki mobil (375px) taşma/okunamama bulgusu düzeltildi
 
 `/kurul` görsel denetiminin iki bulgusu:
