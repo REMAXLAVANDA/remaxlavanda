@@ -992,11 +992,15 @@ async function recomputeCiroTotal(userId, periodId, enteredBy) {
 }
 
 // logSocialActivity ve removeSocialActivity ORTAK — aynı mantık.
+// Toplam, girişin yapıldığı andaki puanı sabitleyen puan_snapshot'tan
+// hesaplanır — social_activity_types.puan'ın GÜNCEL değerinden değil
+// (bkz. /kurul veri-zinciri bulgusu 2: aksi halde broker bir aktivitenin
+// puanını değiştirince açıklanmış dönemler dahil tüm geçmiş toplamlar
+// sessizce değişiyordu).
 async function recomputeSocialTotal(userId, periodId, enteredBy) {
-  const [logs, types] = await Promise.all([
-    run(client().from('social_activity_log').select('activity_type_id, adet').eq('user_id', userId).eq('period_id', periodId)),
-    run(client().from('social_activity_types').select('id, puan')),
-  ])
+  const logs = await run(
+    client().from('social_activity_log').select('adet, puan_snapshot').eq('user_id', userId).eq('period_id', periodId),
+  )
   const existing = await run(
     client().from('score_entries').select('id').eq('user_id', userId).eq('period_id', periodId).eq('type', 'sosyal_medya').maybeSingle(),
   )
@@ -1007,8 +1011,7 @@ async function recomputeSocialTotal(userId, periodId, enteredBy) {
     }
     return
   }
-  const puanMap = Object.fromEntries(types.map((t) => [t.id, Number(t.puan)]))
-  const total = logs.reduce((sum, l) => sum + Number(l.adet) * (puanMap[l.activity_type_id] ?? 0), 0)
+  const total = logs.reduce((sum, l) => sum + Number(l.adet) * Number(l.puan_snapshot), 0)
   if (existing) {
     await run(client().from('score_entries').update({ value: total }).eq('id', existing.id))
   } else {
