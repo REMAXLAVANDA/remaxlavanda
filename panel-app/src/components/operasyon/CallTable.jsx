@@ -298,6 +298,11 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
   if (!isManager) {
     return <span className="whitespace-nowrap text-xs text-ink-500">{call.assignedTo ? resolveName(call.assignedTo) : 'Atanmadı'}</span>
   }
+  // Çağrı pasife alınmış birine atanmışsa inviteeOptions'ta (sadece aktif
+  // kullanıcılar — yeniden bu kişiye atanamasın diye bilerek) karşılığı
+  // yok; select'in "hiçbiri seçili değil" gibi boş görünüp "Atanmadı"yla
+  // karışmaması için isim, seçilemez bir ek seçenek olarak ekleniyor.
+  const assignedIsKnown = call.assignedTo && inviteeOptions.some((u) => u.id === call.assignedTo)
   return (
     <>
       <select
@@ -310,6 +315,11 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
         className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
       >
         <option value="">Atanmadı</option>
+        {call.assignedTo && !assignedIsKnown && (
+          <option value={call.assignedTo} disabled>
+            {resolveName(call.assignedTo)}
+          </option>
+        )}
         {inviteeOptions.map((u) => (
           <option key={u.id} value={u.id}>
             {u.name}

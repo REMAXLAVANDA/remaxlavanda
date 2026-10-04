@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { opportunities as opportunitiesProvider } from '../../lib/dataProvider'
+import { opportunities as opportunitiesProvider, users as usersProvider } from '../../lib/dataProvider'
 import {
   canCloseOpportunity,
   canDeleteOpportunity,
@@ -35,10 +35,26 @@ export default function FirsatlarTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
-  const { data: opportunities, setData: setOpportunities, loading, error, reload } = useAsyncList(
-    () => opportunitiesProvider.list(),
+  const isManager = role === ROLES.BROKER || role === ROLES.OWNER
+  // allUsers: SADECE yönetici görünümünde — pasife alınan bir danışmana
+  // ait fırsatta sahip/üstlenen ismi knownUsers'ta (sadece aktif
+  // kullanıcılar) bulunamayıp "—" gösteriliyordu, "atanmadı"yla
+  // karışıyordu (bkz. Operasyon'daki aynı düzeltme, 2026-10).
+  const { data, setData, loading, error, reload } = useAsyncList(
+    () =>
+      Promise.all([opportunitiesProvider.list(), isManager ? usersProvider.listAll() : Promise.resolve([])]).then(
+        ([opps, allUsers]) => ({ opps, allUsers }),
+      ),
     [],
   )
+  const opportunities = data?.opps ?? null
+  const setOpportunities = (updater) =>
+    setData((prev) => ({ ...prev, opps: typeof updater === 'function' ? updater(prev?.opps ?? null) : updater }))
+  const allUsersById = useMemo(() => {
+    const map = {}
+    for (const u of data?.allUsers ?? []) map[u.id] = u
+    return map
+  }, [data])
   // Kategori > İşlem Tipi > Taraf accordion — her zaman TEK bir yol açık
   // kalır (broker kararı, 2026-09-17: "en az bilgili kullanıcı" için
   // sadelik, aynı anda birden fazla dal açıkken "neredeyim" hissi
@@ -236,8 +252,13 @@ export default function FirsatlarTab() {
   const canDelete = canDeleteOpportunity(role)
   const interestOpp = interestTargetId ? (opportunities ?? []).find((o) => o.id === interestTargetId) : null
   const deleteOpp = deleteTargetId ? (opportunities ?? []).find((o) => o.id === deleteTargetId) : null
-  const isManager = role === ROLES.BROKER || role === ROLES.OWNER
-  const resolveName = (id) => knownUsers[id]?.name ?? '—'
+  // bkz. dosya başındaki allUsersById notu — pasif kullanıcı burada
+  // "(pasif)" etiketiyle gösterilir, "—" ile atanmamışla karışmaz.
+  const resolveName = (id) => {
+    if (knownUsers[id]) return knownUsers[id].name
+    const u = allUsersById[id]
+    return u ? `${u.name} (pasif)` : '—'
+  }
   // Broker de fiilen danışmanlık yapabiliyor (bkz. handleCreate) — atama
   // listesi de aynı kapsamda: danışmanlar + broker.
   const assignableOptions = sortByName(Object.values(knownUsers).filter((u) => !u.role || u.role === 'danisman' || u.role === 'broker'))

@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { callLogs as callLogsProvider, opportunities as opportunitiesProvider } from '../../lib/dataProvider'
+import { callLogs as callLogsProvider, opportunities as opportunitiesProvider, users as usersProvider } from '../../lib/dataProvider'
 import { canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
@@ -32,15 +32,27 @@ export default function OperasyonTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
+  const isManager = canManageCalls(role)
   // Fırsatlar da (sadece islem_tipi'ni okumak için) çekiliyor — dönüştürülmüş
   // bir çağrının yanında Satılık/Kiralık ikonu gösterebilmek için (bkz.
   // "lead'in yanında bir ikon olsun" isteği). RLS izin vermediği kayıtlar
   // için ikon sessizce gösterilmez (diğer sayfalardaki aynı davranış).
+  // allUsers: SADECE yönetici görünümünde — pasife alınan bir danışmana
+  // atanmış çağrı, knownUsers (sadece aktif kullanıcılar) içinde
+  // bulunamayınca "—" ile "Atanmadı"dan ayırt edilemiyordu (broker gerçekten
+  // atanmamış sanıyordu, bkz. "görüşüldü/alındı ama atanmadı duran leadler"
+  // geri bildirimi, 2026-10). Danışman kendi çağrısını zaten kendine
+  // atanmış görür (kendisi aktif), bu yüzden ona bu ek sorgu gerekmiyor.
   const { data, setData, loading, error, reload } = useAsyncList(
     () =>
-      Promise.all([callLogsProvider.list(), opportunitiesProvider.list()]).then(([calls, opportunities]) => ({
+      Promise.all([
+        callLogsProvider.list(),
+        opportunitiesProvider.list(),
+        isManager ? usersProvider.listAll() : Promise.resolve([]),
+      ]).then(([calls, opportunities, allUsers]) => ({
         calls,
         opportunities,
+        allUsers,
       })),
     [],
   )
@@ -79,8 +91,20 @@ export default function OperasyonTab() {
   const [deleting, setDeleting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const isManager = canManageCalls(role)
-  const userName = (id) => knownUsers[id]?.name ?? '—'
+  const allUsersById = useMemo(() => {
+    const map = {}
+    for (const u of data?.allUsers ?? EMPTY) map[u.id] = u
+    return map
+  }, [data])
+  // knownUsers sadece AKTİF kullanıcıları içeriyor — pasife alınmış bir
+  // danışmana atanmış çağrı burada bulunamayınca "Atanmadı" ile
+  // karışmasın diye allUsersById'ye (SADECE yönetici görünümünde dolu)
+  // düşülüyor, isim yine gösterilip "(pasif)" ile işaretleniyor.
+  const userName = (id) => {
+    if (knownUsers[id]) return knownUsers[id].name
+    const u = allUsersById[id]
+    return u ? `${u.name} (pasif)` : '—'
+  }
 
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, normal
   // kaynak/tarih filtrelerini görmezden gelip SADECE gecikmiş kayıtları
