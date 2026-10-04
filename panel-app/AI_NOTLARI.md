@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Lig: geçmiş döneme bakarken durum görünür + güncel döneme dönüş
+
+`/kurul` kullanılabilirlik bulgusu K1: "Geçmiş Dönemler" menüsünden bir
+dönem seçilince ekranda hiçbir gösterge kalmıyordu, güncel döneme dönmenin
+tek yolu sayfayı yenilemekti — danışman eski bir dönemin sıralamasını
+"bugünkü" sanabilirdi. PastPeriodsMenu'nün tetikleyici butonu artık
+bakılan dönemin adını gösteriyor (jenerik "Geçmiş Dönemler" yerine),
+altında "Şu an X dönemine bakıyorsun · Güncel döneme dön" şeridi beliriyor,
+menünün içine de aynı dönüş seçeneği eklendi. Mock modda Playwright ile
+(danışman rolü, geçmişe git → geri dön) doğrulandı.
+
 ## 2026-10-04 — Sosyal medya puanının geriye dönük sessizce değişmesi önlendi
 
 `/kurul` denetiminin veri-zinciri bulgusu: social_activity_log girişin
