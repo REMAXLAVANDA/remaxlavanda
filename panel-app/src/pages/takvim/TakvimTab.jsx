@@ -102,11 +102,6 @@ export default function TakvimTab() {
     }
   }
 
-  async function handleSetMyStatus(status) {
-    const ok = await updateAttendance(selectedEventId, user.id, status)
-    if (ok) showToast('Katılım durumun güncellendi.', 'success')
-  }
-
   async function handleSubmitMazeret(mazeretText) {
     const ok = await updateAttendance(selectedEventId, user.id, 'mazeretli', { mazeretText })
     if (ok) showToast('Mazeretin gönderildi, yönetim inceleyecek.', 'success')
@@ -310,7 +305,6 @@ export default function TakvimTab() {
           isManager={isManager}
           role={role}
           creatorName={userName(selectedEvent.creatorId)}
-          onSetMyStatus={handleSetMyStatus}
           onSubmitMazeret={handleSubmitMazeret}
           onSetAttendeeStatus={handleSetAttendeeStatus}
           onResolveMazeret={handleResolveMazeret}

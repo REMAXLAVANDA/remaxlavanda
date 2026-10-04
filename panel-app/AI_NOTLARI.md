@@ -3,6 +3,26 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — "Katılacağım" self-RSVP butonu kaldırıldı
+
+Broker kararı: etkinlik katılımında artık danışman "Katılacağım" diye
+ayrıca onaylamıyor — davetli olmak zaten "katılacak" sayılmak için
+yeterli, tek self-servis aksiyon "Mazeret Bildir" kaldı (zorunlu
+etkinliklerde de dahil). Buton hem `EventDetailModal.jsx`'ten (Takvim
+etkinlik detayı) hem `Panel.jsx`'ten (Yaklaşan Etkinlikler widget'ındaki
+hızlı RSVP) kaldırıldı. Artık hiç çağrılmayan `onSetMyStatus` prop'u ve
+`TakvimTab.jsx`'teki `handleSetMyStatus` fonksiyonu da temizlendi.
+
+`AttendanceSummary`'deki (yönetimin etkinlik detayında gördüğü özet)
+"Davetli" kutusu kaldırıldı, "Katılacak" sayısına dahil edildi — artık
+aksi bildirilmedikçe (mazeret/katılmayacak) davetli bir satır zaten
+"katılacak" sayılıyor, ayrı bir "bekliyor" durumu anlamsız kaldı (4
+kutu yerine 3 kutu: Katılacak/Katılmayacak/Mazeretli). Eski 'onayladi'
+durumundaki kayıtlar (legacy veri, ya da "herkese açık" etkinliğe
+kendi isteğiyle katılan biri) bozulmadı, hâlâ "Katılacak" rozetiyle
+gösteriliyor — sadece YENİ bir "Katılacağım" onayı artık mümkün değil.
+Mock modda görsel olarak doğrulandı. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Danışman Lig'de artık açık dönemde de tam listeyi görüyor
 
 `/kurul` denetiminin Sapma maddesi: danışman açık dönemde sadece

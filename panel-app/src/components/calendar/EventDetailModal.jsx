@@ -24,17 +24,22 @@ import { capitalizeFirst } from '../../lib/format'
 
 // Yönetim etkinliğe tıkladığında tek bakışta kaç kişinin katılacağını,
 // katılmayacağını ve mazeretli olduğunu görsün diye (bkz. broker isteği:
-// "kaç kişi katılacak, katılmayacak mazeretli görelim").
+// "kaç kişi katılacak, katılmayacak mazeretli görelim"). 2026-10-04
+// broker kararı: "Katılacağım" self-RSVP butonu kaldırıldı (zorunlu
+// etkinlikte tek seçenek artık mazeret bildirmek) — davetli bir satır
+// artık "bekliyor" değil, aksi bildirilmedikçe "katılacak" sayılıyor,
+// bu yüzden 'davetli' burada ayrı bir kutu değil, Katılacak'ın içinde.
 function AttendanceSummary({ attendees }) {
-  const katilacak = attendees.filter((a) => a.status === 'onayladi' || a.status === 'katildi').length
+  const katilacak = attendees.filter(
+    (a) => a.status === 'davetli' || a.status === 'onayladi' || a.status === 'katildi',
+  ).length
   const katilmayacak = attendees.filter(
     (a) => a.status === 'katilmadi' || (a.status === 'mazeretli' && a.mazeretStatus === 'reddedildi'),
   ).length
   const mazeretli = attendees.filter((a) => a.status === 'mazeretli' && a.mazeretStatus !== 'reddedildi').length
-  const davetli = attendees.filter((a) => a.status === 'davetli').length
 
   return (
-    <div className="mb-3 grid grid-cols-4 gap-1.5">
+    <div className="mb-3 grid grid-cols-3 gap-1.5">
       <div className="rounded-lg bg-emerald-50 px-2 py-1.5 text-center">
         <p className="text-sm font-semibold text-emerald-700">{katilacak}</p>
         <p className="text-[10px] text-emerald-600">Katılacak</p>
@@ -46,10 +51,6 @@ function AttendanceSummary({ attendees }) {
       <div className="rounded-lg bg-sky-50 px-2 py-1.5 text-center">
         <p className="text-sm font-semibold text-sky-700">{mazeretli}</p>
         <p className="text-[10px] text-sky-600">Mazeretli</p>
-      </div>
-      <div className="rounded-lg bg-ink-100 px-2 py-1.5 text-center">
-        <p className="text-sm font-semibold text-ink-600">{davetli}</p>
-        <p className="text-[10px] text-ink-500">Davetli</p>
       </div>
     </div>
   )
@@ -84,7 +85,6 @@ export default function EventDetailModal({
   isManager,
   role,
   creatorName,
-  onSetMyStatus,
   onSubmitMazeret,
   onSetAttendeeStatus,
   onResolveMazeret,
@@ -197,16 +197,6 @@ export default function EventDetailModal({
           ) : (
             <>
               <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={() => onSetMyStatus('onayladi')}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    myAttendance.status === 'onayladi'
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-ink-50 text-ink-600 hover:bg-ink-100'
-                  }`}
-                >
-                  Katılacağım
-                </button>
                 <button
                   onClick={() => setShowMazeretForm((v) => !v)}
                   className="rounded-full bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100"

@@ -936,13 +936,6 @@ export default function Panel() {
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         disabled={busy}
-                        onClick={() => submitRsvp(e.id, 'onayladi')}
-                        className="rounded-full bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-                      >
-                        Katılacağım
-                      </button>
-                      <button
-                        disabled={busy}
                         onClick={() => setMazeretOpenEventId((v) => (v === e.id ? null : e.id))}
                         className="rounded-full bg-surface-sunken px-3 py-1 text-xs font-medium text-text-secondary hover:bg-border-subtle disabled:opacity-50"
                       >
