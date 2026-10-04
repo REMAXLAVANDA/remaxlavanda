@@ -209,7 +209,15 @@ export default function TakvimTab() {
   const selectedAttendance = selectedEventId ? attendance.filter((a) => a.eventId === selectedEventId) : []
   const selectedAttendees = selectedAttendance.map((a) => ({ ...a, name: userName(a.userId) }))
   const myAttendance = selectedAttendance.find((a) => a.userId === user.id)
-  const inviteeOptions = sortByName(Object.values(knownUsers).filter((u) => u.id !== user.id))
+  // Zorunlu/Önerilen/İsteğe Bağlı katılım tipi sadece danışmanın Sağlık
+  // Skoru'ndaki Toplantı Katılımı bileşenini etkiliyor (bkz. lib/takip.js
+  // meetingAttendPercent, sadece danışman için hesaplanıyor) — broker/
+  // owner/ofis ve test hesapları için bu puanlamanın hiçbir karşılığı
+  // yok, davetli listesinde durmaları sadece kafa karıştırıyordu (broker
+  // isteği, 2026-10-04).
+  const inviteeOptions = sortByName(
+    Object.values(knownUsers).filter((u) => u.id !== user.id && (!u.role || u.role === 'danisman') && !u.testHesabi),
+  )
 
   return (
     <div>

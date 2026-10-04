@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Takvim davetli listesinde broker/owner/ofis/test hesabı çıkmıyor
+
+Broker isteği: etkinlik oluştururken "Davetliler ve Katılım Tipi"
+listesinde broker/owner/ofis ve test hesapları da görünüyordu, ama
+Zorunlu/Önerilen/İsteğe Bağlı katılım tipinin tek karşılığı Sağlık
+Skoru'ndaki Toplantı Katılımı bileşeni — o da sadece danışman için
+hesaplanıyor (bkz. lib/takip.js meetingAttendPercent). Bu roller/test
+hesapları için işaretlemenin hiçbir etkisi olmadığından, listede
+durmaları sadece kafa karıştırıyordu. `TakvimTab.jsx`'teki
+`inviteeOptions` artık Lig/Panel'deki `danismanOptions` ile aynı filtreyi
+kullanıyor (sadece aktif danışman). Mevcut etkinliklerde zaten davetli
+olan broker/owner/ofis kayıtları etkilenmedi (sadece yeni davet eklerken
+listede çıkmıyorlar). Mock modda doğrulandı. 154/154 test, lint, build
+temiz.
+
 ## 2026-10-04 — Lead Dönüş Oranı artık bilgi amaçlı çağrıları cezalandırmıyor
 
 `/kurul` denetiminin yayına-engel bulgusu: Sağlık Skoru'ndaki
