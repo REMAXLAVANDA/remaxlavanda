@@ -19,7 +19,6 @@ import { MOCK_RECRUITING_CANDIDATES, MOCK_RECRUITING_NOTES } from '../../data/mo
 import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
-import { MOCK_BROKER_NOTES } from '../../data/mockTakip'
 import {
   MOCK_PERIODS,
   MOCK_SCORES,
@@ -644,17 +643,6 @@ export const docs = {
       if (MOCK_DOC_VERSIONS[i].docId === docId) MOCK_DOC_VERSIONS.splice(i, 1)
     }
     return delay(null)
-  },
-}
-
-// --- Takip (360° sağlık skoru) -----------------------------------------------
-// Portal kullanımı ve müşteri memnuniyeti artık gerçek verilerden hesaplanıyor
-// (bkz. lib/takip.js) — users.listActivity() ve league.listCiroMusterileri()
-// üzerinden. broker_notes şemada henüz bir tabloya karşılık gelmiyor, sabit
-// mock değer olarak kalıyor.
-export const takip = {
-  async listBrokerNotes() {
-    return delay({ ...MOCK_BROKER_NOTES })
   },
 }
 

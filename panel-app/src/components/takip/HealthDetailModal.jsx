@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import Modal from '../common/Modal'
 import { METRIC_LABELS, STATUS_LABELS, STATUS_STYLES } from '../../lib/takip'
-import { relativeTime, formatDateOnly } from '../../lib/format'
+import { formatDateOnly } from '../../lib/format'
 import { OPPORTUNITY_TYPE_LABELS, OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES, formatPrice } from '../../lib/opportunities'
 
 export default function HealthDetailModal({
@@ -9,9 +9,7 @@ export default function HealthDetailModal({
   score,
   status,
   metrics,
-  notes,
   onClose,
-  resolveName,
   canSeeOpportunities,
   opportunities,
   calls,
@@ -46,24 +44,6 @@ export default function HealthDetailModal({
             </div>
           )
         })}
-      </div>
-
-      <div className="mt-5 border-t border-ink-100 pt-4">
-        <p className="mb-2 text-xs font-medium text-ink-400">Broker Notları</p>
-        {notes.length === 0 ? (
-          <p className="text-sm text-ink-400">Henüz not eklenmedi.</p>
-        ) : (
-          <div className="space-y-2">
-            {notes.map((n, i) => (
-              <div key={i} className="rounded-lg bg-ink-50 p-3 text-sm text-ink-700">
-                <p>{n.text}</p>
-                <p className="mt-1 text-xs text-ink-400">
-                  {resolveName(n.author)} · {relativeTime(n.date)}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Ofis/danışman bu bölümü hiç görmez — sadece yönetim (broker/owner)

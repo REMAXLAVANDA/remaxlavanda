@@ -17,7 +17,6 @@ export const leads = provider.leads
 export const recruiting = provider.recruiting
 export const docs = provider.docs
 export const categories = provider.categories
-export const takip = provider.takip
 export const league = provider.league
 export const users = provider.users
 export const auditLog = provider.auditLog

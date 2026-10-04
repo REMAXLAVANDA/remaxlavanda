@@ -8,7 +8,6 @@ import {
   calendarEvents as calendarProvider,
   callLogs as callLogsProvider,
   opportunities as opportunitiesProvider,
-  takip as takipProvider,
   users as usersProvider,
   league as leagueProvider,
 } from '../../lib/dataProvider'
@@ -33,7 +32,7 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // veri çekmiyoruz (bkz. "yönetim olarak danışmanları filtreleyebilelim"
 // isteği — önce Ayarlar'da ayrı bir sekmeydi, sonra Takip'e taşındı).
 async function loadAll(includeOpportunities) {
-  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods, opportunities] =
+  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities] =
     await Promise.all([
       educationProvider.listModules(),
       educationProvider.listProgress(),
@@ -42,14 +41,13 @@ async function loadAll(includeOpportunities) {
       callLogsProvider.list(),
       usersProvider.listActivity(),
       leagueProvider.listCiroMusterileri(),
-      takipProvider.listBrokerNotes(),
       usersProvider.listAll(),
       leagueProvider.listCiroGirisleri(),
       leagueProvider.listScores(),
       leagueProvider.listPeriods(),
       includeOpportunities ? opportunitiesProvider.list() : Promise.resolve([]),
     ])
-  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, brokerNotes, users, ciroGirisleri, scores, periods, opportunities }
+  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities }
 }
 
 export default function TakipTab() {
@@ -61,7 +59,6 @@ export default function TakipTab() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const seeTeam = CAN_SEE_TEAM_ROLES.includes(role)
-  const userName = (id) => knownUsers[id]?.name ?? '—'
 
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, SADECE
   // 7 günden uzun süredir giriş yapmayan danışmanları gösteriyoruz.
@@ -105,8 +102,6 @@ export default function TakipTab() {
           score={selected.score}
           status={selected.status}
           metrics={selected.metrics}
-          notes={data.brokerNotes[selected.user.id] ?? []}
-          resolveName={userName}
           onClose={() => setSelectedId(null)}
           canSeeOpportunities={canSeeOpportunities}
           opportunities={data.opportunities}

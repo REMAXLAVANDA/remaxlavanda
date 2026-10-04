@@ -3,6 +3,28 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — "Broker Notları" bölümü kaldırıldı (hiç tamamlanmamış özellikti)
+
+`/kurul` denetiminin bulgusu: Takip > danışman detayındaki "Broker
+Notları" bölümü sadece GÖSTERİYORDU, hiçbir ekranda (mock dahil) not
+EKLEME formu/butonu hiç olmamıştı — ve veritabanında da karşılık gelen
+bir tablo hiç yoktu (`supabaseProvider.js` bu fonksiyonu tamamen
+`mockProvider`'dan re-export ediyordu, kod içinde "TODO, ayrı migration
+gerekiyor" notuyla). Gerçek kullanıcıda bu yüzden hep "Henüz not
+eklenmedi" yazıyordu, hiçbir zaman değişemezdi — broker'a yanıltıcı,
+çalışıyormuş gibi görünen ama hiç yazma yolu olmayan bir bölüm.
+
+Broker kararı: tamamlanmamış özellik yarım yamalak durmasın, kaldırıldı.
+Temizlenenler: `HealthDetailModal.jsx`'teki bölüm + kullanılmayan
+`resolveName`/`relativeTime`; `TakipTab.jsx`'teki `brokerNotes` sorgusu
++ kullanılmayan `userName`; `takip` provider'ının tamamı (sadece bu
+fonksiyon için vardı) — `dataProvider/index.js`, `mockProvider.js`,
+`supabaseProvider.js`'den silindi; `src/data/mockTakip.js` dosyası
+tamamen kaldırıldı (artık hiçbir yerden kullanılmıyordu). İleride
+gerçekten istenirse migration + ekleme formuyla baştan yapılmalı.
+154/154 test, lint, build temiz; mock modda modal'ın temiz açıldığı
+doğrulandı.
+
 ## 2026-10-04 — Üç küçük görsel/kullanılabilirlik bulgusu düzeltildi
 
 `/kurul` denetiminin kalan düşük öncelikli maddeleri:
