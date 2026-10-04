@@ -7,9 +7,17 @@ import { History, ChevronDown, Check } from 'lucide-react'
 // (2026-09-02 broker kararı) — bu menü SADECE durum='aciklandi' olan
 // dönemleri listeler, güncel/kapalı dönemin tarihini asla göstermez, o
 // yüzden "sürpriz" kuralını bozmadan geçmişe dönmeyi mümkün kılıyor.
-export default function PastPeriodsMenu({ periods, currentPeriodId, onSelect }) {
+// viewingPeriodId: ekranda şu an gösterilen dönem (listedeki satırı
+// vurgulamak için). actualCurrentPeriodId: ofisin GERÇEK güncel dönemi —
+// viewingPeriodId ondan farklıysa (geçmiş bir döneme bakılıyorsa) butonun
+// kendisi bunu gösterir ve listenin başına "Güncel Döneme Dön" eklenir
+// (bkz. /kurul kullanılabilirlik bulgusu K1 — eskiden geçmişe gidince
+// ekranda hiçbir iz kalmıyor, geri dönmenin tek yolu sayfa yenilemekti).
+export default function PastPeriodsMenu({ periods, viewingPeriodId, actualCurrentPeriodId, onSelect }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const viewingPast = Boolean(viewingPeriodId && actualCurrentPeriodId && viewingPeriodId !== actualCurrentPeriodId)
+  const viewingPeriod = periods.find((p) => p.id === viewingPeriodId)
 
   useEffect(() => {
     function onClickOutside(e) {
@@ -27,11 +35,24 @@ export default function PastPeriodsMenu({ periods, currentPeriodId, onSelect }) 
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 rounded-lg border border-border-danger bg-tint-red px-2.5 py-1.5 text-xs font-medium text-brand-700"
       >
-        <History size={13} /> Geçmiş Dönemler <ChevronDown size={11} className="opacity-70" />
+        <History size={13} />
+        {viewingPast ? (viewingPeriod?.ad ?? 'Geçmiş Dönem') : 'Geçmiş Dönemler'}
+        <ChevronDown size={11} className="opacity-70" />
       </button>
 
       {open && (
         <div className="absolute left-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-border-default bg-surface-raised p-1.5 shadow-lg">
+          {viewingPast && (
+            <button
+              onClick={() => {
+                onSelect(actualCurrentPeriodId)
+                setOpen(false)
+              }}
+              className="mb-1 flex w-full items-center gap-2 rounded-lg border-b border-border-subtle px-2.5 py-2 text-left text-xs font-medium text-text-primary hover:bg-surface-sunken"
+            >
+              ← Güncel Döneme Dön
+            </button>
+          )}
           {periods.map((p) => (
             <button
               key={p.id}
@@ -40,7 +61,7 @@ export default function PastPeriodsMenu({ periods, currentPeriodId, onSelect }) 
                 setOpen(false)
               }}
               className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs ${
-                p.id === currentPeriodId ? 'bg-tint-red text-brand-700' : 'text-text-secondary hover:bg-surface-sunken'
+                p.id === viewingPeriodId ? 'bg-tint-red text-brand-700' : 'text-text-secondary hover:bg-surface-sunken'
               }`}
             >
               <span className="min-w-0 flex-1 truncate">{p.ad}</span>

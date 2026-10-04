@@ -83,6 +83,12 @@ export default function Lig() {
   }, [data, periodId])
 
   const period = data?.periods?.find((p) => p.id === periodId)
+  // En güncel (en yeni başlangıçlı) dönem — danışman/ofis "Geçmiş Dönemler"
+  // menüsünden eski bir döneme bakarken bunu hep bilsin ve bir tuşla geri
+  // dönebilsin diye (bkz. /kurul kullanılabilirlik bulgusu K1: eskiden
+  // ekranda hiçbir iz kalmıyordu, sayfayı yenilemek gerekiyordu).
+  const actualCurrentPeriodId = data?.periods?.[0]?.id ?? null
+  const isViewingPastPeriod = Boolean(periodId && actualCurrentPeriodId && periodId !== actualCurrentPeriodId)
   // Ekranın anında doğru göstermesi için — asıl kaynak (RLS'in ne
   // döndürdüğü) sunucuda tarihten canlı hesaplanıyor, bu sadece UI'ın
   // pg_cron'un o gece gelmesini beklemeden aynı sonuca varması için.
@@ -485,7 +491,12 @@ export default function Lig() {
         ) : isManager && !isBlackedOut ? (
           <p className="text-xs text-text-disabled">{loading ? 'Yükleniyor...' : 'Henüz dönem yok'}</p>
         ) : (
-          <PastPeriodsMenu periods={announcedPeriods} currentPeriodId={periodId} onSelect={setPeriodId} />
+          <PastPeriodsMenu
+            periods={announcedPeriods}
+            viewingPeriodId={periodId}
+            actualCurrentPeriodId={actualCurrentPeriodId}
+            onSelect={setPeriodId}
+          />
         )}
         <div className="flex flex-wrap items-center gap-2">
           {/* Sonuçlar açıklanmadan (kapalı iken) paylaşım — henüz kesinleşmemiş
@@ -526,6 +537,24 @@ export default function Lig() {
           )}
         </div>
       </div>
+
+      {/* Geçmiş bir dönem seçiliyken ekranda hep bir iz kalsın — eskiden
+          "Geçmiş Dönemler" menüsünden seçim yapılınca hiçbir gösterge
+          kalmıyordu, güncel döneme dönmenin tek yolu sayfayı yenilemekti
+          (bkz. /kurul kullanılabilirlik bulgusu K1). */}
+      {!loading && !error && period && isViewingPastPeriod && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-danger bg-tint-red px-3.5 py-2 text-sm text-brand-700">
+          <span>
+            Şu an <strong>{period.ad}</strong> dönemine bakıyorsun.
+          </span>
+          <button
+            onClick={() => setPeriodId(actualCurrentPeriodId)}
+            className="shrink-0 rounded-lg bg-surface-raised px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-border-subtle"
+          >
+            Güncel döneme dön
+          </button>
+        </div>
+      )}
 
       {/* Dönem kapalı (kör yargılama penceresi) — broker/owner'a banner +
           "Sonuçları Açıkla" düğmesi. Danışman/ofis bu bloğu hiç görmez,
