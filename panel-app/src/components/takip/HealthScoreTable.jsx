@@ -40,9 +40,15 @@ export default function HealthScoreTable({ people, onRowClick }) {
                     <span className="font-medium text-text-primary">{p.user.name}</span>
                   </div>
                 </Td>
+                {/* metricValueStyle rengini doğrudan Td'nin className'ine
+                    vermek yerine iç içe bir span'e sarıyoruz — Td'nin
+                    kendi text-text-secondary'si CSS sırası yüzünden
+                    rengi eziyordu (mobildeki kart görünümü zaten span
+                    kullandığı için etkilenmiyordu, bkz. /kurul görsel
+                    denetim bulgusu #6). */}
                 {METRIC_KEYS.map((key) => (
-                  <Td key={key} align="right" className={`font-medium ${metricValueStyle(p.metrics[key])}`}>
-                    %{p.metrics[key]}
+                  <Td key={key} align="right">
+                    <span className={`font-medium ${metricValueStyle(p.metrics[key])}`}>%{p.metrics[key]}</span>
                   </Td>
                 ))}
                 <Td align="right">

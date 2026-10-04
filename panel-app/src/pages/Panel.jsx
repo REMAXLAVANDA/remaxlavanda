@@ -87,6 +87,11 @@ const LOAD_ALL_KEYS = [
   'tasks',
 ]
 
+// Eğitim/checklist widget'larının EmptyRow'u bu 4 sorgudan HERHANGİ biri
+// başarısız olduğunda "failed" göstersin diye (educationGaps bu 4'ünün
+// birleşiminden hesaplanıyor, bkz. lib/education.js).
+const EDUCATION_KEYS = ['modules', 'progress', 'checklistItems', 'checklistStatus']
+
 // "Hiç donma yaşanmasın" isteği (2026-09-24) — 17 sorgudan biri gerçekten
 // çökse bile (useAsyncList'in kendi zaman aşımı/yeniden denemesi tükenirse)
 // Promise.all yerine Promise.allSettled kullanılıyor: geri kalan 16 sorgu
@@ -137,7 +142,7 @@ async function loadAll() {
     fetchWithRetry(() => tasksProvider.list()),
   ])
 
-  const data = { hasPartialFailure: false }
+  const data = { hasPartialFailure: false, failedKeys: new Set() }
   results.forEach((result, i) => {
     const key = LOAD_ALL_KEYS[i]
     if (result.status === 'fulfilled') {
@@ -145,6 +150,7 @@ async function loadAll() {
     } else {
       data[key] = []
       data.hasPartialFailure = true
+      data.failedKeys.add(key)
     }
   })
   return data
@@ -211,7 +217,21 @@ function PartialFailureBanner({ onRetry }) {
   )
 }
 
-function EmptyRow({ text }) {
+// `failed` true iken bu widget'ın asıl verisi çekilemediği için boş
+// kaldı (loadAll()'daki Promise.allSettled bir sorguyu başarısız sayıp
+// [] döndürdü) — "harika, bekleyen yok!" gibi olumlu bir boş-durum
+// mesajı burada YANILTICI olurdu, hata ile gerçek boşluk görsel olarak
+// ayrışsın diye ayrı stil/metin (bkz. /kurul "danışman takip menüleri"
+// denetimi, görsel+kullanılabilirlik bulgusu — bu, sayfa üstündeki genel
+// PartialFailureBanner'dan BAĞIMSIZ, widget'ın kendi içinde de belli olsun diye).
+function EmptyRow({ text, failed }) {
+  if (failed) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-6 text-sm text-amber-700">
+        <AlertTriangle size={16} /> Bu veri şu an yüklenemedi — sayfayı yenile.
+      </div>
+    )
+  }
   return (
     <div className="flex items-center gap-2 rounded-xl bg-surface-sunken px-4 py-6 text-sm text-text-muted">
       <Inbox size={16} /> {text}
@@ -803,7 +823,7 @@ export default function Panel() {
       linkLabel="Operasyon'a git"
     >
       {pendingCalls.length === 0 ? (
-        <EmptyRow text="Bekleyen çağrı yok, harika!" />
+        <EmptyRow text="Bekleyen çağrı yok, harika!" failed={data?.failedKeys?.has('calls')} />
       ) : (
         <div className="space-y-2">
           {pendingCalls.slice(0, 5).map((call) => (
@@ -836,7 +856,7 @@ export default function Panel() {
       className="md:col-span-2"
     >
       {openOpportunities.length === 0 ? (
-        <EmptyRow text="Havuzda bekleyen fırsat yok." />
+        <EmptyRow text="Havuzda bekleyen fırsat yok." failed={data?.failedKeys?.has('opps')} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           <OpportunityMiniBlock dotColor="bg-brand-600" label="Satıcılar" items={openSatici} />
@@ -856,7 +876,7 @@ export default function Panel() {
       linkLabel="Fırsatlar'a git"
     >
       {openOpportunities.length === 0 ? (
-        <EmptyRow text="Havuzda bekleyen fırsat yok." />
+        <EmptyRow text="Havuzda bekleyen fırsat yok." failed={data?.failedKeys?.has('opps')} />
       ) : (
         <div className="space-y-2">
           {openOpportunities.slice(0, 5).map((o) => (
@@ -890,7 +910,7 @@ export default function Panel() {
       linkLabel="Takvim'e git"
     >
       {upcomingEvents.length === 0 ? (
-        <EmptyRow text="Bu aralıkta etkinlik yok." />
+        <EmptyRow text="Bu aralıkta etkinlik yok." failed={data?.failedKeys?.has('events')} />
       ) : (
         <div className="space-y-2">
           {upcomingEvents.slice(0, 5).map((e) => {
@@ -985,7 +1005,10 @@ export default function Panel() {
       linkLabel="Eğitim'e git"
     >
       {educationGaps.length === 0 ? (
-        <EmptyRow text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'} />
+        <EmptyRow
+          text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'}
+          failed={EDUCATION_KEYS.some((k) => data?.failedKeys?.has(k))}
+        />
       ) : (
         <div className="space-y-2">
           {educationGaps.slice(0, 5).map((r) => (
@@ -1027,7 +1050,7 @@ export default function Panel() {
         </Link>
       </div>
       {!activePeriod ? (
-        <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." />
+        <EmptyRow text="Henüz bir Lig dönemi oluşturulmamış." failed={data?.failedKeys?.has('periods')} />
       ) : isLeagueLocked ? (
         <div className="rounded-2xl border border-border-default bg-surface-raised p-6 text-center">
           <Lock size={20} className="mx-auto mb-2 text-text-muted" />
@@ -1112,7 +1135,7 @@ export default function Panel() {
               accent="navy"
             >
               {activityRanking.length === 0 ? (
-                <EmptyRow text="Henüz danışman yok." />
+                <EmptyRow text="Henüz danışman yok." failed={data?.failedKeys?.has('activity')} />
               ) : (
                 <div className="space-y-1.5">
                   {[
@@ -1144,7 +1167,7 @@ export default function Panel() {
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <Widget icon={CalendarDays} title="Yaklaşan Etkinlik" description="En yakın etkinlik" to="/takvim" linkLabel="Takvim'e git" accent="navy">
               {!nextEventAlways ? (
-                <EmptyRow text="Yaklaşan etkinlik yok." />
+                <EmptyRow text="Yaklaşan etkinlik yok." failed={data?.failedKeys?.has('events')} />
               ) : (
                 <>
                   <div className="flex items-center gap-3 rounded-xl border border-border-default p-3">
@@ -1177,7 +1200,7 @@ export default function Panel() {
               accent="navy"
             >
               {educationGaps.length === 0 ? (
-                <EmptyRow text="Herkes tamamlamış, harika!" />
+                <EmptyRow text="Herkes tamamlamış, harika!" failed={EDUCATION_KEYS.some((k) => data?.failedKeys?.has(k))} />
               ) : (
                 <div className="space-y-2.5">
                   {educationGaps.slice(0, 3).map((r) => (

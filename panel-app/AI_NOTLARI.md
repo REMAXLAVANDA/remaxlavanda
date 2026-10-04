@@ -3,6 +3,33 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Üç küçük görsel/kullanılabilirlik bulgusu düzeltildi
+
+`/kurul` denetiminin kalan düşük öncelikli maddeleri:
+
+1. **Eğitim modülü "tamamlandı" rengi:** `ModuleProgressList.jsx`'te
+   marka kırmızısıydı (brand-600) — aynı ekranda kırmızı başka yerde
+   "kritik" anlamına geliyor, checklist'teki (ChecklistPanel.jsx) yeşil
+   "tamamlandı" ile çelişiyordu. Yeşile (emerald-600) çevrildi.
+2. **Panel widget'larında hata/boşluk ayrımı:** `loadAll()`'daki 18
+   paralel sorgudan biri başarısız olunca (Promise.allSettled) ilgili
+   widget sessizce "harika, bekleyen yok!" gibi olumlu bir boş mesaj
+   gösteriyordu — gerçek boşlukla veri çekme hatası görsel olarak
+   ayrışmıyordu. `data.failedKeys` (hangi sorgu başarısız oldu) eklendi,
+   `EmptyRow` artık `failed` prop'uyla amber "Bu veri şu an yüklenemedi"
+   mesajı gösterebiliyor — sayfa üstündeki genel `PartialFailureBanner`'
+   dan BAĞIMSIZ, hangi widget etkilendiyse SADECE o widget'ta.
+3. **Sağlık Skoru tablosu eşik renkleri (masaüstü):** `HealthScoreTable.jsx`
+   masaüstü tablosunda `metricValueStyle`'ın rengi (`<Td>`'nin className'ine
+   verilmişti) `Td`'nin kendi `text-text-secondary`'si tarafından CSS sırası
+   yüzünden eziliyordu — mobildeki kart görünümü zaten ayrı bir `<span>`
+   kullandığı için bu sorunu yaşamıyordu (renkler orada görünüyordu).
+   Aynı `<span>` sarmalama deseni masaüstü tabloya da uygulandı, renkler
+   artık orada da görünüyor.
+
+Mock modda üçü de görsel olarak doğrulandı. 154/154 test, lint, build
+temiz.
+
 ## 2026-10-04 — Çağrı detay koruması genişletildi (G2), katılım kaydı kimliği kilitlendi (G4)
 
 `/kurul` denetiminin iki güvenlik bulgusu — ikisi de arayüzde hiç
