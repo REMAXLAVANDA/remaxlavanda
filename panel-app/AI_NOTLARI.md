@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Danışman kendi users satırında skor-etkileyen alanları değiştiremiyor (G1)
+
+`/kurul` denetiminin ("danışman takip menüleri") yayına-engel bulgusu:
+danışman kendi `users` satırına doğrudan PATCH atarak `test_hesabi=true`
+yapıp kendini tüm listelerden gizleyebiliyor, `son_aktif`'i geleceğe
+çekip inaktif-danışman uyarısından çıkabiliyor, `created_at`'i
+değiştirip ciro hedefini düşürebiliyordu. `prevent_self_privilege_
+escalation()` trigger'ı (zaten rol/durum'u koruyordu) genişletildi:
+test_hesabi, son_aktif, created_at, baslangic_tarihi, ayrilis_tarihi,
+kaynak, email, ad artık yönetici olmayan biri kendi satırında
+değiştiremiyor. Uygulamanın self-servis profil güncellemesi
+(`updateProfile`) bu alanları zaten hiç göndermiyordu, bu yüzden hiçbir
+ekran etkilenmedi. 4 senaryo rol simülasyonuyla doğrulandı.
+
 ## 2026-10-04 — Pasif danışmana atanmış kayıtlar "Atanmadı" ile karışmıyor
 
 Broker geri bildirimi: Operasyon'da Görüşüldü/Portföy Alındı işaretlenmiş
