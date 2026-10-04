@@ -40,12 +40,17 @@ export const EVENT_TYPE_COLORS = {
   recruiting_gorusmesi: '#949ca1',
 }
 
+// Üçüncü şahıs (Katıldı/Katılmadı) — bu etiketler artık her zaman
+// yönetimin BAŞKASININ katılımını işaretlediği bir listede kullanılıyor
+// (danışmanın kendi kendine "Katıldım" diye işaretlediği bir akış yok,
+// bkz. "Katılacağım" butonunun kaldırılması, 2026-10-04 broker kararı),
+// "Katıldım" (birinci şahıs) o yüzden dilbilgisel olarak yanlıştı.
 export const ATTENDANCE_STATUS_LABELS = {
   davetli: 'Davetli',
   onayladi: 'Katılacak',
-  katildi: 'Katıldım',
-  katilmadi: 'Katılmadım',
-  gec: 'Geç Katıldım',
+  katildi: 'Katıldı',
+  katilmadi: 'Katılmadı',
+  gec: 'Geç Katıldı',
   mazeretli: 'Mazeretli',
 }
 

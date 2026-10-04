@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Katılım durumu etiketleri birinci şahıstan üçüncü şahsa çevrildi
+
+Broker geri bildirimi: "Katıldım"/"Katılmadım" etiketleri artık yanlış
+— bu etiketler SADECE yönetimin BAŞKASININ katılımını işaretlediği bir
+listede kullanılıyor (danışmanın kendi kendine işaretlediği bir akış
+yok, bkz. "Katılacağım" butonunun kaldırılması). "Katıldım" (ben
+katıldım) yerine "Katıldı" (o katıldı) olmalı. `lib/calendar.js`'teki
+`ATTENDANCE_STATUS_LABELS` güncellendi: Katıldım→Katıldı,
+Katılmadım→Katılmadı, Geç Katıldım→Geç Katıldı. 154/154 test, lint,
+build temiz.
+
 ## 2026-10-04 — "Katılacağım" self-RSVP butonu kaldırıldı
 
 Broker kararı: etkinlik katılımında artık danışman "Katılacağım" diye
