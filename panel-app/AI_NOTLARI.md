@@ -3,6 +3,22 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Fırsat tipine göre gizli fiyat alanı artık temizleniyor
+
+`/kurul` denetiminin Bölüm 2'deki en çok tekrarlanan (4 denetçi) bulgusu:
+fırsat tipi (satıcı/alıcı) değişince formda gizlenen fiyat alanı (tek
+fiyat vs min/max bütçe aralığı) ne formda ne sunucuda temizleniyordu —
+canlıda 3 alıcı fırsatında satıcı-tipi `fiyat` yanlışlıkla bütçe gibi
+gösteriliyordu. 3 kayıt düzeltildi (ikisinde zaten bütçe aralığı hiç
+girilmemişti, bilgi kaybı yok), `opportunities_fiyat_tip_tutarliligi`
+CHECK kısıtı eklendi (tip='alici' → fiyat NULL, değilse fiyat_min/max
+NULL), supabaseProvider.js + mockProvider.js create/update bunu kendileri
+de garanti ediyor. Rol simülasyonuyla doğrulandı (CHECK'i ihlal eden
+insert reddedildi). Not: call_logs.portfoy_talebi_mi/reklam_kodu için aynı
+bulgu ayrıca incelendi — reklam_kodu zaten tutarlı, portfoy_talebi_mi
+Santral dışı kaynaklarda callNeedsTracking()'in OR'ı yüzünden zaten
+okunmuyor/zararsız, orada ayrı bir kısıt eklenmedi.
+
 ## 2026-10-04 — Lig: geçmiş döneme bakarken durum görünür + güncel döneme dönüş
 
 `/kurul` kullanılabilirlik bulgusu K1: "Geçmiş Dönemler" menüsünden bir
