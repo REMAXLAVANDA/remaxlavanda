@@ -12,6 +12,8 @@ import {
   KATILIM_TIPI_LABELS,
   KATILIM_TIPI_SELF_LABELS,
   KATILIM_TIPI_STYLES,
+  canManagerEditAttendance,
+  canSelfEditAttendance,
   eventAttendPercent,
   eventAudienceBadge,
   formatEventDate,
@@ -80,6 +82,7 @@ export default function EventDetailModal({
   attendees,
   myAttendance,
   isManager,
+  role,
   creatorName,
   onSetMyStatus,
   onSubmitMazeret,
@@ -94,6 +97,8 @@ export default function EventDetailModal({
   const [showMazeretForm, setShowMazeretForm] = useState(false)
   const [mazeretDraft, setMazeretDraft] = useState('')
   const audience = eventAudienceBadge(event)
+  const canEditSelf = canSelfEditAttendance(event)
+  const canEditAttendees = isManager && canManagerEditAttendance(role, event)
 
   function submitMazeret() {
     if (!mazeretDraft.trim()) return
@@ -185,6 +190,10 @@ export default function EventDetailModal({
               </div>
               <p className="text-ink-600">{myAttendance.mazeretText}</p>
             </div>
+          ) : !canEditSelf ? (
+            <p className="rounded-xl bg-ink-50 p-3 text-xs text-ink-500">
+              Bu etkinlik sona erdi, katılım durumun artık değiştirilemez.
+            </p>
           ) : (
             <>
               <div className="flex flex-wrap gap-1.5">
@@ -243,7 +252,7 @@ export default function EventDetailModal({
                       {KATILIM_TIPI_LABELS[a.katilimTipi] ?? KATILIM_TIPI_LABELS.zorunlu}
                     </span>
                   </span>
-                  {isManager ? (
+                  {canEditAttendees ? (
                     <select
                       value={a.status}
                       onChange={(e) => onSetAttendeeStatus(a.userId, e.target.value)}
@@ -256,7 +265,10 @@ export default function EventDetailModal({
                       ))}
                     </select>
                   ) : (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[a.status]}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${ATTENDANCE_STATUS_STYLES[a.status]}`}
+                      title={isManager ? '7 günü geçti, sadece broker düzenleyebilir' : undefined}
+                    >
                       {ATTENDANCE_STATUS_LABELS[a.status]}
                     </span>
                   )}
@@ -270,7 +282,7 @@ export default function EventDetailModal({
                       >
                         {MAZERET_STATUS_LABELS[a.mazeretStatus]}
                       </span>
-                      {isManager && a.mazeretStatus === 'bekliyor' && (
+                      {canEditAttendees && a.mazeretStatus === 'bekliyor' && (
                         <div className="flex gap-1">
                           <button
                             onClick={() => onResolveMazeret(a.userId, 'onaylandi')}

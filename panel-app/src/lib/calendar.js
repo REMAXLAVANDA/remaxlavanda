@@ -155,6 +155,24 @@ export function isPastEvent(event) {
   return new Date(event.endAt ?? event.startAt).getTime() < Date.now()
 }
 
+// event_attendance_update_self RLS kuralıyla aynı: danışman kendi katılımını
+// SADECE etkinlik bitmeden değiştirebilir, geçmişe dönük hiç dokunamaz
+// (bkz. /kurul kademeli menü denetimi G1 bulgusu — 2026-10-04 broker kararı).
+export function canSelfEditAttendance(event) {
+  return !isPastEvent(event)
+}
+
+// event_attendance_update_manager RLS kuralıyla aynı: broker'da zaman sınırı
+// yok, owner/ofis etkinlik bitişinden en fazla 7 gün sonrasına kadar
+// katılımcı durumunu düzeltebilir (ofis bu kayıtları genelde ertesi gün/
+// haftada işliyor, aynı gün değil — bkz. broker kararı 2026-10-04).
+export function canManagerEditAttendance(role, event) {
+  if (role === ROLES.BROKER) return true
+  if (role !== ROLES.OWNER && role !== ROLES.OFIS) return false
+  const deadline = new Date(event.endAt ?? event.startAt).getTime() + 7 * 24 * 60 * 60 * 1000
+  return Date.now() <= deadline
+}
+
 // Bir etkinliğin GERÇEKLEŞEN katılım oranı — lib/takip.js'teki
 // meetingAttendPercent() ile AYNI "çözümlenmiş" tanımı kullanılır (katıldı/
 // katılmadı/reddedilen mazeret sayılır; bekleyen/onaylanan mazeret ve henüz

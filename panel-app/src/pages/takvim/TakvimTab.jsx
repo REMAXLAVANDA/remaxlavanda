@@ -285,6 +285,7 @@ export default function TakvimTab() {
           attendees={selectedAttendees}
           myAttendance={myAttendance}
           isManager={isManager}
+          role={role}
           creatorName={userName(selectedEvent.creatorId)}
           onSetMyStatus={handleSetMyStatus}
           onSubmitMazeret={handleSubmitMazeret}
