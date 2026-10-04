@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useToast } from '../context/ToastContext'
-import { useAsyncList } from '../hooks/useAsyncList'
+import { useAsyncList, fetchWithRetry } from '../hooks/useAsyncList'
 import {
   callLogs as callLogsProvider,
   opportunities as opportunitiesProvider,
@@ -92,32 +92,44 @@ const LOAD_ALL_KEYS = [
 // kalanı) bu güvenli bir varsayılan. `hasPartialFailure` true ise Panel'in
 // üstünde küçük bir "bazı veriler eksik" şeridi çıkıyor (bkz. aşağıda
 // PartialFailureBanner) — sayfayı BLOKLAMIYOR, sadece bilgilendiriyor.
+//
+// Her sorgu AYRICA kendi fetchWithRetry'siyle sarmalanıyor (bkz. "portal
+// açılmıyor" şikayeti araştırması, 2026-10-04) — eskiden bu sarmalama
+// SADECE dıştaki useAsyncList seviyesindeydi: 17 sorgudan biri ara sıra
+// 5-8sn'ye sıçradığında (pg_stat_statements'ta doğrulandı — ortalama
+// 50-350ms ama en kötüsü 5-8sn, muhtemelen sabah yoğun giriş saatinde
+// bağlantı havuzu sıkışması), Promise.allSettled TÜMÜ bitene kadar
+// beklediği için dıştaki 8sn'lik tek sınır tüm sayfayı aşağı çekiyordu —
+// tek bir yavaş sorgu, hiçbiri gerçekten çökmemiş olsa bile, "zaman aşımı"
+// hatasıyla TÜM paneli götürüyordu. Artık her sorgu kendi payına düşen
+// süreyi aşarsa SADECE o veri boş kalıp PartialFailureBanner çıkıyor,
+// diğer 16 sorgu zaten bitmiş oluyor — sayfa anında açılıyor.
 async function loadAll() {
   const results = await Promise.allSettled([
     // Panel sadece özet sayılar/uyarılar için kullanıyor — tam kayıt
     // (arayanAd/telefon/notlar) yerine hafif listSummary() (bkz. o
     // fonksiyonun notu, "açılışta donma" geri bildirimi 2026-09-28).
-    callLogsProvider.listSummary(),
-    opportunitiesProvider.list(),
-    calendarProvider.list(),
-    calendarProvider.listAttendance(),
-    educationProvider.listModules(),
-    educationProvider.listProgress(),
-    educationProvider.listChecklistItems(),
-    educationProvider.listChecklistStatus(),
-    leagueProvider.listPeriods(),
-    leagueProvider.listScores(),
-    usersProvider.listActivity(),
-    leagueProvider.listCiroMusterileri(),
-    usersProvider.listAll(),
-    leagueProvider.listCiroGirisleri(),
-    leagueProvider.listMusteriReviewCounts(),
+    fetchWithRetry(() => callLogsProvider.listSummary()),
+    fetchWithRetry(() => opportunitiesProvider.list()),
+    fetchWithRetry(() => calendarProvider.list()),
+    fetchWithRetry(() => calendarProvider.listAttendance()),
+    fetchWithRetry(() => educationProvider.listModules()),
+    fetchWithRetry(() => educationProvider.listProgress()),
+    fetchWithRetry(() => educationProvider.listChecklistItems()),
+    fetchWithRetry(() => educationProvider.listChecklistStatus()),
+    fetchWithRetry(() => leagueProvider.listPeriods()),
+    fetchWithRetry(() => leagueProvider.listScores()),
+    fetchWithRetry(() => usersProvider.listActivity()),
+    fetchWithRetry(() => leagueProvider.listCiroMusterileri()),
+    fetchWithRetry(() => usersProvider.listAll()),
+    fetchWithRetry(() => leagueProvider.listCiroGirisleri()),
+    fetchWithRetry(() => leagueProvider.listMusteriReviewCounts()),
     // leads_select/recruiting_candidates_select RLS'i broker/owner
     // dışındaki rollerde boş dizi döner (hata değil) — Süreç Özeti
     // tablosu zaten sadece isBrokerOrOwner'da render ediliyor, ama veri
     // burada koşulsuz çekiliyor (Panel'in geri kalanıyla aynı desen).
-    leadsProvider.list(),
-    recruitingProvider.list(),
+    fetchWithRetry(() => leadsProvider.list()),
+    fetchWithRetry(() => recruitingProvider.list()),
   ])
 
   const data = { hasPartialFailure: false }
@@ -132,6 +144,14 @@ async function loadAll() {
   })
   return data
 }
+
+// Dıştaki useAsyncList sarmalayıcısının zaman aşımı — loadAll() artık her
+// sorguyu kendi içinde ayrı ayrı 8sn+1 yeniden deneme ile sarmaladığı için
+// (en kötü ihtimalle TEK bir sorgu ~16sn'ye kadar sürebilir, diğerleri
+// paralelde çoktan bitmiş olur) dıştaki sınır bunun altında kalırsa
+// loadAll() daha kendi işini bitirmeden iptal edilip aynı soruna geri
+// dönülür. 20sn, 16sn'lik en kötü senaryoya yeterli pay bırakıyor.
+const PANEL_LOAD_TIMEOUT_MS = 20000
 
 // accent="navy": broker dashboard'daki yeni bölümler için — kırmızı SADECE
 // kritik durumlarda kullanılmalı, normal "git →" linkleri kurumsal
@@ -293,7 +313,7 @@ export default function Panel() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
   const { showToast } = useToast()
-  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [], { timeoutMs: PANEL_LOAD_TIMEOUT_MS })
   const [mazeretOpenEventId, setMazeretOpenEventId] = useState(null)
   const [mazeretDraft, setMazeretDraft] = useState('')
   const [rsvpBusyEventId, setRsvpBusyEventId] = useState(null)

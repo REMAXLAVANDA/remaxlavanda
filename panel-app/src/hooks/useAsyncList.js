@@ -16,13 +16,13 @@ import { useCallback, useEffect, useState } from 'react'
 // fark etmeden arka planda düzeliyor. Kalıcı bir sorun varsa (ikinci
 // deneme de zaman aşımına uğrarsa) yine en fazla ~16sn'de gerçek hataya
 // düşüyor — eski tek denemeli 20sn'den bile kısa.
-const TIMEOUT_MS = 8000
+const DEFAULT_TIMEOUT_MS = 8000
 const TIMEOUT_MESSAGE = 'İstek zaman aşımına uğradı, tekrar dene.'
 
-function withTimeout(promise) {
+function withTimeout(promise, timeoutMs) {
   let timer
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(TIMEOUT_MESSAGE)), TIMEOUT_MS)
+    timer = setTimeout(() => reject(new Error(TIMEOUT_MESSAGE)), timeoutMs)
   })
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
 }
@@ -36,12 +36,18 @@ function isRetryableError(err) {
   return err?.message === TIMEOUT_MESSAGE || err?.kind === 'network'
 }
 
-async function fetchWithRetry(fetcher) {
+// Panel gibi sayfalar (bkz. loadAll()'daki Promise.allSettled) bunu TEK TEK
+// her sorgu için de kullanıyor — 17 sorgudan biri ara sıra 5-8sn'ye
+// sıçradığında (bkz. /kurul "portal açılmıyor" şikayeti araştırması,
+// 2026-10-04: pg_stat_statements'ta ortalama 50-350ms ama en kötüsü 5-8sn)
+// SADECE o sorgu kendi payına düşen süreyi aşar, geri kalan 16 sorgu zaten
+// bitmiş olur — tek bir yavaş sorgu artık tüm sayfayı aşağı çekmiyor.
+export async function fetchWithRetry(fetcher, timeoutMs = DEFAULT_TIMEOUT_MS) {
   try {
-    return await withTimeout(fetcher())
+    return await withTimeout(fetcher(), timeoutMs)
   } catch (err) {
     if (!isRetryableError(err)) throw err
-    return await withTimeout(fetcher())
+    return await withTimeout(fetcher(), timeoutMs)
   }
 }
 
@@ -53,7 +59,12 @@ async function fetchWithRetry(fetcher) {
 // StrictMode'da (development) effect'ler iki kez çalışır — cancelled guard'ı
 // olmadan ikinci çalışma birinci isteğin state güncellemesini "kirletebilir"
 // (ör. birinci istek geç dönerse ikincisinin sonucunun üstüne yazabilir).
-export function useAsyncList(fetcher, deps = []) {
+// timeoutMs (opsiyonel): dış sarmalayıcının kendi zaman aşımı — Panel gibi
+// fetcher'ı KENDİ İÇİNDE zaten per-query fetchWithRetry kullanan sayfalar
+// bunu yükseltmeli (bkz. Panel.jsx), yoksa dıştaki varsayılan 8sn, içteki
+// bir sorgunun kendi 8+8sn'lik yeniden deneme döngüsünü bitirmeden sayfayı
+// baştan iptal edip aynı soruna geri döner.
+export function useAsyncList(fetcher, deps = [], { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -63,7 +74,7 @@ export function useAsyncList(fetcher, deps = []) {
     setLoading(true)
     setError(null)
 
-    fetchWithRetry(fetcher)
+    fetchWithRetry(fetcher, timeoutMs)
       .then((result) => {
         if (cancelled) return
         setData(result)
