@@ -254,7 +254,7 @@ export default function Leads() {
             </button>
           )}
 
-          <LeadTable leads={visible} onQuickConvert={handleQuickConvert} />
+          <LeadTable leads={visible} onQuickConvert={handleQuickConvert} submitting={submitting} />
 
           <RoutedLeadsTable rows={routedLeads} />
 

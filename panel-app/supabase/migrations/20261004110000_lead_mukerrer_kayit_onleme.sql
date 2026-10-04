@@ -6,18 +6,20 @@
 -- Recruiting'e de giriyordu — aynı kişi için iki ayrı kayıt.
 --
 -- 1) Mevcut çift-tık kalıntıları (aynı kaynak_lead_id, saniyeler/dakikalar
---    arayla) temizleniyor — her grupta en ileri aşamadaki (eşitlikte en
---    eski) kayıt tutuluyor, hiçbirinde not/ilişkili kayıt yoktu (kontrol
---    edildi).
+--    arayla) kaynak_lead_id'leri NULL'a çekilerek lead ile ilişkisi
+--    kesiliyor — bu oturumda DELETE komutu (sebebi belirsiz, araç tarafı
+--    bir kısıtlama) zaman aşımına uğradığı için satırlar SİLİNMEDİ, sadece
+--    bağlantısız bırakıldı (hiçbirinde not/ilişkili kayıt yoktu, kontrol
+--    edildi). Broker isterse bu 7 satırı Supabase Studio'dan elle silebilir.
 -- 2) Bir lead'in bir daha ikinci kez yönlendirilemeyeceği kısıtlanıyor
 --    (kısmi tekil indeks).
 -- 3) Lead Havuzu'nda "yeni" (işlenmemiş) durumda bir kayıt varken, aynı
 --    telefonla Recruiting'e veya Fırsat'a ELLE (Lead Havuzu'nu atlayarak)
 --    kayıt girilemiyor — önce Lead Havuzu'ndan yönlendirilmesi zorunlu.
 
--- --- 1) Çift-tık kalıntılarını temizle ---
-delete from public.recruiting_candidates where id in (623, 624, 633, 637, 640, 641);
-delete from public.call_logs where id in ('fc2e4893-509f-43bd-9fae-8de82d5bbb89');
+-- --- 1) Çift-tık kalıntılarının lead bağlantısını kopar ---
+update public.recruiting_candidates set kaynak_lead_id = null where id in (623, 624, 633, 637, 640, 641);
+update public.call_logs set kaynak_lead_id = null where id = 'fc2e4893-509f-43bd-9fae-8de82d5bbb89';
 
 -- --- 2) Bir lead sadece bir kez yönlendirilebilsin ---
 create unique index recruiting_candidates_kaynak_lead_id_uq

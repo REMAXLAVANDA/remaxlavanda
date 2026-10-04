@@ -21,20 +21,22 @@ function leadDateLabel(createdAt) {
 // "Recruiting mi Portföy mü" (bkz. "orada hiçbir işlem veya hiçbir bilgi
 // görmeyeceğiz" kararı). Açılır bir detay penceresi YOK, satırda başka
 // durum/süreç bilgisi de YOK — sadece bu iki buton.
-function RouteButtons({ lead, onQuickConvert }) {
+function RouteButtons({ lead, onQuickConvert, submitting }) {
   return (
     <div className="flex shrink-0 gap-1.5">
       <button
         type="button"
+        disabled={submitting}
         onClick={() => onQuickConvert(lead, 'recruiting')}
-        className="rounded-full bg-tint-blue px-2.5 py-1 text-xs font-medium text-remax-blue hover:brightness-95"
+        className="rounded-full bg-tint-blue px-2.5 py-1 text-xs font-medium text-remax-blue hover:brightness-95 disabled:opacity-50"
       >
         Recruiting
       </button>
       <button
         type="button"
+        disabled={submitting}
         onClick={() => onQuickConvert(lead, 'opportunity')}
-        className="rounded-full bg-tint-red px-2.5 py-1 text-xs font-medium text-brand-700 hover:brightness-95"
+        className="rounded-full bg-tint-red px-2.5 py-1 text-xs font-medium text-brand-700 hover:brightness-95 disabled:opacity-50"
       >
         Portföy
       </button>
@@ -48,7 +50,7 @@ function RouteButtons({ lead, onQuickConvert }) {
 // Durumu gibi ek kolonlara gerek yok.
 // 24 saatten uzun süredir bekleyen satırlar kırmızı sol kenarlıkla
 // işaretlenir — aynı görsel dil Panel'deki gecikme uyarılarıyla tutarlı.
-export default function LeadTable({ leads, onQuickConvert }) {
+export default function LeadTable({ leads, onQuickConvert, submitting }) {
   if (leads.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-disabled">
@@ -82,7 +84,7 @@ export default function LeadTable({ leads, onQuickConvert }) {
                   </Td>
                   <Td className="text-text-secondary">{lead.telefon ?? '—'}</Td>
                   <Td>
-                    <RouteButtons lead={lead} onQuickConvert={onQuickConvert} />
+                    <RouteButtons lead={lead} onQuickConvert={onQuickConvert} submitting={submitting} />
                   </Td>
                 </Tr>
               )
@@ -107,7 +109,7 @@ export default function LeadTable({ leads, onQuickConvert }) {
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2">
                 <span className="text-xs text-text-disabled">{leadDateLabel(lead.createdAt)}</span>
-                <RouteButtons lead={lead} onQuickConvert={onQuickConvert} />
+                <RouteButtons lead={lead} onQuickConvert={onQuickConvert} submitting={submitting} />
               </div>
             </div>
           )
