@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Lead Dönüş Oranı artık bilgi amaçlı çağrıları cezalandırmıyor
+
+`/kurul` denetiminin yayına-engel bulgusu: Sağlık Skoru'ndaki
+`leadResponsePercent`, broker'ın "portföy talebi değilse danışman bilgi
+girmesi gerekmesin" kararını (migration 20260804130000, `callNeedsTracking`)
+uygulamıyordu — bilgi amaçlı santral çağrıları da "dönüş yapılmadı"
+sayılıp danışmanı cezalandırıyordu. Canlıda fiilen %85-100 dönüş yapan
+bazı danışmanlar skorda %29-31 görünüyordu. `lib/takip.js`'teki
+`leadResponsePercent` artık `callNeedsTracking` filtresini uyguluyor —
+Operasyon'daki "Bekleyen Dönüş" sayısıyla aynı kural. 154/154 test, lint,
+build temiz.
+
 ## 2026-10-04 — Panel'in "Dönem Liderleri" podyumu artık Lig sayfasıyla gerçekten aynı
 
 `/kurul` denetiminin yayına-engel bulgusu: Panel kendi Lig podyum

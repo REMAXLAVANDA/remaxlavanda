@@ -1,4 +1,5 @@
 import { isPastEvent } from './calendar'
+import { callNeedsTracking } from './callLogs'
 
 // Skor formülü (broker onaylı ağırlıklar). 2026-10-04: eğitim bileşeni
 // çıkarıldı — portalda hiç eğitim modülü yoktu, bu yüzden bu bileşen hep
@@ -45,8 +46,16 @@ export function meetingAttendPercent(userId, events, attendance) {
   return Math.round((attended / resolved.length) * 100)
 }
 
+// 2026-10-04 düzeltmesi (/kurul "danışman takip menüleri" bulgusu):
+// callNeedsTracking filtresi eklendi — broker kararı (migration
+// 20260804130000: "portföy çağrısı değilse danışman bilgi girmesi
+// gerekmesin") bu skora hiç uygulanmıyordu, bilgi amaçlı (portföy talebi
+// olmayan santral) çağrılar da "dönüş yapılmadı" sayılıp danışmanı
+// cezalandırıyordu. Artık sadece dönüş GEREKEN çağrılar sayılıyor —
+// Operasyon'daki "Bekleyen Dönüş" sayısıyla (lib/callLogs.js
+// computeCallStats) aynı kural.
 export function leadResponsePercent(userId, calls) {
-  const assigned = calls.filter((c) => c.assignedTo === userId)
+  const assigned = calls.filter((c) => c.assignedTo === userId && callNeedsTracking(c))
   if (assigned.length === 0) return 0
   const responded = assigned.filter((c) => c.donusYapildiMi).length
   return Math.round((responded / assigned.length) * 100)
