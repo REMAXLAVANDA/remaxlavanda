@@ -64,19 +64,25 @@ export const opportunities = {
     const categoryRow = await run(
       client().from('categories').select('id').eq('module', 'opportunities').eq('key', payload.category).single(),
     )
+    // Tip (satıcı/alıcı) hangi fiyat alanının geçerli olduğunu belirler —
+    // formda gizlenen alan burada da temizlenir, DB'deki CHECK kısıtı
+    // (opportunities_fiyat_tip_tutarliligi) bunu zaten zorunlu kılıyor, bu
+    // sadece aynı kuralı erken ve açık hatayla uygular (bkz. /kurul bulgusu:
+    // eskiden gizlenen fiyat formda/DB'de hayalet değer olarak kalıyordu).
+    const isAlici = payload.type === 'alici'
     const insertRow = {
       type: payload.type,
       category_id: categoryRow.id,
       lead_ad: payload.leadAd,
       lead_telefon: payload.leadTelefon || null,
       konum: payload.konum,
-      fiyat: payload.fiyat ?? null,
+      fiyat: isAlici ? null : (payload.fiyat ?? null),
       ozet: payload.ozet || null,
       owner_id: ownerId,
       m2: payload.m2 ?? null,
       oda_sayisi: payload.odaSayisi || null,
-      fiyat_min: payload.fiyatMin ?? null,
-      fiyat_max: payload.fiyatMax ?? null,
+      fiyat_min: isAlici ? (payload.fiyatMin ?? null) : null,
+      fiyat_max: isAlici ? (payload.fiyatMax ?? null) : null,
       kaynak_lead_id: payload.kaynakLeadId ?? null,
       islem_tipi: payload.islemTipi || 'satilik',
       // Danışman kendi bulduğu müşteriyi eklerken (havuza atmadıysa) direkt
@@ -115,6 +121,16 @@ export const opportunities = {
     if ('m2' in patch) updateRow.m2 = patch.m2 ?? null
     if ('odaSayisi' in patch) updateRow.oda_sayisi = patch.odaSayisi || null
     if ('islemTipi' in patch) updateRow.islem_tipi = patch.islemTipi
+    // bkz. create() — tip değişiyorsa (EditOpportunityModal her zaman
+    // type+fiyat+fiyatMin+fiyatMax'i birlikte gönderir) ilgisiz fiyat
+    // alanı burada da temizlenir.
+    if ('type' in patch) {
+      if (patch.type === 'alici') updateRow.fiyat = null
+      else {
+        updateRow.fiyat_min = null
+        updateRow.fiyat_max = null
+      }
+    }
     const data = await run(
       client().from('opportunities').update(updateRow).eq('id', id).select(OPPORTUNITY_COLUMNS).single(),
     )

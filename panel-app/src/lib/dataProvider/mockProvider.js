@@ -93,9 +93,16 @@ export const opportunities = {
     )
   },
   async create(payload, ownerId, selfClaim = false) {
+    // bkz. supabaseProvider.create() — tip (satıcı/alıcı) hangi fiyat
+    // alanının geçerli olduğunu belirler, gizlenen alan burada da
+    // temizlenir (opportunities_fiyat_tip_tutarliligi CHECK'iyle aynı kural).
+    const isAlici = payload.type === 'alici'
     const row = {
       id: `opp-${Date.now()}`,
       ...payload,
+      fiyat: isAlici ? null : (payload.fiyat ?? null),
+      fiyatMin: isAlici ? (payload.fiyatMin ?? null) : null,
+      fiyatMax: isAlici ? (payload.fiyatMax ?? null) : null,
       islemTipi: payload.islemTipi || 'satilik',
       status: selfClaim ? 'claimed' : 'acik',
       ownerId,
@@ -118,6 +125,14 @@ export const opportunities = {
     const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
     if (!row) throw new Error('Fırsat bulunamadı.')
     Object.assign(row, patch)
+    // bkz. create() — tip değişiyorsa ilgisiz fiyat alanı burada da temizlenir.
+    if ('type' in patch) {
+      if (patch.type === 'alici') row.fiyat = null
+      else {
+        row.fiyatMin = null
+        row.fiyatMax = null
+      }
+    }
     const { leadAd: _leadAd, leadTelefon: _leadTelefon, ...publicRow } = row
     return delay(publicRow)
   },
