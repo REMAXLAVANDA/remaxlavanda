@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Wrench } from 'lucide-react'
+import { Home } from 'lucide-react'
 import FirsatlarTab from './firsatlar/FirsatlarTab'
 import OperasyonTab from './firsatlar/OperasyonTab'
 
@@ -32,7 +32,7 @@ export default function Firsatlar() {
         className="mt-10 scroll-mt-6 rounded-2xl border border-t-4 border-border-default border-t-remax-navy bg-surface-raised p-5"
       >
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
-          <Wrench size={16} className="text-remax-navy" /> Operasyon
+          <Home size={16} className="text-remax-navy" /> Operasyon
         </h2>
         <OperasyonTab />
       </section>

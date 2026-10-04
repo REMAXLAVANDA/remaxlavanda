@@ -3,6 +3,13 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Operasyon ikonu anahtardan eve çevrildi
+
+Broker isteği: kenar çubuğundaki ve Fırsatlar sayfasındaki "Operasyon"
+başlığının ikonu (`Wrench`) eve (`Home`) çevrildi — `lib/modules.js`
+ve `pages/Firsatlar.jsx`'te aynı ikon iki yerde kullanılıyordu, ikisi de
+güncellendi. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — "Broker Notları" bölümü kaldırıldı (hiç tamamlanmamış özellikti)
 
 `/kurul` denetiminin bulgusu: Takip > danışman detayındaki "Broker

@@ -11,7 +11,7 @@ import {
   BookOpen,
   Inbox,
   UserSearch,
-  Wrench,
+  Home,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -69,7 +69,7 @@ export const MODULES = [
     // /operasyon route'una gidip sayfayı doğrudan Operasyon bölümüne
     // kaydırıyor (bkz. Firsatlar.jsx) — yeni bir route/component yok.
     description: 'Gelen çağrıların görüşme ve portföy takibi',
-    icon: Wrench,
+    icon: Home,
     roles: ALL_ROLES,
     group: 'operasyon',
   },
