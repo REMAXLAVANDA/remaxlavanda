@@ -216,7 +216,22 @@ export default function TakvimTab() {
     }
   }
 
-  const selectedAttendance = selectedEventId ? attendance.filter((a) => a.eventId === selectedEventId) : []
+  // Katılımcı listesinde broker/owner/ofis/test hesabı gösterilmesin
+  // (bkz. aşağıdaki inviteeOptions notuyla AYNI gerekçe — bu takip zaten
+  // sadece danışman için anlamlı, eski/legacy davetlerde bu roller hâlâ
+  // satırda kalmış olabiliyordu, broker isteği 2026-10-04). Pasif bir
+  // danışman knownUsers'ta yok diye YANLIŞLIKLA gizlenmesin diye rol
+  // allUsersById'den de (yöneticiye özel, aktif olmayanlar dahil) kontrol
+  // ediliyor; hiçbir yerde bulunamayan (danışman görünümünde allUsersById
+  // boş) bir kullanıcı güvenli varsayılan olarak listede kalıyor.
+  const selectedAttendance = selectedEventId
+    ? attendance.filter((a) => {
+        if (a.eventId !== selectedEventId) return false
+        const u = knownUsers[a.userId] ?? allUsersById[a.userId]
+        if (!u) return true
+        return (!u.role || u.role === 'danisman') && !u.testHesabi
+      })
+    : []
   const selectedAttendees = selectedAttendance.map((a) => ({ ...a, name: userName(a.userId) }))
   const myAttendance = selectedAttendance.find((a) => a.userId === user.id)
   // Zorunlu/Önerilen/İsteğe Bağlı katılım tipi sadece danışmanın Sağlık

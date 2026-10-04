@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Broker/owner/ofis/test hesapları artık Katılımcılar listesinde de görünmüyor
+
+Daha önce sadece YENİ davet eklerken (davetli seçici) broker/owner/ofis/
+test hesapları listeden çıkarılmıştı — eski (legacy) davetlerde bu
+roller hâlâ "Katılımcılar" listesinde, Zorunlu rozetiyle, Katıldı/
+Katılmadı işaretlenebilir şekilde duruyordu (canlıda "Haftalık Ofis
+Toplantısı" gibi etkinliklerde broker'ın kendisi dahi bu listede
+görünüyordu). Broker net talimat verdi: bu roller takvimde hiç
+görünmesin. `TakvimTab.jsx`'teki `selectedAttendance` artık aynı
+filtreyi (sadece danışman, test hesabı hariç) katılımcı listesine de
+uyguluyor — pasif bir danışman yanlışlıkla gizlenmesin diye rol hem
+`knownUsers` hem (yöneticiye özel) `allUsersById`'den kontrol ediliyor.
+Veri SİLİNMEDİ, sadece ekrandan gizlendi — broker/owner kendi
+davetlerini görmek isterse veritabanında duruyor. Mock modda
+doğrulandı: bir etkinlikteki katılımcı sayısı 5'ten 2'ye düştü (sadece
+danışmanlar kaldı). 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Katılım durumu etiketleri birinci şahıstan üçüncü şahsa çevrildi
 
 Broker geri bildirimi: "Katıldım"/"Katılmadım" etiketleri artık yanlış
