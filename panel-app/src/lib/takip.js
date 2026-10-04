@@ -1,17 +1,18 @@
-import { moduleProgressFor } from './education'
 import { isPastEvent } from './calendar'
 
-// Skor formülü (broker onaylı ağırlıklar):
-// ciroHedefi%*0.25 + education%*0.2 + toplantıKatılım%*0.15 + leadDönüş%*0.15
-// + portalKullanım%*0.1 + müşteriMemnuniyet%*0.1 + sosyalMedyaKullanım%*0.05
+// Skor formülü (broker onaylı ağırlıklar). 2026-10-04: eğitim bileşeni
+// çıkarıldı — portalda hiç eğitim modülü yoktu, bu yüzden bu bileşen hep
+// %0 sayılıyor ve skor yapısal olarak 80'i geçemiyordu (bkz. /kurul
+// "danışman takip menüleri" denetimi). Kalan 6 bileşenin ağırlıkları,
+// aralarındaki orana dokunmadan toplam 1.0'a gelecek şekilde yeniden
+// ölçeklendirildi (eski ağırlık / 0.8).
 const WEIGHTS = {
-  ciro: 0.25,
-  education: 0.2,
-  meetingAttend: 0.15,
-  leadResponse: 0.15,
-  portalUsage: 0.1,
-  customerReview: 0.1,
-  socialUsage: 0.05,
+  ciro: 0.3125,
+  meetingAttend: 0.1875,
+  leadResponse: 0.1875,
+  portalUsage: 0.125,
+  customerReview: 0.125,
+  socialUsage: 0.0625,
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -129,9 +130,8 @@ export function socialUsagePercent(userId, users, scores, periods) {
 
 export function computeHealthScore(
   userId,
-  { modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods },
+  { events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods },
 ) {
-  const educationPercent = moduleProgressFor(userId, modules, progress).percent
   const meetingPercent = meetingAttendPercent(userId, events, attendance)
   const leadPercent = leadResponsePercent(userId, calls)
   const portalPercent = portalUsagePercent(userId, activity)
@@ -144,7 +144,6 @@ export function computeHealthScore(
   // gerekçesiyle gizlenmez veya nötrlenmez.
   const metrics = {
     ciro: ciroPercent,
-    education: educationPercent,
     meetingAttend: meetingPercent,
     leadResponse: leadPercent,
     portalUsage: portalPercent,
@@ -175,7 +174,6 @@ export const STATUS_STYLES = {
 }
 export const METRIC_LABELS = {
   ciro: 'Ciro Hedefi',
-  education: 'Eğitim Tamamlama',
   meetingAttend: 'Toplantı Katılımı',
   leadResponse: 'Lead Dönüş Oranı',
   portalUsage: 'Portal Kullanımı',
@@ -189,7 +187,6 @@ export const METRIC_LABELS = {
 // tabloya sığsın diye kısaltıldı).
 export const METRIC_SHORT_LABELS = {
   ciro: 'Ciro',
-  education: 'Eğitim',
   meetingAttend: 'Toplantı',
   leadResponse: 'Lead Dönüş',
   portalUsage: 'Portal',

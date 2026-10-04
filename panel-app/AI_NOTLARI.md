@@ -3,6 +3,18 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Sağlık Skoru artık yapısal olarak 80'de tıkanmıyor
+
+`/kurul` denetiminin ("danışman takip menüleri") yayına-engel bulgusu:
+skor formülünün %20'si eğitim modülü tamamlama oranıydı, ama portalda
+hiç eğitim modülü yoktu — bu bileşen hep %0 sayılıyor, danışman her şeyi
+mükemmel yapsa bile skor 80'i geçemiyordu. Broker kararı: eğitim
+modülleri yakın zamanda eklenmeyecek, bileşen formülden çıkarıldı.
+Kalan 6 bileşenin ağırlıkları (ciro/toplantı/lead dönüş/portal/
+memnuniyet/sosyal medya) birbirine oranı korunarak toplam 1.0'a
+yeniden ölçeklendirildi (`lib/takip.js`, `WEIGHTS`). 154/154 test,
+lint, build temiz.
+
 ## 2026-10-04 — Panel'deki bekleyen-iş widget'ları tarih filtresinden bağımsız
 
 `/kurul` denetiminin yayına-engel bulgusu: "Sana Atanan Çağrılar" ve
