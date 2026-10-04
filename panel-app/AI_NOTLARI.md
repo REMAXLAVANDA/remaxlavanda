@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Fırsat tablosu mobilde kart görünümüne geçti, ikon düğmeler büyüdü
+
+`/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) iki
+denetçinin bağımsız olarak işaret ettiği ortak bulgusu: `OpportunityTable.jsx`
+mobilde (375px) yatay kaydırma gerektiriyordu, danışmanın asıl düğmesi
+"İlgileniyorum" ekranın dışında kalıyordu. `CallTable.jsx`'teki AYNI
+desenle (`hidden sm:block` tablo + `sm:hidden` kart listesi) düzeltildi —
+kartta SAT/KİR rozeti + mahalle + fiyat üstte, özet ortada, durum/tarih/
+İlgileniyorum (tam genişlik) altta. Ayrıca aynı raporun dokunma hedefi
+bulgusu: `CallTable.jsx`'teki telefon göster/gizle ve WhatsApp düğmeleri
+~13×13px'ti (WCAG 2.5.8, en az 24×24px) — dosyadaki diğer ikon
+düğmeleriyle aynı `p-1.5` deseni eklendi. Mobil kartlardaki Not/Düzenle
+ikon düğmelerine de kısa metin eklendi — tooltip (title) mobilde
+çalışmadığı için ikonlar ayırt edilemiyordu. Masaüstü tablosuna
+dokunulmadı (hover orada çalışıyor). Playwright ile mock modda 375px ve
+1280px genişlikte görsel doğrulandı. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Form pencereleri artık yanlışlıkla kapanıp veri silmiyor
 
 `/kurul` görsel+kullanılabilirlik denetiminin (Fırsatlar bölümü) 3. kritik

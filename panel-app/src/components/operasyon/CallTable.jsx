@@ -80,13 +80,23 @@ function KaynakBadge({ kaynak }) {
 function PhoneCell({ phone }) {
   const [revealed, setRevealed] = useState(false)
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+    // Göz ve WhatsApp düğmeleri önceden dolgusuz, ~13×13px'ti — tek elle
+    // isabet ettirmek zordu (bkz. /kurul görsel+kullanılabilirlik raporu,
+    // 2026-10-04, madde 7 — WCAG 2.5.8, en az 24×24px). p-1.5 ile dosyadaki
+    // diğer ikon düğmeleriyle (not/düzenle/sil) AYNI desene getirildi.
+    <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
       {revealed ? (
         <>
           <a href={telHref(phone)} className="text-brand-700 hover:underline">
             {phone}
           </a>
-          <a href={whatsappHref(phone)} target="_blank" rel="noreferrer" title="WhatsApp'ta aç" className="text-emerald-600 hover:text-emerald-700">
+          <a
+            href={whatsappHref(phone)}
+            target="_blank"
+            rel="noreferrer"
+            title="WhatsApp'ta aç"
+            className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+          >
             <WhatsappIcon size={13} />
           </a>
         </>
@@ -95,7 +105,7 @@ function PhoneCell({ phone }) {
       )}
       <button
         onClick={() => setRevealed((v) => !v)}
-        className="text-ink-400 hover:text-brand-700"
+        className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-brand-700"
         title={revealed ? 'Gizle' : 'Göster'}
       >
         {revealed ? <EyeOff size={13} /> : <Eye size={13} />}
@@ -539,7 +549,13 @@ export default function CallTable({
                     </div>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
+                {/* Mobilde üzerine gelince çıkan açıklama (title) çalışmıyor —
+                    kalem/not ikonları aynı boyutta, hangisinin ne olduğu
+                    anlaşılmıyordu (bkz. /kurul kullanılabilirlik raporu,
+                    2026-10-04, madde 7). Sadece bu mobil kartlarda ikonların
+                    yanına kısa metin eklendi; masaüstü tablosunda hover
+                    çalıştığı için dokunulmadı. */}
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
                   {!call.opportunityId && (canEditResult || isManager) && (
                     <button
                       onClick={() => onConvertToOpportunity(call)}
@@ -552,19 +568,19 @@ export default function CallTable({
                   {canEditResult && !canEditCallDetails(currentRole, call.createdAt) && (
                     <button
                       onClick={() => onEditNote(call)}
-                      className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                      className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-100 hover:text-ink-700"
                       title={call.notlar ? 'Notu düzenle' : 'Not ekle'}
                     >
-                      <StickyNote size={14} />
+                      <StickyNote size={14} /> Not
                     </button>
                   )}
                   {canEditCallDetails(currentRole, call.createdAt) && (
                     <button
                       onClick={() => onEditDetails(call)}
-                      className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                      className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-100 hover:text-ink-700"
                       title="Bilgileri düzenle"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={14} /> Düzenle
                     </button>
                   )}
                   {isManager && (
