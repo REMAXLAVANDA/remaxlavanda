@@ -12,14 +12,18 @@ import {
   metaWebhookErrors as metaWebhookErrorsProvider,
   telsamWebhookErrors as telsamWebhookErrorsProvider,
   metaCapiErrors as metaCapiErrorsProvider,
+  callLogs as callLogsProvider,
+  opportunities as opportunitiesProvider,
 } from '../lib/dataProvider'
 import { canManageUsers, ROLE_LABELS } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
+import { callNeedsTracking } from '../lib/callLogs'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import EditUserModal from '../components/settings/EditUserModal'
 import ResetPasswordModal from '../components/settings/ResetPasswordModal'
+import DevretModal from '../components/settings/DevretModal'
 import CategoryManager from '../components/settings/CategoryManager'
 import PermissionMatrix from '../components/settings/PermissionMatrix'
 import AuditLogTable from '../components/settings/AuditLogTable'
@@ -102,6 +106,8 @@ export default function Ayarlar() {
   const [changingRole, setChangingRole] = useState(false)
   const [resetTarget, setResetTarget] = useState(null)
   const [resetting, setResetting] = useState(false)
+  const [devretTarget, setDevretTarget] = useState(null)
+  const [devretting, setDevretting] = useState(false)
 
   // Rol değişikliği artık onaysız/anında uygulanmıyor (bkz. Portal Kurulu
   // /kurul yetki denetimi, 2026-09-30 — kullanilabilirlik-denetci [İhlal]
@@ -136,7 +142,10 @@ export default function Ayarlar() {
     }
   }
 
-  async function handleToggleDurum(id, durum) {
+  // silentToast: devret akışı (handleDevretAndDeactivate) kendi özet
+  // toast'ını gösteriyor — ikisi üst üste çıkmasın diye buradaki genel
+  // mesaj o akışta bastırılıyor.
+  async function handleToggleDurum(id, durum, { silentToast = false } = {}) {
     try {
       await usersProvider.updateUser(id, { durum })
       setAllUsers((prev) => prev.map((u) => (u.id === id ? { ...u, durum } : u)))
@@ -152,9 +161,57 @@ export default function Ayarlar() {
         const targetName = allUsers?.find((u) => u.id === id)?.name
         if (info?.dogumTarihi && targetName) await syncBirthdayEvent(id, targetName, info.dogumTarihi)
       }
-      showToast(durum === 'aktif' ? 'Kullanıcı aktifleştirildi.' : 'Kullanıcı pasifleştirildi.', 'success')
+      if (!silentToast) {
+        showToast(durum === 'aktif' ? 'Kullanıcı aktifleştirildi.' : 'Kullanıcı pasifleştirildi.', 'success')
+      }
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    }
+  }
+
+  // Aktifleştirme her zaman anında olur (eskisi gibi) — sadece pasife
+  // alırken önce açık iş var mı kontrol ediliyor (bkz. /kurul "danışman
+  // takip menüleri" denetimi: pasife alma işi hiç devretmiyordu, kayıtlar
+  // kimsenin göremediği bir danışmanın üzerinde asılı kalıyordu).
+  async function requestToggleDurum(id, durum) {
+    if (durum === 'aktif') return handleToggleDurum(id, durum)
+    const target = allUsers?.find((u) => u.id === id)
+    if (!target) return
+    const [calls, opps] = await Promise.all([callLogsProvider.listSummary(), opportunitiesProvider.list()])
+    const pendingCalls = calls.filter((c) => c.assignedTo === id && !c.donusYapildiMi && callNeedsTracking(c))
+    const pendingOpps = opps.filter(
+      (o) => (o.ownerId === id || o.claimerId === id) && (o.status === 'acik' || o.status === 'claimed'),
+    )
+    if (pendingCalls.length === 0 && pendingOpps.length === 0) {
+      return handleToggleDurum(id, durum)
+    }
+    setDevretTarget({
+      id,
+      name: target.name,
+      pendingCallIds: pendingCalls.map((c) => c.id),
+      pendingCallCount: pendingCalls.length,
+      pendingOpportunityCount: pendingOpps.length,
+    })
+  }
+
+  async function handleDevretAndDeactivate(toUserId) {
+    if (!devretTarget) return
+    setDevretting(true)
+    try {
+      await Promise.all([
+        callLogsProvider.reassignPending(devretTarget.pendingCallIds, toUserId),
+        opportunitiesProvider.reassignOpen(devretTarget.id, toUserId),
+      ])
+      await handleToggleDurum(devretTarget.id, 'pasif', { silentToast: true })
+      showToast(
+        `${devretTarget.pendingCallCount + devretTarget.pendingOpportunityCount} kayıt devredildi, ${devretTarget.name} pasifleştirildi.`,
+        'success',
+      )
+      setDevretTarget(null)
+    } catch (err) {
+      showToast(err.message ?? 'Devredilemedi, tekrar dene.', 'error')
+    } finally {
+      setDevretting(false)
     }
   }
 
@@ -421,7 +478,7 @@ export default function Ayarlar() {
               canManage={canManage}
               currentUserId={user?.id}
               onChangeRole={requestRoleChange}
-              onToggleDurum={handleToggleDurum}
+              onToggleDurum={requestToggleDurum}
               onToggleTestHesabi={handleToggleTestHesabi}
               onEdit={setEditingUser}
               onDeleteRequest={setDeleteTarget}
@@ -555,6 +612,20 @@ export default function Ayarlar() {
           onConfirm={handleDeleteUser}
           onCancel={() => setDeleteTarget(null)}
           confirming={deleting}
+        />
+      )}
+
+      {devretTarget && (
+        <DevretModal
+          targetName={devretTarget.name}
+          pendingCallCount={devretTarget.pendingCallCount}
+          pendingOpportunityCount={devretTarget.pendingOpportunityCount}
+          candidates={(allUsers ?? []).filter(
+            (u) => u.id !== devretTarget.id && u.role === 'danisman' && u.durum === 'aktif',
+          )}
+          onSubmit={handleDevretAndDeactivate}
+          onCancel={() => setDevretTarget(null)}
+          submitting={devretting}
         />
       )}
     </div>

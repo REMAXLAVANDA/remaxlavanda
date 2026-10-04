@@ -211,6 +211,15 @@ export const opportunities = {
     }
     return delay(null)
   },
+  // supabaseProvider.reassignOpen() ile birebir aynı davranış.
+  async reassignOpen(fromUserId, toUserId) {
+    for (const row of MOCK_OPPORTUNITIES) {
+      if (row.status !== 'acik' && row.status !== 'claimed') continue
+      if (row.ownerId === fromUserId) row.ownerId = toUserId
+      if (row.claimerId === fromUserId) row.claimerId = toUserId
+    }
+    return delay(null)
+  },
 }
 
 // --- Calendar events + attendance (Takvim) ----------------------------------
@@ -449,6 +458,13 @@ export const callLogs = {
   async remove(id) {
     const idx = MOCK_CALLS.findIndex((c) => c.id === id)
     if (idx !== -1) MOCK_CALLS.splice(idx, 1)
+    return delay(null)
+  },
+  // supabaseProvider.reassignPending() ile birebir aynı davranış.
+  async reassignPending(callIds, toUserId) {
+    for (const row of MOCK_CALLS) {
+      if (callIds.includes(row.id)) row.assignedTo = toUserId
+    }
     return delay(null)
   },
 }

@@ -156,6 +156,31 @@ export const opportunities = {
     const row = Array.isArray(data) ? data[0] : data
     return { id: row.id, status: row.status, claimerId: row.claimer_id, claimedAt: row.claimed_at }
   },
+  // Pasife alınan danışmanın açık/üstlenilmiş fırsatlarını başka bir
+  // danışmana toplu devreder (bkz. Ayarlar.jsx DevretModal, /kurul
+  // "danışman takip menüleri" denetimi — pasife alma işi hiç devretmiyordu).
+  // İki ayrı UPDATE: biri sahiplik (owner_id — kendi listelediği açık
+  // portföyler), biri üstlenme (claimer_id — başkasının listelediği, bunun
+  // üstlendiği fırsatlar). Kapanmış/iptal fırsatlara dokunulmuyor. Trigger
+  // (trg_prevent_opportunity_status_bypass) bu alanlara doğrudan yazmayı
+  // sadece is_manager() değilse engelliyor — bu sayfa zaten sadece broker/
+  // owner'a açık, dolayısıyla buradan yazmak izinli.
+  async reassignOpen(fromUserId, toUserId) {
+    await run(
+      client()
+        .from('opportunities')
+        .update({ owner_id: toUserId })
+        .eq('owner_id', fromUserId)
+        .in('status', ['acik', 'claimed']),
+    )
+    await run(
+      client()
+        .from('opportunities')
+        .update({ claimer_id: toUserId })
+        .eq('claimer_id', fromUserId)
+        .in('status', ['acik', 'claimed']),
+    )
+  },
   // "İlgileniyorum" artık exclusive claim değil — opportunity_interest'e
   // kayıt ekler, müşteri bilgisini AÇMAZ. Fırsatı giren kişi kimin
   // ilgilendiğini görüp kendisi arar (bkz. listInterest).
@@ -592,6 +617,17 @@ export const callLogs = {
     if (!data || data.length === 0) {
       throw new Error('Çağrı silinemedi — yetkin olmayabilir, tekrar dene.')
     }
+  },
+  // Pasife alınan danışmanın takip gerektiren, dönüşü yapılmamış
+  // çağrılarını başka bir danışmana toplu devreder (bkz. Ayarlar.jsx
+  // DevretModal). callNeedsTracking dışında kalanlar (santral kaynaklı,
+  // portföy talebi olmayan bilgi çağrıları) zaten takip gerektirmediği
+  // için devredilmiyor — tek tek ID ile güncellenir (RLS'in anladığı
+  // tek UPDATE şekli bu, SQL'de callNeedsTracking'i tekrar yazmak yerine
+  // tek doğru kaynağı (lib/callLogs.js) kullanıyoruz).
+  async reassignPending(callIds, toUserId) {
+    if (callIds.length === 0) return
+    await run(client().from('call_logs').update({ assigned_to: toUserId }).in('id', callIds))
   },
 }
 

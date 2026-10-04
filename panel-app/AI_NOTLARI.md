@@ -3,6 +3,30 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Danışman pasife alınırken açık işler artık devrediliyor
+
+`/kurul` denetiminin ("danışman takip menüleri") yayına-engel bulgusu:
+bir danışman pasife alındığında üzerindeki açık/bekleyen işler (dönüş
+bekleyen çağrılar, açık/üstlenilmiş fırsatlar) kimseye devredilmiyordu —
+canlıda pasif bir danışmanın üzerinde 10 bekleyen çağrı + 6 üstlenilmiş
+fırsat bulundu, hiçbiri hiçbir listede görünmüyordu (bugün erken
+yapılan isim-görünürlüğü düzeltmesi bunların en azından "Atanmadı" ile
+karışmasını önlemişti, ama asıl devir akışı yoktu).
+
+Ayarlar > Kullanıcılar'daki "Pasifleştir" artık önce kontrol ediyor:
+danışmanın takip gerektiren (callNeedsTracking, dönüşü yapılmamış)
+çağrısı veya açık/üstlenilmiş fırsatı varsa, pasifleştirmeden önce yeni
+`DevretModal` açılıyor — sayıları gösterip broker/owner'dan tek bir aktif
+danışman seçmesini istiyor, seçilince hem çağrılar (`assigned_to`) hem
+fırsatlar (`owner_id`/`claimer_id`, sadece açık/üstlenilmiş olanlar)
+toplu devredilip ardından pasifleştirme tamamlanıyor. Açık iş yoksa
+davranış değişmedi (eskisi gibi anında pasifleşir). Yeni dataProvider
+metodları: `callLogs.reassignPending(ids, toUserId)`,
+`opportunities.reassignOpen(fromUserId, toUserId)` (hem supabase hem
+mock provider'da, aynı davranış). Mock modda uçtan uca doğrulandı
+(Playwright): modal doğru sayıları gösterdi, devir sonrası tek özet
+toast çıktı, kullanıcı pasifleşti. 154/154 test, lint, build temiz.
+
 ## 2026-10-04 — Fırsatı kapat/iptal et RPC'si herkes için kırıktı, düzeltildi
 
 Önceki (RPC-atlama) düzeltmesini test ederken bağımsız, önceden var olan
