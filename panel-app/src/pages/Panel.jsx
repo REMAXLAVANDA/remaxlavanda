@@ -340,25 +340,29 @@ export default function Panel() {
   const upcomingLabel = filters.dateRange === 'tumu' ? 'Tüm yaklaşan etkinlikler' : `Önümüzdeki ${selectedRange?.label ?? '7 gün'}`
 
   // --- Operasyon: atanmamış (yönetim) / sana atanan dönüşü bekleyen (danışman) ---
+  // Üstteki tarih filtresinden BİLEREK bağımsız — "Dikkat Gerekiyor" ile
+  // aynı mantık (bkz. o bloğun notu): bu bir "bekleyen iş" listesi, rapor
+  // aralığı değil. Eskiden 7 günlük varsayılan filtreye tabiydi; bazı
+  // danışmanlarda bekleyen işlerin %76'sı bu yüzden hiç görünmüyordu ve
+  // ekran "Bekleyen çağrı yok, harika!" diyordu (bkz. /kurul "danışman
+  // takip menüleri" denetimi, 2026-10-04).
   const pendingCalls = useMemo(() => {
     if (!data) return []
     const list = isManager
       ? data.calls.filter((c) => !c.assignedTo)
       : data.calls.filter((c) => c.assignedTo === user.id && !c.donusYapildiMi)
-    return list
-      .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [data, isManager, user.id, filters])
+    return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }, [data, isManager, user.id])
 
   // --- Fırsatlar: havuzdaki (henüz kimsenin almadığı) açık fırsatlar —
   // satıcı/alıcı ayrı bloklarda gösterilsin diye ayrı listeleniyor.
+  // Aynı sebeple tarih filtresinden bağımsız (bkz. yukarıdaki not).
   const openOpportunities = useMemo(() => {
     if (!data) return []
     return data.opps
       .filter((o) => o.status === 'acik')
-      .filter((o) => isWithinRange(o.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [data, filters])
+  }, [data])
   const openSatici = useMemo(() => openOpportunities.filter((o) => o.type === 'satici'), [openOpportunities])
   const openAlici = useMemo(() => openOpportunities.filter((o) => o.type === 'alici'), [openOpportunities])
 
