@@ -3,6 +3,22 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Sosyal medya puanının geriye dönük sessizce değişmesi önlendi
+
+`/kurul` denetiminin veri-zinciri bulgusu: social_activity_log girişin
+yapıldığı andaki puanı saklamıyordu, toplam her girişte
+social_activity_types.puan'ın GÜNCEL değeriyle baştan hesaplanıyordu —
+broker bir aktivitenin puanını değiştirince açıklanmış dönemler dahil
+tüm geçmiş toplamlar sessizce değişebiliyordu (CLAUDE.md "Asla olmaması
+gerekenler" kuralına aykırı). `puan_snapshot` kolonu eklendi (mevcut
+satırlar güncel puanla dolduruldu — gerçek giriş-anı puanı geriye dönük
+bilinemiyor, en iyi yaklaşıklık bu), yeni girişlerde trigger ile otomatik
+dolduruluyor. Açıklanmış (durum='aciklandi') bir döneme artık broker
+dahil kimse yeni aktivite ekleyemiyor/silemiyor/değiştiremiyor.
+`recomputeSocialTotal` artık puan_snapshot'tan topluyor. 2 senaryo rol
+simülasyonuyla doğrulandı (açıklanmış dönemde engellendi, açık dönemde
+otomatik snapshot ile geçti).
+
 ## 2026-10-04 — Lead Havuzu'ndan mükerrer kayıt oluşması önlendi
 
 `/kurul` denetiminin veri-zinciri bulgusu: Lead Havuzu'ndan yönlendirme
