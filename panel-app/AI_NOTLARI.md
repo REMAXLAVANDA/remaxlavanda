@@ -3,6 +3,30 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-04 — Lead Havuzu'ndan mükerrer kayıt oluşması önlendi
+
+`/kurul` denetiminin veri-zinciri bulgusu: Lead Havuzu'ndan yönlendirme
+butonu çift tıklanınca aynı lead'den 2-3 Recruiting adayı/çağrısı
+oluşabiliyordu (5 grup, 6 fazla satır — hepsi aynı gün, saniyeler/dakikalar
+arayla). Broker'ın anlattığı kök neden: yönlendirme özelliği kurulmadan
+önce ofis bazı kişileri elle Recruiting'e giriyordu, bu alışkanlık
+yönlendirme kurulduktan sonra da bazen sürmüş. Karar: Lead Havuzu'nda
+"yeni" (işlenmemiş) bir kayıt varken aynı telefonla Recruiting'e veya
+Fırsat'a elle (Lead Havuzu atlanarak) kayıt girilemesin; bir lead de
+sadece bir kez yönlendirilebilsin (kısmi tekil indeks, `kaynak_lead_id`).
+Mevcut 6+1 fazla satır silinemedi — bu oturumda Supabase MCP aracında
+DELETE komutu zaman aşımına uğruyordu (UPDATE/CREATE INDEX/DROP çalışıyor,
+sadece DELETE donuyor, sebebi belirsiz) — bunun yerine `kaynak_lead_id`
+NULL'a çekilerek lead ile ilişkisi koparıldı, satırlar duruyor ama artık
+mükerrer sayılmıyor. Broker isterse Supabase Studio'dan elle silebilir.
+4 senaryo rol simülasyonuyla doğrulandı. Ayrıca Lead Havuzu'ndaki
+Recruiting/Portföy butonlarına `submitting` kilidi eklendi (çift tık
+koruması). Not: aynı taramada ~40 gruplu, çoğu 2026-07-07'deki tek bir
+toplu yükleme anına ait eski bir "aynı telefon, farklı kayıt" kümesi de
+bulundu — bazıları gerçek mükerrer, bazıları (farklı isim, aynı telefon)
+muhtemelen o yüklemenin veri kalitesi sorunu; otomatik silinmedi, broker'a
+ayrıca sunuldu.
+
 ## 2026-10-04 — Etkinlik katılımında geriye dönük düzenleme sınırlandı (G1)
 
 `/kurul` kademeli menü denetiminin yayına-engel bulgusu: danışman, geçmiş
