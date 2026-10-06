@@ -17,6 +17,18 @@
 -- koşulundaki durum listesi. Zaten var olan 7 günlük yönetim düzeltme
 -- penceresi (owner/ofis) bu durumda da geçerli: biri gerçekten katıldıysa
 -- ama otomatik "katılmadı" yazıldıysa, 7 gün içinde düzeltilebilir.
+--
+-- ÖNEMLİ NÜANS (2026-10-06, broker açıklaması): "Katılmak İstiyorum"
+-- akışı HER ZAMAN katilim_tipi='istege_bagli' ile kayıt açıyor — bu,
+-- zorunlu olmayan bir etkinliğe (ör. artık zorunlu olmayan ama yine de
+-- katılmak isteyen 3. ayındaki danışmanın oryantasyon eğitimine gönüllü
+-- katılımı) gönüllü katılımı TEŞVİK etmek için var. Durumu burada
+-- "katılmadı" yapmak (veri/raporlama doğruluğu için doğru) AMA bunun
+-- Sağlık Skoru'ndaki Toplantı Katılımı yüzdesine girmesi YANLIŞ olurdu —
+-- gönüllü katılıp gelemeyeni cezalandırmak amacın tersine çalışır. Bu
+-- yüzden ayrı bir frontend düzeltmesi de yapıldı: lib/takip.js
+-- meetingAttendPercent() artık katilimTipi==='istege_bagli' satırları
+-- hiç saymıyor (sonucu ne olursa olsun).
 -- ============================================================================
 
 create or replace function public.auto_resolve_attendance()

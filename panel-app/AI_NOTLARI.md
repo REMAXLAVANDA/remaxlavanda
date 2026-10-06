@@ -3,6 +3,24 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-06 — "Katılmak İstiyorum" otomatik çözümlensin ama skoru etkilemesin
+
+`auto_resolve_attendance()` artık sadece cevapsız davetleri (davetli)
+değil, "Katılmak İstiyorum" diyip sonucu hiç işaretlenmeyen (onayladi)
+satırları da 3 gün sonra "katılmadı" yapıyor — kim katıldı/katılmadı
+işaretler kuralı değişmedi (hâlâ sadece ofis/broker/owner).
+
+Broker netleştirmesi: "Katılmak İstiyorum" akışı HER ZAMAN
+`katilim_tipi='istege_bagli'` ile açılıyor — zorunlu olmayan bir
+etkinliğe (ör. artık gerekmeyen ama danışmanın yine de katılmak istediği
+oryantasyon eğitimi) gönüllü katılımı teşvik etmek için var. Durumu
+"katılmadı" yapmak doğru (raporlama için) ama bunun Sağlık Skoru'na
+girmesi yanlış olurdu — gönüllü katılıp gelemeyeni cezalandırmak amacın
+tersine çalışır. Bu yüzden `lib/takip.js` `meetingAttendPercent()`
+katilimTipi='istege_bagli' satırları artık hiç saymıyor (sonuç ne olursa
+olsun) — sadece zorunlu/önerilen toplantılar skora giriyor. 154/154 test,
+lint, build temiz.
+
 ## 2026-10-06 — Koçluk Notları (kaldırılan "Broker Notları"nın yerine)
 
 Takip'teki danışman kartına gerçek veriye bağlı bir koçluk notu bölümü

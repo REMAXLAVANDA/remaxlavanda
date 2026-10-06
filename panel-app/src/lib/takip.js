@@ -35,6 +35,12 @@ export const YILLIK_CIRO_HEDEFI = 2304000
 export function meetingAttendPercent(userId, events, attendance) {
   const resolved = attendance.filter((a) => {
     if (a.userId !== userId) return false
+    // İsteğe bağlı (istege_bagli) katılım hiç puana girmez — "Katılmak
+    // İstiyorum" zorunlu olmayan bir etkinliğe (ör. artık gerekmeyen ama
+    // yine de katılmak istediği oryantasyon eğitimi) gönüllü katılan
+    // danışmanı teşvik etmek için var; gelemezse cezalandırılırsa amacın
+    // tam tersi olur (2026-10-06 broker netleştirmesi).
+    if (a.katilimTipi === 'istege_bagli') return false
     const event = events.find((e) => e.id === a.eventId)
     if (!event || !isPastEvent(event)) return false
     if (a.status === 'katildi' || a.status === 'katilmadi') return true
