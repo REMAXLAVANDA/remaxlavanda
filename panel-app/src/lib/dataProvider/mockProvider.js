@@ -17,6 +17,7 @@ import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_LEADS } from '../../data/mockLeads'
 import { MOCK_RECRUITING_CANDIDATES, MOCK_RECRUITING_NOTES } from '../../data/mockRecruiting'
 import { MOCK_TASKS } from '../../data/mockTasks'
+import { MOCK_COACHING_NOTES } from '../../data/mockCoachingNotes'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
 import {
@@ -1047,5 +1048,55 @@ export const tasks = {
     const idx = MOCK_TASKS.findIndex((t) => t.id === id)
     if (idx !== -1) MOCK_TASKS.splice(idx, 1)
     return delay(null)
+  },
+}
+
+// --- Koçluk Notları (Takip) — gerçekte RLS'in yaptığı rol filtresini
+// burada taklit EDİYORUZ (mock'ta sunucu tarafı kontrol yok): list() sadece
+// yönetim çağırır (UI zaten canManageCoachingNotes ile kapalı), listMyTargets
+// ise sadece o danışmanın "hedef_aksiyon" dolu satırlarını döner — gerçek
+// coaching_note_hedefleri görünümüyle AYNI daralma, elle uygulanıyor.
+export const coachingNotes = {
+  async list() {
+    return delay([...MOCK_COACHING_NOTES])
+  },
+  async listMyTargets(userId) {
+    const rows = MOCK_COACHING_NOTES.filter((n) => n.danismanId === userId && n.hedefAksiyon)
+    return delay(
+      rows.map((n) => ({
+        id: n.id,
+        danismanId: n.danismanId,
+        gorusmeTarihi: n.gorusmeTarihi,
+        hedefAksiyon: n.hedefAksiyon,
+        takipTarihi: n.takipTarihi,
+        durum: n.durum,
+      })),
+    )
+  },
+  async create(form) {
+    const row = {
+      id: `cn-${Date.now()}`,
+      danismanId: form.danismanId,
+      yazanId: form.yazanId,
+      gorusmeTarihi: form.gorusmeTarihi || new Date().toISOString().slice(0, 10),
+      gorusmeTuru: form.gorusmeTuru,
+      konusulanlar: form.konusulanlar,
+      hedefAksiyon: form.hedefAksiyon || null,
+      takipTarihi: form.takipTarihi || null,
+      durum: 'acik',
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_COACHING_NOTES.unshift(row)
+    return delay({ ...row })
+  },
+  async update(id, patch) {
+    const note = MOCK_COACHING_NOTES.find((n) => n.id === id)
+    if (!note) throw new Error('Koçluk notu bulunamadı.')
+    if ('konusulanlar' in patch) note.konusulanlar = patch.konusulanlar
+    if ('hedefAksiyon' in patch) note.hedefAksiyon = patch.hedefAksiyon || null
+    if ('takipTarihi' in patch) note.takipTarihi = patch.takipTarihi || null
+    if ('durum' in patch) note.durum = patch.durum
+    if ('gorusmeTuru' in patch) note.gorusmeTuru = patch.gorusmeTuru
+    return delay({ ...note })
   },
 }

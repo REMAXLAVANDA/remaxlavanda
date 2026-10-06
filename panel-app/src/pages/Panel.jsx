@@ -28,6 +28,7 @@ import {
   leads as leadsProvider,
   recruiting as recruitingProvider,
   tasks as tasksProvider,
+  coachingNotes as coachingNotesProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
 import { matchesKayitTipiFilter, computeRecruitingReklamConversion } from '../lib/recruiting'
@@ -50,7 +51,15 @@ import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
 import { LEAGUE_CATEGORIES, latestUpdate, periodEffectiveDurum, periodScoresFor, rankingsByCategoryFor } from '../lib/league'
 import { DATE_RANGES, isWithinRange } from '../lib/dateRange'
-import { isStaleReturn, isStaleOpp, isInactiveAgent, isBehindEducation, isRecruitingStalled } from '../lib/attention'
+import {
+  isStaleReturn,
+  isStaleOpp,
+  isInactiveAgent,
+  isBehindEducation,
+  isRecruitingStalled,
+  isCriticalWithoutCoaching,
+} from '../lib/attention'
+import { isReminderDue } from '../lib/coachingNotes'
 import { isOverdue } from '../lib/tasks'
 import { relativeTime, isToday, capitalizeFirst } from '../lib/format'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -85,6 +94,8 @@ const LOAD_ALL_KEYS = [
   'leads',
   'recruitingCandidates',
   'tasks',
+  'coachingNotes',
+  'myCoachingTargets',
 ]
 
 // Eğitim/checklist widget'larının EmptyRow'u bu 4 sorgudan HERHANGİ biri
@@ -113,7 +124,11 @@ const EDUCATION_KEYS = ['modules', 'progress', 'checklistItems', 'checklistStatu
 // hatasıyla TÜM paneli götürüyordu. Artık her sorgu kendi payına düşen
 // süreyi aşarsa SADECE o veri boş kalıp PartialFailureBanner çıkıyor,
 // diğer 16 sorgu zaten bitmiş oluyor — sayfa anında açılıyor.
-async function loadAll() {
+// userId: coachingNotes.listMyTargets() için gerekiyor — danışmanın kendi
+// "hedef/aksiyon" satırlarını getiren görünüm auth.uid()'e göre daralıyor
+// ama mockProvider'da (gerçek auth yok) elle filtrelemek için id gerekiyor
+// (bkz. lib/dataProvider/mockProvider.js coachingNotes.listMyTargets notu).
+async function loadAll(userId) {
   const results = await Promise.allSettled([
     // Panel sadece özet sayılar/uyarılar için kullanıyor — tam kayıt
     // (arayanAd/telefon/notlar) yerine hafif listSummary() (bkz. o
@@ -140,6 +155,11 @@ async function loadAll() {
     fetchWithRetry(() => leadsProvider.list()),
     fetchWithRetry(() => recruitingProvider.list()),
     fetchWithRetry(() => tasksProvider.list()),
+    // coaching_notes_select RLS'i broker/owner dışında boş dizi döner.
+    fetchWithRetry(() => coachingNotesProvider.list()),
+    // coaching_note_hedefleri görünümü zaten sadece kendi id'sine daralı —
+    // danışman olmayan biri için de boş dizi döner (kendine ait satır yok).
+    fetchWithRetry(() => coachingNotesProvider.listMyTargets(userId)),
   ])
 
   const data = { hasPartialFailure: false, failedKeys: new Set() }
@@ -338,7 +358,9 @@ export default function Panel() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
   const { showToast } = useToast()
-  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [], { timeoutMs: PANEL_LOAD_TIMEOUT_MS })
+  const { data, setData, loading, error, reload } = useAsyncList(() => loadAll(user.id), [user.id], {
+    timeoutMs: PANEL_LOAD_TIMEOUT_MS,
+  })
   const [mazeretOpenEventId, setMazeretOpenEventId] = useState(null)
   const [mazeretDraft, setMazeretDraft] = useState('')
   const [rsvpBusyEventId, setRsvpBusyEventId] = useState(null)
@@ -652,8 +674,36 @@ export default function Panel() {
       })
     }
 
+    // Sağlık skoru Kritik olup son 30 gündür koçluk notu almayan danışman
+    // — ofis rolünde data.coachingNotes zaten boş geliyor (RLS), bu yüzden
+    // ayrıca rol kontrolüne gerek yok (bkz. lib/attention.js).
+    const criticalWithoutCoaching = teamMembers.filter((u) => {
+      const { status } = computeHealthScore(u.id, data)
+      return isCriticalWithoutCoaching(status, u.id, data.coachingNotes ?? [], now)
+    })
+    if (criticalWithoutCoaching.length > 0) {
+      items.push({
+        id: 'critical-without-coaching',
+        severity: 'kritik',
+        to: '/takip',
+        text: `${criticalWithoutCoaching.length} danışmanın sağlık skoru kritik ama son 30 gündür hiç koçluk notu yok`,
+      })
+    }
+
+    // Koçluk notu yazarken girilen takip tarihi geldiyse, YAZAN kişinin
+    // kendi Panel'inde hatırlatma çıkar (bkz. Koçluk Notları briefi).
+    const myDueReminders = (data.coachingNotes ?? []).filter((n) => n.yazanId === user.id && isReminderDue(n, now))
+    if (myDueReminders.length > 0) {
+      items.push({
+        id: 'coaching-reminders',
+        severity: 'uyari',
+        to: '/takip',
+        text: `${myDueReminders.length} koçluk notunda takip tarihin geldi`,
+      })
+    }
+
     return items
-  }, [data, activityRanking, educationGaps])
+  }, [data, activityRanking, educationGaps, teamMembers, user.id])
 
   // --- Danışman: broker/owner'ın "Dikkat Gerekiyor"una eşdeğer, ama
   // SADECE kendi kayıtlarına bakıyor. 2026-10-04 /kurul bulgusu ("Sapma",
@@ -696,6 +746,19 @@ export default function Panel() {
         severity: 'uyari',
         to: '/gorevler',
         text: `${myOverdueTasks.length} görevinin süresi geçti`,
+      })
+    }
+
+    // Koçluk Notları — yönetimin sana verdiği "hedef/aksiyon" (konuşmanın
+    // geri kalanını göremezsin, bkz. coaching_note_hedefleri görünümü).
+    const myOpenTargets = (data.myCoachingTargets ?? []).filter((n) => n.durum === 'acik')
+    if (myOpenTargets.length > 0) {
+      const extra = myOpenTargets.length > 1 ? ` (+${myOpenTargets.length - 1} tane daha)` : ''
+      items.push({
+        id: 'my-coaching-targets',
+        severity: 'uyari',
+        to: '/takip',
+        text: `Hedefin: "${myOpenTargets[0].hedefAksiyon}"${extra}`,
       })
     }
 

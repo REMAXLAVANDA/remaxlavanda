@@ -32,6 +32,14 @@ export function canManageUsers(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER
 }
 
+// coaching_notes_select/insert/update RLS kuralıyla aynı: SADECE
+// broker/owner yazabilir/görebilir — ofis (çağrı/veri işleyen rol)
+// bilerek dışarıda, danışman hiç göremez/yazamaz (bkz. migration
+// 20261006090000, 2026-10-06 broker netleştirmesi).
+export function canManageCoachingNotes(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER
+}
+
 // leads_manage RLS kuralıyla aynı: SADECE broker/owner Lead Havuzu'na
 // erişebilir — ofis/danışman ne menüde görür ne URL'den girebilir. (Daha
 // önce ofis de dahildi, sonradan daraltıldı — bkz. AI_NOTLARI.md.)

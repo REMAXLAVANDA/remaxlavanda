@@ -21,6 +21,7 @@ export const league = provider.league
 export const users = provider.users
 export const auditLog = provider.auditLog
 export const tasks = provider.tasks
+export const coachingNotes = provider.coachingNotes
 export const metaWebhookErrors = provider.metaWebhookErrors
 export const telsamWebhookErrors = provider.telsamWebhookErrors
 export const metaCapiErrors = provider.metaCapiErrors

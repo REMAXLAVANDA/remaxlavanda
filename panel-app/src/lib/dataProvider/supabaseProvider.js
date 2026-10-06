@@ -1545,3 +1545,74 @@ export const tasks = {
     await run(client().from('tasks').delete().eq('id', id))
   },
 }
+
+// --- Koçluk Notları (Takip) ---------------------------------------------------
+// coaching_notes_select RLS'i zaten broker/owner dışını filtreliyor — ofis/
+// danışman list() çağırırsa boş dizi döner (hata değil). Danışmanın kendi
+// "hedef/aksiyon" kısmı AYRI bir görünümden (coaching_note_hedefleri) gelir
+// — konusulanlar/yazan_id o görünümde hiç yok, gerçek bir sunucu sınırı
+// (bkz. migration 20261006090000 notu).
+function mapCoachingNote(row) {
+  return {
+    id: row.id,
+    danismanId: row.danisman_id,
+    yazanId: row.yazan_id,
+    gorusmeTarihi: row.gorusme_tarihi,
+    gorusmeTuru: row.gorusme_turu,
+    konusulanlar: row.konusulanlar,
+    hedefAksiyon: row.hedef_aksiyon,
+    takipTarihi: row.takip_tarihi,
+    durum: row.durum,
+    createdAt: row.created_at,
+  }
+}
+
+export const coachingNotes = {
+  async list() {
+    const data = await run(client().from('coaching_notes').select('*').order('gorusme_tarihi', { ascending: false }))
+    return data.map(mapCoachingNote)
+  },
+  // userId parametresi mockProvider ile aynı imzayı korumak için var —
+  // gerçek sorguda kullanılmıyor, görünüm zaten auth.uid()'e göre daralıyor.
+  async listMyTargets(_userId) {
+    const data = await run(
+      client().from('coaching_note_hedefleri').select('*').order('takip_tarihi', { ascending: true }),
+    )
+    return data.map((row) => ({
+      id: row.id,
+      danismanId: row.danisman_id,
+      gorusmeTarihi: row.gorusme_tarihi,
+      hedefAksiyon: row.hedef_aksiyon,
+      takipTarihi: row.takip_tarihi,
+      durum: row.durum,
+    }))
+  },
+  async create(form) {
+    const row = await run(
+      client()
+        .from('coaching_notes')
+        .insert({
+          danisman_id: form.danismanId,
+          yazan_id: form.yazanId,
+          gorusme_tarihi: form.gorusmeTarihi || new Date().toISOString().slice(0, 10),
+          gorusme_turu: form.gorusmeTuru,
+          konusulanlar: form.konusulanlar,
+          hedef_aksiyon: form.hedefAksiyon || null,
+          takip_tarihi: form.takipTarihi || null,
+        })
+        .select()
+        .single(),
+    )
+    return mapCoachingNote(row)
+  },
+  async update(id, patch) {
+    const dbPatch = {}
+    if ('konusulanlar' in patch) dbPatch.konusulanlar = patch.konusulanlar
+    if ('hedefAksiyon' in patch) dbPatch.hedef_aksiyon = patch.hedefAksiyon || null
+    if ('takipTarihi' in patch) dbPatch.takip_tarihi = patch.takipTarihi || null
+    if ('durum' in patch) dbPatch.durum = patch.durum
+    if ('gorusmeTuru' in patch) dbPatch.gorusme_turu = patch.gorusmeTuru
+    const row = await run(client().from('coaching_notes').update(dbPatch).eq('id', id).select().single())
+    return mapCoachingNote(row)
+  },
+}

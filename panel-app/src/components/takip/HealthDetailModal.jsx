@@ -3,6 +3,7 @@ import Modal from '../common/Modal'
 import { METRIC_LABELS, STATUS_LABELS, STATUS_STYLES } from '../../lib/takip'
 import { formatDateOnly } from '../../lib/format'
 import { OPPORTUNITY_TYPE_LABELS, OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES, formatPrice } from '../../lib/opportunities'
+import CoachingNotesSection from './CoachingNotesSection'
 
 export default function HealthDetailModal({
   user,
@@ -13,6 +14,11 @@ export default function HealthDetailModal({
   canSeeOpportunities,
   opportunities,
   calls,
+  canManageCoaching,
+  coachingNotes,
+  onAddCoachingNote,
+  onToggleCoachingDurum,
+  addingCoachingNote,
 }) {
   const opps = useMemo(
     () => (canSeeOpportunities ? (opportunities ?? []).filter((o) => o.ownerId === user.id || o.claimerId === user.id) : []),
@@ -97,6 +103,15 @@ export default function HealthDetailModal({
             </div>
           )}
         </div>
+      )}
+
+      {canManageCoaching && (
+        <CoachingNotesSection
+          notes={coachingNotes ?? []}
+          onAdd={(form) => onAddCoachingNote(user.id, form)}
+          onToggleDurum={onToggleCoachingDurum}
+          submitting={addingCoachingNote}
+        />
       )}
     </Modal>
   )

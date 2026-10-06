@@ -41,3 +41,14 @@ export function isRecruitingStalled(recruitingCandidates, now = Date.now()) {
     (c) => !isLegacyRecord(c.createdAt) && new Date(c.createdAt).getTime() > sevenDaysAgo,
   )
 }
+
+// Sağlık skoru "Kritik" olup son 30 gündür hiç koçluk notu almayan
+// danışman — en çok ilgi gerektiren ama en çok göz ardı edilen durum
+// (bkz. Koçluk Notları briefi, 2026-10-06).
+export function isCriticalWithoutCoaching(status, danismanId, coachingNotes, now = Date.now()) {
+  if (status !== 'critical') return false
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
+  return !coachingNotes.some(
+    (n) => n.danismanId === danismanId && new Date(n.createdAt).getTime() > thirtyDaysAgo,
+  )
+}

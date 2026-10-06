@@ -3,6 +3,37 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-06 — Koçluk Notları (kaldırılan "Broker Notları"nın yerine)
+
+Takip'teki danışman kartına gerçek veriye bağlı bir koçluk notu bölümü
+eklendi — broker onayı, 4 işlik plandan 1. madde (bkz. sohbet). Yeni
+`coaching_notes` tablosu + 2 görünürlük katmanı:
+- **Konuşulanlar**: sadece broker/owner görür/yazar (ofis BİLEREK dışarıda
+  — Selen owner, "ofis" rolü ayrı bir kişi, 2026-10-06 netleştirmesi).
+- **Hedef/Aksiyon**: danışman da kendi Panel'inde görür — ama tam satıra
+  değil, sadece bu alanı taşıyan dar bir görünüme (`coaching_note_hedefleri`)
+  erişir; "Konuşulanlar" o görünümde hiç yok, gerçek bir sunucu sınırı.
+
+Ayrıca: sağlık skoru "Kritik" olup son 30 gündür koçluk notu almayan
+danışmanlar broker'ın "Dikkat Gerekiyor" kutusunda görünüyor
+(`isCriticalWithoutCoaching`, lib/attention.js). Takip tarihi gelen açık
+notlar, YAZAN kişinin kendi Panel'inde ayrı bir uyarı olarak çıkıyor.
+Not asla silinemiyor (DELETE için hiç RLS politikası yok), her
+ekleme/değişiklik audit_log'a düşüyor (hazır `log_audit_event()` trigger'ı
+yeniden kullanıldı). Danışman pasife alınınca notlar kalıyor, görünürlük
+zaten `is_active()` kontrolüyle otomatik kapanıyor.
+
+**Canlı testte yakalanan ve düzeltilen bir hata**: ilk migration'daki
+"for all" RLS politikası yanlışlıkla DELETE'i de izin veriyordu (niyet
+"kimse silemesin"di). Rol simülasyonuyla test ederken (henüz veri yokken)
+yakalandı, DROP gerektirmeyen bir yöntemle (kısıtlayıcı/restrictive
+politika) düzeltildi — DROP komutları bu ortamdaki Supabase aracını
+kilitliyor (bilinen sorun).
+
+Playwright ile mock modda uçtan uca doğrulandı: broker not ekliyor/
+tamamlandı işaretliyor, danışman sadece hedefi görüyor, her iki Dikkat
+Gerekiyor kriteri de doğru tetikleniyor. 154/154 test, lint, build temiz.
+
 ## 2026-10-06 — "Yayın sürümü kontrolü" CI işi yanlış adrese bakıyordu, düzeltildi
 
 Her gün %100 oranda başarısız olan `deploy-drift-check.yml` ("Yayın

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useKnownUsers } from '../../context/UsersContext'
+import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import {
   education as educationProvider,
@@ -10,9 +11,11 @@ import {
   opportunities as opportunitiesProvider,
   users as usersProvider,
   league as leagueProvider,
+  coachingNotes as coachingNotesProvider,
 } from '../../lib/dataProvider'
 import { computeHealthScore } from '../../lib/takip'
 import { isInactiveAgent } from '../../lib/attention'
+import { canManageCoachingNotes } from '../../lib/roles'
 import HealthScoreTable from '../../components/takip/HealthScoreTable'
 import HealthDetailModal from '../../components/takip/HealthDetailModal'
 import FocusBanner from '../../components/common/FocusBanner'
@@ -31,31 +34,54 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // sadece yönetime açık, ofis/danışman görmüyor, o yüzden onlara gereksiz
 // veri çekmiyoruz (bkz. "yönetim olarak danışmanları filtreleyebilelim"
 // isteği — önce Ayarlar'da ayrı bir sekmeydi, sonra Takip'e taşındı).
-async function loadAll(includeOpportunities) {
-  const [modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities] =
-    await Promise.all([
-      educationProvider.listModules(),
-      educationProvider.listProgress(),
-      calendarProvider.list(),
-      calendarProvider.listAttendance(),
-      callLogsProvider.list(),
-      usersProvider.listActivity(),
-      leagueProvider.listCiroMusterileri(),
-      usersProvider.listAll(),
-      leagueProvider.listCiroGirisleri(),
-      leagueProvider.listScores(),
-      leagueProvider.listPeriods(),
-      includeOpportunities ? opportunitiesProvider.list() : Promise.resolve([]),
-    ])
-  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities }
+// `coachingNotes` SADECE broker/owner için çekiliyor — RLS'in zaten
+// filtreleyeceği (ofis/danışman için boş dönen) bir sorguyu gereksiz yere
+// yapmamak için (aynı sebep: `opportunities` ile paralel, bkz. yukarıdaki not).
+async function loadAll(includeOpportunities, includeCoaching) {
+  const [
+    modules,
+    progress,
+    events,
+    attendance,
+    calls,
+    activity,
+    ciroMusterileri,
+    users,
+    ciroGirisleri,
+    scores,
+    periods,
+    opportunities,
+    coaching,
+  ] = await Promise.all([
+    educationProvider.listModules(),
+    educationProvider.listProgress(),
+    calendarProvider.list(),
+    calendarProvider.listAttendance(),
+    callLogsProvider.list(),
+    usersProvider.listActivity(),
+    leagueProvider.listCiroMusterileri(),
+    usersProvider.listAll(),
+    leagueProvider.listCiroGirisleri(),
+    leagueProvider.listScores(),
+    leagueProvider.listPeriods(),
+    includeOpportunities ? opportunitiesProvider.list() : Promise.resolve([]),
+    includeCoaching ? coachingNotesProvider.list() : Promise.resolve([]),
+  ])
+  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities, coaching }
 }
 
 export default function TakipTab() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
+  const { showToast } = useToast()
   const canSeeOpportunities = ['broker', 'owner'].includes(role)
-  const { data, loading, error, reload } = useAsyncList(() => loadAll(canSeeOpportunities), [canSeeOpportunities])
+  const canManageCoaching = canManageCoachingNotes(role)
+  const { data, setData, loading, error, reload } = useAsyncList(
+    () => loadAll(canSeeOpportunities, canManageCoaching),
+    [canSeeOpportunities, canManageCoaching],
+  )
   const [selectedId, setSelectedId] = useState(null)
+  const [addingCoachingNote, setAddingCoachingNote] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
   const seeTeam = CAN_SEE_TEAM_ROLES.includes(role)
@@ -79,6 +105,32 @@ export default function TakipTab() {
   }, [data, seeTeam, knownUsers, user, odakActive])
 
   const selected = people.find((p) => p.user.id === selectedId)
+  const selectedCoachingNotes = useMemo(
+    () => (selected ? (data?.coaching ?? []).filter((n) => n.danismanId === selected.user.id) : []),
+    [data, selected],
+  )
+
+  async function handleAddCoachingNote(danismanId, form) {
+    setAddingCoachingNote(true)
+    try {
+      const created = await coachingNotesProvider.create({ ...form, danismanId, yazanId: user.id })
+      setData((prev) => ({ ...prev, coaching: [created, ...(prev.coaching ?? [])] }))
+      showToast('Koçluk notu kaydedildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Not kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setAddingCoachingNote(false)
+    }
+  }
+
+  async function handleToggleCoachingDurum(id, durum) {
+    try {
+      const updated = await coachingNotesProvider.update(id, { durum })
+      setData((prev) => ({ ...prev, coaching: (prev.coaching ?? []).map((n) => (n.id === id ? updated : n)) }))
+    } catch (err) {
+      showToast(err.message ?? 'Durum güncellenemedi, tekrar dene.', 'error')
+    }
+  }
 
   return (
     <div>
@@ -106,6 +158,11 @@ export default function TakipTab() {
           canSeeOpportunities={canSeeOpportunities}
           opportunities={data.opportunities}
           calls={data.calls}
+          canManageCoaching={canManageCoaching}
+          coachingNotes={selectedCoachingNotes}
+          onAddCoachingNote={handleAddCoachingNote}
+          onToggleCoachingDurum={handleToggleCoachingDurum}
+          addingCoachingNote={addingCoachingNote}
         />
       )}
     </div>
