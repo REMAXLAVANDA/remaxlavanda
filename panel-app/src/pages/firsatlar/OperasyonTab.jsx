@@ -11,7 +11,6 @@ import {
   users as usersProvider,
   auditLog as auditLogProvider,
 } from '../../lib/dataProvider'
-import { useYonlendirmePuanlari } from '../../hooks/useYonlendirmePuanlari'
 import { canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
@@ -37,7 +36,6 @@ const EMPTY = []
 export default function OperasyonTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
-  const { yonlendirmeMap } = useYonlendirmePuanlari()
   const { knownUsers } = useKnownUsers()
   const isManager = canManageCalls(role)
   // Fırsatlar da (sadece islem_tipi'ni okumak için) çekiliyor — dönüştürülmüş
@@ -370,7 +368,6 @@ export default function OperasyonTab() {
             currentRole={role}
             isManager={isManager}
             inviteeOptions={inviteeOptions}
-            yonlendirmeMap={yonlendirmeMap}
             resolveName={userName}
             onAssign={handleAssign}
             onToggle={handleToggle}

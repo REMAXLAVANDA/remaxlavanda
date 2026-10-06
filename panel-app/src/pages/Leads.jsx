@@ -11,7 +11,6 @@ import {
   callLogs as callLogsProvider,
   auditLog as auditLogProvider,
 } from '../lib/dataProvider'
-import { useYonlendirmePuanlari } from '../hooks/useYonlendirmePuanlari'
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
 import { generateTalepKodu, computeReklamKoduConversion } from '../lib/callLogs'
 import {
@@ -75,7 +74,6 @@ export default function Leads() {
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
-  const { yonlendirmeMap } = useYonlendirmePuanlari()
   const [staleFocus, setStaleFocus] = useState(false)
   const [dateFilter, setDateFilter] = useState(INITIAL_DATE_FILTER)
   const [convertTarget, setConvertTarget] = useState(null) // { type: 'opportunity', lead } — Recruiting hiç modal açmıyor
@@ -296,7 +294,6 @@ export default function Leads() {
         <AssignPortfolioLeadModal
           lead={convertTarget.lead}
           assignableOptions={danismanOptions}
-          yonlendirmeMap={yonlendirmeMap}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleAssignPortfolioLead}
           submitting={submitting}

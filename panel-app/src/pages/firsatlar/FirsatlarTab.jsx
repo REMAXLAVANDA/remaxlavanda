@@ -5,7 +5,6 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { opportunities as opportunitiesProvider, users as usersProvider, auditLog as auditLogProvider } from '../../lib/dataProvider'
-import { useYonlendirmePuanlari } from '../../hooks/useYonlendirmePuanlari'
 import {
   canCloseOpportunity,
   canDeleteOpportunity,
@@ -36,7 +35,6 @@ export default function FirsatlarTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
-  const { yonlendirmeMap } = useYonlendirmePuanlari()
   const isManager = role === ROLES.BROKER || role === ROLES.OWNER
   // allUsers: SADECE yönetici görünümünde — pasife alınan bir danışmana
   // ait fırsatta sahip/üstlenen ismi knownUsers'ta (sadece aktif
@@ -354,7 +352,6 @@ export default function FirsatlarTab() {
           canClose={canCloseOpportunity(detailOpp, user)}
           canAssign={isManager && detailOpp.status === 'acik' && !detailOpp.claimerId}
           assignableOptions={assignableOptions}
-          yonlendirmeMap={yonlendirmeMap}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
