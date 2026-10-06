@@ -724,6 +724,13 @@ function mapCandidate(row) {
     reklamAdi: row.reklam_adi,
     kampanyaKodu: row.kampanya_kodu,
     gorusmeEventId: row.gorusme_event_id,
+    // sorumluId: mentor amaçlı atananDanismanId'den AYRI — adayla fiilen
+    // görüşen recruiter (broker/owner/ofis). ilkGorusmeTarihi/sonucTarihi
+    // elle hiç yazılmaz, trigger otomatik doldurur (bkz. migration
+    // 20261006100000_recruiting_kaynak_raporu.sql).
+    sorumluId: row.sorumlu_id,
+    ilkGorusmeTarihi: row.ilk_gorusme_tarihi,
+    sonucTarihi: row.sonuc_tarihi,
   }
 }
 
@@ -767,6 +774,7 @@ export const recruiting = {
           aciklama: form.aciklama || null,
           reklam_adi: reklamAdi,
           kampanya_kodu: kampanyaKodu,
+          sorumlu_id: form.sorumluId || null,
         })
         .select()
         .single(),
@@ -786,6 +794,7 @@ export const recruiting = {
     if ('yenidenAktifAt' in patch) dbPatch.yeniden_aktif_at = patch.yenidenAktifAt
     if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null
     if ('gorusmeEventId' in patch) dbPatch.gorusme_event_id = patch.gorusmeEventId || null
+    if ('sorumluId' in patch) dbPatch.sorumlu_id = patch.sorumluId || null
     const data = await run(client().from('recruiting_candidates').update(dbPatch).eq('id', id).select().single())
     return mapCandidate(data)
   },

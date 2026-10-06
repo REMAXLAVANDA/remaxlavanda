@@ -12,6 +12,7 @@ import { ROLES } from '../lib/roles'
 import RecruitingBoard from '../components/recruiting/RecruitingBoard'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
+import RecruitingKaynakRaporu from '../components/recruiting/RecruitingKaynakRaporu'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
@@ -75,6 +76,11 @@ export default function Recruiting() {
   // kontrol sadece butonu göstermemek için, ikinci savunma katmanı DB'de).
   const canDeleteNotes = role === ROLES.BROKER || role === ROLES.OWNER
   const danismanOptions = sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi))
+  // Kaynak Raporu'ndaki "sorumlu" filtresi — recruiter (broker/owner/ofis),
+  // mentor amaçlı danismanOptions'tan AYRI (bkz. lib/recruiting.js notu).
+  const sorumluOptions = sortByName(
+    Object.values(knownUsers).filter((u) => ['broker', 'owner', 'ofis'].includes(u.role) && !u.testHesabi),
+  )
 
   const visible = useMemo(() => {
     return candidates
@@ -255,6 +261,8 @@ export default function Recruiting() {
 
       {!loading && !error && (
         <>
+          <RecruitingKaynakRaporu candidates={candidates} sorumluOptions={sorumluOptions} />
+
           <div className="mb-5">
             <RecruitingFilters
               filters={filters}
@@ -291,6 +299,7 @@ export default function Recruiting() {
           onDeleteNote={handleDeleteNote}
           noteSubmitting={noteSubmitting}
           canDeleteNotes={canDeleteNotes}
+          sorumluOptions={sorumluOptions}
         />
       )}
 

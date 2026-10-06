@@ -3,6 +3,41 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-06 — Recruiting Kaynak Raporu (aylık, kaynak + sorumlu kırılımlı)
+
+4 işlik plandan 3. madde: Recruiting ekranına, hangi kaynaktan (referans/
+reklam/diğer vb.) kaç başvuru geldiğini, kaçının görüşmeye kaldığını,
+kaçının danışman olduğunu, kaçının olumsuz sonuçlandığını (+ en sık
+olumsuz sebebini) aylık gösteren, isteğe bağlı "sorumlu" kişiye göre
+filtrelenebilen bir rapor paneli eklendi (`RecruitingKaynakRaporu.jsx`,
+`computeRecruitingKaynakRaporu()`).
+
+Broker netleştirmesi: "ay" RE/MAX'ın kendi konvansiyonuyla aynı —
+kaydın OLUŞTURULDUĞU ay değil, İŞLEMİN GERÇEKTEN OLDUĞU ay (ör. "görüşmeye
+kalan" sayısı, görüşmenin yapıldığı ayda sayılır, başvurunun geldiği ayda
+değil). Bunu mümkün kılmak için `recruiting_candidates`'a iki yeni
+"kilometre taşı" kolonu eklendi: `ilk_gorusme_tarihi` (durum ilk kez
+ilk_gorusme/ikinci_gorusme/olumlu'ya geçtiğinde, BİR KEZ damgalanır) ve
+`sonuc_tarihi` (durum olumlu/olumsuz/yanlis_basvuru'ya her girişte
+damgalanır) — `stamp_recruiting_milestone_dates()` BEFORE UPDATE
+trigger'ı. **Bilinen ve broker onaylı sınır**: bu tarihler sadece
+2026-10-06'dan SONRAKİ geçişler için doğru, geçmiş veride yeniden
+inşa edilemiyor (eski kayıtlarda rapor sayıları olduğundan düşük
+görünebilir).
+
+Ayrıca yeni bir `sorumlu_id` kolonu eklendi (broker onayı: "recruiter
+performansı için kim ilgileniyor" bilgisi tutulsun) — `atananDanismanId`
+("mentor" alanı, broker kararıyla bu formdan BİLEREK tamamen kaldırılmıştı)
+ile KARIŞTIRILMAMALI: sorumlu sadece broker/owner/ofis olabilir, ayrı bir
+alan, `RecruitingDetailModal.jsx`'e yeni, bağımsız bir seçici olarak
+eklendi.
+
+Mock modda sağlayıcı (`mockProvider.js`) trigger'ın damgalama mantığını
+elle birebir tekrarlıyor (gerçek DB tetikleyicisi yok). Playwright ile
+mock modda uçtan uca doğrulandı: yeni aday + sorumlu seçimi kaydediliyor,
+Kaynak Raporu'nda o sorumluya göre filtrelenince doğru satır/sayı
+görünüyor. 154/154 test, lint, build temiz.
+
 ## 2026-10-06 — "Katılmak İstiyorum" otomatik çözümlensin ama skoru etkilemesin
 
 `auto_resolve_attendance()` artık sadece cevapsız davetleri (davetli)

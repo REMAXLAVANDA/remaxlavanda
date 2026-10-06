@@ -207,6 +207,50 @@ export function computeRecruitingReklamConversion(candidates) {
     .sort((a, b) => b.alindi - a.alindi)
 }
 
+function isInMonth(dateIso, year, month) {
+  if (!dateIso) return false
+  const d = new Date(dateIso)
+  return d.getFullYear() === year && d.getMonth() === month
+}
+
+// Recruiting Kaynak Raporu — "bu ay kaç aday danışman oldu, hangi
+// kaynaktan" sorusuna cevap (2026-10-06 broker isteği). Her metrik
+// GERÇEKTEN O İŞLEMİN OLDUĞU aya yazılır (broker: "RE/MAX da bu şekilde
+// yapıyor") — başvuru createdAt'a, görüşme ilkGorusmeTarihi'ne, sonuç
+// (danışman oldu/olumsuz) sonucTarihi'ne göre. İkisi de sadece bu
+// migration'dan (2026-10-06) SONRAKİ değişiklikler için doğru — eski
+// kayıtlarda bu tarihler hiç kaydedilmediği için boş kalır, o yüzden
+// geçmiş aylarda "görüşmeye kalan"/"danışman oldu" sayıları olduğundan
+// düşük çıkabilir (broker onayı: kabul edilebilir).
+// sorumluId verilirse SADECE o kişiye ait adaylar sayılır (recruiter
+// performansı için, atananDanismanId'den AYRI — bkz. migration notu).
+export function computeRecruitingKaynakRaporu(candidates, { year, month, sorumluId }) {
+  const rows = sorumluId ? candidates.filter((c) => c.sorumluId === sorumluId) : candidates
+  const byKaynak = {}
+  for (const key of RECRUITING_KAYNAKLARI) {
+    byKaynak[key] = { kaynak: key, basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, olumsuzSebepleri: {} }
+  }
+  for (const c of rows) {
+    const bucket = byKaynak[c.kaynak] ?? (byKaynak[c.kaynak] = { kaynak: c.kaynak, basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, olumsuzSebepleri: {} })
+    if (isInMonth(c.createdAt, year, month)) bucket.basvuru += 1
+    if (isInMonth(c.ilkGorusmeTarihi, year, month)) bucket.gorusme += 1
+    if (c.durum === 'olumlu' && isInMonth(c.sonucTarihi, year, month)) bucket.danismanOldu += 1
+    if (c.durum === 'olumsuz' && isInMonth(c.sonucTarihi, year, month)) {
+      bucket.olumsuz += 1
+      const sebep = c.olumsuzSebebi ?? 'diger'
+      bucket.olumsuzSebepleri[sebep] = (bucket.olumsuzSebepleri[sebep] ?? 0) + 1
+    }
+  }
+  return Object.values(byKaynak)
+    .map((b) => {
+      const sebepEntries = Object.entries(b.olumsuzSebepleri)
+      const enSikSebep = sebepEntries.length > 0 ? sebepEntries.sort((a, b2) => b2[1] - a[1])[0][0] : null
+      return { ...b, enSikOlumsuzSebebi: enSikSebep }
+    })
+    .filter((b) => b.basvuru > 0 || b.gorusme > 0 || b.danismanOldu > 0 || b.olumsuz > 0)
+    .sort((a, b) => b.basvuru - a.basvuru)
+}
+
 // "Danışman Olarak Ekle" eyleminde users.kaynak'a yazılan özet metin —
 // broker kararı: "o danışmanları biz nereden aldığımızı da bilmeliyiz,
 // kaynağını bilelim". Canlı bir FK yerine BİLEREK bir anlık özet (snapshot)

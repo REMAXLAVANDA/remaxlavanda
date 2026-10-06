@@ -65,11 +65,13 @@ export default function RecruitingDetailModal({
   onDeleteNote,
   noteSubmitting,
   canDeleteNotes,
+  sorumluOptions = [],
 }) {
   const interviewParts = toDateTimeParts(interviewEvent?.startAt)
   const [newNote, setNewNote] = useState('')
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
+    sorumluId: candidate?.sorumluId ?? '',
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
     telefon: candidate?.telefon ?? initialValues?.telefon ?? '',
     email: candidate?.email ?? initialValues?.email ?? '',
@@ -105,6 +107,7 @@ export default function RecruitingDetailModal({
       email: form.email.trim(),
       aciklama: capitalizeFirst(form.aciklama.trim()),
       olumsuzSebebi: form.durum === 'olumsuz' ? form.olumsuzSebebi : null,
+      sorumluId: form.sorumluId || null,
       kaynakLeadId: candidate ? undefined : (initialValues?.kaynakLeadId ?? null),
       // Saat girilmeden tarih anlamsız — ikisi birlikte doluysa Takvim'e
       // işleniyor (bkz. Recruiting.jsx handleSave), biri eksikse hiç
@@ -186,6 +189,23 @@ export default function RecruitingDetailModal({
           {RECRUITING_KAYNAKLARI.map((k) => (
             <option key={k} value={k}>
               {RECRUITING_KAYNAK_LABELS[k]}
+            </option>
+          ))}
+        </select>
+
+        {/* Aday süreciyle kim ilgileniyor — recruiter performansı ve
+            Kaynak Raporu'ndaki "sorumlu" filtresi için (2026-10-06).
+            atananDanismanId'den FARKLI bir alan: burası sadece
+            broker/owner/ofis'ten biri, "mentor atama" değil. */}
+        <select
+          value={form.sorumluId}
+          onChange={(e) => set({ sorumluId: e.target.value })}
+          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+        >
+          <option value="">Sorumlu seç (opsiyonel)</option>
+          {sorumluOptions.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name}
             </option>
           ))}
         </select>

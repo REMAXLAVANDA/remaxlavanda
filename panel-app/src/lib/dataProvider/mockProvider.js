@@ -530,6 +530,9 @@ export const recruiting = {
       aciklama: form.aciklama || null,
       reklamAdi: sourceLead?.reklamAdi ?? null,
       kampanyaKodu: sourceLead?.kampanyaKodu ?? null,
+      sorumluId: form.sorumluId || null,
+      ilkGorusmeTarihi: null,
+      sonucTarihi: null,
     }
     MOCK_RECRUITING_CANDIDATES.unshift(row)
     return delay(row)
@@ -537,6 +540,18 @@ export const recruiting = {
   async update(id, patch) {
     const row = MOCK_RECRUITING_CANDIDATES.find((c) => c.id === id)
     if (!row) throw new Error('Aday bulunamadı.')
+    // Gerçek Supabase'teki stamp_recruiting_milestone_dates trigger'ıyla
+    // AYNI mantık, burada elle — mock modda DB trigger'ı yok (bkz.
+    // migration 20261006100000 notu).
+    if ('durum' in patch && patch.durum !== row.durum) {
+      const gorusmeDurumlari = ['ilk_gorusme', 'ikinci_gorusme', 'olumlu']
+      if (gorusmeDurumlari.includes(patch.durum) && !gorusmeDurumlari.includes(row.durum) && !row.ilkGorusmeTarihi) {
+        row.ilkGorusmeTarihi = new Date().toISOString()
+      }
+      if (['olumlu', 'olumsuz', 'yanlis_basvuru'].includes(patch.durum)) {
+        row.sonucTarihi = new Date().toISOString()
+      }
+    }
     Object.assign(row, patch)
     return delay({ ...row })
   },
