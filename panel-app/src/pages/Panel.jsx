@@ -130,7 +130,7 @@ const EDUCATION_KEYS = ['modules', 'progress', 'checklistItems', 'checklistStatu
 // "hedef/aksiyon" satırlarını getiren görünüm auth.uid()'e göre daralıyor
 // ama mockProvider'da (gerçek auth yok) elle filtrelemek için id gerekiyor
 // (bkz. lib/dataProvider/mockProvider.js coachingNotes.listMyTargets notu).
-async function loadAll(userId) {
+async function loadAll(userId, isBrokerOrOwner) {
   const results = await Promise.allSettled([
     // Panel sadece özet sayılar/uyarılar için kullanıyor — tam kayıt
     // (arayanAd/telefon/notlar) yerine hafif listSummary() (bkz. o
@@ -162,9 +162,14 @@ async function loadAll(userId) {
     // coaching_note_hedefleri görünümü zaten sadece kendi id'sine daralı —
     // danışman olmayan biri için de boş dizi döner (kendine ait satır yok).
     fetchWithRetry(() => coachingNotesProvider.listMyTargets(userId)),
-    // audit_log_select RLS'i broker/owner dışında boş dizi döner — "Düşük
-    // Skorla Atama" nabız kutusu için (bkz. Yönlendirme Puanı, 2026-10-06).
-    fetchWithRetry(() => auditLogProvider.list()),
+    // "Düşük Skorla Atama" nabız kutusu SADECE broker/owner'a görünüyor —
+    // diğer rollerde (çoğunluk danışman) bu sorguyu hiç çekmiyoruz. RLS
+    // zaten boş dizi dönerdi ama her Panel açılışında gereksiz bir bağlantı
+    // daha eklemek istemedik (bkz. CLAUDE.md "bu ekran gerçekten hangi
+    // alanlara ihtiyaç duyuyor" dersi — call_logs/opportunities zaten ara
+    // sıra yavaşlayan iki sorgu, 18. bir sorgu eklemek yerine sadece
+    // gerçekten ihtiyacı olan role'de çekiliyor).
+    isBrokerOrOwner ? fetchWithRetry(() => auditLogProvider.list()) : Promise.resolve([]),
   ])
 
   const data = { hasPartialFailure: false, failedKeys: new Set() }
@@ -363,9 +368,11 @@ export default function Panel() {
   const { user, role } = useAuth()
   const { knownUsers } = useKnownUsers()
   const { showToast } = useToast()
-  const { data, setData, loading, error, reload } = useAsyncList(() => loadAll(user.id), [user.id], {
-    timeoutMs: PANEL_LOAD_TIMEOUT_MS,
-  })
+  const { data, setData, loading, error, reload } = useAsyncList(
+    () => loadAll(user.id, role === ROLES.BROKER || role === ROLES.OWNER),
+    [user.id, role],
+    { timeoutMs: PANEL_LOAD_TIMEOUT_MS },
+  )
   const [mazeretOpenEventId, setMazeretOpenEventId] = useState(null)
   const [mazeretDraft, setMazeretDraft] = useState('')
   const [rsvpBusyEventId, setRsvpBusyEventId] = useState(null)
