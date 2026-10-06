@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, Lock, MapPin, Pencil, Phone, Trash2, User, Users, XCircle } from 'lucide-react'
 import Modal from '../common/Modal'
 import ConfirmDialog from '../common/ConfirmDialog'
+import DusukPuanGerekceDialog from '../common/DusukPuanGerekceDialog'
 import { useToast } from '../../context/ToastContext'
 import { categoryLabel } from '../../lib/categories'
 import { formatDateOnly } from '../../lib/format'
+import { YONLENDIRME_DURUM_LABELS, sortBySiralamaPuani } from '../../lib/yonlendirme'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import {
@@ -42,6 +44,7 @@ export default function OpportunityDetailModal({
   canClose,
   canAssign,
   assignableOptions,
+  yonlendirmeMap = {},
   fetchContact,
   fetchInterestList,
   onClose,
@@ -249,17 +252,21 @@ export default function OpportunityDetailModal({
               className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-sm text-ink-700"
             >
               <option value="">Danışman seç</option>
-              {assignableOptions.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
+              {sortBySiralamaPuani(assignableOptions, yonlendirmeMap).map((u) => {
+                const durum = yonlendirmeMap[u.id]?.durum
+                return (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                    {durum && durum !== 'acik' ? ` — ${YONLENDIRME_DURUM_LABELS[durum]}` : ''}
+                  </option>
+                )
+              })}
             </select>
             <button
               onClick={() => {
                 if (!assignDraft) return
                 const name = assignableOptions.find((u) => u.id === assignDraft)?.name
-                setAssignConfirm({ id: assignDraft, name })
+                setAssignConfirm({ id: assignDraft, name, durum: yonlendirmeMap[assignDraft]?.durum })
               }}
               disabled={!assignDraft || assigning}
               className="shrink-0 rounded-lg bg-brand-600 px-3 py-2 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
@@ -335,18 +342,30 @@ export default function OpportunityDetailModal({
         </div>
       )}
     </Modal>
-    {assignConfirm && (
-      <ConfirmDialog
-        title="Fırsatı ata"
-        message={`Bu fırsat "${assignConfirm.name}" kişisine atansın mı?`}
-        confirmLabel="Evet, ata"
-        onConfirm={() => {
-          onAssignRequest(assignConfirm.id)
+    {assignConfirm && assignConfirm.durum === 'kapali' ? (
+      <DusukPuanGerekceDialog
+        targetName={assignConfirm.name}
+        onConfirm={(gerekce) => {
+          onAssignRequest(assignConfirm.id, gerekce)
           setAssignConfirm(null)
         }}
         onCancel={() => setAssignConfirm(null)}
         confirming={assigning}
       />
+    ) : (
+      assignConfirm && (
+        <ConfirmDialog
+          title="Fırsatı ata"
+          message={`Bu fırsat "${assignConfirm.name}" kişisine atansın mı?`}
+          confirmLabel="Evet, ata"
+          onConfirm={() => {
+            onAssignRequest(assignConfirm.id)
+            setAssignConfirm(null)
+          }}
+          onCancel={() => setAssignConfirm(null)}
+          confirming={assigning}
+        />
+      )
     )}
     {closeConfirm && (
       <ConfirmDialog

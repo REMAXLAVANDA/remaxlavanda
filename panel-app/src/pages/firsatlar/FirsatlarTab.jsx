@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { opportunities as opportunitiesProvider, users as usersProvider } from '../../lib/dataProvider'
+import { opportunities as opportunitiesProvider, users as usersProvider, auditLog as auditLogProvider } from '../../lib/dataProvider'
+import { useYonlendirmePuanlari } from '../../hooks/useYonlendirmePuanlari'
 import {
   canCloseOpportunity,
   canDeleteOpportunity,
@@ -35,6 +36,7 @@ export default function FirsatlarTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
+  const { yonlendirmeMap } = useYonlendirmePuanlari()
   const isManager = role === ROLES.BROKER || role === ROLES.OWNER
   // allUsers: SADECE yönetici görünümünde — pasife alınan bir danışmana
   // ait fırsatta sahip/üstlenen ismi knownUsers'ta (sadece aktif
@@ -221,10 +223,23 @@ export default function FirsatlarTab() {
     }
   }
 
-  async function performAssign(id, userId) {
+  // gerekce (opsiyonel): Yönlendirme Durumu "Kapalı" bir danışmana yine de
+  // atanırsa OpportunityDetailModal gerekçeyi zorunlu kılıp buraya geçirir —
+  // atama başarılı olduktan sonra audit_log'a yazılır (bkz. migration
+  // 20261006120000).
+  async function performAssign(id, userId, gerekce) {
     setAssigningId(id)
     try {
       const updated = await opportunitiesProvider.assignTo(id, userId)
+      if (gerekce) {
+        await auditLogProvider.logDusukPuanAtama({
+          tablo: 'opportunities',
+          kayitId: id,
+          danismanId: userId,
+          gerekce,
+          actorId: user.id,
+        })
+      }
       setOpportunities((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)))
       setDetailOpp(null)
       showToast('Fırsat atandı.', 'success')
@@ -339,6 +354,7 @@ export default function FirsatlarTab() {
           canClose={canCloseOpportunity(detailOpp, user)}
           canAssign={isManager && detailOpp.status === 'acik' && !detailOpp.claimerId}
           assignableOptions={assignableOptions}
+          yonlendirmeMap={yonlendirmeMap}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
           onClose={() => setDetailOpp(null)}
@@ -346,7 +362,7 @@ export default function FirsatlarTab() {
           onDeleteRequest={() => setDeleteTargetId(detailOpp.id)}
           onEditRequest={(contact) => setEditTarget({ opp: detailOpp, contact })}
           onCloseRequest={(status) => performClose(detailOpp.id, status)}
-          onAssignRequest={(userId) => performAssign(detailOpp.id, userId)}
+          onAssignRequest={(userId, gerekce) => performAssign(detailOpp.id, userId, gerekce)}
           expressing={expressingId === detailOpp.id}
           closing={closingId === detailOpp.id}
           assigning={assigningId === detailOpp.id}

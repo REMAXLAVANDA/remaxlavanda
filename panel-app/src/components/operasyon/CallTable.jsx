@@ -21,6 +21,8 @@ import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../li
 import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { formatDateOnly } from '../../lib/format'
+import { YONLENDIRME_DURUM_LABELS, sortBySiralamaPuani } from '../../lib/yonlendirme'
+import DusukPuanGerekceDialog from '../common/DusukPuanGerekceDialog'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import ConfirmDialog from '../common/ConfirmDialog'
@@ -296,7 +298,7 @@ function CallProgressSteps({ call, canEdit, onToggle }) {
   )
 }
 
-function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }) {
+function AssignedCell({ call, isManager, inviteeOptions, yonlendirmeMap = {}, resolveName, onAssign }) {
   // Tek satırlık native select, yanlışlıkla (fare tekerleği/yanlış tık)
   // farklı bir kişiye atamayı çok kolaylaştırıyor — onay olmadan doğrudan
   // kaydediyordu. Native window.confirm() yerine portalın kendi
@@ -333,7 +335,7 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
         onChange={(e) => {
           const newId = e.target.value || null
           const newName = newId ? inviteeOptions.find((u) => u.id === newId)?.name : 'Atanmadı'
-          setPendingAssign({ id: newId, name: newName })
+          setPendingAssign({ id: newId, name: newName, durum: newId ? yonlendirmeMap[newId]?.durum : null })
         }}
         className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-600"
       >
@@ -343,25 +345,39 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
             {resolveName(call.assignedTo)}
           </option>
         )}
-        {inviteeOptions.map((u) => (
-          <option key={u.id} value={u.id}>
-            {u.name}
-          </option>
-        ))}
+        {sortBySiralamaPuani(inviteeOptions, yonlendirmeMap).map((u) => {
+          const durum = yonlendirmeMap[u.id]?.durum
+          return (
+            <option key={u.id} value={u.id}>
+              {u.name}
+              {durum && durum !== 'acik' ? ` — ${YONLENDIRME_DURUM_LABELS[durum]}` : ''}
+            </option>
+          )
+        })}
       </select>
       {call.oncekiSahipId && <span className="ml-1 text-ink-300">↺</span>}
-      {pendingAssign && (
-        <ConfirmDialog
-          title="Çağrıyı ata"
-          message={`Bu çağrı "${pendingAssign.name}" olarak atansın mı?`}
-          confirmLabel="Evet, ata"
-          onConfirm={() => {
-            onAssign(call.id, pendingAssign.id)
-            setPendingAssign(null)
-          }}
-          onCancel={() => setPendingAssign(null)}
-        />
-      )}
+      {pendingAssign &&
+        (pendingAssign.durum === 'kapali' ? (
+          <DusukPuanGerekceDialog
+            targetName={pendingAssign.name}
+            onConfirm={(gerekce) => {
+              onAssign(call.id, pendingAssign.id, gerekce)
+              setPendingAssign(null)
+            }}
+            onCancel={() => setPendingAssign(null)}
+          />
+        ) : (
+          <ConfirmDialog
+            title="Çağrıyı ata"
+            message={`Bu çağrı "${pendingAssign.name}" olarak atansın mı?`}
+            confirmLabel="Evet, ata"
+            onConfirm={() => {
+              onAssign(call.id, pendingAssign.id)
+              setPendingAssign(null)
+            }}
+            onCancel={() => setPendingAssign(null)}
+          />
+        ))}
     </span>
   )
 }
@@ -386,6 +402,7 @@ export default function CallTable({
   currentRole,
   isManager,
   inviteeOptions,
+  yonlendirmeMap = {},
   resolveName,
   onAssign,
   onToggle,
@@ -468,7 +485,7 @@ export default function CallTable({
                       <CallProgressSteps call={call} canEdit={canEditResult} onToggle={onToggle} />
                     </td>
                     <td className="px-3 py-3">
-                      <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} resolveName={resolveName} onAssign={onAssign} />
+                      <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} yonlendirmeMap={yonlendirmeMap} resolveName={resolveName} onAssign={onAssign} />
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-xs text-ink-400">{callDateLabel(call.createdAt)}</td>
                     <td className="px-3 py-3 text-right">
@@ -614,7 +631,7 @@ export default function CallTable({
               </div>
 
               <div className="mt-3 flex items-center justify-between border-t border-ink-50 pt-2">
-                <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} resolveName={resolveName} onAssign={onAssign} />
+                <AssignedCell call={call} isManager={isManager} inviteeOptions={inviteeOptions} yonlendirmeMap={yonlendirmeMap} resolveName={resolveName} onAssign={onAssign} />
                 <span className="text-xs text-ink-400">{callDateLabel(call.createdAt)}</span>
               </div>
             </div>

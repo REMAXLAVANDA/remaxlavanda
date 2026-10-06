@@ -16,8 +16,10 @@ import {
 import { computeHealthScore } from '../../lib/takip'
 import { isInactiveAgent } from '../../lib/attention'
 import { canManageCoachingNotes } from '../../lib/roles'
+import { buildYonlendirmeMap } from '../../lib/yonlendirme'
 import HealthScoreTable from '../../components/takip/HealthScoreTable'
 import HealthDetailModal from '../../components/takip/HealthDetailModal'
+import YonlendirmeDurumuSection from '../../components/takip/YonlendirmeDurumuSection'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -104,6 +106,11 @@ export default function TakipTab() {
     return rows.filter((p) => isInactiveAgent(lastSignInById[p.user.id]))
   }, [data, seeTeam, knownUsers, user, odakActive])
 
+  // Yönlendirme Puanı — AYNI data bag'i (events/attendance/calls/activity/
+  // users/ciroMusterileri/scores/periods), Sağlık Skoru için zaten yüklü,
+  // yeni bir sorgu gerekmiyor (bkz. YonlendirmeDurumuSection notu).
+  const yonlendirmeMap = useMemo(() => (data ? buildYonlendirmeMap(people.map((p) => p.user), data) : {}), [data, people])
+
   const selected = people.find((p) => p.user.id === selectedId)
   const selectedCoachingNotes = useMemo(
     () => (selected ? (data?.coaching ?? []).filter((n) => n.danismanId === selected.user.id) : []),
@@ -144,6 +151,10 @@ export default function TakipTab() {
           text={`${people.length} danışman 7 günden uzun süredir portala girmedi — sadece bunlar gösteriliyor.`}
           onClear={() => setSearchParams({})}
         />
+      )}
+
+      {!loading && !error && (
+        <YonlendirmeDurumuSection people={people} yonlendirmeMap={yonlendirmeMap} seeTeam={seeTeam} />
       )}
 
       {!loading && !error && <HealthScoreTable people={people} onRowClick={setSelectedId} />}

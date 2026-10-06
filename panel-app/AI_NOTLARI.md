@@ -3,6 +3,61 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-06 — Yönlendirme Puanı (yeni menü yok, mevcut ekranlara entegre)
+
+Yeni bir özellik: hangi danışmanlara yeni portföy/müşteri yönlendirilebileceğini
+belirleyen ayrı bir puan (`lib/yonlendirme.js`). Broker'ın açık isteği üzerine
+**yeni bir menü/sayfa YOK** — Takip sayfasına (broker/owner ekip tablosu +
+danışmanın kendi kartı) ve 3 atama ekranına (Lead Havuzu, Fırsatlar, Operasyon)
+entegre edildi.
+
+**Hesap**: Sağlık Skoru'nun (`lib/takip.js`) 6 bileşenli ağırlıklı formülünden
+FARKLI — sadece 3 bileşenin (toplantı katılımı + lead dönüş oranı + portal
+kullanımı) DÜZ ortalaması. Bileşen fonksiyonları takip.js'ten birebir reuse
+edildi, yeniden yazılmadı. Eşikler: %70+ Açık, %50-70 Sırada geride, %50 altı
+Kapalı — işe başlamasının ilk 90 günündeki bir danışman puan ne olursa olsun
+her zaman Açık sayılır (`users.created_at`, ciroHedefPercent ile aynı kaynak).
+Müşteri memnuniyeti + sosyal medya (Lig'in güncel dönemi) küçük bir bonusa
+çevrilip SADECE sıralamayı etkiliyor (her biri en fazla +5 puan) — eşiğe hiç
+karışmıyor.
+
+**Nerede görünüyor**: Takip sayfasında broker/owner "Yönlendirme Durumu" adlı
+yeni bir collapsible tablo görür (Sağlık Skoru'nun hemen üstünde); danışman
+kendi görünümünde tek bir kart görür — "Kapalı" ise açıkça "bu durumda sana
+yeni portföy/müşteri yönlendirilmiyor" yazıyor, değilse hangi ölçütü
+düzeltirse açılacağını somut rakamla söylüyor (broker'ın verdiği örnek
+format: "Toplantı katılımın %40, %70'e çıkarırsan..."). İkisi de Takip'in
+zaten Sağlık Skoru için çektiği veriyi reuse ediyor, yeni sorgu yok.
+
+**Atama ekranları**: Lead Havuzu/Fırsatlar/Operasyon'daki 3 danışman seçim
+listesi artık sıralama puanına göre sıralı, "Kapalı" olanlar seçenek
+metninde işaretli. "Kapalı" bir danışman seçilirse gerekçe metni ZORUNLU
+(yeni `DusukPuanGerekceDialog` komponenti — mevcut genel `ConfirmDialog`
+DEĞİŞTİRİLMEDİ, 10+ başka yerde kullanıldığı için ayrı bir komponent
+yazıldı), onaylanınca yeni bir RPC (`log_dusuk_puan_atama`, migration
+20261006120000) gerekçeyi `audit_log`'a yazıyor — bu tablonun uygulama
+kodundan elle yazılan İLK kaydı (şimdiye kadar sadece trigger'lar
+dolduruyordu), `assign_opportunity_to()` ile aynı RPC deseni (security
+definer, `actor_id` sunucuda `auth.uid()` ile set edilir). Bu 3 ekran
+bugüne kadar puan hesabı için gereken veriyi hiç çekmiyordu — yeni bir
+`useYonlendirmePuanlari()` hook'u (TEK yerde, context DEĞİL — "önemli ama
+sık açılmayan admin ekranları" oldukları için 3 ayrı bağımsız fetch
+kasıtlı tercih edildi, Panel gibi sık açılan bir sayfa değiller) bu
+sorguları toplayıp hesaplıyor.
+
+Broker Panel'inde yeni bir "Düşük Skorla Atama" nabız kutusu — bu ay kaç
+atamanın gerekçeyle yapıldığını gösteriyor (`audit_log`, broker/owner'a
+zaten çekiliyordu, yeni bir alan eklendi).
+
+**Canlı testte yakalanan bir hata**: Fırsatlar'daki atama akışında
+(`FirsatlarTab.jsx`'in `onAssignRequest` sarmalayıcısı) yeni eklenen
+`gerekce` parametresi aradaki bir ok fonksiyonunda sessizce düşüyordu —
+gerekçe dialogunda "Gerekçeyle Ata"ya basılınca atama başarıyla
+tamamlanıyor ama gerekçe hiç `audit_log`'a yazılmıyordu (Panel'deki sayaç
+hep 0 kalıyordu). Playwright ile uçtan uca test ederken (Panel'e in-app
+navigasyonla geçip sayacı kontrol ederken) yakalandı, tek satırlık
+düzeltmeyle giderildi. 168/168 test, lint, build temiz.
+
 ## 2026-10-06 — Pasif Danışmanın İşleri + "önceki sahip" izi
 
 4 işlik plandan son madde (item 4): Ayarlar'daki zorunlu devret akışı

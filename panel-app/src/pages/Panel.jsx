@@ -29,6 +29,7 @@ import {
   recruiting as recruitingProvider,
   tasks as tasksProvider,
   coachingNotes as coachingNotesProvider,
+  auditLog as auditLogProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
 import { matchesKayitTipiFilter, computeRecruitingReklamConversion } from '../lib/recruiting'
@@ -96,6 +97,7 @@ const LOAD_ALL_KEYS = [
   'tasks',
   'coachingNotes',
   'myCoachingTargets',
+  'auditLog',
 ]
 
 // Eğitim/checklist widget'larının EmptyRow'u bu 4 sorgudan HERHANGİ biri
@@ -160,6 +162,9 @@ async function loadAll(userId) {
     // coaching_note_hedefleri görünümü zaten sadece kendi id'sine daralı —
     // danışman olmayan biri için de boş dizi döner (kendine ait satır yok).
     fetchWithRetry(() => coachingNotesProvider.listMyTargets(userId)),
+    // audit_log_select RLS'i broker/owner dışında boş dizi döner — "Düşük
+    // Skorla Atama" nabız kutusu için (bkz. Yönlendirme Puanı, 2026-10-06).
+    fetchWithRetry(() => auditLogProvider.list()),
   ])
 
   const data = { hasPartialFailure: false, failedKeys: new Set() }
@@ -565,6 +570,21 @@ export default function Panel() {
     return { yeniBasvuru }
   }, [data, filters])
 
+  // Yönlendirme Puanı "Kapalı" bir danışmana yine de atama yapılınca
+  // audit_log'a düşen gerekçe kayıtları (bkz. migration 20261006120000) —
+  // broker'ın isteği ("ay içinde kaç atamanın gerekçeyle yapıldığı
+  // görünsün") bilerek sayfanın üstteki ayarlanabilir dateRange filtresine
+  // DEĞİL, gerçek takvim ayına bağlı (leadStats/recruitingStats'tan farklı).
+  const dusukPuanAtamaCount = useMemo(() => {
+    if (!data) return 0
+    const now = new Date()
+    return (data.auditLog ?? []).filter((a) => {
+      if (a.action !== 'dusuk_puan_atama_override') return false
+      const d = new Date(a.createdAt)
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    }).length
+  }, [data])
+
   // --- Broker raporu: portalı en çok/en az kullanan (Supabase Auth'un
   // gerçekten tuttuğu son giriş zamanına göre — mock/uydurma veri değil).
   // Sadece danışmanlar sıralanıyor, Takip'in ekip kapsamıyla aynı.
@@ -823,8 +843,19 @@ export default function Panel() {
         onClick: () => document.getElementById('dikkat-gerekiyor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
         accent: 'red',
       },
+      // Yönlendirme Puanı "Kapalı" bir danışmana yine de atama yapılınca
+      // (gerekçeyle) kaç kez olduğunu gösterir — broker'ın isteği (bkz.
+      // dusukPuanAtamaCount notu).
+      {
+        label: 'Düşük Skorla Atama',
+        icon: AlertTriangle,
+        to: '/takip',
+        value: dusukPuanAtamaCount,
+        detail: 'bu ay, gerekçeyle',
+        accent: 'red',
+      },
     ],
-    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, educationGaps, attentionItems],
+    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, educationGaps, attentionItems, dusukPuanAtamaCount],
   )
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---

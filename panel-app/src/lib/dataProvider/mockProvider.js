@@ -984,6 +984,22 @@ export const auditLog = {
   async list() {
     return delay([...MOCK_AUDIT_LOG])
   },
+  // supabaseProvider.auditLog.logDusukPuanAtama() ile aynı şekil — mock
+  // modda gerçek auth.uid() olmadığı için actorId çağıran taraftan (useAuth
+  // user.id) elle geçiriliyor, aynı coachingNotes.create() deseni.
+  async logDusukPuanAtama({ tablo, kayitId, danismanId, gerekce, actorId }) {
+    if (!gerekce || gerekce.trim().length === 0) throw new Error('Gerekçe boş olamaz.')
+    MOCK_AUDIT_LOG.push({
+      id: `al-${Date.now()}`,
+      actorId,
+      action: 'dusuk_puan_atama_override',
+      tableName: tablo,
+      recordId: kayitId,
+      detay: { danisman_id: danismanId, gerekce: gerekce.trim() },
+      createdAt: new Date().toISOString(),
+    })
+    return delay(null)
+  },
 }
 
 // --- Webhook Hataları (Ayarlar > Webhook Hataları) ----------------------------

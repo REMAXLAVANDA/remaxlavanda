@@ -1452,6 +1452,20 @@ export const auditLog = {
       createdAt: r.created_at,
     }))
   },
+  // Yönlendirme Puanı "Kapalı" durumdaki bir danışmana yine de atama
+  // yapılırken gerekçeyi audit_log'a yazan RPC (bkz. migration
+  // 20261006120000). audit_log'a uygulama kodundan elle yazılan tek
+  // kayıt türü — actor_id sunucu tarafında auth.uid() ile set edilir.
+  async logDusukPuanAtama({ tablo, kayitId, danismanId, gerekce }) {
+    await run(
+      client().rpc('log_dusuk_puan_atama', {
+        p_tablo: tablo,
+        p_kayit_id: kayitId,
+        p_danisman_id: danismanId,
+        p_gerekce: gerekce,
+      }),
+    )
+  },
 }
 
 // --- Webhook Hataları (Ayarlar > Webhook Hataları) ----------------------------

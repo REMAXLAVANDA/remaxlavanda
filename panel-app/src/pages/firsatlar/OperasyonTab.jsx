@@ -5,7 +5,13 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { callLogs as callLogsProvider, opportunities as opportunitiesProvider, users as usersProvider } from '../../lib/dataProvider'
+import {
+  callLogs as callLogsProvider,
+  opportunities as opportunitiesProvider,
+  users as usersProvider,
+  auditLog as auditLogProvider,
+} from '../../lib/dataProvider'
+import { useYonlendirmePuanlari } from '../../hooks/useYonlendirmePuanlari'
 import { canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
@@ -31,6 +37,7 @@ const EMPTY = []
 export default function OperasyonTab() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
+  const { yonlendirmeMap } = useYonlendirmePuanlari()
   const { knownUsers } = useKnownUsers()
   const isManager = canManageCalls(role)
   // Fırsatlar da (sadece islem_tipi'ni okumak için) çekiliyor — dönüştürülmüş
@@ -143,13 +150,28 @@ export default function OperasyonTab() {
     try {
       const updated = await callLogsProvider.update(id, patch)
       setCalls((prev) => prev.map((c) => (c.id === id ? updated : c)))
+      return updated
     } catch (err) {
       showToast(err.message ?? 'Çağrı güncellenemedi, tekrar dene.', 'error')
+      return null
     }
   }
 
-  function handleAssign(id, assignedTo) {
-    updateCall(id, { assignedTo })
+  // gerekce (opsiyonel): Yönlendirme Durumu "Kapalı" bir danışmana yine de
+  // atanırsa CallTable gerekçeyi zorunlu kılıp buraya geçirir — atama
+  // başarılı olduktan sonra audit_log'a yazılır (bkz. migration
+  // 20261006120000).
+  async function handleAssign(id, assignedTo, gerekce) {
+    const updated = await updateCall(id, { assignedTo })
+    if (updated && gerekce) {
+      await auditLogProvider.logDusukPuanAtama({
+        tablo: 'call_logs',
+        kayitId: id,
+        danismanId: assignedTo,
+        gerekce,
+        actorId: user.id,
+      })
+    }
   }
 
   // call_logs_manage RLS'i zaten broker/owner/ofis dışını engelliyor —
@@ -348,6 +370,7 @@ export default function OperasyonTab() {
             currentRole={role}
             isManager={isManager}
             inviteeOptions={inviteeOptions}
+            yonlendirmeMap={yonlendirmeMap}
             resolveName={userName}
             onAssign={handleAssign}
             onToggle={handleToggle}

@@ -9,7 +9,9 @@ import {
   opportunities as opportunitiesProvider,
   recruiting as recruitingProvider,
   callLogs as callLogsProvider,
+  auditLog as auditLogProvider,
 } from '../lib/dataProvider'
+import { useYonlendirmePuanlari } from '../hooks/useYonlendirmePuanlari'
 import { canManageLeads, isStaleLead, computeAutoFields } from '../lib/leads'
 import { generateTalepKodu, computeReklamKoduConversion } from '../lib/callLogs'
 import {
@@ -69,10 +71,11 @@ function callProcessLabel(call, opportunities) {
 }
 
 export default function Leads() {
-  const { role } = useAuth()
+  const { role, user } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  const { yonlendirmeMap } = useYonlendirmePuanlari()
   const [staleFocus, setStaleFocus] = useState(false)
   const [dateFilter, setDateFilter] = useState(INITIAL_DATE_FILTER)
   const [convertTarget, setConvertTarget] = useState(null) // { type: 'opportunity', lead } — Recruiting hiç modal açmıyor
@@ -152,7 +155,12 @@ export default function Leads() {
   // Portföy Alındı'yı işaretliyor, hazır olunca kendisi "Fırsata Çevir"
   // ile Fırsata çeviriyor — akış hiç değişmedi, sadece giriş noktası
   // Lead Havuzu oldu (bkz. "operasyona uygulayalım" isteği, AI_NOTLARI.md).
-  async function handleAssignPortfolioLead(assignToId) {
+  // gerekce (opsiyonel): Yönlendirme Durumu "Kapalı" bir danışmana yine de
+  // atanırsa AssignPortfolioLeadModal gerekçeyi zorunlu kılıp buraya geçirir
+  // — çağrı oluşturulduktan sonra audit_log'a yazılır (bkz. migration
+  // 20261006120000). Atamanın kendisi gerekçeden bağımsız her zaman başarılı
+  // olur, gerekçe kaydı ayrı/ikincil bir adım.
+  async function handleAssignPortfolioLead(assignToId, gerekce) {
     const lead = convertTarget.lead
     setSubmitting(true)
     try {
@@ -169,6 +177,15 @@ export default function Leads() {
         durum: 'atandi',
         ...computeAutoFields(lead, 'atandi'),
       })
+      if (gerekce) {
+        await auditLogProvider.logDusukPuanAtama({
+          tablo: 'call_logs',
+          kayitId: createdCall.id,
+          danismanId: assignToId,
+          gerekce,
+          actorId: user.id,
+        })
+      }
       setData((prev) => ({
         ...prev,
         leads: prev.leads.map((l) => (l.id === lead.id ? updatedLead : l)),
@@ -279,6 +296,7 @@ export default function Leads() {
         <AssignPortfolioLeadModal
           lead={convertTarget.lead}
           assignableOptions={danismanOptions}
+          yonlendirmeMap={yonlendirmeMap}
           onClose={() => setConvertTarget(null)}
           onSubmit={handleAssignPortfolioLead}
           submitting={submitting}
