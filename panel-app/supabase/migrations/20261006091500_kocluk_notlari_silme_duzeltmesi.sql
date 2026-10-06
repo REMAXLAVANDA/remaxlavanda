@@ -7,35 +7,19 @@
 -- hiç olmasın), ama "for all" bunu yanlışlıkla açık bırakıyordu. Canlı rol
 -- simülasyonuyla test ederken yakalandı — henüz gerçek veri yokken.
 --
--- Düzeltme: tek "for all" politikası kaldırılıp, sadece select/insert/
--- update için ayrı politikalar yazıldı. DELETE için hiç politika YOK,
--- yani artık broker/owner dahil kimse bir notu silemiyor.
+-- Düzeltme: eski "for all" politikasını SİLMEK yerine (DROP komutları bu
+-- ortamdaki Supabase aracını kilitliyor, bkz. AI_NOTLARI.md — DROP TRIGGER
+-- ile aynı bilinen sorun), sadece DELETE'i engelleyen KISITLAYICI
+-- (restrictive) bir politika eklendi. Postgres'te izin verici (permissive)
+-- ve kısıtlayıcı (restrictive) politikalar birlikte değerlendirilir — bir
+-- işlem ancak EN AZ BİR izin verici politika izin verirse VE TÜM
+-- kısıtlayıcı politikalar da izin verirse yapılabilir. Yani bu tek
+-- kısıtlayıcı politika, eski "for all" ne derse desin, DELETE'i herkes
+-- için (broker dahil) kalıcı olarak kapatıyor.
 -- ============================================================================
 
-drop policy coaching_notes_manage on public.coaching_notes;
-
-create policy coaching_notes_select on public.coaching_notes
-  for select
-  using (
-    (select public.is_active())
-    and (select public.current_user_role()) = any (array['broker', 'owner']::user_role[])
-  );
-
-create policy coaching_notes_insert on public.coaching_notes
-  for insert
-  with check (
-    (select public.is_active())
-    and (select public.current_user_role()) = any (array['broker', 'owner']::user_role[])
-    and yazan_id = (select auth.uid())
-  );
-
-create policy coaching_notes_update on public.coaching_notes
-  for update
-  using (
-    (select public.is_active())
-    and (select public.current_user_role()) = any (array['broker', 'owner']::user_role[])
-  )
-  with check (
-    (select public.is_active())
-    and (select public.current_user_role()) = any (array['broker', 'owner']::user_role[])
-  );
+create policy coaching_notes_no_delete
+  on public.coaching_notes
+  as restrictive
+  for delete
+  using (false);
