@@ -5,7 +5,10 @@
 -- veriden okuyan özellik) yerine — gerçek bir tablo, gerçek yetkilerle.
 --
 -- İki görünürlük:
---   - konusulanlar: SADECE yönetim (broker/owner/ofis) görür/yazar.
+--   - konusulanlar: SADECE broker/owner görür/yazar — ofis rolü (çağrı/
+--     veri işleyen kişi) BİLEREK dışarıda bırakıldı, bu rolün genel
+--     sınırıyla (sadece veri girer, yönetmez) tutarlı olsun diye
+--     (2026-10-06 broker netleştirmesi: Selen owner, ofis ayrı bir kişi).
 --   - hedef_aksiyon: danışmanın kendisi de görür — ama tam satıra değil,
 --     aşağıdaki dar `coaching_note_hedefleri` görünümüne erişir (sadece
 --     kendi id'si, sadece hedef_aksiyon dolu satırlar, sadece aktifken).
@@ -44,17 +47,17 @@ create trigger trg_audit_coaching_notes
 
 alter table public.coaching_notes enable row level security;
 
--- Sadece broker/owner/ofis okuyabilir/yazabilir/güncelleyebilir — DELETE
+-- Sadece broker/owner okuyabilir/yazabilir/güncelleyebilir — DELETE
 -- politikası hiç yok, yani kimse (broker dahil) bir notu silemez.
 create policy coaching_notes_manage on public.coaching_notes
   for all
   using (
     (select public.is_active())
-    and (select public.current_user_role()) = any (array['broker', 'owner', 'ofis']::user_role[])
+    and (select public.current_user_role()) = any (array['broker', 'owner']::user_role[])
   )
   with check (
     (select public.is_active())
-    and (select public.current_user_role()) = any (array['broker', 'owner', 'ofis']::user_role[])
+    and (select public.current_user_role()) = any (array['broker', 'owner']::user_role[])
     and yazan_id = (select auth.uid())
   );
 
