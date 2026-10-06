@@ -5,7 +5,10 @@ import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import Modal from '../common/Modal'
 import EventBoard from './EventBoard'
 
-const PORTAL_URL = 'https://panel.remaxlavanda.com.tr'
+// Panel ayrı bir alt alan adında DEĞİL, ana domain'in /panel altında
+// yayında (bkz. AI_NOTLARI.md, 2026-10-06 — panel.remaxlavanda.com.tr
+// hiç Vercel'e bağlı değildi, QR kod yanlış/boş bir adrese gidiyordu).
+const PORTAL_URL = 'https://remaxlavanda.com.tr/panel'
 
 // Panoda hangi etkinlik türleri görünür — broker_gorusmesi/kocluk_gorusmesi
 // bilerek dışarıda: bunlar birebir/dahili görüşmeler, herkese açık bir

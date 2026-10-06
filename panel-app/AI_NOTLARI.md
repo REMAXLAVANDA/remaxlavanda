@@ -22,11 +22,15 @@ vercel.json) hiç yansıtılmamış. Broker onayıyla 3 dosya düzeltildi:
 - `vercel.json`: hiçbir zaman eşleşmeyen (çünkü o alt alan adı hiç bağlı
   değildi), tamamen ölü bir yönlendirme kuralı kaldırıldı.
 
-**Ayrıca bulundu, henüz DOKUNULMADI (ayrı onay bekliyor):**
-`EventBoardModal.jsx`/`Pano.jsx`'teki QR kod, hâlâ
-`https://panel.remaxlavanda.com.tr`'yi hedefliyor — ofis panosundaki QR
-kodu okutan biri yanlış/boş bir adrese gidiyor olabilir. CORS tarafında
-risk yok (`create-user`/`delete-user`/`reset-user-password` edge
+**Aynı taramada ayrıca bulunup düzeltildi:** `EventBoardModal.jsx`
+("Aylık Pano" önizleme/PNG indirme) ve `Pano.jsx` (ofis TV'sinde sürekli
+açık duran `/pano` ekranı — broker onayladı, gerçekten kullanılıyor)
+içindeki QR kod `https://panel.remaxlavanda.com.tr`'yi hedefliyordu —
+yanlış/boş bir adres. İkisi de `https://remaxlavanda.com.tr/panel`'e
+düzeltildi. 154/154 test, lint, build temiz.
+
+**Henüz DOKUNULMADI (düşük öncelik, isteğe bağlı):** CORS tarafında risk
+yok (`create-user`/`delete-user`/`reset-user-password` edge
 fonksiyonlarındaki `ALLOWED_ORIGINS` listesi doğru adresleri de zaten
 içeriyor, sadece fazladan yanlış bir adres daha var — işlevsel bir
 sorun değil). `README.md`, `DEPLOYMENT_PLANI.md`, `docs/PORTAL-HARITASI.md`

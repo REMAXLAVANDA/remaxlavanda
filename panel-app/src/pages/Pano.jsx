@@ -4,7 +4,10 @@ import { calendarEvents as calendarProvider } from '../lib/dataProvider'
 import { BOARD_TYPES } from '../components/calendar/EventBoardModal'
 import EventBoard from '../components/calendar/EventBoard'
 
-const PORTAL_URL = 'https://panel.remaxlavanda.com.tr'
+// Panel ayrı bir alt alan adında DEĞİL, ana domain'in /panel altında
+// yayında (bkz. AI_NOTLARI.md, 2026-10-06 — panel.remaxlavanda.com.tr
+// hiç Vercel'e bağlı değildi, QR kod yanlış/boş bir adrese gidiyordu).
+const PORTAL_URL = 'https://remaxlavanda.com.tr/panel'
 const REFRESH_MS = 60_000
 
 function isSameMonth(iso, monthDate) {
