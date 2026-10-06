@@ -3,6 +3,35 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-06 — "Yayın sürümü kontrolü" CI işi yanlış adrese bakıyordu, düzeltildi
+
+Her gün %100 oranda başarısız olan `deploy-drift-check.yml` ("Yayın
+sürümü kontrolü") incelendi: `https://panel.remaxlavanda.com.tr/panel/
+BUILD_INFO.txt`'i çekmeye çalışıyordu, bu adres 404 dönüyordu. Kök neden
+bulundu: `panel.remaxlavanda.com.tr` DNS'i Vercel'e işaret ediyor ama bu
+alt alan adı hiç Vercel projesine (domain olarak) bağlı değil — panelin
+GERÇEK adresi ayrı bir alt alan adı değil, ana domain'in içindeki bir yol
+(`remaxlavanda.com.tr/panel/`). Bu aslında 15 Temmuz 2026 tarihli
+`DEPLOYMENT_TESPIT_RAPORU.md`'de zaten doğru tespit edilmiş ama bu
+düzeltme sonraki aylarda birkaç dosyaya (workflow, vite.config.js yorumu,
+vercel.json) hiç yansıtılmamış. Broker onayıyla 3 dosya düzeltildi:
+- `.github/workflows/deploy-drift-check.yml`: kontrol adresi
+  `remaxlavanda.com.tr/panel/BUILD_INFO.txt`'e düzeltildi.
+- `panel-app/vite.config.js`: yanıltıcı yorum satırı düzeltildi (davranış
+  değişmedi, sadece yorum).
+- `vercel.json`: hiçbir zaman eşleşmeyen (çünkü o alt alan adı hiç bağlı
+  değildi), tamamen ölü bir yönlendirme kuralı kaldırıldı.
+
+**Ayrıca bulundu, henüz DOKUNULMADI (ayrı onay bekliyor):**
+`EventBoardModal.jsx`/`Pano.jsx`'teki QR kod, hâlâ
+`https://panel.remaxlavanda.com.tr`'yi hedefliyor — ofis panosundaki QR
+kodu okutan biri yanlış/boş bir adrese gidiyor olabilir. CORS tarafında
+risk yok (`create-user`/`delete-user`/`reset-user-password` edge
+fonksiyonlarındaki `ALLOWED_ORIGINS` listesi doğru adresleri de zaten
+içeriyor, sadece fazladan yanlış bir adres daha var — işlevsel bir
+sorun değil). `README.md`, `DEPLOYMENT_PLANI.md`, `docs/PORTAL-HARITASI.md`
+gibi birkaç belge de hâlâ eski/yanlış adresi anlatıyor.
+
 ## 2026-10-04 — "Operasyon" kenar çubuğu girişi kaldırıldı (2026-09-17 kararının tersine çevrilmesi)
 
 Broker canlıda fark etti: Fırsatlar ve Operasyon aynı sayfanın (pages/

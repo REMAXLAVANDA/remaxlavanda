@@ -12,7 +12,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // edebilmek için (bkz. AI_NOTLARI.md — "yayına alma kontrolü", deploy elle
 // dist/ -> panel/ kopyalamaya bağlı, unutulursa canlı eskide kalıyor ve
 // bunu yakalayan hiçbir şey yoktu). Her build'de commit hash'i dist köküne
-// yazılır, panel.remaxlavanda.com.tr/BUILD_INFO.txt olarak yayınlanır.
+// yazılır, remaxlavanda.com.tr/panel/BUILD_INFO.txt olarak yayınlanır
+// (panel ayrı bir alt alan adında DEĞİL, ana domain'in /panel altında).
 function buildInfoPlugin() {
   return {
     name: 'build-info',

@@ -3,8 +3,14 @@ name: Yayın sürümü kontrolü
 # Deploy elle "npm run build -> panel/ klasörüne kopyala -> main'e push"
 # adımına bağlı — biri unutursa canlı site sessizce eskide kalır, bunu
 # yakalayan hiçbir kontrol yoktu (bkz. AI_NOTLARI.md, broker isteği
-# 2026-08-05). Bu iş günde bir kere panel.remaxlavanda.com.tr'nin yayınladığı
-# BUILD_INFO.txt'teki commit hash'ini kontrol eder.
+# 2026-08-05). Bu iş günde bir kere remaxlavanda.com.tr/panel'in
+# yayınladığı BUILD_INFO.txt'teki commit hash'ini kontrol eder.
+#
+# 2026-10-06 düzeltmesi: Panel ayrı bir alt alan adında (panel.
+# remaxlavanda.com.tr) DEĞİL, ana domain'in /panel altında yayında —
+# o alt alan adı hiç Vercel projesine bağlı değildi, bu yüzden kontrol
+# her gün %100 oranda (gerçek bir sürüm farkı olmasa bile) 404 ile
+# başarısız oluyordu. Doğru adres aşağıda düzeltildi.
 #
 # NOT: BUILD_INFO.txt'teki commit, build ALINIRKEN geçerli olan HEAD'i
 # yazar — ama panel/ klasörü SONRADAN ayrı bir commit'le depoya girer, yani
@@ -30,7 +36,7 @@ jobs:
         id: live
         run: |
           set -e
-          BODY=$(curl -fsS "https://panel.remaxlavanda.com.tr/panel/BUILD_INFO.txt")
+          BODY=$(curl -fsS "https://remaxlavanda.com.tr/panel/BUILD_INFO.txt")
           echo "$BODY"
           LIVE_COMMIT=$(echo "$BODY" | grep '^commit=' | cut -d= -f2)
           if [ -z "$LIVE_COMMIT" ]; then
