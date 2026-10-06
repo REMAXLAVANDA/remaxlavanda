@@ -5,14 +5,29 @@ import Modal from '../common/Modal'
 // öncesi devredilecek kişiyi sorar — bkz. /kurul "danışman takip menüleri"
 // denetimi: pasife alma işi hiç devretmiyordu, kayıtlar kimsenin
 // göremediği bir danışmanın üzerinde asılı kalıyordu.
-export default function DevretModal({ targetName, pendingCallCount, pendingOpportunityCount, candidates, onSubmit, onCancel, submitting }) {
+// alreadyPasif (2026-10-06, madde 4): bu özellik hayata geçmeden ÖNCE
+// pasife alınmış danışmanlarda kalmış "yetim" kayıtlar için AYNI pencere
+// isteğe bağlı olarak tekrar açılabiliyor — bu durumda pasifleştirme
+// tekrar tetiklenmiyor, metin buna göre değişiyor.
+export default function DevretModal({
+  targetName,
+  pendingCallCount,
+  pendingOpportunityCount,
+  candidates,
+  onSubmit,
+  onCancel,
+  submitting,
+  alreadyPasif = false,
+}) {
   const [toUserId, setToUserId] = useState(candidates[0]?.id ?? '')
 
   return (
     <Modal title="Açık işleri devret" onClose={onCancel} maxWidth="max-w-sm">
       <p className="text-sm text-ink-600">
-        <span className="font-medium text-ink-800">{targetName}</span> pasife alınmadan önce üzerindeki açık işlerin
-        başka bir danışmana devredilmesi gerekiyor:
+        <span className="font-medium text-ink-800">{targetName}</span>{' '}
+        {alreadyPasif
+          ? 'pasif olduğu hâlde üzerinde hâlâ devredilmemiş açık işler var:'
+          : 'pasife alınmadan önce üzerindeki açık işlerin başka bir danışmana devredilmesi gerekiyor:'}
       </p>
       <ul className="mt-3 space-y-1 text-sm text-ink-700">
         {pendingCallCount > 0 && (
@@ -58,7 +73,7 @@ export default function DevretModal({ targetName, pendingCallCount, pendingOppor
           disabled={submitting || candidates.length === 0}
           className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {submitting ? 'Devrediliyor...' : 'Devret ve Pasifleştir'}
+          {submitting ? 'Devrediliyor...' : alreadyPasif ? 'Devret' : 'Devret ve Pasifleştir'}
         </button>
       </div>
     </Modal>

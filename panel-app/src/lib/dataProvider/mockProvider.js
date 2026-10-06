@@ -213,10 +213,19 @@ export const opportunities = {
   },
   // supabaseProvider.reassignOpen() ile birebir aynı davranış.
   async reassignOpen(fromUserId, toUserId) {
+    const now = new Date().toISOString()
     for (const row of MOCK_OPPORTUNITIES) {
       if (row.status !== 'acik' && row.status !== 'claimed') continue
-      if (row.ownerId === fromUserId) row.ownerId = toUserId
-      if (row.claimerId === fromUserId) row.claimerId = toUserId
+      if (row.ownerId === fromUserId) {
+        row.ownerId = toUserId
+        row.oncekiSahipId = fromUserId
+        row.devirTarihi = now
+      }
+      if (row.claimerId === fromUserId) {
+        row.claimerId = toUserId
+        row.oncekiSahipId = fromUserId
+        row.devirTarihi = now
+      }
     }
     return delay(null)
   },
@@ -461,9 +470,14 @@ export const callLogs = {
     return delay(null)
   },
   // supabaseProvider.reassignPending() ile birebir aynı davranış.
-  async reassignPending(callIds, toUserId) {
+  async reassignPending(callIds, toUserId, fromUserId) {
+    const now = new Date().toISOString()
     for (const row of MOCK_CALLS) {
-      if (callIds.includes(row.id)) row.assignedTo = toUserId
+      if (callIds.includes(row.id)) {
+        row.assignedTo = toUserId
+        row.oncekiSahipId = fromUserId
+        row.devirTarihi = now
+      }
     }
     return delay(null)
   },

@@ -4,6 +4,7 @@ import Modal from '../common/Modal'
 import ConfirmDialog from '../common/ConfirmDialog'
 import { useToast } from '../../context/ToastContext'
 import { categoryLabel } from '../../lib/categories'
+import { formatDateOnly } from '../../lib/format'
 import { telHref, whatsappHref } from '../../lib/phone'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import {
@@ -197,6 +198,17 @@ export default function OpportunityDetailModal({
           </p>
         )}
       </div>
+
+      {/* "Önceki sahip" izi (2026-10-06 broker isteği, madde 4) — pasife
+          alınan bir danışmandan devredilen kayıtta, bu daha önce kimdeyken
+          devredildiğini görünür kılar. Sadece son devri gösterir (broker
+          onayı), tam zincir audit_log'da duruyor. */}
+      {opp.oncekiSahipId && (
+        <p className="mt-3 text-xs text-ink-400">
+          Önceki sorumlu: {resolveName(opp.oncekiSahipId)}
+          {opp.devirTarihi && <> ({formatDateOnly(opp.devirTarihi)}'de devredildi)</>}
+        </p>
+      )}
 
       {isOwnerOrManager && (
         <div className="mt-4 rounded-xl border border-ink-100 p-4">

@@ -57,6 +57,23 @@ export default function Ayarlar() {
     () => (canManage ? usersProvider.listAllPrivateInfo() : Promise.resolve([])),
     [canManage],
   )
+  // Pasif Danışmanın İşleri (2026-10-06, broker onayı — item 4): bu özellik
+  // hayata geçmeden ÖNCE pasife alınmış danışmanlarda hâlâ kimsenin
+  // göremediği açık çağrı/fırsat kalmış olabilir — requestToggleDurum'daki
+  // zorunlu devret kontrolü sadece pasife alma ANINDA çalışıyor. Sadece
+  // Kullanıcılar sekmesindeyken, sadece pasif kullanıcılar için hesaplanır.
+  const { data: pendingWorkByUserId, reload: reloadPendingWork } = useAsyncList(async () => {
+    if (!canManage || tab !== 'kullanicilar' || !allUsers) return {}
+    const pasifUsers = allUsers.filter((u) => u.durum === 'pasif')
+    if (pasifUsers.length === 0) return {}
+    const [calls, opps] = await Promise.all([callLogsProvider.listSummary(), opportunitiesProvider.list()])
+    const map = {}
+    for (const u of pasifUsers) {
+      const work = computePendingWork(u.id, calls, opps)
+      if (work.pendingCallCount > 0 || work.pendingOpportunityCount > 0) map[u.id] = work
+    }
+    return map
+  }, [canManage, tab, allUsers])
   const {
     data: docCategories,
     setData: setDocCategories,
@@ -169,6 +186,21 @@ export default function Ayarlar() {
     }
   }
 
+  // requestToggleDurum (pasife alırken zorunlu devret) VE pasif danışmanlar
+  // listesindeki rozet (bkz. pendingWorkByUserId) AYNI hesabı kullanır —
+  // tek bir yerde tanımlı.
+  function computePendingWork(id, calls, opps) {
+    const pendingCalls = calls.filter((c) => c.assignedTo === id && !c.donusYapildiMi && callNeedsTracking(c))
+    const pendingOpps = opps.filter(
+      (o) => (o.ownerId === id || o.claimerId === id) && (o.status === 'acik' || o.status === 'claimed'),
+    )
+    return {
+      pendingCallIds: pendingCalls.map((c) => c.id),
+      pendingCallCount: pendingCalls.length,
+      pendingOpportunityCount: pendingOpps.length,
+    }
+  }
+
   // Aktifleştirme her zaman anında olur (eskisi gibi) — sadece pasife
   // alırken önce açık iş var mı kontrol ediliyor (bkz. /kurul "danışman
   // takip menüleri" denetimi: pasife alma işi hiç devretmiyordu, kayıtlar
@@ -178,20 +210,25 @@ export default function Ayarlar() {
     const target = allUsers?.find((u) => u.id === id)
     if (!target) return
     const [calls, opps] = await Promise.all([callLogsProvider.listSummary(), opportunitiesProvider.list()])
-    const pendingCalls = calls.filter((c) => c.assignedTo === id && !c.donusYapildiMi && callNeedsTracking(c))
-    const pendingOpps = opps.filter(
-      (o) => (o.ownerId === id || o.claimerId === id) && (o.status === 'acik' || o.status === 'claimed'),
-    )
-    if (pendingCalls.length === 0 && pendingOpps.length === 0) {
+    const work = computePendingWork(id, calls, opps)
+    if (work.pendingCallCount === 0 && work.pendingOpportunityCount === 0) {
       return handleToggleDurum(id, durum)
     }
-    setDevretTarget({
-      id,
-      name: target.name,
-      pendingCallIds: pendingCalls.map((c) => c.id),
-      pendingCallCount: pendingCalls.length,
-      pendingOpportunityCount: pendingOpps.length,
-    })
+    setDevretTarget({ id, name: target.name, alreadyPasif: false, ...work })
+  }
+
+  // 2026-10-06 broker isteği (madde 4, "Pasif Danışmanın İşleri"): bu
+  // özellik hayata geçmeden ÖNCE pasife alınmış danışmanlarda hâlâ
+  // kimsenin göremediği açık kayıtlar kalmış olabilir (requestToggleDurum
+  // sadece pasife alma ANINDA çalışıyor). UsersTable'daki rozetten,
+  // zaten pasif olan bir danışman için de aynı devret penceresi isteğe
+  // bağlı olarak açılabiliyor — zorunlu değil, pasifleştirme tekrar
+  // tetiklenmiyor (alreadyPasif: true).
+  function handleDevretRequest(id) {
+    const target = allUsers?.find((u) => u.id === id)
+    const work = pendingWorkByUserId[id]
+    if (!target || !work) return
+    setDevretTarget({ id, name: target.name, alreadyPasif: true, ...work })
   }
 
   async function handleDevretAndDeactivate(toUserId) {
@@ -199,15 +236,18 @@ export default function Ayarlar() {
     setDevretting(true)
     try {
       await Promise.all([
-        callLogsProvider.reassignPending(devretTarget.pendingCallIds, toUserId),
+        callLogsProvider.reassignPending(devretTarget.pendingCallIds, toUserId, devretTarget.id),
         opportunitiesProvider.reassignOpen(devretTarget.id, toUserId),
       ])
-      await handleToggleDurum(devretTarget.id, 'pasif', { silentToast: true })
-      showToast(
-        `${devretTarget.pendingCallCount + devretTarget.pendingOpportunityCount} kayıt devredildi, ${devretTarget.name} pasifleştirildi.`,
-        'success',
-      )
+      const kayitSayisi = devretTarget.pendingCallCount + devretTarget.pendingOpportunityCount
+      if (devretTarget.alreadyPasif) {
+        showToast(`${kayitSayisi} kayıt devredildi.`, 'success')
+      } else {
+        await handleToggleDurum(devretTarget.id, 'pasif', { silentToast: true })
+        showToast(`${kayitSayisi} kayıt devredildi, ${devretTarget.name} pasifleştirildi.`, 'success')
+      }
       setDevretTarget(null)
+      reloadPendingWork()
     } catch (err) {
       showToast(err.message ?? 'Devredilemedi, tekrar dene.', 'error')
     } finally {
@@ -483,6 +523,8 @@ export default function Ayarlar() {
               onEdit={setEditingUser}
               onDeleteRequest={setDeleteTarget}
               onResetPasswordRequest={setResetTarget}
+              pendingWorkByUserId={pendingWorkByUserId ?? {}}
+              onDevretRequest={handleDevretRequest}
             />
           )}
         </>
@@ -626,6 +668,7 @@ export default function Ayarlar() {
           onSubmit={handleDevretAndDeactivate}
           onCancel={() => setDevretTarget(null)}
           submitting={devretting}
+          alreadyPasif={devretTarget.alreadyPasif}
         />
       )}
     </div>

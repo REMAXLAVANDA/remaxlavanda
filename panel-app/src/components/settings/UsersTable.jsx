@@ -28,6 +28,8 @@ export default function UsersTable({
   onEdit,
   onDeleteRequest,
   onResetPasswordRequest,
+  pendingWorkByUserId = {},
+  onDevretRequest,
 }) {
   const [sortKey, setSortKey] = useState('ad')
   const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
@@ -104,6 +106,22 @@ export default function UsersTable({
               >
                 {u.durum === 'aktif' ? 'Aktif' : 'Pasif'}
               </button>
+
+              {/* Pasif Danışmanın İşleri (2026-10-06) — bu özellik hayata
+                  geçmeden ÖNCE pasife alınmış danışmanlarda kalmış "yetim"
+                  açık çağrı/fırsat varsa rozet çıkar, isteğe bağlı devret
+                  penceresi açılır. Sadece pendingWorkByUserId'de girişi
+                  olan (yani gerçekten açık işi olan) pasif kullanıcılarda
+                  görünür — her pasif satırda değil. */}
+              {canManage && u.durum === 'pasif' && pendingWorkByUserId[u.id] && (
+                <button
+                  onClick={() => onDevretRequest(u.id)}
+                  title="Hâlâ devredilmemiş açık çağrı/fırsat var — devretmek için tıkla"
+                  className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                >
+                  ⚠ {pendingWorkByUserId[u.id].pendingCallCount + pendingWorkByUserId[u.id].pendingOpportunityCount} açık iş
+                </button>
+              )}
 
               {/* Broker'ın kendi inceleme/test amaçlı açtığı hesaplar için
                   — Lig/Takip/Panel gibi ekip performans listelerinden

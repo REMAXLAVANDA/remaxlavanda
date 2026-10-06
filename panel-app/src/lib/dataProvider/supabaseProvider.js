@@ -25,7 +25,7 @@ async function run(promise) {
 // --- Opportunities (Fırsatlar) ----------------------------------------------
 const OPPORTUNITY_COLUMNS =
   'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, ' +
-  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, islem_tipi, categories(key)'
+  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, islem_tipi, onceki_sahip_id, devir_tarihi, categories(key)'
 
 function mapOpportunity(row) {
   return {
@@ -48,6 +48,11 @@ function mapOpportunity(row) {
     // Satılık/kiralık — hem Satıcı hem Alıcı tarafında geçerli (bkz.
     // migration 20260729230000, lib/opportunities.js ISLEM_TIPI_LABELS).
     islemTipi: row.islem_tipi,
+    // Pasif danışmandan devredilen bir kaydın "önceki sahip" izi (2026-10-06
+    // broker isteği) — reassignOpen/reassignPending doldurur, UI'da sadece
+    // bilgilendirme amaçlı gösterilir.
+    oncekiSahipId: row.onceki_sahip_id,
+    devirTarihi: row.devir_tarihi,
     // Bilinçli olarak leadAd/leadTelefon YOK — bkz. dosya başı not.
   }
 }
@@ -165,18 +170,22 @@ export const opportunities = {
   // (trg_prevent_opportunity_status_bypass) bu alanlara doğrudan yazmayı
   // sadece is_manager() değilse engelliyor — bu sayfa zaten sadece broker/
   // owner'a açık, dolayısıyla buradan yazmak izinli.
+  // onceki_sahip_id/devir_tarihi: "eski danışmanın ismi not olarak
+  // görülsün" isteği (2026-10-06) — sadece SON devri tutuyoruz (broker
+  // onayı), tam zincir audit_log'da zaten var.
   async reassignOpen(fromUserId, toUserId) {
+    const devirAlani = { onceki_sahip_id: fromUserId, devir_tarihi: new Date().toISOString() }
     await run(
       client()
         .from('opportunities')
-        .update({ owner_id: toUserId })
+        .update({ owner_id: toUserId, ...devirAlani })
         .eq('owner_id', fromUserId)
         .in('status', ['acik', 'claimed']),
     )
     await run(
       client()
         .from('opportunities')
-        .update({ claimer_id: toUserId })
+        .update({ claimer_id: toUserId, ...devirAlani })
         .eq('claimer_id', fromUserId)
         .in('status', ['acik', 'claimed']),
     )
@@ -530,6 +539,9 @@ function mapCallLog(row) {
     reklamKodu: row.reklam_kodu,
     kaynakLeadId: row.kaynak_lead_id,
     createdAt: row.created_at,
+    // "Önceki sahip" izi — bkz. opportunities reassignOpen notu, aynı desen.
+    oncekiSahipId: row.onceki_sahip_id,
+    devirTarihi: row.devir_tarihi,
   }
 }
 
@@ -625,9 +637,14 @@ export const callLogs = {
   // için devredilmiyor — tek tek ID ile güncellenir (RLS'in anladığı
   // tek UPDATE şekli bu, SQL'de callNeedsTracking'i tekrar yazmak yerine
   // tek doğru kaynağı (lib/callLogs.js) kullanıyoruz).
-  async reassignPending(callIds, toUserId) {
+  async reassignPending(callIds, toUserId, fromUserId) {
     if (callIds.length === 0) return
-    await run(client().from('call_logs').update({ assigned_to: toUserId }).in('id', callIds))
+    await run(
+      client()
+        .from('call_logs')
+        .update({ assigned_to: toUserId, onceki_sahip_id: fromUserId, devir_tarihi: new Date().toISOString() })
+        .in('id', callIds),
+    )
   },
 }
 

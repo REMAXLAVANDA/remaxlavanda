@@ -20,6 +20,7 @@ import { CALL_SOURCE_CODES, callNeedsTracking, canEditCallDetails, maskPhone } f
 import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
+import { formatDateOnly } from '../../lib/format'
 import { WhatsappIcon } from '../kartvizit/BrandIcons'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import ConfirmDialog from '../common/ConfirmDialog'
@@ -305,8 +306,20 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
   // gerekmiyor.
   const [pendingAssign, setPendingAssign] = useState(null)
 
+  // "Önceki sahip" izi (2026-10-06 broker isteği, madde 4) — pasife alınan
+  // bir danışmandan devredilen çağrıda, bu daha önce kimdeyken
+  // devredildiğini görünür kılar (title tooltip, tablo satırını şişirmez).
+  const devirTitle = call.oncekiSahipId
+    ? `Önceki sorumlu: ${resolveName(call.oncekiSahipId)}${call.devirTarihi ? ` (${formatDateOnly(call.devirTarihi)}'de devredildi)` : ''}`
+    : undefined
+
   if (!isManager) {
-    return <span className="whitespace-nowrap text-xs text-ink-500">{call.assignedTo ? resolveName(call.assignedTo) : 'Atanmadı'}</span>
+    return (
+      <span className="whitespace-nowrap text-xs text-ink-500" title={devirTitle}>
+        {call.assignedTo ? resolveName(call.assignedTo) : 'Atanmadı'}
+        {call.oncekiSahipId && <span className="ml-1 text-ink-300">↺</span>}
+      </span>
+    )
   }
   // Çağrı pasife alınmış birine atanmışsa inviteeOptions'ta (sadece aktif
   // kullanıcılar — yeniden bu kişiye atanamasın diye bilerek) karşılığı
@@ -314,7 +327,7 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
   // karışmaması için isim, seçilemez bir ek seçenek olarak ekleniyor.
   const assignedIsKnown = call.assignedTo && inviteeOptions.some((u) => u.id === call.assignedTo)
   return (
-    <>
+    <span title={devirTitle}>
       <select
         value={call.assignedTo ?? ''}
         onChange={(e) => {
@@ -336,6 +349,7 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
           </option>
         ))}
       </select>
+      {call.oncekiSahipId && <span className="ml-1 text-ink-300">↺</span>}
       {pendingAssign && (
         <ConfirmDialog
           title="Çağrıyı ata"
@@ -348,7 +362,7 @@ function AssignedCell({ call, isManager, inviteeOptions, resolveName, onAssign }
           onCancel={() => setPendingAssign(null)}
         />
       )}
-    </>
+    </span>
   )
 }
 

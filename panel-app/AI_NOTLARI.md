@@ -3,6 +3,35 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-06 — Pasif Danışmanın İşleri + "önceki sahip" izi
+
+4 işlik plandan son madde (item 4): Ayarlar'daki zorunlu devret akışı
+(pasife alırken açık iş varsa devret zorunlu) sadece pasife alma ANINDA
+çalışıyor — bu özellik hayata geçmeden ÖNCE pasife alınmış danışmanlarda
+hâlâ kimsenin göremediği "yetim" açık çağrı/fırsat kalmış olabilir
+(denetimde doğrulanmış gerçek bir durum). Ayarlar > Kullanıcılar'da artık
+pasif bir danışmanın satırında hâlâ açık işi varsa "⚠ N açık iş" rozeti
+çıkıyor, tıklanınca AYNI devret penceresi isteğe bağlı olarak açılıyor —
+bu sefer pasifleştirme tekrar tetiklenmiyor (`alreadyPasif` ayrımı).
+
+Broker ek isteği: "eski danışmanın ismi not olarak görülsün" — devredilen
+HER kayıtta (hem bu yeni isteğe bağlı akışta hem de mevcut zorunlu
+akışta) artık "önceki sahip" izi tutuluyor. `call_logs` ve
+`opportunities` tablolarına `onceki_sahip_id` + `devir_tarihi` (nullable)
+eklendi, `reassignPending`/`reassignOpen` bu alanları dolduruyor. Sadece
+SON devri tutuyoruz (broker onayı — tam zincir gerekmiyor, audit_log'da
+zaten var). UI'da: Fırsat detayında "Önceki sorumlu: X (tarihte
+devredildi)" notu, Operasyon'daki çağrı tablosunda aynı bilgi bir ↺
+ikonu + tooltip olarak.
+
+Mock modda, bu "legacy orphaned" durumu normal UI akışlarından
+üretilemediği için (devret zorunluluğu tam da bunu engellemek için var)
+geçici olarak bir mock kullanıcıyı pasif+açık-işli yapıp Playwright'la
+uçtan uca doğrulandı (rozet → devret penceresi → doğru metin/buton →
+devret sonrası "Önceki sorumlu" notu fırsat detayında görünüyor), sonra
+test verisi geri alındı — kalıcı mock veri değişikliği YOK. 154/154 test,
+lint, build temiz.
+
 ## 2026-10-06 — Recruiting Kaynak Raporu (aylık, kaynak + sorumlu kırılımlı)
 
 4 işlik plandan 3. madde: Recruiting ekranına, hangi kaynaktan (referans/
