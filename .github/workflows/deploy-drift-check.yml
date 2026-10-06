@@ -12,6 +12,14 @@ name: Yayın sürümü kontrolü
 # her gün %100 oranda (gerçek bir sürüm farkı olmasa bile) 404 ile
 # başarısız oluyordu. Doğru adres aşağıda düzeltildi.
 #
+# 2026-10-06 ikinci düzeltme: adres düzeldikten sonra da başarısız olmaya
+# devam etti — kök neden farklıydı. Vercel'de apex alan adı
+# (remaxlavanda.com.tr) zaten www.remaxlavanda.com.tr'ye 308 ile
+# yönlendiriyor (panelle ilgisi yok, siteyle birlikte geldi). curl -fsS
+# yönlendirmeyi takip etmediği için gerçek dosya yerine Vercel'in
+# yönlendirme sayfasını ("Redirecting...") alıyordu, "commit=" satırı hiç
+# bulunamıyordu. -L eklendi.
+#
 # NOT: BUILD_INFO.txt'teki commit, build ALINIRKEN geçerli olan HEAD'i
 # yazar — ama panel/ klasörü SONRADAN ayrı bir commit'le depoya girer, yani
 # canlıdaki commit her zaman "deploy commit'i"nden bir öncekini gösterir.
@@ -36,7 +44,7 @@ jobs:
         id: live
         run: |
           set -e
-          BODY=$(curl -fsS "https://remaxlavanda.com.tr/panel/BUILD_INFO.txt")
+          BODY=$(curl -fsSL "https://remaxlavanda.com.tr/panel/BUILD_INFO.txt")
           echo "$BODY"
           LIVE_COMMIT=$(echo "$BODY" | grep '^commit=' | cut -d= -f2)
           if [ -z "$LIVE_COMMIT" ]; then
