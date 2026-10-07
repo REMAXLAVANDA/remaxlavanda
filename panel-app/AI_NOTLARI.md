@@ -3,6 +3,39 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Power Camp eğitim modülleri/rozetleri kaldırıldı, checklist kaldı
+
+Broker, Takip sayfasındaki Eğitim bölümünü (Modüllerim/Rozetlerim) işaret
+edip "bu menülerin hiçbiri işimize yaramıyor... süreç içine dahil
+edeceğim" dedi — Süreç/Ayrılış Checklist'e dokunulmadı ("onunla ilgili
+değişiklik sonraki iş" dendi), sadece modül tamamlama yüzdesi + rozet
+sistemi kaldırıldı.
+
+Kaldırmadan önce bağımlılık taraması yapıldı: Sağlık Skoru, Yönlendirme
+Puanı, Koçluk Notları, Recruiting, Ayarlar hiçbiri eğitim/modül verisini
+kullanmıyordu (bağımsız). Gerçek bağımlılık sadece Panel.jsx'teki
+"Eğitim"/"Checklist" widget'larıydı — modül% + checklist% birlikte tek
+bir "overallPercent" olarak hesaplanıyordu, bu artık SADECE checklist%.
+`isBehindEducation` → `isBehindChecklist` olarak yeniden adlandırıldı
+(modül kontrolü düşürüldü). `lib/education.js`'teki `moduleProgressFor`/
+`badgesFor`/`isModuleDone`, `ModuleProgressList`/`BadgeGrid`/
+`AwardBadgeModal` bileşenleri, provider'lardaki `listModules`/
+`listProgress`/`listBadges`/`listUserBadges`/`toggleModuleProgress`/
+`awardBadge` tamamen silindi (artık hiç çağrılmıyordu). DB tabloları
+(education_modules/education_progress/badges/user_badges) ve migration'lar
+DOKUNULMADAN duruyor — sadece uygulama bu veriyi artık çekmiyor.
+
+Yan bulgu: `TakipTab.jsx` modül/progress verisini sayfada HİÇ KULLANMADAN
+çekiyordu (gereksiz bir sorguydu, muhtemelen eski bir kalıntı) — bu da
+kaldırıldı, bir fazladan sorgu daha azaldı.
+
+Sidebar alt başlığı "Sağlık & Eğitim" → "Sağlık & Checklist", Panel'deki
+"Eğitim" nabız kutusu ve iki widget "Checklist" olarak yeniden adlandırıldı
+(ikon GraduationCap → ListChecks). CLAUDE.md'deki "Eğitim/onboarding"
+kuralı da güncellendi. Mock modda broker + danışman olarak Playwright'la
+uçtan uca doğrulandı (Takip'teki Checklist bölümü, Panel'in 3 widget'ı,
+Ekip İlerlemesi tablosu). 173/173 test, lint, build temiz.
+
 ## 2026-10-07 — Koçluk Notları: serbest "Hedef/Aksiyon" yerine raporlanabilir yapı
 
 Broker: "Ben bunları raporlayabilecek halde olsun istiyorum... not alma

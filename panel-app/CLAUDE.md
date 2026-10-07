@@ -212,10 +212,13 @@ Dosyada karşılığı olmayan bir tasarım kararı gerekiyorsa sor.
   açık/üstlenildi/kapandı/iptal. "Dikkat Gerekiyor", durumu hâlâ
   "açık" olan bir fırsatın 3 günden uzun süre hareketsiz kalmasını
   işaretliyor (`isStaleOpp`).
-- **Eğitim/onboarding:** Kodlanmış bir "tamamlandı" eşiği yok, sadece
-  "geride kalma" eşiği var — eğitim modül tamamlama YÜZDESİ VEYA
-  checklist tamamlama yüzdesi %50'nin altındaysa "Dikkat Gerekiyor"a
-  düşüyor (`isBehindEducation`).
+- **Onboarding/Checklist:** Kodlanmış bir "tamamlandı" eşiği yok, sadece
+  "geride kalma" eşiği var — süreç/ayrılış checklist tamamlama yüzdesi
+  %50'nin altındaysa "Dikkat Gerekiyor"a düşüyor (`isBehindChecklist`).
+  (2026-10-07: Power Camp eğitim modülleri/rozetleri broker kararıyla
+  kaldırıldı — "işimize yaramıyor, süreç içine dahil edeceğim" — bu eşik
+  eskiden modül tamamlama yüzdesini de kapsıyordu, artık sadece
+  checklist'e bakıyor.)
 - **Recruiting:** Yeni Başvuru → Randevu → Karar Bekliyor →
   Olumlu (danışman olarak eklenir, kaydı Recruiting'den çıkar) /
   Olumsuz / Yanlış Başvuru. "Danışman Olarak Ekle" (gerçek hesap açma)

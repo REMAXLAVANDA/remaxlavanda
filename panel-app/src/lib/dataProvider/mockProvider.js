@@ -5,14 +5,7 @@
 
 import { MOCK_OPPORTUNITIES } from '../../data/mockOpportunities'
 import { MOCK_EVENTS, MOCK_ATTENDANCE } from '../../data/mockCalendarEvents'
-import {
-  MOCK_MODULES,
-  MOCK_PROGRESS,
-  MOCK_BADGES,
-  MOCK_USER_BADGES,
-  MOCK_CHECKLIST_ITEMS,
-  MOCK_CHECKLIST_STATUS,
-} from '../../data/mockEducation'
+import { MOCK_CHECKLIST_ITEMS, MOCK_CHECKLIST_STATUS } from '../../data/mockEducation'
 import { MOCK_CALLS } from '../../data/mockCallLogs'
 import { MOCK_LEADS } from '../../data/mockLeads'
 import { MOCK_RECRUITING_CANDIDATES, MOCK_RECRUITING_NOTES } from '../../data/mockRecruiting'
@@ -355,34 +348,16 @@ export const calendarEvents = {
   },
 }
 
-// --- Education (Eğitim) ------------------------------------------------------
+// --- Education (Checklist) ----------------------------------------------
+// Power Camp modülleri/rozetleri kaldırıldı (2026-10-07, broker kararı —
+// "işimize yaramıyor, süreç içine dahil edeceğim"). Sadece süreç/ayrılış
+// checklist'i kaldı.
 export const education = {
-  async listModules() {
-    return delay([...MOCK_MODULES])
-  },
-  async listProgress() {
-    return delay([...MOCK_PROGRESS])
-  },
-  async listBadges() {
-    return delay([...MOCK_BADGES])
-  },
-  async listUserBadges() {
-    return delay([...MOCK_USER_BADGES])
-  },
   async listChecklistItems() {
     return delay([...MOCK_CHECKLIST_ITEMS])
   },
   async listChecklistStatus() {
     return delay([...MOCK_CHECKLIST_STATUS])
-  },
-  async toggleModuleProgress(moduleId, userId, done) {
-    const idx = MOCK_PROGRESS.findIndex((p) => p.moduleId === moduleId && p.userId === userId)
-    if (done && idx === -1) {
-      MOCK_PROGRESS.push({ moduleId, userId, doneAt: new Date().toISOString() })
-    } else if (!done && idx !== -1) {
-      MOCK_PROGRESS.splice(idx, 1)
-    }
-    return delay({ moduleId, userId, done })
   },
   async toggleChecklistItem(itemId, userId, done, doneBy) {
     const idx = MOCK_CHECKLIST_STATUS.findIndex((s) => s.itemId === itemId && s.userId === userId)
@@ -392,11 +367,6 @@ export const education = {
       MOCK_CHECKLIST_STATUS.splice(idx, 1)
     }
     return delay({ itemId, userId, done })
-  },
-  async awardBadge(userId, badgeId) {
-    const row = { userId, badgeId, earnedAt: new Date().toISOString() }
-    MOCK_USER_BADGES.push(row)
-    return delay(row)
   },
   async createChecklistItem({ tip, baslik, sortOrder }) {
     const item = { id: `chk-${Date.now()}`, tip, baslik, sortOrder }

@@ -1,19 +1,7 @@
-export function isModuleDone(moduleId, userId, progress) {
-  return progress.some((p) => p.moduleId === moduleId && p.userId === userId)
-}
-
-export function moduleProgressFor(userId, modules, progress) {
-  const completed = modules.filter((m) => isModuleDone(m.id, userId, progress)).length
-  const total = modules.length
-  return { completed, total, percent: total === 0 ? 0 : Math.round((completed / total) * 100) }
-}
-
-export function badgesFor(userId, userBadges, badges) {
-  return userBadges
-    .filter((ub) => ub.userId === userId)
-    .map((ub) => ({ ...badges.find((b) => b.id === ub.badgeId), earnedAt: ub.earnedAt }))
-    .filter((b) => b.id)
-}
+// Power Camp modülleri/rozetleri kaldırıldı (2026-10-07, broker kararı —
+// "işimize yaramıyor, süreç içine dahil edeceğim"). Sadece checklist
+// (süreç/ayrılış) kaldı — isModuleDone/moduleProgressFor/badgesFor
+// kullanılmıyor artık, silindi.
 
 export function checklistFor(userId, tip, items, statusList) {
   return items

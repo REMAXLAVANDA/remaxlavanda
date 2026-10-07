@@ -6,7 +6,7 @@ import {
   Target,
   UserPlus,
   CalendarDays,
-  GraduationCap,
+  ListChecks,
   Trophy,
   Users as UsersIcon,
   AlertTriangle,
@@ -46,7 +46,7 @@ import {
   KATILIM_TIPI_SELF_LABELS,
   KATILIM_TIPI_STYLES,
 } from '../lib/calendar'
-import { moduleProgressFor, checklistProgress } from '../lib/education'
+import { checklistProgress } from '../lib/education'
 import { computeHealthScore, STATUS_LABELS, STATUS_STYLES } from '../lib/takip'
 import { formatPrice } from '../lib/opportunities'
 import { categoryLabel } from '../lib/categories'
@@ -56,7 +56,7 @@ import {
   isStaleReturn,
   isStaleOpp,
   isInactiveAgent,
-  isBehindEducation,
+  isBehindChecklist,
   isRecruitingStalled,
   isCriticalWithoutCoaching,
 } from '../lib/attention'
@@ -71,7 +71,7 @@ import DikkatGerekiyorList from '../components/panel/DikkatGerekiyorList'
 import WeeklyLeadersCard from '../components/panel/WeeklyLeadersCard'
 import Avatar from '../components/common/Avatar'
 
-const EDUCATION_MANAGE_ROLES = ['broker', 'owner']
+const CHECKLIST_MANAGE_ROLES = ['broker', 'owner']
 const INITIAL_FILTERS = { dateRange: '7g', customFrom: '', customTo: '' }
 
 // Sıra, aşağıdaki Promise.allSettled dizisiyle BİREBİR aynı olmalı —
@@ -81,8 +81,6 @@ const LOAD_ALL_KEYS = [
   'opps',
   'events',
   'attendance',
-  'modules',
-  'progress',
   'checklistItems',
   'checklistStatus',
   'periods',
@@ -100,10 +98,10 @@ const LOAD_ALL_KEYS = [
   'auditLog',
 ]
 
-// Eğitim/checklist widget'larının EmptyRow'u bu 4 sorgudan HERHANGİ biri
-// başarısız olduğunda "failed" göstersin diye (educationGaps bu 4'ünün
+// Checklist widget'larının EmptyRow'u bu 2 sorgudan HERHANGİ biri
+// başarısız olduğunda "failed" göstersin diye (checklistGaps bu 2'sinin
 // birleşiminden hesaplanıyor, bkz. lib/education.js).
-const EDUCATION_KEYS = ['modules', 'progress', 'checklistItems', 'checklistStatus']
+const CHECKLIST_KEYS = ['checklistItems', 'checklistStatus']
 
 // "Hiç donma yaşanmasın" isteği (2026-09-24) — 17 sorgudan biri gerçekten
 // çökse bile (useAsyncList'in kendi zaman aşımı/yeniden denemesi tükenirse)
@@ -139,8 +137,6 @@ async function loadAll(userId, isBrokerOrOwner) {
     fetchWithRetry(() => opportunitiesProvider.list()),
     fetchWithRetry(() => calendarProvider.list()),
     fetchWithRetry(() => calendarProvider.listAttendance()),
-    fetchWithRetry(() => educationProvider.listModules()),
-    fetchWithRetry(() => educationProvider.listProgress()),
     fetchWithRetry(() => educationProvider.listChecklistItems()),
     fetchWithRetry(() => educationProvider.listChecklistStatus()),
     fetchWithRetry(() => leagueProvider.listPeriods()),
@@ -271,7 +267,7 @@ function EmptyRow({ text, failed }) {
 
 // Yüzdelik halka — SVG stroke-dasharray tekniğiyle, ortasında yüzde metni.
 // Hem büyük StatCard'larda hem küçük satır ikonlarında (Portal Kullanımı,
-// Eksik Eğitim kişi satırları) aynı bileşen kullanılıyor.
+// Eksik Checklist kişi satırları) aynı bileşen kullanılıyor.
 function ProgressRing({ percent, size = 88, strokeWidth = 8, color = 'var(--color-remax-blue)', fontSize }) {
   const clamped = Math.max(0, Math.min(100, Math.round(percent || 0)))
   const r = (size - strokeWidth) / 2
@@ -302,7 +298,7 @@ function ProgressRing({ percent, size = 88, strokeWidth = 8, color = 'var(--colo
   )
 }
 
-// %100 tamamlanan yeşil, yarı yolda turuncu, geride kırmızı — Eksik Eğitim
+// %100 tamamlanan yeşil, yarı yolda turuncu, geride kırmızı — Eksik Checklist
 // satırlarındaki modül/checklist halkalarında kullanılıyor.
 function ringColorFor(percent) {
   if (percent >= 100) return '#16a34a'
@@ -385,7 +381,7 @@ export default function Panel() {
   // kısıtlamaya gerek yok — asıl "müdahale edememe" ilgili sayfaların
   // (Operasyon/Fırsatlar/Ayarlar vb.) kendi RLS'lerinde uygulanıyor.
   const isBrokerOrOwner = role === ROLES.BROKER || role === ROLES.OWNER
-  const isEducationManager = EDUCATION_MANAGE_ROLES.includes(role)
+  const isChecklistManager = CHECKLIST_MANAGE_ROLES.includes(role)
   // Test hesabı (broker'ın kendi inceleme/deneme amaçlı açtığı hesap)
   // Lig/Takip/Portal Kullanımı gibi ekip performans listelerine hiç
   // karışmasın diye burada da hariç tutuluyor (bkz. "test hesabı açtım,
@@ -493,26 +489,21 @@ export default function Panel() {
     }
   }
 
-  // --- Eğitim/Checklist: eksik olanlar (yönetim: ekip, danışman: kendisi) ---
-  // overallPercent: modül+checklist toplam madde sayısına göre AĞIRLIKLI
-  // tek yüzde — Panel'deki tek ilerleme çubuğu (bkz. "Eğitim — Geride
-  // Kalanlar") bunu kullanıyor, iki ayrı yüzdeyi basit ortalamak yerine
-  // (ör. 20 modül + 3 checklist maddesi eşit ağırlıkta sayılmasın diye).
-  const educationGaps = useMemo(() => {
+  // --- Checklist: eksik olanlar (yönetim: ekip, danışman: kendisi) ---
+  // Power Camp modülleri kaldırıldı (2026-10-07, broker kararı) — artık
+  // tek veri kaynağı süreç/ayrılış checklist'i.
+  const checklistGaps = useMemo(() => {
     if (!data) return []
-    const subjects = isEducationManager ? teamMembers : [user]
+    const subjects = isChecklistManager ? teamMembers : [user]
     return subjects
       .map((u) => {
-        const mp = moduleProgressFor(u.id, data.modules, data.progress)
         const cp = checklistProgress(u.id, 'baslangic', data.checklistItems, data.checklistStatus)
-        const totalItems = mp.total + cp.total
-        const overallPercent = totalItems === 0 ? 0 : Math.round(((mp.completed + cp.completed) / totalItems) * 100)
-        return { id: u.id, name: u.name ?? user.name, modulePercent: mp.percent, checklistPercent: cp.percent, overallPercent }
+        return { id: u.id, name: u.name ?? user.name, checklistPercent: cp.percent }
       })
-      .filter((r) => r.modulePercent < 100 || r.checklistPercent < 100)
-      .sort((a, b) => a.modulePercent + a.checklistPercent - (b.modulePercent + b.checklistPercent))
+      .filter((r) => r.checklistPercent < 100)
+      .sort((a, b) => a.checklistPercent - b.checklistPercent)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, isEducationManager, teamMembers, user])
+  }, [data, isChecklistManager, teamMembers, user])
 
   // --- Broker raporu: Operasyon/Fırsatlar özet sayıları (bkz. StatCard) —
   // üstteki tarih filtresine göre daralıyor, panelin geri kalanıyla tutarlı.
@@ -682,13 +673,13 @@ export default function Panel() {
       })
     }
 
-    const behindEducation = educationGaps.filter(isBehindEducation)
-    if (behindEducation.length > 0) {
+    const behindChecklist = checklistGaps.filter(isBehindChecklist)
+    if (behindChecklist.length > 0) {
       items.push({
-        id: 'behind-education',
+        id: 'behind-checklist',
         severity: 'uyari',
         to: '/egitim?odak=egitim',
-        text: `${behindEducation.length} danışmanın eğitim/checklist tamamlama oranı %50'nin altında`,
+        text: `${behindChecklist.length} danışmanın checklist tamamlama oranı %50'nin altında`,
       })
     }
 
@@ -730,7 +721,7 @@ export default function Panel() {
     }
 
     return items
-  }, [data, activityRanking, educationGaps, teamMembers, user.id])
+  }, [data, activityRanking, checklistGaps, teamMembers, user.id])
 
   // --- Danışman: broker/owner'ın "Dikkat Gerekiyor"una eşdeğer, ama
   // SADECE kendi kayıtlarına bakıyor. 2026-10-04 /kurul bulgusu ("Sapma",
@@ -836,10 +827,10 @@ export default function Panel() {
         accent: 'navy',
       },
       {
-        label: 'Eğitim',
-        icon: GraduationCap,
+        label: 'Checklist',
+        icon: ListChecks,
         to: '/egitim',
-        value: educationGaps.length,
+        value: checklistGaps.length,
         detail: 'kişi eksik',
         accent: 'blue',
       },
@@ -863,7 +854,7 @@ export default function Panel() {
         accent: 'red',
       },
     ],
-    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, educationGaps, attentionItems, dusukPuanAtamaCount],
+    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, checklistGaps, attentionItems, dusukPuanAtamaCount],
   )
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
@@ -910,7 +901,7 @@ export default function Panel() {
     : 'Ofisten yönlendirilen, dönüş yapman gerekenler'
 
   // Danışman panelinde sıralama açıkça istendi: Lig Durumu, Açık Fırsatlar,
-  // Sana Atanan Çağrılar, Yaklaşan Etkinlikler, Eğitim/Checklist Durumun —
+  // Sana Atanan Çağrılar, Yaklaşan Etkinlikler, Checklist Durumun —
   // bu yüzden bu widget'lar tek sütunlu, sabit sırayla render edilebilsin
   // diye (md:grid-flow-row-dense'in sırayı karıştırmaması için) değişkene
   // ayrıldı. Ofis aynı widget'ları eski (2 sütunlu) düzende görmeye devam
@@ -1093,36 +1084,30 @@ export default function Panel() {
     </Widget>
   )
 
-  const educationWidget = (
+  const checklistWidget = (
     <Widget
-      icon={GraduationCap}
-      title={isEducationManager ? 'Eksik Eğitim / Checklist' : 'Eğitim / Checklist Durumun'}
-      count={isEducationManager ? educationGaps.length : 0}
-      description={
-        isEducationManager
-          ? 'Modül veya checklist tamamlama %100 altında olanlar'
-          : 'Modül ve checklist tamamlama oranın'
-      }
+      icon={ListChecks}
+      title={isChecklistManager ? 'Eksik Checklist' : 'Checklist Durumun'}
+      count={isChecklistManager ? checklistGaps.length : 0}
+      description={isChecklistManager ? 'Checklist tamamlama %100 altında olanlar' : 'Checklist tamamlama oranın'}
       to="/egitim"
-      linkLabel="Eğitim'e git"
+      linkLabel="Checklist'e git"
     >
-      {educationGaps.length === 0 ? (
+      {checklistGaps.length === 0 ? (
         <EmptyRow
-          text={isEducationManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'}
-          failed={EDUCATION_KEYS.some((k) => data?.failedKeys?.has(k))}
+          text={isChecklistManager ? 'Herkes tamamlamış, harika!' : 'Her şeyi tamamladın!'}
+          failed={CHECKLIST_KEYS.some((k) => data?.failedKeys?.has(k))}
         />
       ) : (
         <div className="space-y-2">
-          {educationGaps.slice(0, 5).map((r) => (
+          {checklistGaps.slice(0, 5).map((r) => (
             <div key={r.id} className="flex items-center justify-between rounded-xl border border-border-default px-3 py-2">
               <p className="text-sm font-medium text-text-primary">{r.name}</p>
-              <span className="text-xs text-text-muted">
-                Modül %{r.modulePercent} · Checklist %{r.checklistPercent}
-              </span>
+              <span className="text-xs text-text-muted">Checklist %{r.checklistPercent}</span>
             </div>
           ))}
-          {educationGaps.length > 5 && (
-            <p className="pt-1 text-center text-xs text-text-muted">+{educationGaps.length - 5} tane daha</p>
+          {checklistGaps.length > 5 && (
+            <p className="pt-1 text-center text-xs text-text-muted">+{checklistGaps.length - 5} tane daha</p>
           )}
         </div>
       )}
@@ -1183,7 +1168,7 @@ export default function Panel() {
       {/* Broker/owner yönetim merkezi — "panele girer girmez 30 saniyede
           ofisin durumuna hakim olmak" isteği (bkz. AI_NOTLARI.md). Sabit
           sıra: Ofisin Nabzı → Dikkat Gerekiyor → Portal Kullanımı →
-          Dönem Liderleri → Yaklaşan Etkinlik → Eğitim → Reklam
+          Dönem Liderleri → Yaklaşan Etkinlik → Checklist → Reklam
           Kaynakları. Kartlar arası boşluk bilerek dar (space-y-3) —
           "aynı ekranda daha fazla bilgi görülsün" isteği. */}
       {!loading && !error && isBrokerOrOwner && (
@@ -1195,7 +1180,7 @@ export default function Panel() {
 
       {/* Danışman: açıkça istenen sabit sıra — Dikkat Gerekiyor (kendi
           gecikmeleri), Lig Durumu, Açık Fırsatlar, Sana Atanan Çağrılar,
-          Yaklaşan Etkinlikler, Eğitim/Checklist Durumun. Tek sütun
+          Yaklaşan Etkinlikler, Checklist Durumun. Tek sütun
           kullanılıyor ki md:grid-flow-row-dense sırayı karıştırmasın. */}
       {!loading && !error && isDanisman && (
         <div className="flex flex-col gap-4">
@@ -1204,7 +1189,7 @@ export default function Panel() {
           {opportunitiesWidgetDanisman}
           {callsWidget}
           {eventsWidget}
-          {educationWidget}
+          {checklistWidget}
         </div>
       )}
 
@@ -1215,12 +1200,12 @@ export default function Panel() {
           {callsWidget}
           {opportunitiesWidgetOfis}
           {eventsWidget}
-          {educationWidget}
+          {checklistWidget}
         </div>
       )}
 
       {/* Broker/owner yönetim merkezinin devamı — sabit sıra: Portal
-          Kullanımı → Dönem Liderleri → Yaklaşan Etkinlik → Eğitim →
+          Kullanımı → Dönem Liderleri → Yaklaşan Etkinlik → Checklist →
           Reklam Kaynakları (bkz. brief "Nihai sıralama"). */}
       {!loading && !error && isBrokerOrOwner && (
         <div className="mt-3 space-y-3">
@@ -1262,7 +1247,7 @@ export default function Panel() {
             <WeeklyLeadersCard categories={LEAGUE_CATEGORIES} rankingsByCategory={rankingsByCategory} />
           </div>
 
-          {/* Desktop'ta Eğitim + Yaklaşan Etkinlik yan yana. Yaklaşan
+          {/* Desktop'ta Checklist + Yaklaşan Etkinlik yan yana. Yaklaşan
               Etkinlik: kart yüksekliği eskisinin yaklaşık yarısı —
               katılımcı avatar satırı kaldırıldı, sadece tarih/başlık/saat
               + "+N tane daha" (bkz. brief). */}
@@ -1294,37 +1279,37 @@ export default function Panel() {
             </Widget>
 
             <Widget
-              icon={GraduationCap}
-              title="Eğitim — Geride Kalanlar"
-              description="Modül + checklist tamamlama %100 altında olanlar"
+              icon={ListChecks}
+              title="Checklist — Geride Kalanlar"
+              description="Checklist tamamlama %100 altında olanlar"
               to="/egitim"
               linkLabel="Tümünü gör"
               accent="navy"
             >
-              {educationGaps.length === 0 ? (
-                <EmptyRow text="Herkes tamamlamış, harika!" failed={EDUCATION_KEYS.some((k) => data?.failedKeys?.has(k))} />
+              {checklistGaps.length === 0 ? (
+                <EmptyRow text="Herkes tamamlamış, harika!" failed={CHECKLIST_KEYS.some((k) => data?.failedKeys?.has(k))} />
               ) : (
                 <div className="space-y-2.5">
-                  {educationGaps.slice(0, 3).map((r) => (
+                  {checklistGaps.slice(0, 3).map((r) => (
                     <div key={r.id} className="flex items-center gap-3">
                       <Avatar name={r.name} size={28} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate text-sm font-medium text-text-primary">{r.name}</span>
-                          <span className="shrink-0 text-xs font-semibold text-text-muted">%{r.overallPercent}</span>
+                          <span className="shrink-0 text-xs font-semibold text-text-muted">%{r.checklistPercent}</span>
                         </div>
                         <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-chart-track">
                           <div
                             className="h-full rounded-full"
-                            style={{ width: `${r.overallPercent}%`, backgroundColor: ringColorFor(r.overallPercent) }}
+                            style={{ width: `${r.checklistPercent}%`, backgroundColor: ringColorFor(r.checklistPercent) }}
                           />
                         </div>
                       </div>
                     </div>
                   ))}
-                  {educationGaps.length > 3 && (
+                  {checklistGaps.length > 3 && (
                     <Link to="/egitim" className="block pt-1 text-center text-xs font-medium text-text-primary hover:text-brand-700">
-                      +{educationGaps.length - 3} kişi daha →
+                      +{checklistGaps.length - 3} kişi daha →
                     </Link>
                   )}
                 </div>

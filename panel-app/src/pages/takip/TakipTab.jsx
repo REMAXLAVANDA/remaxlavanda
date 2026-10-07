@@ -5,7 +5,6 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import {
-  education as educationProvider,
   calendarEvents as calendarProvider,
   callLogs as callLogsProvider,
   opportunities as opportunitiesProvider,
@@ -26,11 +25,12 @@ import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 
-// Takip skoru, education/calendar/callLogs/users/league domain'lerinin
-// kesişimidir — tek bir Promise.all ile hepsi birlikte yüklenir, tek
-// loading/error durumu. Portal kullanımı ve müşteri memnuniyeti artık
-// gerçek verilerden (son giriş zamanı, ciro_musterileri) hesaplanıyor —
-// bkz. lib/takip.js.
+// Takip skoru, calendar/callLogs/users/league domain'lerinin kesişimidir —
+// tek bir Promise.all ile hepsi birlikte yüklenir, tek loading/error
+// durumu. Portal kullanımı ve müşteri memnuniyeti artık gerçek
+// verilerden (son giriş zamanı, ciro_musterileri) hesaplanıyor — bkz.
+// lib/takip.js. (2026-10-07: modules/progress sorguları kaldırıldı —
+// bu sayfada hiç kullanılmıyordu, Power Camp kaldırılınca fark edildi.)
 //
 // `opportunities` SADECE broker/owner için çekiliyor — danışman detay
 // modalındaki "Fırsatlar ve Çağrı Kayıtları" bölümü (bkz. HealthDetailModal)
@@ -42,8 +42,6 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // yapmamak için (aynı sebep: `opportunities` ile paralel, bkz. yukarıdaki not).
 async function loadAll(includeOpportunities, includeCoaching) {
   const [
-    modules,
-    progress,
     events,
     attendance,
     calls,
@@ -56,8 +54,6 @@ async function loadAll(includeOpportunities, includeCoaching) {
     opportunities,
     coaching,
   ] = await Promise.all([
-    educationProvider.listModules(),
-    educationProvider.listProgress(),
     calendarProvider.list(),
     calendarProvider.listAttendance(),
     callLogsProvider.list(),
@@ -70,7 +66,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     includeOpportunities ? opportunitiesProvider.list() : Promise.resolve([]),
     includeCoaching ? coachingNotesProvider.list() : Promise.resolve([]),
   ])
-  return { modules, progress, events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities, coaching }
+  return { events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities, coaching }
 }
 
 export default function TakipTab() {

@@ -105,13 +105,15 @@ export const MODULES = [
     label: 'Takip',
     // Grup başlığı "Gelişim"e kısaltıldıktan sonra bile "Takip" tek başına
     // ne olduğunu tam açıklamıyor olabilir — bkz. MODULE_GROUPS.takip notu.
-    subtitle: 'Sağlık & Eğitim',
-    description: 'Sağlık skoru ve eğitim/checklist takibi',
+    subtitle: 'Sağlık & Checklist',
+    description: 'Sağlık skoru ve süreç/ayrılış checklist takibi',
     icon: HeartPulse,
     // Herkes modüle girebilir; sayfa içeriği role göre uyarlanıyor —
-    // danışman sadece kendi skorunu/eğitimini görür, yönetim tüm ekibi
-    // görür. Eğitim artık ayrı bir menü değil, bu sayfanın alt bölümü
-    // (bkz. pages/Takip.jsx) — /egitim linki hâlâ çalışır.
+    // danışman sadece kendi skorunu/checklist'ini görür, yönetim tüm ekibi
+    // görür. Checklist artık ayrı bir menü değil, bu sayfanın alt bölümü
+    // (bkz. pages/Takip.jsx) — /egitim linki hâlâ çalışır (2026-10-07:
+    // Power Camp modülleri/rozetleri kaldırıldı, "süreç içine dahil
+    // edeceğim" — broker kararı, bu bölümde artık sadece checklist var).
     roles: ALL_ROLES,
     group: 'takip',
   },

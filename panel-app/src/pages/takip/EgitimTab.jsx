@@ -1,27 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Award, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { education as educationProvider, users as usersProvider } from '../../lib/dataProvider'
-import { badgesFor, checklistFor, checklistProgress, isModuleDone, moduleProgressFor } from '../../lib/education'
-import { isWithinRange } from '../../lib/dateRange'
-import { isBehindEducation } from '../../lib/attention'
+import { checklistFor, checklistProgress } from '../../lib/education'
+import { isBehindChecklist } from '../../lib/attention'
 import { sortByName } from '../../lib/format'
-import ModuleProgressList from '../../components/education/ModuleProgressList'
-import BadgeGrid from '../../components/education/BadgeGrid'
-import AwardBadgeModal from '../../components/education/AwardBadgeModal'
 import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../../components/education/TeamProgressTable'
-import DateRangeFilter, { Chip } from '../../components/common/DateRangeFilter'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
-// badges_manage / onboarding_status_manage / onboarding_items_manage RLS'te
-// sadece broker/owner.
+// badges_manage/onboarding_status_manage/onboarding_items_manage RLS'te
+// sadece broker/owner. Power Camp modülleri/rozetleri kaldırıldı
+// (2026-10-07, broker kararı — "işimize yaramıyor, süreç içine dahil
+// edeceğim"), bu sayfada artık SADECE süreç/ayrılış checklist'i var.
 const CAN_MANAGE_ROLES = ['broker', 'owner']
 
 const CHECKLIST_TABS = [
@@ -34,16 +31,12 @@ const CHECKLIST_TABS = [
 const EMPTY = []
 
 async function loadAll() {
-  const [modules, progress, badges, userBadges, checklistItems, checklistStatus, allUsers] = await Promise.all([
-    educationProvider.listModules(),
-    educationProvider.listProgress(),
-    educationProvider.listBadges(),
-    educationProvider.listUserBadges(),
+  const [checklistItems, checklistStatus, allUsers] = await Promise.all([
     educationProvider.listChecklistItems(),
     educationProvider.listChecklistStatus(),
     usersProvider.listAll(),
   ])
-  return { modules, progress, badges, userBadges, checklistItems, checklistStatus, allUsers }
+  return { checklistItems, checklistStatus, allUsers }
 }
 
 export default function EgitimTab() {
@@ -53,34 +46,26 @@ export default function EgitimTab() {
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const [checklistTip, setChecklistTip] = useState('baslangic')
   const [checklistUserId, setChecklistUserId] = useState(user.id)
-  const [showAwardModal, setShowAwardModal] = useState(false)
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [moduleFilters, setModuleFilters] = useState({ dateRange: 'tumu', customFrom: '', customTo: '' })
   const [searchParams, setSearchParams] = useSearchParams()
 
   const isManager = CAN_MANAGE_ROLES.includes(role)
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, "Ekip
-  // İlerlemesi" tablosunu SADECE modül/checklist oranı %50'nin altında
-  // olanlara daraltıyoruz ve o bölüme otomatik kaydırıyoruz.
+  // İlerlemesi" tablosunu SADECE checklist oranı %50'nin altında olanlara
+  // daraltıyoruz ve o bölüme otomatik kaydırıyoruz.
   const odakActive = searchParams.get('odak') === 'egitim'
 
   useEffect(() => {
     if (odakActive) document.getElementById('ekip-ilerlemesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [odakActive])
 
-  const modules = data?.modules ?? EMPTY
-  const progress = data?.progress ?? EMPTY
-  const badges = data?.badges ?? EMPTY
-  const userBadges = data?.userBadges ?? EMPTY
   const checklistItems = data?.checklistItems ?? EMPTY
   const checklistStatus = data?.checklistStatus ?? EMPTY
   const allUsers = data?.allUsers ?? EMPTY
 
   // Test hesabı ekip listelerine karışmasın diye hariç tutuluyor (bkz.
-  // Panel.jsx'teki aynı filtre). knownUsers sadece durum='aktif' kullanıcıyı
-  // içeriyor (bkz. usersProvider.listKnown) — Rozet Ver / Ekip İlerlemesi
-  // için doğru davranış bu (ayrılmış birine rozet verilmez).
+  // Panel.jsx'teki aynı filtre).
   const teamMembers = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
 
   // Checklist danışman seçimi teamMembers'tan AYRI: "Ayrılış" checklist'i
@@ -93,20 +78,6 @@ export default function EgitimTab() {
     return sortByName(rows).sort((a, b) => (a.durum === b.durum ? 0 : a.durum === 'aktif' ? -1 : 1))
   }, [allUsers])
 
-  // Eğitim modülleri eklendikleri tarihe göre filtrelenebilir (ör. "sadece bu
-  // dönem eklenen eğitimler"). Varsayılan "tümü" — hiçbir modül sessizce
-  // gizlenmesin (Fırsatlar/Operasyon'da yaşanan 30 günlük varsayılan filtre
-  // sorununu burada tekrarlamamak için).
-  const filteredModules = useMemo(
-    () => modules.filter((m) => isWithinRange(m.createdAt, moduleFilters.dateRange, moduleFilters.customFrom, moduleFilters.customTo)),
-    [modules, moduleFilters],
-  )
-
-  const myModuleProgress = useMemo(
-    () => moduleProgressFor(user.id, filteredModules, progress),
-    [filteredModules, progress, user.id],
-  )
-  const myBadges = useMemo(() => badgesFor(user.id, userBadges, badges), [userBadges, badges, user.id])
   const checklistEntries = useMemo(
     () => checklistFor(checklistUserId, checklistTip, checklistItems, checklistStatus),
     [checklistUserId, checklistTip, checklistItems, checklistStatus],
@@ -124,36 +95,14 @@ export default function EgitimTab() {
   const teamRows = useMemo(() => {
     if (!isManager) return []
     const rows = teamMembers.map((u) => {
-      const mp = moduleProgressFor(u.id, filteredModules, progress)
       const cp = checklistProgress(u.id, 'baslangic', checklistItems, checklistStatus)
-      return {
-        id: u.id,
-        name: u.name,
-        modulePercent: mp.percent,
-        checklistPercent: cp.percent,
-        badgeCount: badgesFor(u.id, userBadges, badges).length,
-      }
+      return { id: u.id, name: u.name, checklistPercent: cp.percent }
     })
-    return odakActive ? rows.filter(isBehindEducation) : rows
+    return odakActive ? rows.filter(isBehindChecklist) : rows
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isManager, filteredModules, progress, checklistItems, checklistStatus, userBadges, badges, odakActive])
+  }, [isManager, checklistItems, checklistStatus, odakActive])
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
-
-  async function toggleModule(moduleId) {
-    const done = isModuleDone(moduleId, user.id, progress)
-    try {
-      await educationProvider.toggleModuleProgress(moduleId, user.id, !done)
-      setData((prev) => ({
-        ...prev,
-        progress: done
-          ? prev.progress.filter((p) => !(p.moduleId === moduleId && p.userId === user.id))
-          : [...prev.progress, { moduleId, userId: user.id, doneAt: new Date().toISOString() }],
-      }))
-    } catch (err) {
-      showToast(err.message ?? 'Modül durumu güncellenemedi, tekrar dene.', 'error')
-    }
-  }
 
   async function toggleChecklistItem(itemId) {
     const existing = checklistStatus.find((s) => s.itemId === itemId && s.userId === checklistUserId)
@@ -218,69 +167,15 @@ export default function EgitimTab() {
     }
   }
 
-  async function handleAwardBadge({ userId, badgeId }) {
-    setSubmitting(true)
-    try {
-      const awarded = await educationProvider.awardBadge(userId, badgeId)
-      setData((prev) => ({ ...prev, userBadges: [...prev.userBadges, awarded] }))
-      setShowAwardModal(false)
-      showToast('Rozet verildi.', 'success')
-    } catch (err) {
-      showToast(err.message ?? 'Rozet verilemedi, tekrar dene.', 'error')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   return (
     <div className="space-y-8">
-      <p className="text-xs text-text-muted">Power Camp modülleri, rozetler ve checklist</p>
+      <p className="text-xs text-text-muted">Süreç ve ayrılış checklist'i</p>
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && (
         <>
-          <section>
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-text-primary">Modüllerim</h2>
-              <span className="text-xs text-text-muted">
-                {myModuleProgress.completed}/{myModuleProgress.total} tamamlandı ({myModuleProgress.percent}%)
-              </span>
-            </div>
-            <div className="mb-3 flex flex-wrap items-center gap-1.5">
-              {/* 2026-10-03 görsel denetim düzeltmesi: bu buton aynı satırdaki
-                  DateRangeFilter'ın chip'leriyle AYNI bileşeni (Chip) kullanıyor
-                  — önceden elle yazılmış farklı bir renkti (bg-remax-blue vs
-                  DateRangeFilter'ın bg-brand-600), aynı satırda iki "Tümü"
-                  farklı renkte görünüyordu. */}
-              <Chip active={moduleFilters.dateRange === 'tumu'} onClick={() => setModuleFilters((f) => ({ ...f, dateRange: 'tumu' }))}>
-                Tümü
-              </Chip>
-              <DateRangeFilter value={moduleFilters} onChange={setModuleFilters} />
-            </div>
-            <ModuleProgressList
-              modules={filteredModules}
-              isDone={(id) => isModuleDone(id, user.id, progress)}
-              onToggle={toggleModule}
-            />
-          </section>
-
-          <section>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-text-primary">Rozetlerim</h2>
-              {isManager && (
-                <button
-                  onClick={() => setShowAwardModal(true)}
-                  className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
-                >
-                  <Award size={14} /> Rozet Ver
-                </button>
-              )}
-            </div>
-            <BadgeGrid badges={myBadges} />
-          </section>
-
           {showChecklistSection && (
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -347,7 +242,7 @@ export default function EgitimTab() {
               <h2 className="mb-3 text-sm font-semibold text-text-primary">Ekip İlerlemesi</h2>
               {odakActive && (
                 <FocusBanner
-                  text={`${teamRows.length} danışmanın eğitim/checklist oranı %50'nin altında — sadece bunlar gösteriliyor.`}
+                  text={`${teamRows.length} danışmanın checklist tamamlama oranı %50'nin altında — sadece bunlar gösteriliyor.`}
                   onClear={() => setSearchParams({})}
                 />
               )}
@@ -355,16 +250,6 @@ export default function EgitimTab() {
             </section>
           )}
         </>
-      )}
-
-      {showAwardModal && (
-        <AwardBadgeModal
-          onClose={() => setShowAwardModal(false)}
-          onSubmit={handleAwardBadge}
-          submitting={submitting}
-          users={teamMembers}
-          badges={badges}
-        />
       )}
 
       {showAddItemModal && (

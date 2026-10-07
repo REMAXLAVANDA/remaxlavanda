@@ -1,71 +1,12 @@
-// Eğitim modülü mock verisi — supabase şemasındaki education_modules,
-// education_progress, badges, user_badges, onboarding_checklist_items,
-// onboarding_checklist_status tablolarının karşılığı.
+// Checklist mock verisi — supabase şemasındaki onboarding_checklist_items,
+// onboarding_checklist_status tablolarının karşılığı. Power Camp modülleri/
+// rozetleri (education_modules, education_progress, badges, user_badges)
+// 2026-10-07'de kaldırıldı (broker kararı — "işimize yaramıyor, süreç
+// içine dahil edeceğim") — DB tabloları ve ilgili migration'lar duruyor,
+// sadece uygulama bu veriyi artık hiç çekmiyor.
 
 const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()
-
-export const MOCK_MODULES = [
-  {
-    id: 'mod-1',
-    title: "RE/MAX Lavanda'ya Hoş Geldin",
-    description: 'Ofis kültürü ve temel süreçler',
-    sortOrder: 1,
-    createdAt: daysAgo(120),
-  },
-  {
-    id: 'mod-2',
-    title: 'Müzakere Teknikleri',
-    description: 'Power Camp - temel müzakere becerileri',
-    sortOrder: 2,
-    createdAt: daysAgo(100),
-  },
-  {
-    id: 'mod-3',
-    title: 'Portföy Sunumu ve Fotoğraflama',
-    description: 'Etkili ilan hazırlama',
-    sortOrder: 3,
-    createdAt: daysAgo(45),
-  },
-  {
-    id: 'mod-4',
-    title: 'Dijital Pazarlama Temelleri',
-    description: 'Sosyal medya ve online tanıtım',
-    sortOrder: 4,
-    createdAt: daysAgo(10),
-  },
-  {
-    id: 'mod-5',
-    title: 'Sözleşme ve Hukuki Süreçler',
-    description: 'Alım-satım sözleşmesi detayları',
-    sortOrder: 5,
-    createdAt: daysAgo(2),
-  },
-]
-
-// module_id, user_id, done_at
-export const MOCK_PROGRESS = [
-  { moduleId: 'mod-1', userId: 'u-danisman', doneAt: daysAgo(60) },
-  { moduleId: 'mod-2', userId: 'u-danisman', doneAt: daysAgo(40) },
-  { moduleId: 'mod-1', userId: 'ext-danisman-2', doneAt: daysAgo(90) },
-  { moduleId: 'mod-2', userId: 'ext-danisman-2', doneAt: daysAgo(80) },
-  { moduleId: 'mod-3', userId: 'ext-danisman-2', doneAt: daysAgo(50) },
-  { moduleId: 'mod-4', userId: 'ext-danisman-2', doneAt: daysAgo(20) },
-]
-
-export const MOCK_BADGES = [
-  { id: 'badge-1', ad: 'İlk Fırsat', aciklama: 'İlk fırsatı claim eden danışmana verilir', icon: 'target' },
-  { id: 'badge-2', ad: 'Power Camp Mezunu', aciklama: 'Tüm Power Camp modüllerini tamamlayanlara verilir', icon: 'graduation-cap' },
-  { id: 'badge-3', ad: 'Hız Şampiyonu', aciklama: 'En hızlı lead dönüşü yapan danışmana verilir', icon: 'zap' },
-  { id: 'badge-4', ad: '5 Yıldız Memnuniyet', aciklama: 'Müşteri memnuniyeti en yüksek danışmana verilir', icon: 'star' },
-]
-
-// user_id, badge_id, earned_at
-export const MOCK_USER_BADGES = [
-  { userId: 'u-danisman', badgeId: 'badge-1', earnedAt: daysAgo(2) },
-  { userId: 'ext-danisman-2', badgeId: 'badge-1', earnedAt: daysAgo(45) },
-  { userId: 'ext-danisman-2', badgeId: 'badge-3', earnedAt: daysAgo(10) },
-]
 
 export const MOCK_CHECKLIST_ITEMS = [
   { id: 'chk-1', tip: 'baslangic', baslik: 'Sözleşme imzalandı', sortOrder: 1 },

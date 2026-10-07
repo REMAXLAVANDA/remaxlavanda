@@ -430,32 +430,12 @@ export const calendarEvents = {
   },
 }
 
-// --- Education (Eğitim) ------------------------------------------------------
+// --- Education (Checklist) ----------------------------------------------
+// Power Camp modülleri/rozetleri kaldırıldı (2026-10-07, broker kararı —
+// "işimize yaramıyor, süreç içine dahil edeceğim"). DB tabloları
+// (education_modules/education_progress/badges/user_badges) ve ilgili
+// migration'lar duruyor, sadece uygulama bu veriyi artık hiç çekmiyor.
 export const education = {
-  async listModules() {
-    const data = await run(
-      client().from('education_modules').select('*').eq('is_active', true).order('sort_order'),
-    )
-    return data.map((m) => ({
-      id: m.id,
-      title: m.title,
-      description: m.description,
-      sortOrder: m.sort_order,
-      createdAt: m.created_at,
-    }))
-  },
-  async listProgress() {
-    const data = await run(client().from('education_progress').select('*'))
-    return data.map((p) => ({ moduleId: p.module_id, userId: p.user_id, doneAt: p.done_at }))
-  },
-  async listBadges() {
-    const data = await run(client().from('badges').select('*'))
-    return data.map((b) => ({ id: b.id, ad: b.ad, aciklama: b.aciklama, icon: b.icon }))
-  },
-  async listUserBadges() {
-    const data = await run(client().from('user_badges').select('*'))
-    return data.map((b) => ({ userId: b.user_id, badgeId: b.badge_id, earnedAt: b.earned_at }))
-  },
   async listChecklistItems() {
     const data = await run(client().from('onboarding_checklist_items').select('*').order('sort_order'))
     return data.map((i) => ({ id: i.id, tip: i.tip, baslik: i.baslik, sortOrder: i.sort_order }))
@@ -463,23 +443,6 @@ export const education = {
   async listChecklistStatus() {
     const data = await run(client().from('onboarding_checklist_status').select('*'))
     return data.map((s) => ({ itemId: s.item_id, userId: s.user_id, doneAt: s.done_at, doneBy: s.done_by }))
-  },
-  async toggleModuleProgress(moduleId, userId, done) {
-    if (done) {
-      // onConflict AÇIKÇA belirtiliyor — tablo artık surrogate id PK
-      // kullanıyor (20261003172000 migration), upsert varsayılan olarak
-      // PK'ye göre çakışır, o zaman her çağrı yeni satır eklerdi.
-      await run(
-        client()
-          .from('education_progress')
-          .upsert({ module_id: moduleId, user_id: userId, done_at: new Date().toISOString() }, { onConflict: 'user_id,module_id' }),
-      )
-    } else {
-      await run(
-        client().from('education_progress').delete().eq('module_id', moduleId).eq('user_id', userId),
-      )
-    }
-    return { moduleId, userId, done }
   },
   async toggleChecklistItem(itemId, userId, done, doneBy) {
     if (done) {
@@ -494,12 +457,6 @@ export const education = {
       )
     }
     return { itemId, userId, done }
-  },
-  async awardBadge(userId, badgeId) {
-    const data = await run(
-      client().from('user_badges').insert({ user_id: userId, badge_id: badgeId }).select().single(),
-    )
-    return { userId: data.user_id, badgeId: data.badge_id, earnedAt: data.earned_at }
   },
   // onboarding_items_manage RLS'i sadece broker/owner'a izin veriyor.
   async createChecklistItem({ tip, baslik, sortOrder }) {

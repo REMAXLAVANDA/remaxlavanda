@@ -1,15 +1,17 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { GraduationCap } from 'lucide-react'
+import { ListChecks } from 'lucide-react'
 import TakipTab from './takip/TakipTab'
 import EgitimTab from './takip/EgitimTab'
 
-// Takip ve Eğitim aynı ekibin gelişimini iki açıdan izliyor (sağlık skoru →
-// eğitim/checklist tamamlama) — menüyü sadeleştirmek için tek sayfada,
-// sekme yerine ÜST ÜSTE iki bölüm olarak birleştirildi: en üstte Takip,
-// altında Eğitim. /egitim linki hâlâ çalışır (Panel'den gelen bağlantılar
-// dahil) — sayfayı doğrudan Eğitim bölümüne kaydırır. Kenar çubuğunda artık
-// ayrı bir giriş yok (bkz. lib/modules.js).
+// Takip ve Checklist aynı ekibin gelişimini iki açıdan izliyor (sağlık
+// skoru → süreç/ayrılış checklist tamamlama) — menüyü sadeleştirmek için
+// tek sayfada, sekme yerine ÜST ÜSTE iki bölüm olarak birleştirildi: en
+// üstte Takip, altında Checklist. /egitim linki hâlâ çalışır (Panel'den
+// gelen bağlantılar dahil) — sayfayı doğrudan bu bölüme kaydırır. Kenar
+// çubuğunda artık ayrı bir giriş yok (bkz. lib/modules.js). Power Camp
+// modülleri/rozetleri (eskiden "Eğitim") 2026-10-07'de kaldırıldı (broker
+// kararı — "işimize yaramıyor, süreç içine dahil edeceğim").
 export default function Takip() {
   const location = useLocation()
 
@@ -27,7 +29,7 @@ export default function Takip() {
 
       <section id="egitim-bolumu" className="mt-10 scroll-mt-6 border-t border-border-default pt-8">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
-          <GraduationCap size={16} className="text-brand-600" /> Eğitim
+          <ListChecks size={16} className="text-brand-600" /> Checklist
         </h2>
         <EgitimTab />
       </section>

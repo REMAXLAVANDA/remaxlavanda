@@ -26,8 +26,11 @@ export function isInactiveAgent(lastSignInAt, now = Date.now()) {
   return !lastSignInAt || now - new Date(lastSignInAt).getTime() > 7 * 24 * 60 * 60 * 1000
 }
 
-export function isBehindEducation(row) {
-  return row.modulePercent < 50 || row.checklistPercent < 50
+// Eskiden modül VEYA checklist tamamlama %50 altındaysa tetikleniyordu —
+// Power Camp modülleri kaldırıldı (2026-10-07, broker kararı), artık
+// sadece süreç/ayrılış checklist tamamlama oranına bakıyor.
+export function isBehindChecklist(row) {
+  return row.checklistPercent < 50
 }
 
 // Broker'ın en büyük önceliği recruiting (bkz. AI_NOTLARI.md) — ama
