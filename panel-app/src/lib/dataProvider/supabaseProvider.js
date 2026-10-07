@@ -1600,7 +1600,10 @@ function mapCoachingNote(row) {
     gorusmeTarihi: row.gorusme_tarihi,
     gorusmeTuru: row.gorusme_turu,
     konusulanlar: row.konusulanlar,
-    hedefAksiyon: row.hedef_aksiyon,
+    konu: row.konu,
+    portfoyHedefi: row.portfoy_hedefi,
+    portfoySayisiOAn: row.portfoy_sayisi_o_an,
+    sonuc: row.sonuc,
     takipTarihi: row.takip_tarihi,
     durum: row.durum,
     createdAt: row.created_at,
@@ -1622,11 +1625,17 @@ export const coachingNotes = {
       id: row.id,
       danismanId: row.danisman_id,
       gorusmeTarihi: row.gorusme_tarihi,
-      hedefAksiyon: row.hedef_aksiyon,
+      konu: row.konu,
+      portfoyHedefi: row.portfoy_hedefi,
+      portfoySayisiOAn: row.portfoy_sayisi_o_an,
       takipTarihi: row.takip_tarihi,
       durum: row.durum,
     }))
   },
+  // portfoySayisiOAn: broker elle yazmıyor — çağıran taraf (TakipTab) zaten
+  // yüklü olan opportunities listesinden lib/coachingNotes.js
+  // countActivePortfoy() ile hesaplayıp buraya geçiriyor (bkz. o dosyadaki
+  // not — raporlanabilir yapı, 2026-10-07).
   async create(form) {
     const row = await run(
       client()
@@ -1637,7 +1646,9 @@ export const coachingNotes = {
           gorusme_tarihi: form.gorusmeTarihi || new Date().toISOString().slice(0, 10),
           gorusme_turu: form.gorusmeTuru,
           konusulanlar: form.konusulanlar,
-          hedef_aksiyon: form.hedefAksiyon || null,
+          konu: form.konu,
+          portfoy_hedefi: form.portfoyHedefi ?? null,
+          portfoy_sayisi_o_an: form.portfoySayisiOAn ?? null,
           takip_tarihi: form.takipTarihi || null,
         })
         .select()
@@ -1648,7 +1659,9 @@ export const coachingNotes = {
   async update(id, patch) {
     const dbPatch = {}
     if ('konusulanlar' in patch) dbPatch.konusulanlar = patch.konusulanlar
-    if ('hedefAksiyon' in patch) dbPatch.hedef_aksiyon = patch.hedefAksiyon || null
+    if ('konu' in patch) dbPatch.konu = patch.konu
+    if ('portfoyHedefi' in patch) dbPatch.portfoy_hedefi = patch.portfoyHedefi ?? null
+    if ('sonuc' in patch) dbPatch.sonuc = patch.sonuc ?? null
     if ('takipTarihi' in patch) dbPatch.takip_tarihi = patch.takipTarihi || null
     if ('durum' in patch) dbPatch.durum = patch.durum
     if ('gorusmeTuru' in patch) dbPatch.gorusme_turu = patch.gorusmeTuru

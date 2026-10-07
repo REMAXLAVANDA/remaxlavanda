@@ -108,6 +108,8 @@ export default function HealthDetailModal({
       {canManageCoaching && (
         <CoachingNotesSection
           notes={coachingNotes ?? []}
+          opportunities={opportunities}
+          danismanId={user.id}
           onAdd={(form) => onAddCoachingNote(user.id, form)}
           onToggleDurum={onToggleCoachingDurum}
           submitting={addingCoachingNote}

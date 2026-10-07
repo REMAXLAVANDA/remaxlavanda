@@ -3,6 +3,46 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Koçluk Notları: serbest "Hedef/Aksiyon" yerine raporlanabilir yapı
+
+Broker: "Ben bunları raporlayabilecek halde olsun istiyorum... not alma
+koçluk için doğru planlama mı" — derin araştırma (GROW model, 15Five,
+Sierra Interactive, REW CRM, Follow Up Boss/kvCORE) sonrası, ama broker'ın
+"abartı detaylandırmayalı" kararıyla sade tutuldu. Serbest metin
+"Hedef/Aksiyon" alanı kaldırıldı, yerine (migration
+`20261007090000_kocluk_notlari_yapilandirma_v2`, `coaching_notes`
+tablosuna 4 yeni kolon):
+- **Konu** (basit kategori, SADECE raporlama için — Toplantı Katılımı/
+  Lead Dönüş/Portal Kullanımı/Ciro/Portföy/Genel, Sağlık Skoru'ndaki
+  metrik adlarıyla kasıtlı aynı).
+- **Konuşulanlar** serbest metin aynen kaldı (broker'ın "notlar da
+  alınabilecek dimi" onayı).
+- **Portföy Hedefi** (broker elle girer) + **O anki Portföy Sayısı**
+  (otomatik — broker YAZMAZ, formdaki anda Fırsatlar'da zaten yüklü
+  `opportunities` listesinden `countActivePortfoy()` ile hesaplanıp
+  kaydediliyor, danışman panelinde de canlı gösteriliyor).
+- **Sonuç** (Gerçekleşti/Kısmen/Gerçekleşmedi) — not "Tamamlandı"
+  işaretlenirken ZORUNLU, `CoachingNotesSection`'da inline bir seçim
+  önce "Sonuç?" sorup 3 buton gösteriyor, seçilmeden durum değişmiyor.
+- Takip sayfasına yeni, bilinçli olarak basit bir **Koçluk Raporu** paneli
+  eklendi (`KoclukRaporu.jsx`, aynı collapsible desen) — danışman +
+  toplam not + açık + en çok konu + sonuç sayıları, yeni sorgu yok (aynı
+  `data.coaching`'i reuse ediyor).
+
+Önceki plana (metrik % otomatik gösterimi) broker'ın "abartı
+detaylandırmayalı" dediği an son verildi, eklenmedi. `coaching_note_
+hedefleri` görünümü DROP gerektirmeden (kolon sırası korunup yenileri
+sona eklenerek) güncellendi — ilk deneme `create or replace view` ile
+kolon yeniden adlandırmaya çalışıp Postgres'in 42P16 hatasına takıldı,
+migration tamamen geri sarıldı (transactional), ikinci denemede
+düzeltildi ve "v2" adıyla uygulandı. Panel'deki danışman "Dikkat
+Gerekiyor" kutusu da yeni alanlara güncellendi ("Portföy hedefin: 2
+(şu an 0)"). Mock modda broker olarak not ekleme + tamamlama + Koçluk
+Raporu, danışman olarak hedef kartı Playwright ile uçtan uca doğrulandı.
+172/173 test geçti (tek kalan hata bu değişiklikle ilgisiz, önceden
+var olan `yonlendirme.test.js`'teki gerçek saate bağlı bir flake), lint
+ve build temiz.
+
 ## 2026-10-06 — Yönlendirme Puanı (yeni menü yok, mevcut ekranlara entegre)
 
 Yeni bir özellik: hangi danışmanlara yeni portföy/müşteri yönlendirilebileceğini
@@ -57,6 +97,37 @@ tamamlanıyor ama gerekçe hiç `audit_log`'a yazılmıyordu (Panel'deki sayaç
 hep 0 kalıyordu). Playwright ile uçtan uca test ederken (Panel'e in-app
 navigasyonla geçip sayacı kontrol ederken) yakalandı, tek satırlık
 düzeltmeyle giderildi. 168/168 test, lint, build temiz.
+
+**Sonradan kısmen geri alındı (hotfix, aynı gün)**: Lead Havuzu/Fırsatlar/
+Operasyon'da `useYonlendirmePuanlari()`'nin eklediği 8 paralel sorgu,
+aynı gün başka bir sebeple zaten sıkışık olan bağlantı havuzunu daha da
+zorlayıp "Fırsatlar ve lead havuzu hata veriyor" şikayetine yol açtı —
+3 ekrandaki hook çağrısı ve `yonlendirmeMap` prop'u kaldırıldı
+(bileşenler sessizce boş `{}`'a düşüp eski davranışa dönüyor), Takip
+sayfasındaki entegrasyon (zaten yüklü veriyi reuse ettiği için yeni
+sorgu eklemiyordu) ve Panel'deki "Düşük Skorla Atama" kutusu canlı
+kaldı. 3 atama ekranının doğru (sadece atama arayüzü açıldığında,
+sayfa yüklenirken değil) tembel yüklemeyle yeniden eklenmesi broker
+onayı beklenen, henüz başlanmamış ayrı bir iş.
+
+## 2026-10-06 — Üretim olayı: "Bu işlem için yetkin yok." (opportunities'e eklenen yeni kolonlarda eksik GRANT)
+
+Panel/Fırsatlar/Lead Havuzu'nda "Bazı veriler yüklenemedi" ile başlayan,
+bağlantı havuzu sıkışması sanılan ama asıl kök nedeni farklı çıkan bir
+olay: aynı gün "Pasif Danışmanın İşleri" işliğinde `opportunities`'e
+eklenen `onceki_sahip_id`/`devir_tarihi` kolonları, `call_logs`'tan
+FARKLI olarak bu tablonun kolon bazlı GRANT kullanması yüzünden
+`authenticated` rolüne hiç SELECT izni almadı — gerçek hata 403/42501
+("Bu işlem için yetkin yok.", `src/lib/errors.js`'teki `mapSupabaseError`
+eşlemesiyle teşhis edildi, `information_schema.column_privileges`
+sorgusuyla doğrulandı). Migration `20261006130000_opportunities_devir_
+kolonlari_select_izni` ile `GRANT SELECT (onceki_sahip_id, devir_tarihi)
+ON opportunities TO authenticated` eklendi, rol simülasyonuyla test
+edildi. Ders: `opportunities` tablosuna yeni bir kolon eklenen her
+migration'da, bu tablonun kolon bazlı GRANT kullandığı (diğer çoğu
+tablodan farklı) hatırlanıp GRANT ayrı eklenmeli — otomatik gelmiyor.
+İkincil, önleyici bir tedbir olarak Supabase Dashboard'tan "Connection
+pool size" de 15'ten 40'a büyütüldü.
 
 ## 2026-10-06 — Pasif Danışmanın İşleri + "önceki sahip" izi
 

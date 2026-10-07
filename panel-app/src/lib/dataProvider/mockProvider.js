@@ -1106,18 +1106,23 @@ export const coachingNotes = {
     return delay([...MOCK_COACHING_NOTES])
   },
   async listMyTargets(userId) {
-    const rows = MOCK_COACHING_NOTES.filter((n) => n.danismanId === userId && n.hedefAksiyon)
+    const rows = MOCK_COACHING_NOTES.filter((n) => n.danismanId === userId && n.portfoyHedefi != null)
     return delay(
       rows.map((n) => ({
         id: n.id,
         danismanId: n.danismanId,
         gorusmeTarihi: n.gorusmeTarihi,
-        hedefAksiyon: n.hedefAksiyon,
+        konu: n.konu,
+        portfoyHedefi: n.portfoyHedefi,
+        portfoySayisiOAn: n.portfoySayisiOAn,
         takipTarihi: n.takipTarihi,
         durum: n.durum,
       })),
     )
   },
+  // portfoySayisiOAn: supabaseProvider.create() ile aynı desen — broker
+  // elle yazmıyor, çağıran taraf (TakipTab) zaten yüklü opportunities'ten
+  // hesaplayıp geçiriyor (bkz. lib/coachingNotes.js countActivePortfoy).
   async create(form) {
     const row = {
       id: `cn-${Date.now()}`,
@@ -1126,7 +1131,10 @@ export const coachingNotes = {
       gorusmeTarihi: form.gorusmeTarihi || new Date().toISOString().slice(0, 10),
       gorusmeTuru: form.gorusmeTuru,
       konusulanlar: form.konusulanlar,
-      hedefAksiyon: form.hedefAksiyon || null,
+      konu: form.konu,
+      portfoyHedefi: form.portfoyHedefi ?? null,
+      portfoySayisiOAn: form.portfoySayisiOAn ?? null,
+      sonuc: null,
       takipTarihi: form.takipTarihi || null,
       durum: 'acik',
       createdAt: new Date().toISOString(),
@@ -1138,7 +1146,9 @@ export const coachingNotes = {
     const note = MOCK_COACHING_NOTES.find((n) => n.id === id)
     if (!note) throw new Error('Koçluk notu bulunamadı.')
     if ('konusulanlar' in patch) note.konusulanlar = patch.konusulanlar
-    if ('hedefAksiyon' in patch) note.hedefAksiyon = patch.hedefAksiyon || null
+    if ('konu' in patch) note.konu = patch.konu
+    if ('portfoyHedefi' in patch) note.portfoyHedefi = patch.portfoyHedefi ?? null
+    if ('sonuc' in patch) note.sonuc = patch.sonuc ?? null
     if ('takipTarihi' in patch) note.takipTarihi = patch.takipTarihi || null
     if ('durum' in patch) note.durum = patch.durum
     if ('gorusmeTuru' in patch) note.gorusmeTuru = patch.gorusmeTuru

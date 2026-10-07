@@ -776,16 +776,17 @@ export default function Panel() {
       })
     }
 
-    // Koçluk Notları — yönetimin sana verdiği "hedef/aksiyon" (konuşmanın
+    // Koçluk Notları — yönetimin sana koyduğu portföy hedefi (konuşmanın
     // geri kalanını göremezsin, bkz. coaching_note_hedefleri görünümü).
     const myOpenTargets = (data.myCoachingTargets ?? []).filter((n) => n.durum === 'acik')
     if (myOpenTargets.length > 0) {
       const extra = myOpenTargets.length > 1 ? ` (+${myOpenTargets.length - 1} tane daha)` : ''
+      const hedef = myOpenTargets[0]
       items.push({
         id: 'my-coaching-targets',
         severity: 'uyari',
         to: '/takip',
-        text: `Hedefin: "${myOpenTargets[0].hedefAksiyon}"${extra}`,
+        text: `Portföy hedefin: ${hedef.portfoyHedefi} (şu an ${hedef.portfoySayisiOAn ?? 0})${extra}`,
       })
     }
 

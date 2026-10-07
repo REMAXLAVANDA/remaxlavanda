@@ -20,6 +20,7 @@ import { buildYonlendirmeMap } from '../../lib/yonlendirme'
 import HealthScoreTable from '../../components/takip/HealthScoreTable'
 import HealthDetailModal from '../../components/takip/HealthDetailModal'
 import YonlendirmeDurumuSection from '../../components/takip/YonlendirmeDurumuSection'
+import KoclukRaporu from '../../components/takip/KoclukRaporu'
 import FocusBanner from '../../components/common/FocusBanner'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -130,9 +131,9 @@ export default function TakipTab() {
     }
   }
 
-  async function handleToggleCoachingDurum(id, durum) {
+  async function handleToggleCoachingDurum(id, durum, sonuc) {
     try {
-      const updated = await coachingNotesProvider.update(id, { durum })
+      const updated = await coachingNotesProvider.update(id, { durum, sonuc: durum === 'tamamlandi' ? sonuc : null })
       setData((prev) => ({ ...prev, coaching: (prev.coaching ?? []).map((n) => (n.id === id ? updated : n)) }))
     } catch (err) {
       showToast(err.message ?? 'Durum güncellenemedi, tekrar dene.', 'error')
@@ -156,6 +157,8 @@ export default function TakipTab() {
       {!loading && !error && (
         <YonlendirmeDurumuSection people={people} yonlendirmeMap={yonlendirmeMap} seeTeam={seeTeam} />
       )}
+
+      {!loading && !error && canManageCoaching && <KoclukRaporu people={people} notes={data.coaching} />}
 
       {!loading && !error && <HealthScoreTable people={people} onRowClick={setSelectedId} />}
 
