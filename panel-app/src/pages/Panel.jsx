@@ -678,7 +678,12 @@ export default function Panel() {
       items.push({
         id: 'behind-checklist',
         severity: 'uyari',
-        to: '/egitim?odak=egitim',
+        // Eskiden /egitim?odak=egitim → Ekip İlerlemesi tablosuna
+        // kaydırıyordu; o tablo kaldırıldı (2026-10-07, Sağlık Skoru
+        // tablosundaki "Checklist %X" ile birebir aynı veriyi
+        // tekrarlıyordu) — artık doğrudan /takip, checklist %'i zaten
+        // orada her danışman satırında görünüyor.
+        to: '/takip',
         text: `${behindChecklist.length} danışmanın checklist tamamlama oranı %50'nin altında`,
       })
     }
@@ -829,7 +834,7 @@ export default function Panel() {
       {
         label: 'Checklist',
         icon: ListChecks,
-        to: '/egitim',
+        to: '/takip',
         value: checklistGaps.length,
         detail: 'kişi eksik',
         accent: 'blue',
@@ -1282,7 +1287,7 @@ export default function Panel() {
               icon={ListChecks}
               title="Checklist — Geride Kalanlar"
               description="Checklist tamamlama %100 altında olanlar"
-              to="/egitim"
+              to="/takip"
               linkLabel="Tümünü gör"
               accent="navy"
             >
@@ -1308,7 +1313,7 @@ export default function Panel() {
                     </div>
                   ))}
                   {checklistGaps.length > 3 && (
-                    <Link to="/egitim" className="block pt-1 text-center text-xs font-medium text-text-primary hover:text-brand-700">
+                    <Link to="/takip" className="block pt-1 text-center text-xs font-medium text-text-primary hover:text-brand-700">
                       +{checklistGaps.length - 3} kişi daha →
                     </Link>
                   )}

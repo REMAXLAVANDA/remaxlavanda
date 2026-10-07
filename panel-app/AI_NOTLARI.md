@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist'teki "Ekip İlerlemesi" tablosu kaldırıldı (yukarıya taşındığı için gereksizdi)
+
+Broker: "en alttaki ekip ilerlemesi yukarıya işlendiği için artık orada
+kalmasının bir anlamı yok" — haklı: checklist % bir önceki turda zaten
+Sağlık Skoru tablosuna (her danışman satırının altına) eklenmişti,
+Checklist bölümünün en altındaki "Ekip İlerlemesi" tablosu aynı veriyi
+birebir tekrarlıyordu. Tablo + `TeamProgressTable` bileşeni + ona özel
+`teamRows`/`odak=egitim` filtre-ve-kaydırma mantığı tamamen kaldırıldı.
+
+Panel.jsx'teki üç yer bu tabloyu hedefliyordu, hepsi `/takip`'e
+yönlendirilecek şekilde güncellendi (checklist %'i artık orada):
+"Dikkat Gerekiyor"daki "checklist tamamlama oranı %50'nin altında"
+uyarısı (eskiden `/egitim?odak=egitim` → artık var olmayan bir çapaya
+kaydırıyordu), "Ofisin Nabzı"ndaki Checklist kutusu, ve masaüstü
+"Checklist — Geride Kalanlar" widget'ı. Danışmanın kendi "Checklist
+Durumun" kartı DOKUNULMADAN kaldı (`/egitim`'e gidiyor, kendi
+checklist maddelerini madde madde gösterdiği için hâlâ doğru hedef).
+Mock modda Playwright ile doğrulandı. 173/173 test, lint, build temiz.
+
 ## 2026-10-07 — Checklist maddelerinde silme eklendi, sıralama butonları büyütüldü
 
 Broker: "süreçler ekleme çıkarma ve yerini değiştirme yok ve zor" —

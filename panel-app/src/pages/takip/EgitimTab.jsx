@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { Plus, ChevronDown, Check } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -7,12 +6,9 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { education as educationProvider, users as usersProvider } from '../../lib/dataProvider'
 import { checklistFor, checklistProgress } from '../../lib/education'
-import { isBehindChecklist } from '../../lib/attention'
 import { sortByName } from '../../lib/format'
 import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
-import TeamProgressTable from '../../components/education/TeamProgressTable'
-import FocusBanner from '../../components/common/FocusBanner'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
@@ -61,7 +57,6 @@ export default function EgitimTab() {
   const [submitting, setSubmitting] = useState(false)
   const [deletingItem, setDeletingItem] = useState(null)
   const [deleting, setDeleting] = useState(false)
-  const [searchParams, setSearchParams] = useSearchParams()
   // Danışman seçici artık açılır bir kart (ProfileMenu'deki rol değiştirici
   // ile AYNI desen) — broker: "direk tüm danışmanlar görünüyor, saçma,
   // açılır karttan seçelim" (2026-10-07, chip listesi bir önceki turda
@@ -77,28 +72,17 @@ export default function EgitimTab() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
-  // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, "Ekip
-  // İlerlemesi" tablosunu SADECE checklist oranı %50'nin altında olanlara
-  // daraltıyoruz ve o bölüme otomatik kaydırıyoruz.
-  const odakActive = searchParams.get('odak') === 'egitim'
-
-  useEffect(() => {
-    if (odakActive) document.getElementById('ekip-ilerlemesi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [odakActive])
-
   const checklistItems = data?.checklistItems ?? EMPTY
   const checklistStatus = data?.checklistStatus ?? EMPTY
   const allUsers = data?.allUsers ?? EMPTY
 
-  // Test hesabı ekip listelerine karışmasın diye hariç tutuluyor (bkz.
-  // Panel.jsx'teki aynı filtre).
-  const teamMembers = Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
-
-  // Checklist danışman seçimi teamMembers'tan AYRI: "Ayrılış" checklist'i
-  // tam olarak az önce durumu pasif yapılmış birinin listesi (bkz. "esra
-  // sever ayrıldı diye kapattık ama ayrılış menüsünde çıkmıyor") — teamMembers
-  // pasif olanı tamamen listeden düşürdüğü için o kişinin ayrılış checklist'i
-  // hiç işaretlenemiyordu. allUsers (durum filtresi olmayan listAll()) kullanılıyor.
+  // Checklist danışman seçimi (2026-10-07'den önce teamMembers'tan AYRI
+  // tutulurdu): "Ayrılış" checklist'i tam olarak az önce durumu pasif
+  // yapılmış birinin listesi (bkz. "esra sever ayrıldı diye kapattık ama
+  // ayrılış menüsünde çıkmıyor") — knownUsers pasif olanı tamamen
+  // listeden düşürdüğü için o kişinin ayrılış checklist'i hiç
+  // işaretlenemiyordu. allUsers (durum filtresi olmayan listAll())
+  // kullanılıyor.
   // Sekmeye göre AYRI listeler (2026-10-07, broker bulgusu: "ayrılanlar
   // süreçte neden görünüyor") — Süreç sadece aktif danışmanlar içindir
   // (onboarding), Ayrılış sadece pasif (ayrılmış) olanlar içindir; eskiden
@@ -126,16 +110,6 @@ export default function EgitimTab() {
     [user.id, checklistItems, checklistStatus],
   )
   const showChecklistSection = isManager || myBaslangicProgress.completed < myBaslangicProgress.total
-
-  const teamRows = useMemo(() => {
-    if (!isManager) return []
-    const rows = teamMembers.map((u) => {
-      const cp = checklistProgress(u.id, 'baslangic', checklistItems, checklistStatus)
-      return { id: u.id, name: u.name, checklistPercent: cp.percent }
-    })
-    return odakActive ? rows.filter(isBehindChecklist) : rows
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isManager, checklistItems, checklistStatus, odakActive])
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
@@ -330,19 +304,6 @@ export default function EgitimTab() {
                   resolveName={userName}
                 />
               )}
-            </section>
-          )}
-
-          {isManager && (
-            <section id="ekip-ilerlemesi" className="scroll-mt-6">
-              <h2 className="mb-3 text-sm font-semibold text-text-primary">Ekip İlerlemesi</h2>
-              {odakActive && (
-                <FocusBanner
-                  text={`${teamRows.length} danışmanın checklist tamamlama oranı %50'nin altında — sadece bunlar gösteriliyor.`}
-                  onClear={() => setSearchParams({})}
-                />
-              )}
-              <TeamProgressTable rows={teamRows} />
             </section>
           )}
         </>
