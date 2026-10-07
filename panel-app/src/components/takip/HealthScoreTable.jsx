@@ -37,7 +37,14 @@ export default function HealthScoreTable({ people, onRowClick }) {
                 <Td>
                   <div className="flex items-center gap-2.5">
                     <Avatar name={p.user.name} size={32} />
-                    <span className="font-medium text-text-primary">{p.user.name}</span>
+                    <div>
+                      <p className="font-medium text-text-primary">{p.user.name}</p>
+                      {/* Checklist ilerlemesi (2026-10-07, broker isteği: "danışman
+                          bloğunun içine ekleyelim") — ayrı bir sütun değil, isim
+                          hücresinin altında, diğer metriklerle aynı sırada
+                          kalabalık etmesin diye. */}
+                      <p className="text-xs text-text-muted">Checklist %{p.checklistPercent}</p>
+                    </div>
                   </div>
                 </Td>
                 {/* metricValueStyle rengini doğrudan Td'nin className'ine
@@ -73,7 +80,9 @@ export default function HealthScoreTable({ people, onRowClick }) {
               <Avatar name={p.user.name} size={40} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-text-primary">{p.user.name}</p>
-                <p className="text-xs text-text-muted">Skor: {p.score}</p>
+                <p className="text-xs text-text-muted">
+                  Skor: {p.score} · Checklist %{p.checklistPercent}
+                </p>
               </div>
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[p.status]}`}>
                 {STATUS_LABELS[p.status]}

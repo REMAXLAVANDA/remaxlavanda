@@ -11,8 +11,10 @@ import {
   users as usersProvider,
   league as leagueProvider,
   coachingNotes as coachingNotesProvider,
+  education as educationProvider,
 } from '../../lib/dataProvider'
 import { computeHealthScore } from '../../lib/takip'
+import { checklistProgress } from '../../lib/education'
 import { isInactiveAgent } from '../../lib/attention'
 import { canManageCoachingNotes } from '../../lib/roles'
 import { buildYonlendirmeMap } from '../../lib/yonlendirme'
@@ -29,8 +31,7 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // tek bir Promise.all ile hepsi birlikte yüklenir, tek loading/error
 // durumu. Portal kullanımı ve müşteri memnuniyeti artık gerçek
 // verilerden (son giriş zamanı, ciro_musterileri) hesaplanıyor — bkz.
-// lib/takip.js. (2026-10-07: modules/progress sorguları kaldırıldı —
-// bu sayfada hiç kullanılmıyordu, Power Camp kaldırılınca fark edildi.)
+// lib/takip.js.
 //
 // `opportunities` SADECE broker/owner için çekiliyor — danışman detay
 // modalındaki "Fırsatlar ve Çağrı Kayıtları" bölümü (bkz. HealthDetailModal)
@@ -40,6 +41,10 @@ const CAN_SEE_TEAM_ROLES = ['broker', 'owner', 'ofis']
 // `coachingNotes` SADECE broker/owner için çekiliyor — RLS'in zaten
 // filtreleyeceği (ofis/danışman için boş dönen) bir sorguyu gereksiz yere
 // yapmamak için (aynı sebep: `opportunities` ile paralel, bkz. yukarıdaki not).
+// `checklistItems`/`checklistStatus` (2026-10-07 eklendi): broker'ın
+// "checklist ilerlemesini danışman bloğunun içine ekleyelim" isteği —
+// Sağlık Skoru tablosunda her danışmanın adının altında Checklist %'i de
+// gösterilsin diye (bkz. HealthScoreTable).
 async function loadAll(includeOpportunities, includeCoaching) {
   const [
     events,
@@ -53,6 +58,8 @@ async function loadAll(includeOpportunities, includeCoaching) {
     periods,
     opportunities,
     coaching,
+    checklistItems,
+    checklistStatus,
   ] = await Promise.all([
     calendarProvider.list(),
     calendarProvider.listAttendance(),
@@ -65,8 +72,24 @@ async function loadAll(includeOpportunities, includeCoaching) {
     leagueProvider.listPeriods(),
     includeOpportunities ? opportunitiesProvider.list() : Promise.resolve([]),
     includeCoaching ? coachingNotesProvider.list() : Promise.resolve([]),
+    educationProvider.listChecklistItems(),
+    educationProvider.listChecklistStatus(),
   ])
-  return { events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, opportunities, coaching }
+  return {
+    events,
+    attendance,
+    calls,
+    activity,
+    ciroMusterileri,
+    users,
+    ciroGirisleri,
+    scores,
+    periods,
+    opportunities,
+    coaching,
+    checklistItems,
+    checklistStatus,
+  }
 }
 
 export default function TakipTab() {
@@ -96,7 +119,13 @@ export default function TakipTab() {
     const list = seeTeam ? Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi) : [user]
     // İsim sırası yerine en yüksek sağlık skoru en üstte — broker/owner'ın
     // ilk bakışta kimin dikkat gerektirdiğini/öne çıktığını görmesi için.
-    const rows = list.map((u) => ({ user: u, ...computeHealthScore(u.id, data) })).sort((a, b) => b.score - a.score)
+    const rows = list
+      .map((u) => ({
+        user: u,
+        ...computeHealthScore(u.id, data),
+        checklistPercent: checklistProgress(u.id, 'baslangic', data.checklistItems, data.checklistStatus).percent,
+      }))
+      .sort((a, b) => b.score - a.score)
     if (!odakActive) return rows
     const lastSignInById = {}
     for (const a of data.activity) lastSignInById[a.userId] = a.lastSignInAt

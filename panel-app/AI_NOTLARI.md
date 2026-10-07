@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist ilerlemesi Sağlık Skoru tablosuna taşındı
+
+Broker: "Checklist ilerlemesini üstündeki danışman bloğunun içine
+ekleyelim — danışmanın yanında ya da altta." Takip sayfasındaki Sağlık
+Skoru tablosunun (`HealthScoreTable`) her danışman satırında, isim
+hücresinin hemen altında küçük "Checklist %X" metni eklendi (ayrı bir
+sütun değil — tablo zaten 7 sütun, kalabalaşmasın diye isim hücresinin
+içine, ikinci satır olarak kondu); mobil karttaki "Skor: X" satırına da
+aynı şekilde eklendi. `TakipTab.jsx`'in `loadAll()`'ına checklistItems/
+checklistStatus sorguları geri eklendi (bu kez gerçekten kullanılıyor —
+az önce "hiç kullanılmıyordu" diye kaldırılan modules/progress'ten
+farklı). Checklist'in kendi sayfasındaki ayrı "Ekip İlerlemesi" tablosu
+(odak-filtreli, Panel'deki "Checklist — Geride Kalanlar" derin bağlantısı
+onu hedefliyor) bilerek dokunulmadan bırakıldı — bu istek sadece ekleme
+içindi, mevcut bir özelliği kaldırmak değildi. Mock modda Playwright ile
+doğrulandı (masaüstü + mobil). 173/173 test, lint, build temiz.
+
 ## 2026-10-07 — Checklist: danışman seçimi artık yanlışlıkla varsayılan gelmiyor
 
 Broker bulgusu: Süreç/Ayrılış Checklist ekranı açılır açılmaz direkt bir
