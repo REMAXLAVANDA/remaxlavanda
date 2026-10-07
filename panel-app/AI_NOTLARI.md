@@ -3,6 +3,29 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist: danışman seçimi artık yanlışlıkla varsayılan gelmiyor
+
+Broker bulgusu: Süreç/Ayrılış Checklist ekranı açılır açılmaz direkt bir
+danışman (ör. Alper) seçiliymiş gibi görünüyordu. Kök sebep: danışman
+`<select>`'inin başlangıç değeri yöneticinin KENDİ id'siydi — bu id
+danışman listesinde hiç yer almadığı için tarayıcı o değeri hiçbir
+`<option>`'a eşleyemiyor, native `<select>` sessizce listedeki İLK
+danışmanı gösteriyordu, ama gerçek seçili state hâlâ yöneticinin kendi
+id'siydi. Bir madde işaretlenseydi bu, görünürdeki danışmana değil
+yöneticinin kendisine yazılacaktı — sessiz bir veri hatası riski.
+
+Düzeltme + broker'ın istediği ikinci kullanım kolaylığı bir arada
+çözüldü: `<select>` kaldırıldı, yerine Süreç/Ayrılış sekmesinin hemen
+altında tıklanabilir danışman "chip" listesi geldi (`Chip`, DateRange
+Filter'daki aynı bileşen) — hangi sekmeye tıklanırsa o sekmenin
+danışman listesi görünür hâle geliyor ("Süreç için danışman seç:" /
+"Ayrılış için danışman seç:"), biri seçilmeden checklist hiç
+gösterilmiyor ("Checklist'i görmek için yukarıdan bir danışman seç").
+Mock modda Playwright ile doğrulandı: artık hiçbir danışman varsayılan
+seçili gelmiyor, seçince doğru kişinin gerçek checklist'i açılıyor,
+Süreç↔Ayrılış geçişinde seçim korunuyor. 173/173 test, lint, build
+temiz.
+
 ## 2026-10-07 — Power Camp eğitim modülleri/rozetleri kaldırıldı, checklist kaldı
 
 Broker, Takip sayfasındaki Eğitim bölümünü (Modüllerim/Rozetlerim) işaret

@@ -13,6 +13,7 @@ import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../../components/education/TeamProgressTable'
 import FocusBanner from '../../components/common/FocusBanner'
+import { Chip } from '../../components/common/DateRangeFilter'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 // badges_manage/onboarding_status_manage/onboarding_items_manage RLS'te
@@ -44,13 +45,22 @@ export default function EgitimTab() {
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  const isManager = CAN_MANAGE_ROLES.includes(role)
   const [checklistTip, setChecklistTip] = useState('baslangic')
-  const [checklistUserId, setChecklistUserId] = useState(user.id)
+  // Yönetim ÖNCE Süreç/Ayrılış'ı seçip sonra içinde çıkan danışman
+  // listesinden birini tıklamalı — eskiden burası varsayılan olarak
+  // yöneticinin KENDİ id'sine açılıyordu, bu da danışman listesinde hiç
+  // yer almadığı için tarayıcı sessizce ilk danışmanı (ör. "Alper")
+  // seçiliymiş GİBİ gösteriyordu, ama gerçek seçili değer yöneticinin
+  // kendisiydi — işaretleme o zaman yanlış kişiye yazılırdı (bkz. broker
+  // bulgusu 2026-10-07: "şu anki hali direk danışman seçili çıkıyor").
+  // Danışmanın kendi görünümünde (isManager=false) seçim gerekmiyor,
+  // doğrudan kendi id'si kullanılıyor.
+  const [checklistUserId, setChecklistUserId] = useState(isManager ? null : user.id)
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const isManager = CAN_MANAGE_ROLES.includes(role)
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, "Ekip
   // İlerlemesi" tablosunu SADECE checklist oranı %50'nin altında olanlara
   // daraltıyoruz ve o bölüme otomatik kaydırıyoruz.
@@ -184,20 +194,6 @@ export default function EgitimTab() {
                 </h2>
                 <div className="flex items-center gap-2">
                   {isManager && (
-                    <select
-                      value={checklistUserId}
-                      onChange={(e) => setChecklistUserId(e.target.value)}
-                      className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-secondary"
-                    >
-                      {checklistUserOptions.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                          {u.durum !== 'aktif' ? ' (ayrıldı)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {isManager && (
                     <div className="flex gap-1">
                       {CHECKLIST_TABS.map((t) => (
                         <button
@@ -222,18 +218,42 @@ export default function EgitimTab() {
                   )}
                 </div>
               </div>
+
+              {isManager && (
+                <div className="mb-3">
+                  <p className="mb-1.5 text-xs text-text-muted">
+                    {CHECKLIST_TABS.find((t) => t.key === checklistTip)?.label} için danışman seç:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {checklistUserOptions.map((u) => (
+                      <Chip key={u.id} active={checklistUserId === u.id} onClick={() => setChecklistUserId(u.id)}>
+                        {u.name}
+                        {u.durum !== 'aktif' ? ' (ayrıldı)' : ''}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {!isManager && (
                 <p className="mb-2 text-xs text-text-muted">
                   Bu liste yönetim tarafından işaretlenir, kendin değiştiremezsin.
                 </p>
               )}
-              <ChecklistPanel
-                entries={checklistEntries}
-                isManager={isManager}
-                onToggle={toggleChecklistItem}
-                onMove={isManager ? moveChecklistItem : undefined}
-                resolveName={userName}
-              />
+
+              {isManager && !checklistUserId ? (
+                <p className="rounded-xl border border-dashed border-border-default px-3 py-4 text-center text-sm text-text-muted">
+                  Checklist'i görmek için yukarıdan bir danışman seç.
+                </p>
+              ) : (
+                <ChecklistPanel
+                  entries={checklistEntries}
+                  isManager={isManager}
+                  onToggle={toggleChecklistItem}
+                  onMove={isManager ? moveChecklistItem : undefined}
+                  resolveName={userName}
+                />
+              )}
             </section>
           )}
 
