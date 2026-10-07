@@ -13,6 +13,7 @@ import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../../components/education/TeamProgressTable'
 import FocusBanner from '../../components/common/FocusBanner'
+import ConfirmDialog from '../../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 // badges_manage/onboarding_status_manage/onboarding_items_manage RLS'te
@@ -58,6 +59,8 @@ export default function EgitimTab() {
   const [checklistUserId, setChecklistUserId] = useState(isManager ? null : user.id)
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [deletingItem, setDeletingItem] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   // Danışman seçici artık açılır bir kart (ProfileMenu'deki rol değiştirici
   // ile AYNI desen) — broker: "direk tüm danışmanlar görünüyor, saçma,
@@ -166,6 +169,27 @@ export default function EgitimTab() {
       showToast(err.message ?? 'Madde eklenemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleDeleteChecklistItem() {
+    if (!deletingItem) return
+    setDeleting(true)
+    try {
+      await educationProvider.deleteChecklistItem(deletingItem.id)
+      setData((prev) => ({
+        ...prev,
+        checklistItems: prev.checklistItems.filter((i) => i.id !== deletingItem.id),
+        // "on delete cascade" sunucuda zaten bu maddeyi işaretlemiş olan
+        // herkesin durumunu siliyor — client state'i aynı şekilde temizleniyor.
+        checklistStatus: prev.checklistStatus.filter((s) => s.itemId !== deletingItem.id),
+      }))
+      setDeletingItem(null)
+      showToast('Madde silindi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Madde silinemedi, tekrar dene.', 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -302,6 +326,7 @@ export default function EgitimTab() {
                   isManager={isManager}
                   onToggle={toggleChecklistItem}
                   onMove={isManager ? moveChecklistItem : undefined}
+                  onDelete={isManager ? (item) => setDeletingItem(item) : undefined}
                   resolveName={userName}
                 />
               )}
@@ -329,6 +354,18 @@ export default function EgitimTab() {
           onSubmit={handleAddChecklistItem}
           submitting={submitting}
           defaultTip={checklistTip}
+        />
+      )}
+
+      {deletingItem && (
+        <ConfirmDialog
+          title="Madde silinsin mi?"
+          message={`"${deletingItem.baslik}" kalıcı olarak silinecek — bu maddeyi işaretlemiş olan herkesin durumu da birlikte silinir. Geri alınamaz.`}
+          confirmLabel="Sil"
+          tone="danger"
+          confirming={deleting}
+          onConfirm={handleDeleteChecklistItem}
+          onCancel={() => setDeletingItem(null)}
         />
       )}
     </div>

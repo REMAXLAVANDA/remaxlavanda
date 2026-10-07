@@ -3,6 +3,26 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist maddelerinde silme eklendi, sıralama butonları büyütüldü
+
+Broker: "süreçler ekleme çıkarma ve yerini değiştirme yok ve zor" —
+ekleme zaten vardı (Madde Ekle), ama SİLME hiç yoktu ve sıralama okları
+14px'lik dar bir sütunda sıkışıktı. `onboarding_checklist_items`
+tablosundaki mevcut RLS politikası (`onboarding_items_manage`, `for all`,
+sadece broker/owner) zaten DELETE'i de kapsıyordu — yeni migration
+gerekmedi, sadece `deleteChecklistItem()` client çağrısı eklendi (her
+iki provider'a). `onboarding_checklist_status.item_id` "on delete
+cascade" olduğu için bir madde silinince onu işaretlemiş olanların
+durumu da otomatik temizleniyor.
+
+`ChecklistPanel.jsx`'te her madde satırına bir çöp kutusu butonu eklendi
+(silmeden önce `ConfirmDialog` ile onay isteniyor — "bu maddeyi
+işaretlemiş olan herkesin durumu da silinir" uyarısıyla), yukarı/aşağı
+oklar artık ayrı ayrı 32x32'lik büyük tıklama alanlarına sahip (önceden
+tek bir dar sütunda sıkışıktı). Mock modda Playwright ile uçtan uca
+doğrulandı (madde silindi, toast çıktı, liste güncellendi). 173/173
+test, lint, build temiz.
+
 ## 2026-10-07 — Checklist: Süreç/Ayrılış artık FARKLI danışman listeleri gösteriyor
 
 Broker bulgusu: "Ayrılanlar süreçte neden görünüyor, ayrılışlarda

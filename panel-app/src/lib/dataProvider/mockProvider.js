@@ -378,6 +378,17 @@ export const education = {
     if (item) item.sortOrder = sortOrder
     return delay({ itemId, sortOrder })
   },
+  // supabaseProvider.deleteChecklistItem() ile aynı davranış —
+  // onboarding_checklist_status'taki satırlar "on delete cascade" ile
+  // gerçek DB'de otomatik silinir, mock'ta da aynı şekilde elle temizleniyor.
+  async deleteChecklistItem(itemId) {
+    const idx = MOCK_CHECKLIST_ITEMS.findIndex((i) => i.id === itemId)
+    if (idx !== -1) MOCK_CHECKLIST_ITEMS.splice(idx, 1)
+    for (let i = MOCK_CHECKLIST_STATUS.length - 1; i >= 0; i--) {
+      if (MOCK_CHECKLIST_STATUS[i].itemId === itemId) MOCK_CHECKLIST_STATUS.splice(i, 1)
+    }
+    return delay(null)
+  },
 }
 
 // --- Call logs (Operasyon) ---------------------------------------------------

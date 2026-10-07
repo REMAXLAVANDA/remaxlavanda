@@ -473,6 +473,12 @@ export const education = {
     await run(client().from('onboarding_checklist_items').update({ sort_order: sortOrder }).eq('id', itemId))
     return { itemId, sortOrder }
   },
+  // onboarding_checklist_status.item_id "on delete cascade" ile tanımlı
+  // (migration 20260715072704) — bu maddeyi işaretlemiş olan herkesin
+  // durumu da otomatik siliniyor, ayrıca bir temizlik gerekmiyor.
+  async deleteChecklistItem(itemId) {
+    await run(client().from('onboarding_checklist_items').delete().eq('id', itemId))
+  },
 }
 
 // --- Call logs (Operasyon) ---------------------------------------------------

@@ -1,7 +1,7 @@
-import { Check, ChevronUp, ChevronDown } from 'lucide-react'
+import { Check, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
 
-export default function ChecklistPanel({ entries, isManager, onToggle, onMove, resolveName }) {
+export default function ChecklistPanel({ entries, isManager, onToggle, onMove, onDelete, resolveName }) {
   if (entries.length === 0) {
     return <p className="text-sm text-text-muted">Bu listede madde yok.</p>
   }
@@ -31,24 +31,37 @@ export default function ChecklistPanel({ entries, isManager, onToggle, onMove, r
               </p>
             )}
           </div>
+          {/* Sıralama ve silme (2026-10-07, broker: "ekleme çıkarma ve
+              yerini değiştirme yok ve zor") — eskiden ok butonları 14px'lik
+              küçük bir sütundu, tek tek tıklaması zordu; artık her biri
+              kendi büyük (32x32) tıklama alanına sahip ayrı bir buton. */}
           {isManager && onMove && (
-            <div className="flex shrink-0 flex-col">
+            <div className="flex shrink-0 items-center gap-0.5">
               <button
                 onClick={() => onMove(item.id, 'up')}
                 disabled={index === 0}
                 aria-label="Yukarı taşı"
-                className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
               >
-                <ChevronUp size={14} />
+                <ChevronUp size={18} />
               </button>
               <button
                 onClick={() => onMove(item.id, 'down')}
                 disabled={index === entries.length - 1}
                 aria-label="Aşağı taşı"
-                className="rounded p-0.5 text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
               >
-                <ChevronDown size={14} />
+                <ChevronDown size={18} />
               </button>
+              {onDelete && (
+                <button
+                  onClick={() => onDelete(item)}
+                  aria-label="Maddeyi sil"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-tint-red hover:text-brand-700"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
           )}
         </div>
