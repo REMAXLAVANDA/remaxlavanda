@@ -96,10 +96,19 @@ export default function EgitimTab() {
   // sever ayrıldı diye kapattık ama ayrılış menüsünde çıkmıyor") — teamMembers
   // pasif olanı tamamen listeden düşürdüğü için o kişinin ayrılış checklist'i
   // hiç işaretlenemiyordu. allUsers (durum filtresi olmayan listAll()) kullanılıyor.
+  // Sekmeye göre AYRI listeler (2026-10-07, broker bulgusu: "ayrılanlar
+  // süreçte neden görünüyor") — Süreç sadece aktif danışmanlar içindir
+  // (onboarding), Ayrılış sadece pasif (ayrılmış) olanlar içindir; eskiden
+  // ikisi de AYNI tam listeyi (aktif+pasif karışık) gösteriyordu.
   const checklistUserOptions = useMemo(() => {
-    const rows = allUsers.filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi)
-    return sortByName(rows).sort((a, b) => (a.durum === b.durum ? 0 : a.durum === 'aktif' ? -1 : 1))
-  }, [allUsers])
+    const rows = allUsers.filter(
+      (u) =>
+        (!u.role || u.role === 'danisman') &&
+        !u.testHesabi &&
+        (checklistTip === 'ayrilis' ? u.durum !== 'aktif' : u.durum === 'aktif'),
+    )
+    return sortByName(rows)
+  }, [allUsers, checklistTip])
 
   const checklistEntries = useMemo(
     () => checklistFor(checklistUserId, checklistTip, checklistItems, checklistStatus),
@@ -211,7 +220,14 @@ export default function EgitimTab() {
                       {CHECKLIST_TABS.map((t) => (
                         <button
                           key={t.key}
-                          onClick={() => setChecklistTip(t.key)}
+                          onClick={() => {
+                            // Süreç/Ayrılış artık FARKLI danışman listeleri
+                            // gösteriyor (aktif vs ayrılmış) — sekme değişince
+                            // önceki seçim diğer listede hiç yoksa kafa
+                            // karıştırmasın diye sıfırlanıyor.
+                            setChecklistTip(t.key)
+                            setChecklistUserId(null)
+                          }}
                           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                             checklistTip === t.key ? 'bg-remax-blue text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
                           }`}
@@ -246,22 +262,25 @@ export default function EgitimTab() {
 
                   {dropdownOpen && (
                     <div className="absolute left-0 z-40 mt-1 max-h-72 w-full min-w-[220px] overflow-y-auto rounded-xl border border-border-subtle bg-surface-raised shadow-lg">
-                      {checklistUserOptions.map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => {
-                            setChecklistUserId(u.id)
-                            setDropdownOpen(false)
-                          }}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-sunken"
-                        >
-                          <span>
-                            {u.name}
-                            {u.durum !== 'aktif' ? ' (ayrıldı)' : ''}
-                          </span>
-                          {checklistUserId === u.id && <Check size={14} className="shrink-0 text-brand-600" />}
-                        </button>
-                      ))}
+                      {checklistUserOptions.length === 0 ? (
+                        <p className="px-3 py-2 text-sm text-text-muted">
+                          {checklistTip === 'ayrilis' ? 'Ayrılmış danışman yok.' : 'Aktif danışman yok.'}
+                        </p>
+                      ) : (
+                        checklistUserOptions.map((u) => (
+                          <button
+                            key={u.id}
+                            onClick={() => {
+                              setChecklistUserId(u.id)
+                              setDropdownOpen(false)
+                            }}
+                            className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-sunken"
+                          >
+                            <span>{u.name}</span>
+                            {checklistUserId === u.id && <Check size={14} className="shrink-0 text-brand-600" />}
+                          </button>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>

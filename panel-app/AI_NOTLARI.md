@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist: Süreç/Ayrılış artık FARKLI danışman listeleri gösteriyor
+
+Broker bulgusu: "Ayrılanlar süreçte neden görünüyor, ayrılışlarda
+görünmesi gerekmez mi" — danışman seçici (chip de olsa açılır kart da
+olsa) her iki sekmede de AYNI tam listeyi (aktif+ayrılmış karışık)
+gösteriyordu. Artık Süreç SADECE aktif danışmanları, Ayrılış SADECE
+durumu pasif olanları listeliyor (`checklistUserOptions` artık
+`checklistTip`'e göre filtreleniyor). Liste tek tip olduğu için her
+isme eklenen "(ayrıldı)" etiketi de kaldırıldı (artık gereksiz), boş
+liste durumunda "Aktif/Ayrılmış danışman yok." mesajı eklendi. Sekme
+değişince önceki seçim diğer listede yoksa kafa karıştırmasın diye
+sıfırlanıyor. Mock veride hiç pasif danışman olmadığı için Ayrılış şu an
+boş listeyi gösteriyor — doğru davranış. 173/173 test, lint, build
+temiz.
+
 ## 2026-10-07 — Checklist danışman seçici: chip listesi yerine açılır kart
 
 Bir önceki turda danışman seçimi için eklenen düz chip listesi broker'a
