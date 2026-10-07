@@ -7,13 +7,18 @@ const CHECKLIST_TYPES = [
   { key: 'ayrilis', label: 'Ayrılış' },
 ]
 
-export default function AddChecklistItemModal({ onClose, onSubmit, submitting, defaultTip }) {
-  const [tip, setTip] = useState(defaultTip)
-  const [baslik, setBaslik] = useState('')
+// editingItem verilirse (2026-10-07, broker: "madde ekleme var düzenleme
+// yok") aynı form düzenleme moduna geçiyor — başlık alanı önceden
+// dolu gelir, tip değiştirilemez (bir maddeyi Süreç'ten Ayrılış'a taşımak
+// farklı bir sıralama bağlamına geçmek demek, kapsam dışı bırakıldı).
+export default function AddChecklistItemModal({ onClose, onSubmit, submitting, defaultTip, editingItem }) {
+  const isEditing = Boolean(editingItem)
+  const [tip, setTip] = useState(editingItem?.tip ?? defaultTip)
+  const [baslik, setBaslik] = useState(editingItem?.baslik ?? '')
   const canSubmit = baslik.trim().length > 0
 
   return (
-    <Modal title="Madde Ekle" onClose={onClose} maxWidth="max-w-sm">
+    <Modal title={isEditing ? 'Maddeyi Düzenle' : 'Madde Ekle'} onClose={onClose} maxWidth="max-w-sm">
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -25,7 +30,8 @@ export default function AddChecklistItemModal({ onClose, onSubmit, submitting, d
         <select
           value={tip}
           onChange={(e) => setTip(e.target.value)}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+          disabled={isEditing}
+          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 disabled:bg-ink-50 disabled:text-ink-400"
         >
           {CHECKLIST_TYPES.map((t) => (
             <option key={t.key} value={t.key}>
@@ -56,7 +62,7 @@ export default function AddChecklistItemModal({ onClose, onSubmit, submitting, d
             disabled={!canSubmit || submitting}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
-            {submitting ? 'Kaydediliyor...' : 'Ekle'}
+            {submitting ? 'Kaydediliyor...' : isEditing ? 'Kaydet' : 'Ekle'}
           </button>
         </div>
       </form>

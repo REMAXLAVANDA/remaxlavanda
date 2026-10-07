@@ -378,6 +378,11 @@ export const education = {
     if (item) item.sortOrder = sortOrder
     return delay({ itemId, sortOrder })
   },
+  async updateChecklistItem(itemId, baslik) {
+    const item = MOCK_CHECKLIST_ITEMS.find((i) => i.id === itemId)
+    if (item) item.baslik = baslik
+    return delay({ ...item })
+  },
   // supabaseProvider.deleteChecklistItem() ile aynı davranış —
   // onboarding_checklist_status'taki satırlar "on delete cascade" ile
   // gerçek DB'de otomatik silinir, mock'ta da aynı şekilde elle temizleniyor.

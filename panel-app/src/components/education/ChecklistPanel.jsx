@@ -1,7 +1,7 @@
-import { Check, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
+import { Check, ChevronUp, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import { relativeTime } from '../../lib/format'
 
-export default function ChecklistPanel({ entries, isManager, onToggle, onMove, onDelete, resolveName }) {
+export default function ChecklistPanel({ entries, isManager, onToggle, onMove, onEdit, onDelete, resolveName }) {
   if (entries.length === 0) {
     return <p className="text-sm text-text-muted">Bu listede madde yok.</p>
   }
@@ -39,28 +39,43 @@ export default function ChecklistPanel({ entries, isManager, onToggle, onMove, o
               )}
             </span>
           </button>
-          {/* Sıralama ve silme (2026-10-07, broker: "ekleme çıkarma ve
-              yerini değiştirme yok ve zor") — eskiden ok butonları 14px'lik
-              küçük bir sütundu, tek tek tıklaması zordu; artık her biri
-              kendi büyük (32x32) tıklama alanına sahip ayrı bir buton. */}
-          {isManager && onMove && (
+          {/* Düzenleme/sıralama/silme (2026-10-07, broker: "ekleme çıkarma
+              ve yerini değiştirme yok ve zor" + sonra "madde ekleme var
+              düzenleme yok") — eskiden ok butonları 14px'lik küçük bir
+              sütundu, tek tek tıklaması zordu; artık her biri kendi büyük
+              (32x32) tıklama alanına sahip ayrı bir buton, artı başlığı
+              değiştirmek için bir kalem ikonu. */}
+          {isManager && (
             <div className="flex shrink-0 items-center gap-0.5">
-              <button
-                onClick={() => onMove(item.id, 'up')}
-                disabled={index === 0}
-                aria-label="Yukarı taşı"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
-              >
-                <ChevronUp size={18} />
-              </button>
-              <button
-                onClick={() => onMove(item.id, 'down')}
-                disabled={index === entries.length - 1}
-                aria-label="Aşağı taşı"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
-              >
-                <ChevronDown size={18} />
-              </button>
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(item)}
+                  aria-label="Maddeyi düzenle"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary"
+                >
+                  <Pencil size={15} />
+                </button>
+              )}
+              {onMove && (
+                <>
+                  <button
+                    onClick={() => onMove(item.id, 'up')}
+                    disabled={index === 0}
+                    aria-label="Yukarı taşı"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
+                  >
+                    <ChevronUp size={18} />
+                  </button>
+                  <button
+                    onClick={() => onMove(item.id, 'down')}
+                    disabled={index === entries.length - 1}
+                    aria-label="Aşağı taşı"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-sunken hover:text-text-primary disabled:opacity-30"
+                  >
+                    <ChevronDown size={18} />
+                  </button>
+                </>
+              )}
               {onDelete && (
                 <button
                   onClick={() => onDelete(item)}

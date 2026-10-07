@@ -54,6 +54,10 @@ export default function EgitimTab() {
   // doğrudan kendi id'si kullanılıyor.
   const [checklistUserId, setChecklistUserId] = useState(isManager ? null : user.id)
   const [showAddItemModal, setShowAddItemModal] = useState(false)
+  // editingItem dolu olduğunda modal "Maddeyi Düzenle" moduna geçiyor
+  // (2026-10-07, broker: "madde ekleme var düzenleme yok") — aynı modal,
+  // onAddChecklistItem bu değere bakıp create/update'e karar veriyor.
+  const [editingItem, setEditingItem] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [deletingItem, setDeletingItem] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -139,16 +143,26 @@ export default function EgitimTab() {
     }
   }
 
-  async function handleAddChecklistItem({ tip, baslik }) {
+  async function handleSubmitChecklistItem({ tip, baslik }) {
     setSubmitting(true)
     try {
-      const maxOrder = checklistItems.filter((i) => i.tip === tip).reduce((max, i) => Math.max(max, i.sortOrder), 0)
-      const created = await educationProvider.createChecklistItem({ tip, baslik, sortOrder: maxOrder + 1 })
-      setData((prev) => ({ ...prev, checklistItems: [...prev.checklistItems, created] }))
+      if (editingItem) {
+        const updated = await educationProvider.updateChecklistItem(editingItem.id, baslik)
+        setData((prev) => ({
+          ...prev,
+          checklistItems: prev.checklistItems.map((i) => (i.id === editingItem.id ? { ...i, baslik: updated.baslik } : i)),
+        }))
+        showToast('Madde güncellendi.', 'success')
+      } else {
+        const maxOrder = checklistItems.filter((i) => i.tip === tip).reduce((max, i) => Math.max(max, i.sortOrder), 0)
+        const created = await educationProvider.createChecklistItem({ tip, baslik, sortOrder: maxOrder + 1 })
+        setData((prev) => ({ ...prev, checklistItems: [...prev.checklistItems, created] }))
+        showToast('Madde eklendi.', 'success')
+      }
       setShowAddItemModal(false)
-      showToast('Madde eklendi.', 'success')
+      setEditingItem(null)
     } catch (err) {
-      showToast(err.message ?? 'Madde eklenemedi, tekrar dene.', 'error')
+      showToast(err.message ?? (editingItem ? 'Madde güncellenemedi, tekrar dene.' : 'Madde eklenemedi, tekrar dene.'), 'error')
     } finally {
       setSubmitting(false)
     }
@@ -258,7 +272,10 @@ export default function EgitimTab() {
                   )}
                   {isManager && (
                     <button
-                      onClick={() => setShowAddItemModal(true)}
+                      onClick={() => {
+                        setEditingItem(null)
+                        setShowAddItemModal(true)
+                      }}
                       className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
                     >
                       <Plus size={14} /> Madde Ekle
@@ -321,6 +338,14 @@ export default function EgitimTab() {
                   isManager={isManager}
                   onToggle={toggleChecklistItem}
                   onMove={isManager ? moveChecklistItem : undefined}
+                  onEdit={
+                    isManager
+                      ? (item) => {
+                          setEditingItem(item)
+                          setShowAddItemModal(true)
+                        }
+                      : undefined
+                  }
                   onDelete={isManager ? (item) => setDeletingItem(item) : undefined}
                   resolveName={userName}
                 />
@@ -332,10 +357,14 @@ export default function EgitimTab() {
 
       {showAddItemModal && (
         <AddChecklistItemModal
-          onClose={() => setShowAddItemModal(false)}
-          onSubmit={handleAddChecklistItem}
+          onClose={() => {
+            setShowAddItemModal(false)
+            setEditingItem(null)
+          }}
+          onSubmit={handleSubmitChecklistItem}
           submitting={submitting}
           defaultTip={checklistTip}
+          editingItem={editingItem}
         />
       )}
 

@@ -3,6 +3,19 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist maddelerinde düzenleme (yeniden adlandırma) eklendi
+
+Broker: "süreç ve ayrılışa madde ekleme var düzenleme yok" — ekleme/
+silme/sıralama vardı ama mevcut bir maddenin başlığını değiştirmenin
+yolu yoktu. `updateChecklistItem(id, baslik)` her iki provider'a da
+eklendi (RLS zaten `onboarding_items_manage` ile kapsıyordu, yeni
+migration gerekmedi). `AddChecklistItemModal` artık `editingItem`
+prop'u alınca "Maddeyi Düzenle" moduna geçiyor (başlık önceden dolu,
+tip alanı kilitli — bir maddeyi Süreç'ten Ayrılış'a taşımak kapsam dışı
+bırakıldı). `ChecklistPanel`'deki ok/sil butonlarının yanına bir kalem
+ikonu eklendi. Mock modda Playwright ile uçtan uca doğrulandı. 173/173
+test, lint, build temiz.
+
 ## 2026-10-07 — Checklist "değişiklik yapılmıyor" hatası: iyimser güncelleme eklendi
 
 Broker: "checklist üzerinde değişiklik yapılmıyor" — Supabase loglarını
