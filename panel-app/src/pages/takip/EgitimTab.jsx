@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronDown, Check } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -13,7 +13,6 @@ import ChecklistPanel from '../../components/education/ChecklistPanel'
 import AddChecklistItemModal from '../../components/education/AddChecklistItemModal'
 import TeamProgressTable from '../../components/education/TeamProgressTable'
 import FocusBanner from '../../components/common/FocusBanner'
-import { Chip } from '../../components/common/DateRangeFilter'
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 
 // badges_manage/onboarding_status_manage/onboarding_items_manage RLS'te
@@ -60,6 +59,20 @@ export default function EgitimTab() {
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
+  // Danışman seçici artık açılır bir kart (ProfileMenu'deki rol değiştirici
+  // ile AYNI desen) — broker: "direk tüm danışmanlar görünüyor, saçma,
+  // açılır karttan seçelim" (2026-10-07, chip listesi bir önceki turda
+  // denenmiş ama beğenilmemişti).
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
 
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, "Ekip
   // İlerlemesi" tablosunu SADECE checklist oranı %50'nin altında olanlara
@@ -220,18 +233,37 @@ export default function EgitimTab() {
               </div>
 
               {isManager && (
-                <div className="mb-3">
-                  <p className="mb-1.5 text-xs text-text-muted">
-                    {CHECKLIST_TABS.find((t) => t.key === checklistTip)?.label} için danışman seç:
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {checklistUserOptions.map((u) => (
-                      <Chip key={u.id} active={checklistUserId === u.id} onClick={() => setChecklistUserId(u.id)}>
-                        {u.name}
-                        {u.durum !== 'aktif' ? ' (ayrıldı)' : ''}
-                      </Chip>
-                    ))}
-                  </div>
+                <div className="relative mb-3 inline-block" ref={dropdownRef}>
+                  <button
+                    onClick={() => setDropdownOpen((v) => !v)}
+                    className="flex min-w-[220px] items-center justify-between gap-2 rounded-lg border border-border-default bg-surface-raised px-3 py-2 text-sm text-text-primary hover:bg-surface-sunken"
+                  >
+                    <span className={checklistUserId ? 'font-medium' : 'text-text-muted'}>
+                      {checklistUserId ? userName(checklistUserId) : 'Danışman seç'}
+                    </span>
+                    <ChevronDown size={16} className={`shrink-0 text-text-muted transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {dropdownOpen && (
+                    <div className="absolute left-0 z-40 mt-1 max-h-72 w-full min-w-[220px] overflow-y-auto rounded-xl border border-border-subtle bg-surface-raised shadow-lg">
+                      {checklistUserOptions.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => {
+                            setChecklistUserId(u.id)
+                            setDropdownOpen(false)
+                          }}
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-sunken"
+                        >
+                          <span>
+                            {u.name}
+                            {u.durum !== 'aktif' ? ' (ayrıldı)' : ''}
+                          </span>
+                          {checklistUserId === u.id && <Check size={14} className="shrink-0 text-brand-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -3,6 +3,16 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist danışman seçici: chip listesi yerine açılır kart
+
+Bir önceki turda danışman seçimi için eklenen düz chip listesi broker'a
+"saçma" geldi — tüm danışmanlar direkt sayfada açık duruyordu. Chip
+listesi kaldırıldı, yerine `ProfileMenu`'deki rol değiştiriciyle AYNI
+"açılır kart" deseni geldi: tek bir "Danışman seç" butonu, tıklanınca
+altında danışman listesi açılan bir kart beliriyor, seçilince kart
+kapanıp buton seçilen ismi gösteriyor (dışarı tıklayınca da kapanıyor).
+Mock modda Playwright ile doğrulandı. 173/173 test, lint, build temiz.
+
 ## 2026-10-07 — Checklist ilerlemesi Sağlık Skoru tablosuna taşındı
 
 Broker: "Checklist ilerlemesini üstündeki danışman bloğunun içine
