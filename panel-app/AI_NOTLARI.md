@@ -3,6 +3,33 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-07 — Checklist "değişiklik yapılmıyor" hatası: iyimser güncelleme eklendi
+
+Broker: "checklist üzerinde değişiklik yapılmıyor" — Supabase loglarını
+(edge_logs + postgres_logs) ve canlı veritabanını inceledim. Gerçek kök
+sebep RLS/izin değildi — rol simülasyonuyla doğrulandı, hem checkbox
+işaretleme hem sıralama yazmaları sunucuda sorunsuz başarılı oluyordu
+(532 checklist_status satırı, broker'ın gerçekten 32 maddelik bir
+onboarding checklist'i oluşturmuş olduğu da buradan görüldü — "Madde
+Ekle" zaten çalışıyormuş). Asıl sorun: ekran SADECE ağ isteği dönünce
+güncelleniyordu (`toggleChecklistItem`/`moveChecklistItem` state'i
+await'ten SONRA yazıyordu) — mobil bağlantıda bu gecikme "hiçbir şey
+olmuyor" hissi veriyor, özellikle 32 maddelik listede art arda hızlı
+tıklarken. İkisi de iyimser (optimistic) güncellemeye çevrildi: tıklanır
+tıklanmaz ekran değişiyor, istek arka planda gidiyor, başarısız olursa
+eski haline dönüp hata gösteriliyor.
+
+Ayrıca gerçek bir ikincil sorun da bulundu: checkbox dairesi sadece
+20x20px'ti, mobilde isabet ettirmesi zordu (bkz. "Sahibinden/ilan
+hesapları hazırlandı" maddesinin saatlerce farklı komşularla art arda
+sıralama isteği göndermesi — muhtemelen kullanıcı "işaretlenmiyor"
+sanıp sıralama oklarını denemişti). Artık daire + metin birlikte TEK,
+satırın tamamını kaplayan bir buton.
+
+Playwright'ta 1000ms yapay ağ gecikmesiyle doğrulandı: tıklamadan
+sadece 80ms sonra ekran zaten değişmiş durumda (ağ isteği henüz
+dönmemişken). 173/173 test, lint, build temiz.
+
 ## 2026-10-07 — Checklist'teki "Ekip İlerlemesi" tablosu kaldırıldı (yukarıya taşındığı için gereksizdi)
 
 Broker: "en alttaki ekip ilerlemesi yukarıya işlendiği için artık orada

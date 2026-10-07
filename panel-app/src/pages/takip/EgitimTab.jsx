@@ -113,20 +113,28 @@ export default function EgitimTab() {
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
+  // İyimser (optimistic) güncelleme (2026-10-07, broker: "checklist üzerinde
+  // değişiklik yapılmıyor") — yazma zaten sunucuda başarılı oluyordu (Supabase
+  // loglarıyla doğrulandı), ama ekran SADECE ağ isteği dönünce güncelleniyordu;
+  // mobil bağlantıda bu gecikme "hiçbir şey olmuyor" hissi veriyordu, özellikle
+  // art arda hızlı dokunuşlarda. Artık tıklanır tıklanmaz ekran güncelleniyor,
+  // istek başarısız olursa eski haline dönüp hata gösteriliyor.
   async function toggleChecklistItem(itemId) {
     const existing = checklistStatus.find((s) => s.itemId === itemId && s.userId === checklistUserId)
+    const previous = checklistStatus
+    setData((prev) => ({
+      ...prev,
+      checklistStatus: existing
+        ? prev.checklistStatus.filter((s) => !(s.itemId === itemId && s.userId === checklistUserId))
+        : [
+            ...prev.checklistStatus,
+            { itemId, userId: checklistUserId, doneAt: new Date().toISOString(), doneBy: user.id },
+          ],
+    }))
     try {
       await educationProvider.toggleChecklistItem(itemId, checklistUserId, !existing, user.id)
-      setData((prev) => ({
-        ...prev,
-        checklistStatus: existing
-          ? prev.checklistStatus.filter((s) => !(s.itemId === itemId && s.userId === checklistUserId))
-          : [
-              ...prev.checklistStatus,
-              { itemId, userId: checklistUserId, doneAt: new Date().toISOString(), doneBy: user.id },
-            ],
-      }))
     } catch (err) {
+      setData((prev) => ({ ...prev, checklistStatus: previous }))
       showToast(err.message ?? 'Checklist güncellenemedi, tekrar dene.', 'error')
     }
   }
@@ -179,20 +187,33 @@ export default function EgitimTab() {
     // çağrının yazdığı değeri okur, iki madde de aynı sıraya düşer.
     const aOrder = a.sortOrder
     const bOrder = b.sortOrder
+    // İyimser güncelleme (bkz. toggleChecklistItem'daki not) — ekran hemen
+    // yer değiştiriyor, ağ isteği arka planda gidiyor. 32 maddelik gerçek
+    // listede (bkz. broker'ın eklediği onboarding checklist'i) tek tek
+    // yukarı/aşağı tıklarken bu, art arda tıklamaların her birinin görünür
+    // bir etkisi olmasını sağlıyor.
+    setData((prev) => ({
+      ...prev,
+      checklistItems: prev.checklistItems.map((it) => {
+        if (it.id === a.id) return { ...it, sortOrder: bOrder }
+        if (it.id === b.id) return { ...it, sortOrder: aOrder }
+        return it
+      }),
+    }))
     try {
       await Promise.all([
         educationProvider.updateChecklistItemOrder(a.id, bOrder),
         educationProvider.updateChecklistItemOrder(b.id, aOrder),
       ])
+    } catch (err) {
       setData((prev) => ({
         ...prev,
         checklistItems: prev.checklistItems.map((it) => {
-          if (it.id === a.id) return { ...it, sortOrder: bOrder }
-          if (it.id === b.id) return { ...it, sortOrder: aOrder }
+          if (it.id === a.id) return { ...it, sortOrder: aOrder }
+          if (it.id === b.id) return { ...it, sortOrder: bOrder }
           return it
         }),
       }))
-    } catch (err) {
       showToast(err.message ?? 'Sıralama değiştirilemedi, tekrar dene.', 'error')
     }
   }

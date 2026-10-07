@@ -13,24 +13,32 @@ export default function ChecklistPanel({ entries, isManager, onToggle, onMove, o
           key={item.id}
           className="flex items-center gap-2.5 rounded-lg border border-border-default bg-surface-raised px-3 py-2"
         >
+          {/* Tüm satır tıklanabilir (2026-10-07, broker: "checklist üzerinde
+              değişiklik yapılmıyor" — kök sebeplerden biri: daire sadece
+              20x20px'ti, mobilde isabet ettirmesi zordu). Artık daire +
+              metin birlikte tek, geniş bir buton. */}
           <button
             onClick={() => isManager && onToggle(item.id)}
             disabled={!isManager}
-            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-              done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border-default text-transparent'
-            } ${isManager ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`flex min-w-0 flex-1 items-center gap-2.5 py-0.5 text-left ${isManager ? 'cursor-pointer' : 'cursor-default'}`}
           >
-            <Check size={12} strokeWidth={3} />
+            <span
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border-default text-transparent'
+              }`}
+            >
+              <Check size={12} strokeWidth={3} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <p className={`text-sm leading-tight ${done ? 'text-text-primary' : 'text-text-secondary'}`}>{item.baslik}</p>
+              {done && doneAt && (
+                <p className="text-xs text-text-muted">
+                  {relativeTime(doneAt)}
+                  {doneBy && ` · ${resolveName(doneBy)} işaretledi`}
+                </p>
+              )}
+            </span>
           </button>
-          <div className="min-w-0 flex-1">
-            <p className={`text-sm leading-tight ${done ? 'text-text-primary' : 'text-text-secondary'}`}>{item.baslik}</p>
-            {done && doneAt && (
-              <p className="text-xs text-text-muted">
-                {relativeTime(doneAt)}
-                {doneBy && ` · ${resolveName(doneBy)} işaretledi`}
-              </p>
-            )}
-          </div>
           {/* Sıralama ve silme (2026-10-07, broker: "ekleme çıkarma ve
               yerini değiştirme yok ve zor") — eskiden ok butonları 14px'lik
               küçük bir sütundu, tek tek tıklaması zordu; artık her biri
