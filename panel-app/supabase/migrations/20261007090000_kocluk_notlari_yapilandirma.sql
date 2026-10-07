@@ -29,9 +29,15 @@ alter table public.coaching_notes
 -- Danışmanın kendi görünümü artık eski hedef_aksiyon yerine portföy
 -- hedefini gösteriyor — aynı dar pencere deseni (sadece bu kolonlar,
 -- konuşulanlar/sonuç/kim yazdı yok).
+--
+-- NOT: "create or replace view" Postgres'te mevcut bir sütunun adını/
+-- konumunu DEĞİŞTİRMEYE izin vermiyor (DROP VIEW gerektirir — DROP bu
+-- ortamdaki migration aracını kilitleyen bilinen bir sorun). Bu yüzden
+-- eski hedef_aksiyon sütunu AYNI konumda bırakıldı (hep null kalacak,
+-- yeni kod hiç yazmıyor/okumuyor), yeni sütunlar SONA eklendi.
 create or replace view public.coaching_note_hedefleri
 with (security_invoker = false) as
-select id, danisman_id, gorusme_tarihi, konu, portfoy_hedefi, portfoy_sayisi_o_an, takip_tarihi, durum
+select id, danisman_id, gorusme_tarihi, hedef_aksiyon, takip_tarihi, durum, konu, portfoy_hedefi, portfoy_sayisi_o_an
 from public.coaching_notes
 where portfoy_hedefi is not null
   and danisman_id = auth.uid()
