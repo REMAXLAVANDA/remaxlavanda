@@ -51,7 +51,11 @@ describe('yonlendirmeDurumu', () => {
 
 describe('computeYonlendirmePuani', () => {
   it('3 bileşenin düz ortalamasını alır', () => {
-    const now = new Date('2026-10-06T12:00:00Z')
+    // Gerçek "şimdi" kullanılıyor (sabit bir tarih DEĞİL) — portalUsagePercent
+    // (lib/takip.js) lastSignInAt'i her zaman gerçek Date.now()'a göre
+    // kıyaslıyor, sabit bir tarih test her çalıştığında günler geçtikçe
+    // sessizce bozulurdu (yakalanan gerçek bir flake, 2026-10-07).
+    const now = new Date()
     const events = [{ id: 'e1', startAt: new Date(now.getTime() - day).toISOString(), endAt: new Date(now.getTime() - day + 3600000).toISOString() }]
     const attendance = [{ userId: 'u1', eventId: 'e1', status: 'katildi' }]
     const calls = [{ assignedTo: 'u1', kaynak: 'Reklam', portfoyTalebiMi: false, donusYapildiMi: true }]
