@@ -793,6 +793,153 @@ export const league = {
   },
 }
 
+// --- Ciro Raporu (danışman kendi ciro/fatura raporunu girer, broker
+// onaylar — eski "Ciro Gir" akışının YERİNE geçti) --------------------------
+const ciroRaporuDaysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString()
+const MOCK_CIRO_RAPORLARI = [
+  {
+    id: 'cr-1',
+    opportunityId: 'opp-1',
+    islemTipi: 'satis',
+    islemTutari: 1000000,
+    islemTarihi: ciroRaporuDaysAgo(10).slice(0, 10),
+    durum: 'onay_bekliyor',
+    redSebebi: null,
+    olusturanId: 'u-danisman',
+    onaylayanId: null,
+    onayTarihi: null,
+    notlar: null,
+    createdAt: ciroRaporuDaysAgo(10),
+    updatedAt: ciroRaporuDaysAgo(10),
+  },
+]
+const MOCK_CIRO_RAPORU_KATILIMCILARI = [
+  {
+    id: 'crk-1',
+    ciroRaporuId: 'cr-1',
+    danismanId: 'u-danisman',
+    payOrani: 100,
+    anlasmaOraniSnapshot: 48,
+    komisyonTutariOnerisi: 480000,
+    faturaNo: null,
+    faturaTarihi: null,
+    faturaTutari: null,
+    kdvOrani: null,
+    kdvHaricTutar: null,
+    vergiNo: null,
+    faturaDosyaUrl: null,
+    odemeDurumu: 'bekliyor',
+    notlar: null,
+  },
+]
+
+function mockCiroRaporuWithKatilimcilar(r) {
+  return { ...r, katilimcilar: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id) }
+}
+
+export const ciroRaporlari = {
+  async list() {
+    return delay(MOCK_CIRO_RAPORLARI.map(mockCiroRaporuWithKatilimcilar).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  },
+  async create({ opportunityId, islemTipi, islemTutari, islemTarihi, notlar, katilimcilar }, olusturanId) {
+    const now = new Date().toISOString()
+    const rapor = {
+      id: `cr-${Date.now()}`,
+      opportunityId,
+      islemTipi,
+      islemTutari: Number(islemTutari),
+      islemTarihi,
+      durum: 'taslak',
+      redSebebi: null,
+      olusturanId,
+      onaylayanId: null,
+      onayTarihi: null,
+      notlar: notlar || null,
+      createdAt: now,
+      updatedAt: now,
+    }
+    MOCK_CIRO_RAPORLARI.unshift(rapor)
+    katilimcilar.forEach((k, i) => {
+      MOCK_CIRO_RAPORU_KATILIMCILARI.push({
+        id: `crk-${Date.now()}-${i}`,
+        ciroRaporuId: rapor.id,
+        danismanId: k.danismanId,
+        payOrani: Number(k.payOrani),
+        anlasmaOraniSnapshot: k.anlasmaOraniSnapshot ?? null,
+        komisyonTutariOnerisi: k.komisyonTutariOnerisi ?? null,
+        faturaNo: null,
+        faturaTarihi: null,
+        faturaTutari: null,
+        kdvOrani: null,
+        kdvHaricTutar: null,
+        vergiNo: null,
+        faturaDosyaUrl: null,
+        odemeDurumu: 'bekliyor',
+        notlar: null,
+      })
+    })
+    return delay(mockCiroRaporuWithKatilimcilar(rapor))
+  },
+  async update(id, { islemTipi, islemTutari, islemTarihi, notlar }) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    Object.assign(rapor, { islemTipi, islemTutari: Number(islemTutari), islemTarihi, notlar: notlar || null, updatedAt: new Date().toISOString() })
+    return delay(mockCiroRaporuWithKatilimcilar(rapor))
+  },
+  async submit(id) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    rapor.durum = 'onay_bekliyor'
+    return delay({ id })
+  },
+  async updateKatilimciFatura(id, patch) {
+    const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === id)
+    if (!row) throw new Error('Katılımcı bulunamadı.')
+    Object.assign(row, patch)
+    return delay({ ...row })
+  },
+  async approve(id, approverId) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    const katilimcilar = MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === id)
+    for (const k of katilimcilar) {
+      const value = Number(rapor.islemTutari) * (Number(k.payOrani) / 100)
+      await league.addScore({ userId: k.danismanId, type: 'ciro', value, tarih: rapor.islemTarihi }, approverId)
+    }
+    rapor.durum = 'onaylandi'
+    rapor.onaylayanId = approverId
+    rapor.onayTarihi = new Date().toISOString()
+    return delay({ id })
+  },
+  async reject(id, redSebebi) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    rapor.durum = 'reddedildi'
+    rapor.redSebebi = redSebebi
+    return delay({ id })
+  },
+}
+
+// --- Danışman Anlaşmaları (komisyon paylaşım oranı, tarih aralıklı) --------
+const MOCK_DANISMAN_ANLASMALARI = [
+  { id: 'da-1', danismanId: 'u-danisman', paylasimOrani: 48, gecerlilikBaslangic: '2026-01-01', gecerlilikBitis: null, createdBy: 'u-broker', createdAt: ciroRaporuDaysAgo(200) },
+]
+
+export const danismanAnlasmalari = {
+  async list() {
+    return delay([...MOCK_DANISMAN_ANLASMALARI].sort((a, b) => new Date(b.gecerlilikBaslangic) - new Date(a.gecerlilikBaslangic)))
+  },
+  async create({ danismanId, paylasimOrani, gecerlilikBaslangic }, createdBy) {
+    const acikSatir = MOCK_DANISMAN_ANLASMALARI.find((a) => a.danismanId === danismanId && !a.gecerlilikBitis)
+    if (acikSatir) {
+      acikSatir.gecerlilikBitis = new Date(new Date(gecerlilikBaslangic).getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    }
+    const row = { id: `da-${Date.now()}`, danismanId, paylasimOrani: Number(paylasimOrani), gecerlilikBaslangic, gecerlilikBitis: null, createdBy, createdAt: new Date().toISOString() }
+    MOCK_DANISMAN_ANLASMALARI.unshift(row)
+    return delay(row)
+  },
+}
+
 // --- Users -------------------------------------------------------------------
 // Ayarlar > Kullanıcılar'dan mock modda eklenen/düzenlenen kullanıcılar —
 // MOCK_USERS/OTHER_USERS sabit dev hesapları olduğu için ayrı tutuluyor.

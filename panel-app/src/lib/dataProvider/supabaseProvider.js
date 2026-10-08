@@ -1244,6 +1244,184 @@ export const league = {
   },
 }
 
+function mapCiroRaporuKatilimcisi(k) {
+  return {
+    id: k.id,
+    ciroRaporuId: k.ciro_raporu_id,
+    danismanId: k.danisman_id,
+    payOrani: Number(k.pay_orani),
+    anlasmaOraniSnapshot: k.anlasma_orani_snapshot == null ? null : Number(k.anlasma_orani_snapshot),
+    komisyonTutariOnerisi: k.komisyon_tutari_onerisi == null ? null : Number(k.komisyon_tutari_onerisi),
+    faturaNo: k.fatura_no,
+    faturaTarihi: k.fatura_tarihi,
+    faturaTutari: k.fatura_tutari == null ? null : Number(k.fatura_tutari),
+    kdvOrani: k.kdv_orani == null ? null : Number(k.kdv_orani),
+    kdvHaricTutar: k.kdv_haric_tutar == null ? null : Number(k.kdv_haric_tutar),
+    vergiNo: k.vergi_no,
+    faturaDosyaUrl: k.fatura_dosya_url,
+    odemeDurumu: k.odeme_durumu,
+    notlar: k.notlar,
+  }
+}
+
+function mapCiroRaporu(r) {
+  return {
+    id: r.id,
+    opportunityId: r.opportunity_id,
+    islemTipi: r.islem_tipi,
+    islemTutari: Number(r.islem_tutari),
+    islemTarihi: r.islem_tarihi,
+    durum: r.durum,
+    redSebebi: r.red_sebebi,
+    olusturanId: r.olusturan_id,
+    onaylayanId: r.onaylayan_id,
+    onayTarihi: r.onay_tarihi,
+    notlar: r.notlar,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+    katilimcilar: (r.ciro_raporu_katilimcilari ?? []).map(mapCiroRaporuKatilimcisi),
+  }
+}
+
+// --- Ciro Raporu (danışman kendi ciro/fatura raporunu girer, broker
+// onaylar — "Ciro Gir" akışının YERİNE geçti, bkz. AI_NOTLARI.md) --------
+export const ciroRaporlari = {
+  // RLS zaten danışmana sadece kendi/katılımcı olduğu raporları döndürür —
+  // broker/owner hepsini görür, ayrı bir filtre parametresi gerekmiyor.
+  async list() {
+    const data = await run(
+      client().from('ciro_raporlari').select('*, ciro_raporu_katilimcilari(*)').order('created_at', { ascending: false }),
+    )
+    return data.map(mapCiroRaporu)
+  },
+  async create({ opportunityId, islemTipi, islemTutari, islemTarihi, notlar, katilimcilar }, olusturanId) {
+    const rapor = await run(
+      client()
+        .from('ciro_raporlari')
+        .insert({
+          opportunity_id: opportunityId,
+          islem_tipi: islemTipi,
+          islem_tutari: islemTutari,
+          islem_tarihi: islemTarihi,
+          notlar: notlar || null,
+          olusturan_id: olusturanId,
+        })
+        .select()
+        .single(),
+    )
+    const katilimciRows = katilimcilar.map((k) => ({
+      ciro_raporu_id: rapor.id,
+      danisman_id: k.danismanId,
+      pay_orani: k.payOrani,
+      anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
+      komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
+    }))
+    await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
+    return mapCiroRaporu(rapor)
+  },
+  // Taslak/reddedilen bir raporun başlık alanlarını düzenler — RLS zaten
+  // sadece olusturan_id + taslak/reddedildi durumunda izin veriyor.
+  async update(id, { islemTipi, islemTutari, islemTarihi, notlar }) {
+    await run(
+      client()
+        .from('ciro_raporlari')
+        .update({ islem_tipi: islemTipi, islem_tutari: islemTutari, islem_tarihi: islemTarihi, notlar: notlar || null })
+        .eq('id', id),
+    )
+  },
+  // "Gönder" — taslak/reddedildi -> onay_bekliyor. RLS WITH CHECK'i
+  // danışmanın doğrudan 'onaylandi'ya atlamasını zaten engelliyor.
+  async submit(id) {
+    await run(client().from('ciro_raporlari').update({ durum: 'onay_bekliyor' }).eq('id', id))
+  },
+  async updateKatilimciFatura(id, patch) {
+    const dbPatch = {}
+    if ('faturaNo' in patch) dbPatch.fatura_no = patch.faturaNo || null
+    if ('faturaTarihi' in patch) dbPatch.fatura_tarihi = patch.faturaTarihi || null
+    if ('faturaTutari' in patch) dbPatch.fatura_tutari = patch.faturaTutari ?? null
+    if ('kdvOrani' in patch) dbPatch.kdv_orani = patch.kdvOrani ?? null
+    if ('kdvHaricTutar' in patch) dbPatch.kdv_haric_tutar = patch.kdvHaricTutar ?? null
+    if ('vergiNo' in patch) dbPatch.vergi_no = patch.vergiNo || null
+    if ('faturaDosyaUrl' in patch) dbPatch.fatura_dosya_url = patch.faturaDosyaUrl || null
+    if ('odemeDurumu' in patch) dbPatch.odeme_durumu = patch.odemeDurumu
+    if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
+    await run(client().from('ciro_raporu_katilimcilari').update(dbPatch).eq('id', id))
+  },
+  // Onaylanınca her katılımcının payına düşen SATIŞ tutarı (komisyon değil
+  // — bkz. lib/ciroRaporlari.js notu), mevcut league.addScore() üzerinden
+  // ciro_girisleri'ne yazılır. Böylece Lig'in dönem eşleştirmesi/toplam
+  // yeniden hesabı (resolvePeriodByDate, recomputeCiroTotal) HİÇ
+  // değişmeden, sadece kaynağı değişerek çalışmaya devam ediyor.
+  async approve(id, approverId) {
+    const [rapor, katilimcilar] = await Promise.all([
+      run(client().from('ciro_raporlari').select('islem_tutari, islem_tarihi').eq('id', id).single()),
+      run(client().from('ciro_raporu_katilimcilari').select('danisman_id, pay_orani').eq('ciro_raporu_id', id)),
+    ])
+    for (const k of katilimcilar) {
+      const value = Number(rapor.islem_tutari) * (Number(k.pay_orani) / 100)
+      await league.addScore({ userId: k.danisman_id, type: 'ciro', value, tarih: rapor.islem_tarihi }, approverId)
+    }
+    await run(
+      client()
+        .from('ciro_raporlari')
+        .update({ durum: 'onaylandi', onaylayan_id: approverId, onay_tarihi: new Date().toISOString() })
+        .eq('id', id),
+    )
+  },
+  async reject(id, redSebebi) {
+    await run(client().from('ciro_raporlari').update({ durum: 'reddedildi', red_sebebi: redSebebi }).eq('id', id))
+  },
+}
+
+// --- Danışman Anlaşmaları (komisyon paylaşım oranı, tarih aralıklı) ------
+export const danismanAnlasmalari = {
+  async list() {
+    const data = await run(client().from('danisman_anlasmalari').select('*').order('gecerlilik_baslangic', { ascending: false }))
+    return data.map((a) => ({
+      id: a.id,
+      danismanId: a.danisman_id,
+      paylasimOrani: Number(a.paylasim_orani),
+      gecerlilikBaslangic: a.gecerlilik_baslangic,
+      gecerlilikBitis: a.gecerlilik_bitis,
+      createdBy: a.created_by,
+      createdAt: a.created_at,
+    }))
+  },
+  // Yeni oran girildiğinde, o danışmanın AÇIK (gecerlilik_bitis'i boş) eski
+  // satırı varsa, yeni oranın başlangıcından bir gün öncesine kadar
+  // kapatılır — social_activity_log'daki puan_snapshot ile AYNI "geçmişi
+  // bozma" refleksi: eski rapor hesaplamaları eski oranla donmuş kalır.
+  async create({ danismanId, paylasimOrani, gecerlilikBaslangic }, createdBy) {
+    const acikSatirlar = await run(
+      client()
+        .from('danisman_anlasmalari')
+        .select('id')
+        .eq('danisman_id', danismanId)
+        .is('gecerlilik_bitis', null),
+    )
+    if (acikSatirlar.length > 0) {
+      const oncekiGun = new Date(new Date(gecerlilikBaslangic).getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      await run(
+        client()
+          .from('danisman_anlasmalari')
+          .update({ gecerlilik_bitis: oncekiGun })
+          .in(
+            'id',
+            acikSatirlar.map((r) => r.id),
+          ),
+      )
+    }
+    const data = await run(
+      client()
+        .from('danisman_anlasmalari')
+        .insert({ danisman_id: danismanId, paylasim_orani: paylasimOrani, gecerlilik_baslangic: gecerlilikBaslangic, created_by: createdBy })
+        .select()
+        .single(),
+    )
+    return { id: data.id, danismanId: data.danisman_id, paylasimOrani: Number(data.paylasim_orani), gecerlilikBaslangic: data.gecerlilik_baslangic }
+  },
+}
+
 // --- Users -----------------------------------------------------------------
 export const users = {
   async listKnown() {

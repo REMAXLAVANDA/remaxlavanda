@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus, Webhook, Percent } from 'lucide-react'
+import { Users, Shield, Tag, ScrollText, Plus, Webhook, Percent, Handshake } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -16,8 +16,10 @@ import {
   opportunities as opportunitiesProvider,
   league as leagueProvider,
   mentorPrimi as mentorPrimiProvider,
+  danismanAnlasmalari as danismanAnlasmalariProvider,
 } from '../lib/dataProvider'
 import { canManageUsers, canViewAuditLog, canViewMentorPrimi, ROLE_LABELS } from '../lib/roles'
+import { canApproveCiroRaporu } from '../lib/ciroRaporlari'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import { callNeedsTracking } from '../lib/callLogs'
@@ -35,6 +37,7 @@ import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
 import TelsamWebhookErrorsTable from '../components/settings/TelsamWebhookErrorsTable'
 import MetaCapiErrorsTable from '../components/settings/MetaCapiErrorsTable'
 import MentorPrimiPanel from '../components/settings/MentorPrimiPanel'
+import DanismanAnlasmalariPanel from '../components/settings/DanismanAnlasmalariPanel'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
@@ -45,6 +48,7 @@ const TABS = [
   { key: 'log', label: 'Log', icon: ScrollText },
   { key: 'webhook', label: 'Webhook Hataları', icon: Webhook },
   { key: 'mentor-primi', label: 'Mentor Primi', icon: Percent },
+  { key: 'danisman-anlasmalari', label: 'Danışman Anlaşmaları', icon: Handshake },
 ]
 
 export default function Ayarlar() {
@@ -62,7 +66,16 @@ export default function Ayarlar() {
   // talebi) — bu yüzden owner DAHİL, sadece broker görür (bkz. lib/roles.js
   // canViewMentorPrimi, canViewLog'daki aynı sekme-gizleme deseni).
   const canViewMentor = canViewMentorPrimi(role)
-  const visibleTabs = TABS.filter((t) => (t.key !== 'log' || canViewLog) && (t.key !== 'mentor-primi' || canViewMentor))
+  // Danışman Anlaşmaları (komisyon paylaşım oranı) — Ciro Raporu onay
+  // yetkisiyle AYNI seviye (broker+owner), Mentor Primi'nin aksine
+  // gizlilik isteği yok, owner da görebilir.
+  const canManageAnlasmalar = canApproveCiroRaporu(role)
+  const visibleTabs = TABS.filter(
+    (t) =>
+      (t.key !== 'log' || canViewLog) &&
+      (t.key !== 'mentor-primi' || canViewMentor) &&
+      (t.key !== 'danisman-anlasmalari' || canManageAnlasmalar),
+  )
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
   const [mentorPrimiForm, setMentorPrimiForm] = useState(() => {
     const monthKey = currentMonthKey()
@@ -171,6 +184,30 @@ export default function Ayarlar() {
     } else {
       await mentorPrimiProvider.removeBaslangicTarihi(userId)
       setMentorPrimiBaslangicList((prev) => (prev ?? []).filter((b) => b.userId !== userId))
+    }
+  }
+
+  const {
+    data: danismanAnlasmalariList,
+    loading: loadingAnlasmalar,
+    error: anlasmalarError,
+    reload: reloadAnlasmalar,
+  } = useAsyncList(
+    () => (canManageAnlasmalar && tab === 'danisman-anlasmalari' ? danismanAnlasmalariProvider.list() : Promise.resolve([])),
+    [canManageAnlasmalar, tab],
+  )
+  const [savingAnlasma, setSavingAnlasma] = useState(false)
+
+  async function handleCreateAnlasma(danismanId, paylasimOrani, gecerlilikBaslangic) {
+    setSavingAnlasma(true)
+    try {
+      await danismanAnlasmalariProvider.create({ danismanId, paylasimOrani, gecerlilikBaslangic }, user.id)
+      await reloadAnlasmalar()
+      showToast('Komisyon oranı kaydedildi.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Oran kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSavingAnlasma(false)
     }
   }
 
@@ -696,6 +733,21 @@ export default function Ayarlar() {
               rows={mentorPrimiData.rows}
               toplam={mentorPrimiData.toplam}
               onGoToUsers={() => setTab('kullanicilar')}
+            />
+          )}
+        </>
+      )}
+
+      {tab === 'danisman-anlasmalari' && canManageAnlasmalar && (
+        <>
+          {loadingAnlasmalar && <LoadingState />}
+          {!loadingAnlasmalar && anlasmalarError && <ErrorState error={anlasmalarError} onRetry={reloadAnlasmalar} />}
+          {!loadingAnlasmalar && !anlasmalarError && (
+            <DanismanAnlasmalariPanel
+              danismanlar={(allUsers ?? []).filter((u) => u.role === 'danisman' && u.durum === 'aktif')}
+              anlasmalar={danismanAnlasmalariList ?? []}
+              onCreate={handleCreateAnlasma}
+              submitting={savingAnlasma}
             />
           )}
         </>

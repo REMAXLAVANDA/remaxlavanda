@@ -3,6 +3,95 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Ciro Raporu sistemi: manuel "Ciro Gir" akışının yerine danışman kendi raporunu giriyor, broker onaylıyor
+
+Broker: bankayla entegre bir sistem kurup para transferlerini kontrol
+edecekler, danışman ciroyu artık My Ry MS'ten değil portaldan girecek,
+böylece ciro otomatik hesaplanacak ve Lig'de de kullanılacak. Büyük bir
+özellik — önce 4 forking karara netlik kazandırıldı (AskUserQuestion):
+fatura/e-fatura entegrasyonu şimdilik YOK ama KDV alanları ileri zaman
+için şimdiden eklendi; yeni sistem Lig'deki eski akışın TAMAMEN yerine
+geçiyor; danışman raporu broker/owner onaylamadan Lig/Mentor Primi'yi
+ETKİLEMİYOR; co-listing (iki danışmanın ortak çalıştığı işlem, paylaşımlı
+komisyon) destekleniyor.
+
+**Veri modeli** (migration `20261008120000_ciro_raporlari_sistemi.sql` +
+RLS sonsuz döngü düzeltmesi `20261008120500_...`): 3 yeni tablo —
+`ciro_raporlari` (opportunity'ye bağlı, işlem tipi/tutarı/tarihi, durum:
+taslak→onay_bekliyor→onaylandi/reddedildi), `ciro_raporu_katilimcilari`
+(her katılımcının pay oranı + KENDİ fatura bilgileri — co-listing'de her
+danışman kendi vergi no'suyla ayrı fatura kestiği için fatura alanları
+BİLEREK header'da değil burada), `danisman_anlasmalari` (danışmanın
+komisyon paylaşım oranı, tarih aralıklı/versiyonlu — yeni oran girilince
+öncekini otomatik kapatıyor, geçmiş raporlar eski oranla donmuş kalıyor).
+İşlem tarihi (`islem_tarihi`) BİLEREK ayrı bir alan — broker: "işlem
+bitiyor bir hafta sonra da tamamlanabiliyor", rapor giriş tarihinden
+(`created_at`) bağımsız olmalı.
+
+**Lig/Mentor Primi entegrasyonu — tek kaynak ilkesi**: onaylanınca her
+katılımcının payına düşen SATIŞ tutarı (`islem_tutari × pay_orani` —
+komisyon değil, "ciro" Lig'de hep satış hacmini ölçüyor) mevcut
+`league.addScore()` üzerinden `ciro_girisleri`'ne yazılıyor — Lig'in
+dönem eşleştirme/toplam yeniden hesap mantığı HİÇ değişmeden, Mentor
+Primi'nin de hiç koda dokunulmadan (zaten `ciro_girisleri`'nden okuyor)
+yeni kaynaktan beslenmesi sağlandı.
+
+**RLS sonsuz döngü bulgusu (role-sim testiyle yakalandı, advisor
+yakalamadı)**: `ciro_raporlari`/`ciro_raporu_katilimcilari` SELECT
+politikaları birbirini çıplak `EXISTS` ile sorgulayınca `42P17 infinite
+recursion` hatası verdi — CLAUDE.md'deki "RLS Dersleri" kontrol
+listesinin tam öngördüğü senaryo. 3 `SECURITY DEFINER` yardımcı fonksiyon
+(`ciro_raporu_olusturan_id`, `ciro_raporu_durum`,
+`ciro_raporunda_katilimci_mi`) ile düzeltildi — `is_manager()` ile aynı
+desen. Aynı araştırmada bir Postgres scoping hatası da bulundu: bir
+subquery içindeki çıplak `id` referansı, dışarıdaki değil SUBQUERY'NİN
+kendi `id` kolonuna bağlanıyordu — fonksiyon parametresi olarak geçirilip
+düzeltildi.
+
+**Platform garipliği (ikinci kez karşılaşıldı)**: bu Supabase projesinde
+`DROP POLICY` (DELETE gibi) 60sn'de timeout veriyor, gerçek bir lock
+bulunamadı (`pg_locks`/`pg_stat_activity` boş), DROP hiç commit olmuyor.
+Workaround: `ALTER POLICY ... USING (...) WITH CHECK (...)` aynı sonucu
+anında veriyor — migration dosyaları da gerçekte uygulanan haliyle
+(ALTER POLICY) güncellendi.
+
+**Mock provider ID çakışma hatası (Playwright testiyle yakalandı)**: ilk
+yazımda `ciroRaporuSeq`/`anlasmaSeq` sayaçları 1'den başlıyordu ama seed
+veri zaten `cr-1`/`crk-1`/`da-1` kullanıyordu — ilk gerçek kayıt
+oluşturulduğunda seed'le AYNI id'yi alıp React'te "duplicate key"
+hatasına yol açıyordu. Düzeltme: codebase'teki standart desene dönüldü
+(`` `cr-${Date.now()}` ``, period/opportunity id'leriyle aynı desen).
+
+**Eski "Ciro Gir" akışı tamamen kaldırıldı** (`Lig.jsx`): `AddScoreModal`,
+`AddEntryChooserModal` bileşenleri silindi (artık hiçbir yerden
+kullanılmıyor), `canCiro`/`handleAddScore`/`ciroHistoryByUser`/
+`requestRemoveCiroGiris` vb. kaldırıldı. "Veri Gir" butonu artık tek
+kategoriye (sosyal medya) kaldığı için doğrudan o modalı açıyor, aradaki
+seçim adımı kalktı. Lig'in "Ciro Nasıl Hesaplanır?" açıklaması yeni
+kaynağı anlatacak şekilde güncellendi. Müşteri memnuniyeti/Yorum Hakkı
+akışı (ayrı bir konu, `canManageScores` ile korunuyor) HİÇ dokunulmadı.
+
+**Yeni ekran**: `/ciro-raporlari` (nav: "Gelişim" grubu, Lig'in yanı,
+SADECE broker/owner/danışman — ofis'in ne oluşturma ne onaylama yetkisi
+yok). Danışman: "Yeni Ciro Raporu" (fırsat seç + işlem tipi/tutarı/
+tarihi + opsiyonel ortak danışman/pay) → direkt onaya gönderiliyor
+("taslak" kullanıcıya hiç gösterilmiyor), kendi raporlarını görür, kendi
+katılımcı satırındaki fatura bilgisini (no/tarih/tutar/KDV/vergi no/
+dosya linki) herhangi bir zaman düzenleyebilir — önerilen tutardan 1
+TL'den fazla sapan fatura "tutarsız" uyarısı alıyor. Broker/owner: "Onay
+Bekleyenler" kuyruğu, onayla/reddet (red sebebi zorunlu), ödeme durumunu
+(bekliyor/alındı) işaretleyebiliyor. Reddedilen bir rapor "Yeniden
+Gönder" ile tekrar kuyruğa girebiliyor.
+
+Ayrıca eklendi: `Ayarlar > Danışman Anlaşmaları` sekmesi (broker/owner) —
+her danışmana komisyon paylaşım oranı atama/güncelleme, tarih aralıklı.
+
+195/195 test, lint, build temiz. Mock modda Playwright ile uçtan uca
+doğrulandı: danışman rapor oluşturup gönderdi → broker onayladı → Lig'de
+danışmanın Ciro sıralaması anında güncellendi (lider oldu) → reddet/red
+sebebi gösterme/yeniden gönder akışı → fatura bilgisi kaydetme + tutarsızlık
+uyarısı, hepsi doğru çalıştı.
+
 ## 2026-10-08 — Mentor Primi: pasif danışman ve o ay cirosu olmayan satırlar gizlendi
 
 Broker: "pasif danışmanı mentörlükte gösterme, bir de cirosu olmayan

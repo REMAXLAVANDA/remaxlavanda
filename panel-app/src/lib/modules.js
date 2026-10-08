@@ -11,6 +11,7 @@ import {
   BookOpen,
   Inbox,
   UserSearch,
+  Receipt,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -20,6 +21,10 @@ const MANAGE_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS]
 // lib/roles.js canManageLeads). Recruiting MANAGE_ROLES'te (broker/owner/
 // ofis) kalıyor, ikisi artık farklı yetki seviyeleri.
 const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
+// Ciro Raporu: ofis'in ne oluşturma (sadece danışman) ne onaylama (sadece
+// broker/owner, bkz. lib/ciroRaporlari.js canApproveCiroRaporu) yetkisi
+// var — menüde de hiç görünmüyor (2026-10-08 broker kararı).
+const CIRO_RAPORU_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN]
 
 // "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
 // menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi
@@ -124,6 +129,15 @@ export const MODULES = [
     description: '4 aylık ödül sıralaması',
     icon: Trophy,
     roles: ALL_ROLES,
+    group: 'takip',
+  },
+  {
+    key: 'ciro-raporlari',
+    path: '/ciro-raporlari',
+    label: 'Ciro Raporları',
+    description: 'Kapanan işlemleri raporla, onayla — Lig ve Mentor Primi\'ni besler',
+    icon: Receipt,
+    roles: CIRO_RAPORU_ROLES,
     group: 'takip',
   },
   {

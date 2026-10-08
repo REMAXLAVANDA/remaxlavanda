@@ -26,6 +26,8 @@ export const metaWebhookErrors = provider.metaWebhookErrors
 export const telsamWebhookErrors = provider.telsamWebhookErrors
 export const metaCapiErrors = provider.metaCapiErrors
 export const mentorPrimi = provider.mentorPrimi
+export const ciroRaporlari = provider.ciroRaporlari
+export const danismanAnlasmalari = provider.danismanAnlasmalari
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

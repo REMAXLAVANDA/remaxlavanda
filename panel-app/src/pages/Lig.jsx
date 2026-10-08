@@ -10,7 +10,6 @@ import {
   LEAGUE_CATEGORY_COLORS,
   buildShareText,
   canAnnouncePeriod,
-  canManageCiroScores,
   canManagePeriods,
   canManageScores,
   canSeeCiroAmounts,
@@ -25,9 +24,7 @@ import ReviewCreditsPanel from '../components/league/ReviewCreditsPanel'
 import ActivityPointsSettings from '../components/league/ActivityPointsSettings'
 import CriteriaPanel from '../components/league/CriteriaPanel'
 import ShareCardModal from '../components/league/ShareCardModal'
-import AddScoreModal from '../components/league/AddScoreModal'
 import AddSocialActivityModal from '../components/league/AddSocialActivityModal'
-import AddEntryChooserModal from '../components/league/AddEntryChooserModal'
 import NewPeriodModal from '../components/league/NewPeriodModal'
 import PastPeriodsMenu from '../components/league/PastPeriodsMenu'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
@@ -57,16 +54,13 @@ export default function Lig() {
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const [tab, setTab] = useState(LEAGUE_CATEGORIES[0].key)
   const [periodId, setPeriodId] = useState(null)
-  const [showScoreModal, setShowScoreModal] = useState(false)
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showActivityModal, setShowActivityModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
-  const [showChooserModal, setShowChooserModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   // Native window.confirm() yerine portalın kendi ConfirmDialog'u — bkz.
-  // handleAnnounce/handleRemoveCiroGiris/handleRemoveSocialActivity.
+  // handleAnnounce/handleRemoveSocialActivity.
   const [announceConfirmOpen, setAnnounceConfirmOpen] = useState(false)
-  const [removeCiroTarget, setRemoveCiroTarget] = useState(null)
   const [removeActivityTarget, setRemoveActivityTarget] = useState(null)
   // ReviewCreditsPanel'in kendi state'i değil, burada tutuluyor — isim
   // ekleme/silme/işaretleme her seferinde reload() tetikleyip paneli kısa
@@ -77,11 +71,6 @@ export default function Lig() {
   const userName = useCallback((id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const isManager = canManageScores(role)
   const isBroker = canManagePeriods(role)
-  // Ciro TL girişi/silme artık isManager'dan (broker/owner/ofis) daha dar —
-  // sadece broker/owner (bkz. lib/league.js canManageCiroScores, 2026-10-08
-  // broker kararı). isManager geniş kapısı sosyal medya girişi/yorum hakkı
-  // için hâlâ ofis'e açık, SADECE ciro'ya özel yerlerde canCiro kullanılıyor.
-  const canCiro = canManageCiroScores(role)
 
   // Veri geldiğinde en güncel (en yeni başlangıçlı) dönem varsayılan seçili gelir.
   useEffect(() => {
@@ -193,36 +182,19 @@ export default function Lig() {
 
   const rankings = rankingsByCategory[tab] ?? []
 
-  // "En son hangi ciroyu/sosyal medya verisini girdik" sorusuna cevap —
-  // kategori bazında son 3 giriş. Sayfada DEĞİL, ilgili "Veri Gir"
-  // modalının içinde gösteriliyor (bkz. AddScoreModal/
-  // AddSocialActivityModal'daki recentEntries prop'u) — broker: "veri
-  // girdiğimiz ekranda açılsın, sayfada görünmesin". Ciro tutarı BİLEREK
-  // gösteriliyor (broker: "RAKAM DA DAHİL YOKSA anlaşılmıyor") — burası
-  // zaten sadece yöneticiye (isManager) açık bir denetim akışı, Lig'in
-  // podyum/sıralama ekranlarındaki "mutlak rakam yok" kuralı (danışmanlar
-  // arası mahremiyet için) burada geçerli değil; LeagueBoard'daki ciro
-  // geçmişi de aynı nedenle zaten tutarı gösteriyor.
-  // Memnuniyet burada YOK — Müşteri Memnuniyeti "Veri Gir"den kaldırıldı
-  // (ciro girilirken müşteri adı zaten aynı formda ekleniyor).
+  // "En son hangi sosyal medya verisini girdik" sorusuna cevap — son 3
+  // giriş. Sayfada DEĞİL, "Sosyal Medya Ekle" modalının içinde gösteriliyor
+  // (bkz. AddSocialActivityModal'daki recentEntries prop'u) — broker: "veri
+  // girdiğimiz ekranda açılsın, sayfada görünmesin". Ciro artık burada YOK
+  // — manuel "Ciro Gir" akışı kaldırıldı (2026-10-08 broker kararı), ciro
+  // artık Ciro Raporu sisteminden broker onayıyla otomatik yazılıyor (bkz.
+  // lib/ciroRaporlari.js).
   // "when" alanı net TARİH gösterir ("dün"/"2 gün önce" DEĞİL — broker:
-  // "işlem tarihi olmalı her yerde", bkz. formatDateOnly). Ciro'da
-  // sistemin işlem yapıldığı tarih olan `tarih` alanı kullanılıyor
-  // (`createdAt` girişin sisteme kaydedildiği an, geriye tarihli
-  // girişlerde ikisi farklı olabilir) — sosyal medyada ayrı bir işlem
-  // tarihi kolonu DB'de yok, en yakın karşılığı `createdAt`.
+  // "işlem tarihi olmalı her yerde", bkz. formatDateOnly).
   const recentEntriesByCategory = useMemo(() => {
     if (!periodId) return {}
     const activityTypeName = (id) => activityTypes.find((t) => t.id === id)?.ad ?? 'aktivite'
     return {
-      ciro: sortByCreatedDesc((data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId))
-        .slice(0, 3)
-        .map((g) => ({
-          id: g.id,
-          danismanName: userName(g.userId),
-          detail: canSeeCiroAmounts(role) ? `${Number(g.value).toLocaleString('tr-TR')} TL ciro girişi` : '•••• TL ciro girişi',
-          when: formatDateOnly(g.tarih),
-        })),
       sosyal_medya: sortByCreatedDesc((data?.socialActivityLog ?? []).filter((l) => l.periodId === periodId))
         .slice(0, 3)
         .map((l) => ({
@@ -232,23 +204,7 @@ export default function Lig() {
           when: formatDateOnly(l.createdAt),
         })),
     }
-  }, [data, periodId, userName, activityTypes, role])
-
-  // Ciro sekmesindeki sıralama satırına tıklayınca "sonradan kontrol"
-  // amaçlı girilen ciro geçmişi (tarih + tutar) görülebilsin diye —
-  // score_entries.value tek satır olduğu için geçmiş burada ayrı tutuluyor.
-  const ciroHistoryByUser = useMemo(() => {
-    const rows = (data?.ciroGirisleri ?? []).filter((g) => g.periodId === periodId)
-    const map = {}
-    for (const g of rows) {
-      if (!map[g.userId]) map[g.userId] = []
-      map[g.userId].push(g)
-    }
-    for (const list of Object.values(map)) {
-      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    }
-    return map
-  }, [data, periodId])
+  }, [data, periodId, userName, activityTypes])
 
   // Sosyal Medya sekmesindeki sıralama satırına tıklayınca Ciro'daki gibi
   // giriş geçmişi (tarih + "3x Instagram Post") görülebilsin diye — broker:
@@ -266,29 +222,6 @@ export default function Lig() {
     }
     return map
   }, [data, periodId, activityTypes])
-
-  // Ciro girilirken müşteri isimleri de aynı formda eklenebiliyor (bkz.
-  // AddScoreModal) — ayrı bir menüye gitmeye gerek kalmasın diye. Skor
-  // kaydedilince addScore'un döndürdüğü periodId ile isimler de eklenir;
-  // eski (isimsiz) bir ciroya isim eklemek için de aynı yol kullanılıyor.
-  async function handleAddScore(form) {
-    setSubmitting(true)
-    try {
-      const result = await leagueProvider.addScore(form, user.id)
-      if (form.type === 'ciro' && form.musteriler?.length) {
-        for (const adSoyad of form.musteriler) {
-          await leagueProvider.addCiroMusteri({ userId: form.userId, periodId: result.periodId, adSoyad }, user.id)
-        }
-      }
-      setShowScoreModal(false)
-      showToast('Skor kaydedildi.', 'success')
-      reload()
-    } catch (err) {
-      showToast(err.message ?? 'Skor kaydedilemedi, tekrar dene.', 'error')
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   // "Sonuçları açıkla" — kalıcı bir işlem (2026-09-02 broker kararı: bir
   // kere açıklanan dönem geri kapanmaz), o yüzden onay isteniyor. Native
@@ -371,27 +304,6 @@ export default function Lig() {
     }
   }
 
-  // Yanlış girilen bir satırı düzeltmenin tek yolu (broker: "Murat
-  // Sarılgan'a yanlış giriş yaptık") — sil, sonra doğrusunu yeniden gir.
-  // Silme, o danışmanın dönem toplamını (score_entries) otomatik yeniden
-  // hesaplar (bkz. dataProvider). Native window.confirm() yerine
-  // ConfirmDialog — bkz. handleAnnounce'daki aynı gerekçe.
-  function requestRemoveCiroGiris(id) {
-    setRemoveCiroTarget(id)
-  }
-
-  async function handleRemoveCiroGiris() {
-    const id = removeCiroTarget
-    setRemoveCiroTarget(null)
-    try {
-      await leagueProvider.removeCiroGiris(id, user.id)
-      showToast('Ciro kaydı silindi.', 'success')
-      reload()
-    } catch (err) {
-      showToast(err.message ?? 'Silinemedi, tekrar dene.', 'error')
-    }
-  }
-
   function requestRemoveSocialActivity(id) {
     setRemoveActivityTarget(id)
   }
@@ -417,22 +329,6 @@ export default function Lig() {
       reload()
     } catch (err) {
       showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
-    }
-  }
-
-  // Tek "Veri Gir" girişi, dağınık sekme-bazlı butonlar yerine — hangi
-  // kategori seçilirse ilgili modalı açar (bkz. "veri giriş biraz
-  // karışık" isteği). Müşteri Memnuniyeti burada YOK — ciro girilirken
-  // müşteri adı zaten aynı formda ekleniyor, ayrı bir giriş noktasına
-  // gerek yok (broker kararı).
-  function handleChooseEntryType(key) {
-    setShowChooserModal(false)
-    if (key === 'ciro') {
-      setTab('ciro')
-      setShowScoreModal(true)
-    } else {
-      setTab('sosyal_medya')
-      setShowActivityModal(true)
     }
   }
 
@@ -510,12 +406,17 @@ export default function Lig() {
               <CalendarPlus size={16} /> Yeni Dönem
             </button>
           )}
+          {/* Ciro artık burada girilmiyor — danışman kendi Ciro Raporu'nu
+              oluşturur, broker/owner onaylar (bkz. lib/ciroRaporlari.js,
+              2026-10-08 broker kararı: manuel "Ciro Gir" akışı kaldırıldı).
+              "Veri Gir" tek kategoriye (sosyal medya) kaldığı için artık
+              aradaki seçim modalı yok, direkt o modalı açıyor. */}
           {isManager && !isBlackedOut && !loading && !error && period && (
             <button
-              onClick={() => setShowChooserModal(true)}
+              onClick={() => setShowActivityModal(true)}
               className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
             >
-              <Plus size={16} /> Veri Gir
+              <Plus size={16} /> Sosyal Medya Ekle
             </button>
           )}
         </div>
@@ -646,13 +547,11 @@ export default function Lig() {
           <LeagueBoard
             rankings={rankings}
             unit={category.unit}
-            historyByUser={canCiro && tab === 'ciro' ? ciroHistoryByUser : null}
             reviewByUser={isManager && tab === 'memnuniyet' ? reviewByUser : null}
             activityByUser={isManager && tab === 'sosyal_medya' ? socialActivityHistoryByUser : null}
             onAddMusteri={isManager ? handleAddCiroMusteri : undefined}
             onRemoveMusteri={isManager ? handleRemoveCiroMusteri : undefined}
             onToggleAlindi={isManager ? handleToggleAlindi : undefined}
-            onRemoveHistory={canCiro && tab === 'ciro' ? requestRemoveCiroGiris : undefined}
             onRemoveActivity={isManager && tab === 'sosyal_medya' ? requestRemoveSocialActivity : undefined}
             canSeeAmounts={canSeeCiroAmounts(role)}
           />
@@ -666,9 +565,10 @@ export default function Lig() {
       {!loading && !error && period && (
         <CriteriaPanel title="Ciro Nasıl Hesaplanır?" className="mt-6">
           <p>
-            "Ciro Gir" ile eklediğin her satışın tutarı dönem boyunca toplanır — üstüne yazılmaz, birikir. Örnek:
-            dönem içinde 500.000 TL, 300.000 TL ve 200.000 TL'lik 3 satış girersen, dönem toplamın 1.000.000 TL olur.
-            En yüksek toplama ulaşan lider olur.
+            Ciro artık Ciro Raporu'ndan geliyor — işlemi tamamladığın her satış için kendi Ciro Raporu'nu
+            oluşturursun, broker/owner onayladığında payına düşen tutar dönem toplamına eklenir. Üstüne yazılmaz,
+            birikir: dönem içinde 500.000 TL, 300.000 TL ve 200.000 TL'lik 3 işlem onaylanırsa, dönem toplamın
+            1.000.000 TL olur. En yüksek toplama ulaşan lider olur.
           </p>
         </CriteriaPanel>
       )}
@@ -725,20 +625,6 @@ export default function Lig() {
         <ActivityPointsSettings activityTypes={activityTypes} onUpdatePoint={handleUpdatePoint} editable={isBroker} />
       )}
 
-      {showChooserModal && (
-        <AddEntryChooserModal onClose={() => setShowChooserModal(false)} onChoose={handleChooseEntryType} showCiro={canCiro} />
-      )}
-
-      {showScoreModal && (
-        <AddScoreModal
-          onClose={() => setShowScoreModal(false)}
-          onSubmit={handleAddScore}
-          submitting={submitting}
-          danismanOptions={danismanOptions}
-          recentEntries={recentEntriesByCategory.ciro ?? []}
-        />
-      )}
-
       {showPeriodModal && (
         <NewPeriodModal onClose={() => setShowPeriodModal(false)} onSubmit={handleAddPeriod} submitting={submitting} />
       )}
@@ -772,17 +658,6 @@ export default function Lig() {
           onConfirm={handleAnnounce}
           onCancel={() => setAnnounceConfirmOpen(false)}
           confirming={submitting}
-        />
-      )}
-
-      {removeCiroTarget && (
-        <ConfirmDialog
-          title="Ciro kaydını sil"
-          message="Bu ciro kaydını silmek istiyor musun? Dönem toplamı otomatik güncellenir."
-          confirmLabel="Evet, sil"
-          tone="danger"
-          onConfirm={handleRemoveCiroGiris}
-          onCancel={() => setRemoveCiroTarget(null)}
         />
       )}
 
