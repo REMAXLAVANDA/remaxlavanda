@@ -168,12 +168,13 @@ export function canSelfEditAttendance(event) {
 }
 
 // event_attendance_update_manager RLS kuralıyla aynı: broker'da zaman sınırı
-// yok, owner/ofis etkinlik bitişinden en fazla 7 gün sonrasına kadar
-// katılımcı durumunu düzeltebilir (ofis bu kayıtları genelde ertesi gün/
-// haftada işliyor, aynı gün değil — bkz. broker kararı 2026-10-04).
+// yok, owner etkinlik bitişinden en fazla 7 gün sonrasına kadar katılımcı
+// durumunu (mazeret kabul/red dahil) düzeltebilir. 2026-10-08 broker kararı
+// (Ayarlar > Yetki tablosu denetimi) — ofis bu listeden çıkarıldı; önceki
+// 2026-10-04 kararında ofis de bu pencereye dahildi, bilinçli olarak geri alındı.
 export function canManagerEditAttendance(role, event) {
   if (role === ROLES.BROKER) return true
-  if (role !== ROLES.OWNER && role !== ROLES.OFIS) return false
+  if (role !== ROLES.OWNER) return false
   const deadline = new Date(event.endAt ?? event.startAt).getTime() + 7 * 24 * 60 * 60 * 1000
   return Date.now() <= deadline
 }

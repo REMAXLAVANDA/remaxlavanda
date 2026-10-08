@@ -24,12 +24,16 @@ const OPTIONS = [
 // ekleniyor (bkz. AddScoreModal); "isim düzelt/işaretle" ihtiyacı için
 // Yorum Hakkı paneli zaten sayfada duruyor (broker: "veri gir butonunda
 // müşteri memnuniyeti olmasın zaten ciro girerken otomatik giriliyor").
-export default function AddEntryChooserModal({ onClose, onChoose }) {
+// showCiro: ciro TL girişi 2026-10-08'den beri sadece broker/owner'a açık
+// (bkz. lib/league.js canManageCiroScores) — ofis bu modalı açtığında
+// "Ciro Girişi" seçeneği hiç görünmez, sadece "Sosyal Medya Aktivitesi" kalır.
+export default function AddEntryChooserModal({ onClose, onChoose, showCiro = true }) {
+  const options = showCiro ? OPTIONS : OPTIONS.filter((o) => o.key !== 'ciro')
   return (
     <Modal title="Veri Gir" onClose={onClose}>
       <p className="mb-3 text-xs text-text-muted">Hangi kategoriye veri gireceksin?</p>
       <div className="space-y-2">
-        {OPTIONS.map((o) => (
+        {options.map((o) => (
           <button
             key={o.key}
             onClick={() => onChoose(o.key)}

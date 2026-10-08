@@ -10,6 +10,7 @@ import {
   LEAGUE_CATEGORY_COLORS,
   buildShareText,
   canAnnouncePeriod,
+  canManageCiroScores,
   canManagePeriods,
   canManageScores,
   canSeeCiroAmounts,
@@ -76,6 +77,11 @@ export default function Lig() {
   const userName = useCallback((id) => knownUsers[id]?.name ?? '—', [knownUsers])
   const isManager = canManageScores(role)
   const isBroker = canManagePeriods(role)
+  // Ciro TL girişi/silme artık isManager'dan (broker/owner/ofis) daha dar —
+  // sadece broker/owner (bkz. lib/league.js canManageCiroScores, 2026-10-08
+  // broker kararı). isManager geniş kapısı sosyal medya girişi/yorum hakkı
+  // için hâlâ ofis'e açık, SADECE ciro'ya özel yerlerde canCiro kullanılıyor.
+  const canCiro = canManageCiroScores(role)
 
   // Veri geldiğinde en güncel (en yeni başlangıçlı) dönem varsayılan seçili gelir.
   useEffect(() => {
@@ -640,13 +646,13 @@ export default function Lig() {
           <LeagueBoard
             rankings={rankings}
             unit={category.unit}
-            historyByUser={isManager && tab === 'ciro' ? ciroHistoryByUser : null}
+            historyByUser={canCiro && tab === 'ciro' ? ciroHistoryByUser : null}
             reviewByUser={isManager && tab === 'memnuniyet' ? reviewByUser : null}
             activityByUser={isManager && tab === 'sosyal_medya' ? socialActivityHistoryByUser : null}
             onAddMusteri={isManager ? handleAddCiroMusteri : undefined}
             onRemoveMusteri={isManager ? handleRemoveCiroMusteri : undefined}
             onToggleAlindi={isManager ? handleToggleAlindi : undefined}
-            onRemoveHistory={isManager && tab === 'ciro' ? requestRemoveCiroGiris : undefined}
+            onRemoveHistory={canCiro && tab === 'ciro' ? requestRemoveCiroGiris : undefined}
             onRemoveActivity={isManager && tab === 'sosyal_medya' ? requestRemoveSocialActivity : undefined}
             canSeeAmounts={canSeeCiroAmounts(role)}
           />
@@ -720,7 +726,7 @@ export default function Lig() {
       )}
 
       {showChooserModal && (
-        <AddEntryChooserModal onClose={() => setShowChooserModal(false)} onChoose={handleChooseEntryType} />
+        <AddEntryChooserModal onClose={() => setShowChooserModal(false)} onChoose={handleChooseEntryType} showCiro={canCiro} />
       )}
 
       {showScoreModal && (

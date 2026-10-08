@@ -23,10 +23,12 @@ export function categoryLabel(key) {
   return OPPORTUNITY_CATEGORIES.find((c) => c.key === key)?.label ?? 'Diğer'
 }
 
-// categories_manage RLS kuralıyla birebir aynı: sadece broker ve owner
-// kategori ekleyip/silip/sırasını değiştirebilir (Ayarlar > Kategori).
+// categories_manage RLS kuralıyla birebir aynı: SADECE broker kategori
+// ekleyip/silip/sırasını değiştirebilir (Ayarlar > Kategori). 2026-10-08
+// broker kararı — önceden owner da yetkiliydi, Yetki tablosu denetiminde
+// daraltıldı.
 export function canManageCategories(role) {
-  return role === ROLES.BROKER || role === ROLES.OWNER
+  return role === ROLES.BROKER
 }
 
 // Yeni kategori eklerken kullanıcıdan ayrıca "key" istemiyoruz — etiketten

@@ -1,10 +1,10 @@
 import { ROLES } from './roles'
 
-// docs_manage RLS kuralıyla birebir aynı: broker/ofis/owner yönetir
-// (2026-09-17 broker kararı: owner de belge ekleyebilsin — eskiden owner
-// sadece görüntülüyordu, artık broker/ofis ile aynı yetkide).
+// docs_manage RLS kuralıyla birebir aynı: SADECE broker belge ekleyip/
+// silebilir. 2026-10-08 broker kararı — önceden owner VE ofis de
+// yetkiliydi (bkz. 2026-09-17 kararı), Yetki tablosu denetiminde daraltıldı.
 export function canManageDocs(role) {
-  return role === ROLES.BROKER || role === ROLES.OFIS || role === ROLES.OWNER
+  return role === ROLES.BROKER
 }
 
 export function currentVersion(docId, versions) {

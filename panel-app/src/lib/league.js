@@ -35,8 +35,22 @@ export const LEAGUE_CATEGORY_COLORS = {
 export const MANUAL_SCORE_CATEGORIES = LEAGUE_CATEGORIES.filter((c) => c.key === 'ciro')
 
 // score_entries_manage RLS kuralıyla aynı: sadece broker/owner/ofis skor girebilir.
+// NOT: bu geniş kapı Lig sayfasının genel "yönetici" ayrımı için kalıyor
+// (dönem seçici, sosyal medya girişi, yorum hakkı/müşteri takibi — hepsi
+// hâlâ ofis'e açık). Ciro TL girişi için ayrı, daha dar
+// canManageCiroScores() kullanılıyor (bkz. aşağı).
 export function canManageScores(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
+}
+
+// ciro_girisleri_manage RLS kuralıyla aynı: 2026-10-08 broker kararı
+// (Ayarlar > Yetki tablosu denetimi) — ciro TL girişi/silme artık SADECE
+// broker/owner, ofis çıkarıldı. score_entries_manage/social_activity_log_manage
+// GİBİ geniş fonksiyonlara BİLEREK dokunulmadı — aynı altyapı ofis'in
+// sosyal medya girişinde kullanılıyor (bkz. supabaseProvider.js
+// recomputeSocialTotal), ciro_girisleri kendi başına ayrı/daha dar bir kapı.
+export function canManageCiroScores(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER
 }
 
 // Ciro'nun MUTLAK TL tutarı (skor girişi geçmişi/son kayıtlar akışında) —

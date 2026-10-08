@@ -3,6 +3,54 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Yetki tablosu denetimi: 4 yetki daraltıldı (ciro, mazeret, kategori, rehber doküman)
+
+Aynı denetimin devamı (önceki girişe bakın — Log sekmesi) — broker kalan 3
+maddeyi de "onaylıyorum" dedi, 4. madde (Lig Dönemi) zaten koda bakılınca
+gereksizdi (aşağıda). Hepsi NARROWING, hiçbiri yeni erişim açmıyor —
+migration `20261008100000_yetki_tablosu_denetimi_daraltma.sql`, önce
+commit edilip sonra uygulandı (CLAUDE.md kuralı).
+
+- **Skor Girişi (Ciro) → broker/owner (ofis çıktı)**: Burada tek satırlık
+  bir rol değişikliği YETMEDİ — `canManageScores` (eski `isManager`) tek
+  bir "yönetici" bayrağı olarak Lig.jsx'in HER yerinde kullanılıyordu:
+  dönem seçici, "Veri Gir" butonu, ciro VE sosyal medya VE yorum hakkı
+  (müşteri memnuniyeti) işlemleri hepsi aynı bayrağa bağlıydı. Broker'ın
+  önceki netleştirmesi ("ofis dönem açamasın ama sosyal medya girişi
+  yapsın") zaten ofis'in sosyal medya girişini KORUMAMIZ gerektiğini
+  söylüyordu — o yüzden `canManageScores`'a dokunmadan, SADECE ciro'ya
+  özel yeni bir `canManageCiroScores` (`lib/league.js`) eklendi. Lig.jsx'te
+  ciro geçmişi/silme butonu ve "Veri Gir" seçici modalındaki "Ciro Girişi"
+  seçeneği (`AddEntryChooserModal`, yeni `showCiro` prop) bu dar yetkiye
+  bağlandı; sosyal medya girişi, dönem seçici, yorum hakkı/müşteri takibi
+  hâlâ ofis'e açık. DB tarafında SADECE `ciro_girisleri_manage` politikası
+  daraltıldı — `score_entries_manage`/`social_activity_log_manage`'a
+  BİLEREK dokunulmadı, çünkü ofis'in sosyal medya girişi de (recompute
+  sırasında) `score_entries`'e yazıyor; o paylaşılan altyapıyı kırardı.
+- **Mazeret Kabul/Red → broker/owner (ofis çıktı)**: `event_attendance_
+  update_manager` politikası ve `lib/calendar.js canManagerEditAttendance`.
+  2026-10-04'te broker'ın kendisi ofis'e 7 günlük düzeltme hakkı vermişti
+  ("ofis bu kayıtları ertesi gün/haftada işliyor") — 2026-10-08'de bu
+  bilerek geri alındı.
+- **Kategori Yönetimi (Rehber klasörleri) → sadece broker (owner çıktı)**:
+  `categories_manage` politikası ve `lib/categories.js canManageCategories`.
+- **Rehber Doküman Ekle/Sil → sadece broker (owner VE ofis çıktı)**:
+  `docs_manage`/`doc_versions_manage` politikaları ve `lib/docs.js
+  canManageDocs`. Metadata tablolarıyla AYNI anda storage.objects'teki
+  gerçek dosya yükleme/güncelleme/silme izni (`docs_bucket_insert/update/
+  delete`) de daraltıldı — aksi halde owner/ofis doküman KAYDI oluşturamasa
+  da dosyayı doğrudan storage'a yükleyebilirdi (yarım bir kısıtlama olurdu).
+- **Lig Dönemi Aç / Sosyal Medya (değişiklik YOK)**: kod zaten brokerın
+  istediği gibiydi — dönem açma sadece broker (`canManagePeriods`), sosyal
+  medya aktivite girişi broker/owner/ofis (`canManageScores`), ikisi zaten
+  ayrı fonksiyon. `PermissionMatrix.jsx`'teki özet tek satırı iki ayrı
+  yetkiyi gösterecek şekilde ikiye bölündü (gerçek bir davranış değişikliği
+  değil, sadece salt-okunur tablo netleşti).
+
+Her değişiklik `set local role authenticated; set local request.jwt.claims`
+ile ofis/owner/broker simülasyonuyla test edildi (CLAUDE.md RLS kontrol
+listesi — advisor'a bakıp geçmek yetmiyor). 173/173 test, lint, build temiz.
+
 ## 2026-10-08 — Yetki tablosu denetimi: Log sekmesi artık sadece broker
 
 Broker, Ayarlar > Yetki'deki tabloyu satır satır gözden geçirip güncel
