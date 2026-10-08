@@ -68,7 +68,6 @@ export default function Ayarlar() {
     const monthKey = currentMonthKey()
     return { oran: MENTOR_PRIMI_DEFAULT_ORAN, gunSayisi: MENTOR_PRIMI_DEFAULT_GUN, monthKey, ...monthRangeFor(monthKey) }
   })
-  const [savingMentorPrimiUserId, setSavingMentorPrimiUserId] = useState(null)
 
   const { data: allUsers, setData: setAllUsers, loading, error, reload } = useAsyncList(
     () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
@@ -135,43 +134,43 @@ export default function Ayarlar() {
     () => (canManage && tab === 'webhook' ? metaCapiErrorsProvider.list() : Promise.resolve([])),
     [canManage, tab],
   )
+  // Mentorluk başlangıç tarihi listesi HAFİF (sadece userId+tarih çifti) —
+  // tab'dan bağımsız, broker Ayarlar'da olduğu sürece yüklü: hem Mentor
+  // Primi sekmesindeki tabloda hem Kullanıcılar sekmesindeki Düzenle
+  // formunda (mevcut değeri doldurmak için) kullanılıyor. Ciro girişleri
+  // ise daha ağır bir sorgu — sadece Mentor Primi sekmesindeyken çekiliyor.
   const {
-    data: mentorPrimiRaw,
-    setData: setMentorPrimiRaw,
+    data: mentorPrimiBaslangicList,
+    setData: setMentorPrimiBaslangicList,
+  } = useAsyncList(() => (canViewMentor ? mentorPrimiProvider.listBaslangicTarihleri() : Promise.resolve([])), [canViewMentor])
+  const {
+    data: mentorPrimiCiroGirisleri,
     loading: loadingMentorPrimi,
     error: mentorPrimiError,
     reload: reloadMentorPrimi,
   } = useAsyncList(
-    () =>
-      canViewMentor && tab === 'mentor-primi'
-        ? Promise.all([leagueProvider.listCiroGirisleri(), mentorPrimiProvider.listBaslangicTarihleri()]).then(
-            ([ciroGirisleri, baslangicList]) => ({ ciroGirisleri, baslangicList }),
-          )
-        : Promise.resolve({ ciroGirisleri: [], baslangicList: [] }),
+    () => (canViewMentor && tab === 'mentor-primi' ? leagueProvider.listCiroGirisleri() : Promise.resolve([])),
     [canViewMentor, tab],
   )
   const mentorPrimiData = useMemo(() => {
-    const rows = mentorPrimiRows(allUsers, mentorPrimiRaw?.ciroGirisleri, mentorPrimiRaw?.baslangicList, mentorPrimiForm)
+    const rows = mentorPrimiRows(allUsers, mentorPrimiCiroGirisleri, mentorPrimiBaslangicList, mentorPrimiForm)
     return { rows, toplam: mentorPrimiToplam(rows) }
-  }, [allUsers, mentorPrimiRaw, mentorPrimiForm])
+  }, [allUsers, mentorPrimiCiroGirisleri, mentorPrimiBaslangicList, mentorPrimiForm])
 
-  async function handleSetMentorPrimiBaslangic(userId, baslangicTarihi) {
-    setSavingMentorPrimiUserId(userId)
-    try {
-      if (baslangicTarihi) {
-        await mentorPrimiProvider.upsertBaslangicTarihi(userId, baslangicTarihi, user.id)
-        setMentorPrimiRaw((prev) => ({
-          ...prev,
-          baslangicList: [...(prev?.baslangicList ?? []).filter((b) => b.userId !== userId), { userId, baslangicTarihi }],
-        }))
-      } else {
-        await mentorPrimiProvider.removeBaslangicTarihi(userId)
-        setMentorPrimiRaw((prev) => ({ ...prev, baslangicList: (prev?.baslangicList ?? []).filter((b) => b.userId !== userId) }))
-      }
-    } catch (err) {
-      showToast(err.message ?? 'Başlangıç tarihi kaydedilemedi, tekrar dene.', 'error')
-    } finally {
-      setSavingMentorPrimiUserId(null)
+  // CreateUserModal/EditUserModal'dan ("bence bunu danışman kaydettiğimiz
+  // yere alalım", 2026-10-08) çağrılıyor — sadece broker (canViewMentor) ve
+  // sadece gerçek, tam bir tarih girildiğinde. Boş/kısmi değerle hiç
+  // çağrılmaz (bkz. o modallardaki form state — değer SADECE "Kaydet"e
+  // basınca buraya geliyor, eski satır-içi anında-kaydeden kutudaki gibi
+  // her tuşta ağa istek atmıyor).
+  async function persistMentorBaslangic(userId, baslangicTarihi) {
+    if (!canViewMentor || baslangicTarihi === undefined) return
+    if (baslangicTarihi) {
+      await mentorPrimiProvider.upsertBaslangicTarihi(userId, baslangicTarihi, user.id)
+      setMentorPrimiBaslangicList((prev) => [...(prev ?? []).filter((b) => b.userId !== userId), { userId, baslangicTarihi }])
+    } else {
+      await mentorPrimiProvider.removeBaslangicTarihi(userId)
+      setMentorPrimiBaslangicList((prev) => (prev ?? []).filter((b) => b.userId !== userId))
     }
   }
 
@@ -401,6 +400,13 @@ export default function Ayarlar() {
           // akışını bloke etmiyoruz, sessizce vazgeçiyoruz.
         }
       }
+      if (form.mentorBaslangicTarihi) {
+        try {
+          await persistMentorBaslangic(created.id, form.mentorBaslangicTarihi)
+        } catch {
+          showToast('Kullanıcı oluşturuldu ama Mentor Primi başlangıç tarihi kaydedilemedi.', 'error')
+        }
+      }
     } catch (err) {
       showToast(err.message ?? 'Kullanıcı oluşturulamadı, tekrar dene.', 'error')
     } finally {
@@ -420,6 +426,13 @@ export default function Ayarlar() {
         { userId: editingUser.id, dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo },
       ])
       await syncBirthdayEvent(editingUser.id, patch.ad, patch.dogumTarihi)
+      if (patch.mentorBaslangicTarihi !== undefined) {
+        try {
+          await persistMentorBaslangic(editingUser.id, patch.mentorBaslangicTarihi)
+        } catch {
+          showToast('Kullanıcı güncellendi ama Mentor Primi başlangıç tarihi kaydedilemedi.', 'error')
+        }
+      }
       setEditingUser(null)
       showToast('Kullanıcı güncellendi.', 'success')
     } catch (err) {
@@ -682,21 +695,27 @@ export default function Ayarlar() {
               onFormChange={setMentorPrimiForm}
               rows={mentorPrimiData.rows}
               toplam={mentorPrimiData.toplam}
-              onSetBaslangic={handleSetMentorPrimiBaslangic}
-              savingUserId={savingMentorPrimiUserId}
+              onGoToUsers={() => setTab('kullanicilar')}
             />
           )}
         </>
       )}
 
       {showCreateModal && (
-        <CreateUserModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateUser} submitting={submitting} />
+        <CreateUserModal
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={handleCreateUser}
+          submitting={submitting}
+          canSetMentorPrimi={canViewMentor}
+        />
       )}
 
       {editingUser && (
         <EditUserModal
           user={editingUser}
           privateInfo={(privateInfoList ?? []).find((p) => p.userId === editingUser.id)}
+          mentorBaslangicTarihi={(mentorPrimiBaslangicList ?? []).find((b) => b.userId === editingUser.id)?.baslangicTarihi}
+          canSetMentorPrimi={canViewMentor}
           onClose={() => setEditingUser(null)}
           onSubmit={handleEditUser}
           submitting={submitting}

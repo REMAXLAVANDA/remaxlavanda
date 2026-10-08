@@ -11,7 +11,7 @@ const TC_NO_PATTERN = /^\d{11}$/
 // initialValues: Recruiting'de "Danışman Olarak Ekle" ile açıldığında
 // aday bilgilerini (ad/telefon/email) ön-doldurur (bkz. Recruiting.jsx
 // handleConvertToDanisman) — RecruitingDetailModal ile AYNI desen.
-export default function CreateUserModal({ onClose, onSubmit, submitting, initialValues }) {
+export default function CreateUserModal({ onClose, onSubmit, submitting, initialValues, canSetMentorPrimi }) {
   const [form, setForm] = useState({
     ad: initialValues?.ad ?? '',
     email: initialValues?.email ?? '',
@@ -20,6 +20,7 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
     rol: ROLES.DANISMAN,
     dogumTarihi: '',
     tcNo: '',
+    mentorBaslangicTarihi: '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
@@ -94,6 +95,27 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
             </option>
           ))}
         </select>
+        {/* Mentor Primi başlangıç tarihi — SADECE broker görüyor (bkz.
+            canSetMentorPrimi, Ayarlar.jsx canViewMentorPrimi) ve SADECE
+            danışman rolünde anlamlı. Broker "bence bunu danışman
+            kaydettiğimiz yere alalım" dedi (2026-10-08) — eskiden Mentor
+            Primi sekmesinde satır içi, onChange'de anında kaydeden bir
+            tarih kutusuydu; kısmi/eksik bir tarih girişinde bile ağa istek
+            atıyordu. Artık diğer alanlar gibi SADECE "Oluştur"a basınca
+            kaydediliyor. */}
+        {canSetMentorPrimi && form.rol === ROLES.DANISMAN && (
+          <div>
+            <label className="mb-1 block text-xs text-text-secondary">
+              Mentorluk Başlangıç Tarihi (opsiyonel) <span className="text-text-muted">— sadece sen görürsün</span>
+            </label>
+            <input
+              type="date"
+              value={form.mentorBaslangicTarihi}
+              onChange={(e) => set({ mentorBaslangicTarihi: e.target.value })}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+            />
+          </div>
+        )}
         <div>
           <label className="mb-1 block text-xs text-text-secondary">Geçici şifre (kullanıcıya sen ileteceksin)</label>
           <div className="flex gap-2">

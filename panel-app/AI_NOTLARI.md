@@ -3,6 +3,35 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Mentor Primi başlangıç tarihi artık Kullanıcılar'da ("tarihi seçemiyorum" bug fix)
+
+Az önceki düzeltmede (bir alttaki giriş) mentorluk başlangıç tarihi Mentor
+Primi tablosunda satır içi bir `<input type="date">` idi, `onChange`'te
+HEMEN kaydediyordu. Broker "tarihi seçemiyorum" dedi — kök neden: native
+tarih kutuları klavyeyle yazarken (gün/ay girilip yıl tamamlanmadan)
+ara sıra boş/eksik bir `onChange` fırlatır; kod bunu "temizlendi" sayıp
+`removeBaslangicTarihi()` (DELETE) çağırıyordu — ve o sırada bu Supabase
+projesinde DELETE sorguları (nedeni araştırıldı, net sonuç çıkmadı,
+muhtemelen geçici bir platform sorunu) tutarlı biçimde asılı kalıyordu.
+`savingUserId` hiç temizlenmediği için kutu kalıcı olarak disabled
+görünüyordu.
+
+Broker'ın kendi önerisiyle ("bence bunu danışman kaydettiğimiz yere
+alalım") kalıcı çözüm: alan artık Mentor Primi'de DEĞİL, Kullanıcılar
+sekmesinde — `CreateUserModal`/`EditUserModal`'a doğum tarihi/TC no ile
+AYNI desende "Mentorluk Başlangıç Tarihi (opsiyonel) — sadece sen
+görürsün" eklendi (sadece broker'a, sadece danışman rolünde görünür).
+Diğer tüm kullanıcı alanları gibi SADECE "Oluştur"/"Kaydet"e basınca tek
+seferde kaydediliyor — artık hiçbir ara/eksik tuş vuruşu ağa istek
+atmıyor, bug'ın kök nedeni ortadan kalktı. `Ayarlar.jsx`'teki
+`persistMentorBaslangic()` iki modalın da ortak kaydetme yolu.
+`MentorPrimiPanel` artık salt-okunur: başlangıç tarihi girilmemiş
+danışman sayısı kadar "Kullanıcılar'a git" butonu gösteriyor.
+
+182/182 test, lint, build temiz. Mock modda Playwright ile uçtan uca
+doğrulandı: Düzenle modalında tarih girilip kaydedilince Mentor Primi
+tablosunda anında doğru ciro/prim görünüyor.
+
 ## 2026-10-08 — Mentor Primi: başlangıç tarihi artık broker'ın elinde, ay seçici eklendi
 
 Broker, az önce eklenen Mentor Primi'de iki sorun bildirdi: "danışman
