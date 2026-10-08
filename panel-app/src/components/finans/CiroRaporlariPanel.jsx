@@ -1,22 +1,22 @@
 import { useMemo, useState } from 'react'
 import { Plus, ChevronDown, ChevronUp, Check, X as XIcon, RotateCcw } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { opportunities as opportunitiesProvider, ciroRaporlari as ciroRaporlariProvider, danismanAnlasmalari as danismanAnlasmalariProvider } from '../lib/dataProvider'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { opportunities as opportunitiesProvider, ciroRaporlari as ciroRaporlariProvider, danismanAnlasmalari as danismanAnlasmalariProvider } from '../../lib/dataProvider'
 import {
   CIRO_RAPORU_DURUM_LABELS,
   CIRO_RAPORU_DURUM_STYLES,
   ISLEM_TIPI_LABELS,
   canSubmitCiroRaporu,
   canApproveCiroRaporu,
-} from '../lib/ciroRaporlari'
-import { formatDateOnly } from '../lib/format'
-import { LoadingState, ErrorState } from '../components/common/AsyncState'
-import CiroRaporuFormModal from '../components/ciroRaporlari/CiroRaporuFormModal'
-import CiroRaporuKatilimciRow from '../components/ciroRaporlari/CiroRaporuKatilimciRow'
-import RejectCiroRaporuModal from '../components/ciroRaporlari/RejectCiroRaporuModal'
+} from '../../lib/ciroRaporlari'
+import { formatDateOnly } from '../../lib/format'
+import { LoadingState, ErrorState } from '../common/AsyncState'
+import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
+import CiroRaporuKatilimciRow from '../ciroRaporlari/CiroRaporuKatilimciRow'
+import RejectCiroRaporuModal from '../ciroRaporlari/RejectCiroRaporuModal'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -31,7 +31,7 @@ async function loadAll() {
   return { opportunities, raporlar, anlasmalar }
 }
 
-export default function CiroRaporlari() {
+export default function CiroRaporlariPanel() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
@@ -231,12 +231,9 @@ export default function CiroRaporlari() {
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-semibold text-text-primary">Ciro Raporları</h1>
-          <p className="text-sm text-text-muted">
-            {isDanisman ? 'Kapattığın işlemleri raporla, broker onayladığında Lig ve Mentor Primi otomatik güncellenir.' : 'Danışmanların gönderdiği ciro raporlarını onayla/reddet.'}
-          </p>
-        </div>
+        <p className="text-sm text-text-muted">
+          {isDanisman ? 'Kapattığın işlemleri raporla, broker onayladığında Lig ve Mentor Primi otomatik güncellenir.' : 'Danışmanların gönderdiği ciro raporlarını onayla/reddet.'}
+        </p>
         {isDanisman && (
           <button
             onClick={() => setShowFormModal(true)}

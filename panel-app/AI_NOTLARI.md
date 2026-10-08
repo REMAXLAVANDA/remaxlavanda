@@ -3,6 +3,70 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-09 — Finans modülü: Cari Hesap, Masraflar, bağlanma parası (bloke) akışı + Ciro Raporları/Banka Hareketleri tek sayfada
+
+Broker bankadan gelen "bağlanma parası" (depozito) akışını anlattı: müşteri
+bağlanma parası gönderiyor → tapu gününe kadar blokede bekliyor → tapu günü
+ya geri gönderiliyor, ya satıcıya gönderiliyor, ya hizmet bedeline mahsup
+ediliyor, ya da mahsup edilip kalanı gönderiliyor. Ayrıca danışmanlara
+kesilen aylık fatura (sahibinden ilan bedeli + ofis katılım bedeli) ve
+danışmanın kestiği hizmet bedeli faturası birlikte "cari hesap" (borç/
+alacak defteri) olarak takip edilmeli. Sonuç: sol menüde yeni bir
+**Finans** grubu, 3 sayfa:
+
+- **Ciro Raporları** (var) — artık aynı sayfada sekmeyle **Banka
+  Hareketleri**'ni de içeriyor (`pages/Finans.jsx` sarmalayıcı,
+  `components/finans/CiroRaporlariPanel.jsx` +
+  `components/finans/BankaHareketleriPanel.jsx` — eski ayrı sayfalar
+  panel'e çevrildi). Broker eşleştirme yaparken iki ekran arasında gidip
+  gelmesin diye (broker isteği). Banka Hareketleri sekmesi danışmana hiç
+  görünmüyor.
+- **Masraflar** (yeni) — işleme bağlı masraf (tapu harcı/ilan gideri,
+  istenirse bir katılımcının hak edişinden düşülür) + aylık danışman
+  faturası (sahibinden/ofis katılım bedeli) girişi. İkisi de Cari
+  Hesap'a otomatik "borç" yazıyor.
+- **Cari Hesap** (yeni) — her danışmanın borç/alacak hareketleri ve net
+  bakiyesi, danışman bazında açılır/kapanır satırlarla.
+
+**Veri modeli** (migration `20261009110000_cari_hesap_ve_masraflar.sql`):
+`cari_hareketler` (danışman borç/alacak defteri — RLS: danışman sadece
+kendi satırlarını görür, yazma sadece broker/owner), `islem_masraflari`
+(ciro raporuna bağlı masraf detayı), `banka_hareketleri`'ne yeni kolonlar
+(`tip` giriş/çıkış, `opportunity_id`, `ust_hareket_id`, `tur`
+bağlanma_parasi/diğer, `durum`'a `blokede`/`cozuldu` eklendi).
+
+**Otomatik senkron zinciri** (hiç elle iş yok): Ciro Raporu onaylanınca
+(`ciroRaporlari.approve()`) her katılımcı için Cari Hesap'a "alacak"
+satırı açılıyor (tutar: fatura girilmişse fatura tutarı, girilmemişse
+önerilen komisyon). Fatura sonradan girilince/güncellenince
+(`updateKatilimciFatura()`) o satırın tutarı senkronize oluyor. Banka
+hareketi eşleştirilince (mevcut akış) hem katılımcının ödeme durumu
+"alındı" oluyor hem ilgili Cari Hesap satırı "kapandı" oluyor — TEK
+tetikleyici noktadan hem Ciro Raporu ekranı hem Cari Hesap aynı anda
+güncel kalıyor.
+
+**Bağlanma parası (bloke) çözümleme** (`bankaHareketleri.
+blokeyiCozumle()`, `components/finans/BlokeCozumleModal.jsx`): giriş
+hareketi bir fırsatla (ciro raporu henüz yokken) ilişkilendirilip
+"blokede" durumunda bekliyor. Çözümlerken: geri_gonder/saticiya_gonder
+→ tüm tutar yeni bir "çıkış" hareketi olarak kaydediliyor (ust_hareket_id
+ile blokeye bağlı); mahsup_et → tüm tutar seçilen katılımcının hizmet
+bedeline mahsup ediliyor (mevcut eşleştirme mekanizmasıyla AYNI); kismi_
+mahsup → bir kısmı mahsup edilip kalanı otomatik çıkış hareketi olarak
+gönderiliyor. Hepsi tek bir "Çözümle" ekranında.
+
+Yetki: Cari Hesap/Masraflar/Banka Hareketleri SADECE broker/owner
+(`canManageCiroScores` yeniden kullanıldı — Ciro Raporu onayıyla aynı
+seviye, danışman hiçbirini göremiyor/giremiyor).
+
+205/205 test, lint, build temiz. Mock modda Playwright ile uçtan uca
+doğrulandı: ciro raporu onayı → Cari Hesap'ta otomatik 480.000 TL alacak;
+işlem masrafı + aylık fatura girişi → doğru borç toplamı ve net bakiye
+(473.000 TL, elle hesapla doğrulandı); bağlanma parası girişi → kısmi
+mahsup (480.000 mahsup + 20.000 TL otomatik çıkış kaydı) → katılımcının
+"Ödeme alındı" olması; danışmanın Banka Hareketleri/Masraflar/Cari
+Hesap'a hiç erişememesi.
+
 ## 2026-10-09 — Banka Hareketleri: Vakıfbank API'si bağlanana kadar elle giriş + Ciro Raporu eşleştirme
 
 Broker Vakıfbank'la API görüşmesi sürdürüyor, henüz bağlanmadı. Köprü

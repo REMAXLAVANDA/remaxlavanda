@@ -13,6 +13,7 @@ import {
   UserSearch,
   Receipt,
   Landmark,
+  Wallet,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -26,9 +27,10 @@ const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 // broker/owner, bkz. lib/ciroRaporlari.js canApproveCiroRaporu) yetkisi
 // var — menüde de hiç görünmüyor (2026-10-08 broker kararı).
 const CIRO_RAPORU_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN]
-// Banka Hareketleri: para hareketleri hassas bilgi — Ciro Raporu onayıyla
-// aynı seviyeden de dar, sadece broker/owner (bkz. lib/bankaHareketleri.js).
-const BANKA_HAREKETLERI_ROLES = [ROLES.BROKER, ROLES.OWNER]
+// Finans'ın geri kalanı (Masraflar, Cari Hesap) ve Banka Hareketleri
+// sekmesi (Finans sayfasının içinde) — para hareketleri hassas bilgi,
+// sadece broker/owner (bkz. lib/bankaHareketleri.js, lib/cariHesap.js).
+const FINANS_YONETIM_ROLES = [ROLES.BROKER, ROLES.OWNER]
 
 // "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
 // menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi
@@ -39,6 +41,7 @@ const BANKA_HAREKETLERI_ROLES = [ROLES.BROKER, ROLES.OWNER]
 export const MODULE_GROUPS = {
   operasyon: 'Operasyon',
   takip: 'Gelişim',
+  finans: 'Finans',
 }
 
 export const MODULES = [
@@ -136,24 +139,6 @@ export const MODULES = [
     group: 'takip',
   },
   {
-    key: 'ciro-raporlari',
-    path: '/ciro-raporlari',
-    label: 'Ciro Raporları',
-    description: 'Kapanan işlemleri raporla, onayla — Lig ve Mentor Primi\'ni besler',
-    icon: Receipt,
-    roles: CIRO_RAPORU_ROLES,
-    group: 'takip',
-  },
-  {
-    key: 'banka-hareketleri',
-    path: '/banka-hareketleri',
-    label: 'Banka Hareketleri',
-    description: 'Gelen ödemeleri Ciro Raporu kayıtlarıyla eşleştir',
-    icon: Landmark,
-    roles: BANKA_HAREKETLERI_ROLES,
-    group: 'takip',
-  },
-  {
     key: 'rehber',
     path: '/rehber',
     label: 'Rehber',
@@ -161,6 +146,33 @@ export const MODULES = [
     icon: BookOpen,
     roles: ALL_ROLES,
     group: 'takip',
+  },
+  {
+    key: 'ciro-raporlari',
+    path: '/ciro-raporlari',
+    label: 'Ciro Raporları',
+    description: 'Kapanan işlemleri raporla, onayla, banka hareketleriyle eşleştir',
+    icon: Receipt,
+    roles: CIRO_RAPORU_ROLES,
+    group: 'finans',
+  },
+  {
+    key: 'masraflar',
+    path: '/masraflar',
+    label: 'Masraflar',
+    description: 'İşleme bağlı masraf + aylık danışman faturası',
+    icon: Landmark,
+    roles: FINANS_YONETIM_ROLES,
+    group: 'finans',
+  },
+  {
+    key: 'cari-hesap',
+    path: '/cari-hesap',
+    label: 'Cari Hesap',
+    description: 'Danışmanların borç/alacak defteri',
+    icon: Wallet,
+    roles: FINANS_YONETIM_ROLES,
+    group: 'finans',
   },
 ]
 

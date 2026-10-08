@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ROLES } from './roles'
-import { canManageBankaHareketleri, eslesmeAdaylari } from './bankaHareketleri'
+import { canManageBankaHareketleri, eslesmeAdaylari, kalanTutar } from './bankaHareketleri'
 
 describe('canManageBankaHareketleri', () => {
   it('sadece broker/owner yönetebilir', () => {
@@ -26,5 +26,19 @@ describe('eslesmeAdaylari', () => {
   it('boş aday listesinde boş dizi döner', () => {
     expect(eslesmeAdaylari(500, [])).toEqual([])
     expect(eslesmeAdaylari(500, undefined)).toEqual([])
+  })
+})
+
+describe('kalanTutar', () => {
+  it('bloke tutarından mahsup tutarını düşer', () => {
+    expect(kalanTutar(500000, 300000)).toBe(200000)
+  })
+
+  it('mahsup tutarı bloke tutarını geçerse 0 döner (negatif olmaz)', () => {
+    expect(kalanTutar(100000, 150000)).toBe(0)
+  })
+
+  it('mahsup girilmemişse tüm tutar kalan sayılır', () => {
+    expect(kalanTutar(100000, '')).toBe(100000)
   })
 })

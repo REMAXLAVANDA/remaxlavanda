@@ -29,6 +29,8 @@ export const mentorPrimi = provider.mentorPrimi
 export const ciroRaporlari = provider.ciroRaporlari
 export const danismanAnlasmalari = provider.danismanAnlasmalari
 export const bankaHareketleri = provider.bankaHareketleri
+export const cariHareketler = provider.cariHareketler
+export const islemMasraflari = provider.islemMasraflari
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

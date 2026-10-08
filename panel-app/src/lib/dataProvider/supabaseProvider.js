@@ -1346,6 +1346,29 @@ export const ciroRaporlari = {
     if ('odemeDurumu' in patch) dbPatch.odeme_durumu = patch.odemeDurumu
     if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
     await run(client().from('ciro_raporu_katilimcilari').update(dbPatch).eq('id', id))
+
+    // Cari Hesap senkronu: fatura tutarı değiştiyse ilgili alacak satırının
+    // tutarı güncellenir; ödeme durumu değiştiyse satır kapanır/açılır —
+    // bu katılımcı için approve()'da oluşturulmuş bir satır varsa (yoksa
+    // no-op, eq eşleşen satır bulamaz).
+    if ('faturaTutari' in patch && patch.faturaTutari != null) {
+      await run(
+        client()
+          .from('cari_hareketler')
+          .update({ tutar: patch.faturaTutari })
+          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
+          .eq('kaynak_id', id),
+      )
+    }
+    if ('odemeDurumu' in patch) {
+      await run(
+        client()
+          .from('cari_hareketler')
+          .update({ durum: patch.odemeDurumu === 'alindi' ? 'kapandi' : 'acik' })
+          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
+          .eq('kaynak_id', id),
+      )
+    }
   },
   // Onaylanınca her katılımcının payına düşen SATIŞ tutarı (komisyon değil
   // — bkz. lib/ciroRaporlari.js notu), mevcut league.addScore() üzerinden
@@ -1355,7 +1378,12 @@ export const ciroRaporlari = {
   async approve(id, approverId) {
     const [rapor, katilimcilar] = await Promise.all([
       run(client().from('ciro_raporlari').select('islem_tutari, islem_tarihi').eq('id', id).single()),
-      run(client().from('ciro_raporu_katilimcilari').select('danisman_id, pay_orani').eq('ciro_raporu_id', id)),
+      run(
+        client()
+          .from('ciro_raporu_katilimcilari')
+          .select('id, danisman_id, pay_orani, komisyon_tutari_onerisi, fatura_tutari')
+          .eq('ciro_raporu_id', id),
+      ),
     ])
     for (const k of katilimcilar) {
       const value = Number(rapor.islem_tutari) * (Number(k.pay_orani) / 100)
@@ -1367,6 +1395,24 @@ export const ciroRaporlari = {
         .update({ durum: 'onaylandi', onaylayan_id: approverId, onay_tarihi: new Date().toISOString() })
         .eq('id', id),
     )
+    // Cari Hesap: her katılımcı için hak ediş kadar "alacak" satırı —
+    // tutar fatura girilmişse fatura tutarı, girilmemişse önerilen komisyon
+    // (sonradan fatura girilince updateKatilimciFatura senkronize eder).
+    const cariRows = katilimcilar
+      .filter((k) => Number(k.fatura_tutari ?? k.komisyon_tutari_onerisi) > 0)
+      .map((k) => ({
+        danisman_id: k.danisman_id,
+        tarih: rapor.islem_tarihi,
+        tur: 'alacak',
+        tutar: k.fatura_tutari ?? k.komisyon_tutari_onerisi,
+        kategori: 'hizmet_bedeli',
+        kaynak_tip: 'ciro_raporu_katilimcisi',
+        kaynak_id: k.id,
+        created_by: approverId,
+      }))
+    if (cariRows.length > 0) {
+      await run(client().from('cari_hareketler').insert(cariRows))
+    }
   },
   async reject(id, redSebebi) {
     await run(client().from('ciro_raporlari').update({ durum: 'reddedildi', red_sebebi: redSebebi }).eq('id', id))
@@ -1435,6 +1481,11 @@ function mapBankaHareketi(row) {
     referansNo: row.referans_no,
     kaynak: row.kaynak,
     durum: row.durum,
+    tip: row.tip,
+    opportunityId: row.opportunity_id,
+    ustHareketId: row.ust_hareket_id,
+    tur: row.tur,
+    mahsupTutari: row.mahsup_tutari == null ? null : Number(row.mahsup_tutari),
     eslesenKatilimciId: row.eslesen_katilimci_id,
     eslestirenId: row.eslestiren_id,
     eslesmeTarihi: row.eslesme_tarihi,
@@ -1448,7 +1499,10 @@ export const bankaHareketleri = {
     const data = await run(client().from('banka_hareketleri').select('*').order('tarih', { ascending: false }))
     return data.map(mapBankaHareketi)
   },
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo }, olusturanId) {
+  // bagliOpportunityId + bloke:true verilirse "bağlanma parası" olarak
+  // girilir (tapu gününü bekleyen, fırsatla doğrudan ilişkili bir giriş
+  // hareketi) — ciro raporu henüz yoktur, bkz. lib/bankaHareketleri.js.
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke }, olusturanId) {
     const data = await run(
       client()
         .from('banka_hareketleri')
@@ -1459,6 +1513,10 @@ export const bankaHareketleri = {
           aciklama: aciklama || null,
           referans_no: referansNo || null,
           kaynak: 'manuel',
+          tip: 'giris',
+          opportunity_id: opportunityId || null,
+          tur: bloke ? 'baglanma_parasi' : 'diger',
+          durum: bloke ? 'blokede' : 'eslesmedi',
           olusturan_id: olusturanId,
         })
         .select()
@@ -1468,7 +1526,8 @@ export const bankaHareketleri = {
   },
   // Eşleştirince hem hareket "eşleşti" olur hem o katılımcının ödeme
   // durumu "alındı"ya döner — Ciro Raporları ekranındaki elle işaretleme
-  // ile AYNI alan, tek kaynak (bkz. CiroRaporuKatilimciRow).
+  // ile AYNI alan, tek kaynak (bkz. CiroRaporuKatilimciRow). Cari Hesap'taki
+  // ilgili alacak satırı da kapanır (approve() orada oluşturmuştu).
   async eslestir(hareketId, katilimciId, eslestirenId) {
     await run(
       client()
@@ -1482,9 +1541,16 @@ export const bankaHareketleri = {
         .eq('id', hareketId),
     )
     await run(client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'alindi' }).eq('id', katilimciId))
+    await run(
+      client()
+        .from('cari_hareketler')
+        .update({ durum: 'kapandi' })
+        .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
+        .eq('kaynak_id', katilimciId),
+    )
   },
   // Yanlış eşleştirmeyi düzeltmenin tek yolu — hareketi tekrar
-  // "eşleşmedi"ye, katılımcıyı "bekliyor"a döndürür.
+  // "eşleşmedi"ye, katılımcıyı "bekliyor"a, cari hareketi "açık"a döndürür.
   async eslesmeyiKaldir(hareketId) {
     const hareket = await run(
       client().from('banka_hareketleri').select('eslesen_katilimci_id').eq('id', hareketId).single(),
@@ -1499,7 +1565,172 @@ export const bankaHareketleri = {
       await run(
         client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'bekliyor' }).eq('id', hareket.eslesen_katilimci_id),
       )
+      await run(
+        client()
+          .from('cari_hareketler')
+          .update({ durum: 'acik' })
+          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
+          .eq('kaynak_id', hareket.eslesen_katilimci_id),
+      )
     }
+  },
+  // Bloke (bağlanma parası) tapu günü çözümlenir — 4 senaryo:
+  // geri_gonder/saticiya_gonder (tamamı çıkış), mahsup_et (tamamı hizmet
+  // bedeline), kismi_mahsup (bir kısmı mahsup, kalanı çıkış). Mahsup olan
+  // kısım mevcut eşleştirme mantığıyla AYNI (katılımcı odeme_durumu +
+  // cari hareket kapanır); çıkış kısmı yeni bir banka_hareketleri satırı
+  // olarak (tip='cikis', ust_hareket_id=bloke) kayıt altına alınır.
+  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }, kullaniciId) {
+    const bloke = await run(client().from('banka_hareketleri').select('tutar, tarih').eq('id', blokeId).single())
+    const mahsupVar = aksiyon === 'mahsup_et' || aksiyon === 'kismi_mahsup'
+    const cikisVar = aksiyon === 'geri_gonder' || aksiyon === 'saticiya_gonder' || aksiyon === 'kismi_mahsup'
+    const gercekMahsup = aksiyon === 'mahsup_et' ? Number(bloke.tutar) : Number(mahsupTutari || 0)
+    const cikisTutari = aksiyon === 'kismi_mahsup' ? Number(bloke.tutar) - gercekMahsup : Number(bloke.tutar)
+
+    if (mahsupVar && katilimciId) {
+      await run(client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'alindi' }).eq('id', katilimciId))
+      await run(
+        client()
+          .from('cari_hareketler')
+          .update({ durum: 'kapandi' })
+          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
+          .eq('kaynak_id', katilimciId),
+      )
+    }
+    if (cikisVar && cikisTutari > 0) {
+      await run(
+        client()
+          .from('banka_hareketleri')
+          .insert({
+            tutar: cikisTutari,
+            tarih: new Date().toISOString().slice(0, 10),
+            gonderen_adi: aliciAdi || null,
+            aciklama: aksiyon === 'saticiya_gonder' ? 'Satıcıya gönderim' : 'Geri gönderim',
+            kaynak: 'manuel',
+            tip: 'cikis',
+            ust_hareket_id: blokeId,
+            durum: 'eslesti',
+            olusturan_id: kullaniciId,
+          }),
+      )
+    }
+    await run(
+      client()
+        .from('banka_hareketleri')
+        .update({
+          durum: 'cozuldu',
+          eslesen_katilimci_id: mahsupVar ? katilimciId : null,
+          mahsup_tutari: aksiyon === 'kismi_mahsup' ? gercekMahsup : null,
+          eslestiren_id: kullaniciId,
+          eslesme_tarihi: new Date().toISOString(),
+        })
+        .eq('id', blokeId),
+    )
+  },
+}
+
+// --- Cari Hesap (danışman borç/alacak defteri, bkz. migration
+// 20261009110000_cari_hesap_ve_masraflar.sql) -------------------------------
+function mapCariHareket(row) {
+  return {
+    id: row.id,
+    danismanId: row.danisman_id,
+    tarih: row.tarih,
+    tur: row.tur,
+    tutar: Number(row.tutar),
+    kategori: row.kategori,
+    aciklama: row.aciklama,
+    kaynakTip: row.kaynak_tip,
+    kaynakId: row.kaynak_id,
+    durum: row.durum,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const cariHareketler = {
+  // RLS: broker/owner hepsini görür, danışman sadece kendi satırlarını.
+  async list() {
+    const data = await run(client().from('cari_hareketler').select('*').order('tarih', { ascending: false }))
+    return data.map(mapCariHareket)
+  },
+  // Elle borç/alacak girişi — aylık ofis faturası (sahibinden/katılım
+  // bedeli) burdan girilir, kategori/danisman seçilerek.
+  async create({ danismanId, tarih, tur, tutar, kategori, aciklama }, createdBy) {
+    const data = await run(
+      client()
+        .from('cari_hareketler')
+        .insert({
+          danisman_id: danismanId,
+          tarih,
+          tur,
+          tutar: Number(tutar),
+          kategori,
+          aciklama: aciklama || null,
+          kaynak_tip: 'manuel',
+          created_by: createdBy,
+        })
+        .select()
+        .single(),
+    )
+    return mapCariHareket(data)
+  },
+}
+
+// --- İşlem Masrafları (ciro raporuna bağlı masraf detayı, bkz. aynı
+// migration) ------------------------------------------------------------
+function mapIslemMasrafi(row) {
+  return {
+    id: row.id,
+    ciroRaporuId: row.ciro_raporu_id,
+    danismanId: row.danisman_id,
+    tur: row.tur,
+    aciklama: row.aciklama,
+    tutar: Number(row.tutar),
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const islemMasraflari = {
+  async list(ciroRaporuId) {
+    const data = await run(client().from('islem_masraflari').select('*').eq('ciro_raporu_id', ciroRaporuId).order('created_at', { ascending: false }))
+    return data.map(mapIslemMasrafi)
+  },
+  // Masraf kaydedilince, eğer bir danışmana yüklenecekse (danismanId
+  // doluysa) Cari Hesabına otomatik "borç" satırı da yazılır.
+  async create({ ciroRaporuId, danismanId, tur, aciklama, tutar }, createdBy) {
+    const data = await run(
+      client()
+        .from('islem_masraflari')
+        .insert({
+          ciro_raporu_id: ciroRaporuId,
+          danisman_id: danismanId || null,
+          tur,
+          aciklama: aciklama || null,
+          tutar: Number(tutar),
+          created_by: createdBy,
+        })
+        .select()
+        .single(),
+    )
+    if (danismanId) {
+      const rapor = await run(client().from('ciro_raporlari').select('islem_tarihi').eq('id', ciroRaporuId).single())
+      await run(
+        client().from('cari_hareketler').insert({
+          danisman_id: danismanId,
+          tarih: rapor.islem_tarihi,
+          tur: 'borc',
+          tutar: Number(tutar),
+          kategori: 'islem_masrafi',
+          aciklama: aciklama || null,
+          kaynak_tip: 'islem_masrafi',
+          kaynak_id: data.id,
+          created_by: createdBy,
+        }),
+      )
+    }
+    return mapIslemMasrafi(data)
   },
 }
 

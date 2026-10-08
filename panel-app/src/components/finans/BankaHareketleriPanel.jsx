@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Plus, Link2, Undo2 } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { opportunities as opportunitiesProvider, ciroRaporlari as ciroRaporlariProvider, bankaHareketleri as bankaHareketleriProvider } from '../lib/dataProvider'
-import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, canManageBankaHareketleri, eslesmeAdaylari } from '../lib/bankaHareketleri'
-import { formatDateOnly, formatThousands, parseThousands } from '../lib/format'
-import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
+import { Plus, Link2, Undo2, Unlock } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { opportunities as opportunitiesProvider, ciroRaporlari as ciroRaporlariProvider, bankaHareketleri as bankaHareketleriProvider } from '../../lib/dataProvider'
+import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, canManageBankaHareketleri, eslesmeAdaylari } from '../../lib/bankaHareketleri'
+import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
+import BlokeCozumleModal from './BlokeCozumleModal'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -24,14 +25,15 @@ async function loadAll() {
   return { hareketler, raporlar, opportunities }
 }
 
-export default function BankaHareketleri() {
+export default function BankaHareketleriPanel() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
-  const [form, setForm] = useState({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '' })
+  const [form, setForm] = useState({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
   const [submitting, setSubmitting] = useState(false)
   const [matchTarget, setMatchTarget] = useState(null)
+  const [blokeTarget, setBlokeTarget] = useState(null)
 
   // Ödeme bekleyen tüm katılımcı satırları — her bankadan gelen hareket
   // için en olası eşleşme adayları buradan çıkıyor (bkz. lib/
@@ -61,7 +63,7 @@ export default function BankaHareketleri() {
 
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const parsedTutar = parseThousands(form.tutar)
-  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih
+  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && (!form.bloke || form.opportunityId)
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
   const opportunityLabel = (id) => {
@@ -75,11 +77,19 @@ export default function BankaHareketleri() {
     setSubmitting(true)
     try {
       await bankaHareketleriProvider.create(
-        { tutar: parsedTutar, tarih: form.tarih, gonderenAdi: form.gonderenAdi.trim(), aciklama: form.aciklama.trim(), referansNo: form.referansNo.trim() },
+        {
+          tutar: parsedTutar,
+          tarih: form.tarih,
+          gonderenAdi: form.gonderenAdi.trim(),
+          aciklama: form.aciklama.trim(),
+          referansNo: form.referansNo.trim(),
+          opportunityId: form.bloke ? form.opportunityId : null,
+          bloke: form.bloke,
+        },
         user.id,
       )
-      setForm({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '' })
-      showToast('Hareket eklendi.', 'success')
+      setForm({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
+      showToast(form.bloke ? 'Bağlanma parası bloke olarak kaydedildi.' : 'Hareket eklendi.', 'success')
       reload()
     } catch (err) {
       showToast(err.message ?? 'Eklenemedi, tekrar dene.', 'error')
@@ -112,53 +122,86 @@ export default function BankaHareketleri() {
     }
   }
 
+  async function handleBlokeCozumle(aksiyon, payload) {
+    setSubmitting(true)
+    try {
+      await bankaHareketleriProvider.blokeyiCozumle(blokeTarget.id, { aksiyon, ...payload }, user.id)
+      setBlokeTarget(null)
+      showToast('Bağlanma parası çözümlendi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Çözümlenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const hareketler = data?.hareketler ?? []
   const adaylar = matchTarget ? eslesmeAdaylari(matchTarget.tutar, bekleyenKatilimcilar) : []
+  const blokeAdaylari = blokeTarget ? bekleyenKatilimcilar.filter((a) => a.opportunityId === blokeTarget.opportunityId) : []
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold text-text-primary">Banka Hareketleri</h1>
-        <p className="text-sm text-text-muted">
-          Banka API'si bağlanana kadar ekstreyi buraya elle gir, Ciro Raporu'ndaki ödeme bekleyen kayıtlarla eşleştir.
-        </p>
-      </div>
+      <p className="mb-5 text-sm text-text-muted">
+        Banka API'si bağlanana kadar ekstreyi buraya elle gir, Ciro Raporu'ndaki ödeme bekleyen kayıtlarla eşleştir.
+      </p>
 
-      <form onSubmit={handleCreate} className="mb-6 grid gap-2 rounded-2xl border border-border-default bg-surface-raised p-4 sm:grid-cols-5">
-        <input
-          required
-          inputMode="numeric"
-          value={form.tutar}
-          onChange={(e) => set({ tutar: formatThousands(e.target.value) })}
-          placeholder="Tutar (₺)"
-          className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
-        />
-        <input
-          required
-          type="date"
-          value={form.tarih}
-          onChange={(e) => set({ tarih: e.target.value })}
-          className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
-        />
-        <input
-          value={form.gonderenAdi}
-          onChange={(e) => set({ gonderenAdi: e.target.value })}
-          placeholder="Gönderen adı"
-          className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
-        />
-        <input
-          value={form.aciklama}
-          onChange={(e) => set({ aciklama: e.target.value })}
-          placeholder="Açıklama"
-          className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
-        />
-        <button
-          type="submit"
-          disabled={!canSubmit || submitting}
-          className="flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          <Plus size={16} /> Ekle
-        </button>
+      <form onSubmit={handleCreate} className="mb-6 space-y-2 rounded-2xl border border-border-default bg-surface-raised p-4">
+        <div className="grid gap-2 sm:grid-cols-5">
+          <input
+            required
+            inputMode="numeric"
+            value={form.tutar}
+            onChange={(e) => set({ tutar: formatThousands(e.target.value) })}
+            placeholder="Tutar (₺)"
+            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+          <input
+            required
+            type="date"
+            value={form.tarih}
+            onChange={(e) => set({ tarih: e.target.value })}
+            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+          />
+          <input
+            value={form.gonderenAdi}
+            onChange={(e) => set({ gonderenAdi: e.target.value })}
+            placeholder="Gönderen adı"
+            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+          <input
+            value={form.aciklama}
+            onChange={(e) => set({ aciklama: e.target.value })}
+            placeholder="Açıklama"
+            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+          <button
+            type="submit"
+            disabled={!canSubmit || submitting}
+            className="flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          >
+            <Plus size={16} /> Ekle
+          </button>
+        </div>
+        <label className="flex items-center gap-2 text-xs text-text-secondary">
+          <input type="checkbox" checked={form.bloke} onChange={(e) => set({ bloke: e.target.checked, opportunityId: '' })} />
+          Bu bir bağlanma parası (tapu gününe kadar bloke bekleyecek)
+        </label>
+        {form.bloke && (
+          <select
+            required
+            value={form.opportunityId}
+            onChange={(e) => set({ opportunityId: e.target.value })}
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary sm:w-1/2"
+          >
+            <option value="">Hangi fırsata ait</option>
+            {(data?.opportunities ?? []).map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.ozet || o.konum}
+              </option>
+            ))}
+          </select>
+        )}
       </form>
 
       {loading && <LoadingState />}
@@ -170,6 +213,7 @@ export default function BankaHareketleri() {
             <thead>
               <tr className="border-b border-border-subtle bg-surface-sunken text-text-muted">
                 <th className="px-4 py-2.5 font-medium">Tarih</th>
+                <th className="px-4 py-2.5 font-medium">Tip</th>
                 <th className="px-4 py-2.5 font-medium">Tutar</th>
                 <th className="px-4 py-2.5 font-medium">Gönderen</th>
                 <th className="px-4 py-2.5 font-medium">Durum</th>
@@ -179,7 +223,7 @@ export default function BankaHareketleri() {
             <tbody>
               {hareketler.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-text-muted">
+                  <td colSpan={6} className="px-4 py-6 text-center text-text-muted">
                     Henüz hareket yok.
                   </td>
                 </tr>
@@ -187,6 +231,9 @@ export default function BankaHareketleri() {
               {hareketler.map((h) => (
                 <tr key={h.id} className="border-b border-border-subtle last:border-0">
                   <td className="px-4 py-2.5 text-text-secondary">{formatDateOnly(h.tarih)}</td>
+                  <td className="px-4 py-2.5 text-text-muted">
+                    {h.tip === 'cikis' ? 'Çıkış' : h.tur === 'baglanma_parasi' ? 'Bağlanma Parası' : 'Giriş'}
+                  </td>
                   <td className="px-4 py-2.5 font-medium text-text-primary">{tl(h.tutar)}</td>
                   <td className="px-4 py-2.5 text-text-secondary">{h.gonderenAdi || '—'}</td>
                   <td className="px-4 py-2.5">
@@ -196,14 +243,23 @@ export default function BankaHareketleri() {
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    {h.durum === 'eslesmedi' ? (
+                    {h.durum === 'eslesmedi' && (
                       <button
                         onClick={() => setMatchTarget(h)}
                         className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
                       >
                         <Link2 size={13} /> Eşleştir
                       </button>
-                    ) : (
+                    )}
+                    {h.durum === 'blokede' && (
+                      <button
+                        onClick={() => setBlokeTarget(h)}
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-sky-700 hover:bg-sky-50"
+                      >
+                        <Unlock size={13} /> Çözümle
+                      </button>
+                    )}
+                    {h.durum === 'eslesti' && (
                       <button
                         onClick={() => handleKaldir(h.id)}
                         className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-text-muted hover:bg-surface-sunken"
@@ -260,6 +316,17 @@ export default function BankaHareketleri() {
             </div>
           </div>
         </div>
+      )}
+
+      {blokeTarget && (
+        <BlokeCozumleModal
+          bloke={blokeTarget}
+          adaylar={blokeAdaylari}
+          userName={userName}
+          onClose={() => setBlokeTarget(null)}
+          onSubmit={handleBlokeCozumle}
+          submitting={submitting}
+        />
       )}
     </div>
   )

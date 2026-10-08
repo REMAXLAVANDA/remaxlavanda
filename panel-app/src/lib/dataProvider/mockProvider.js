@@ -837,6 +837,28 @@ function mockCiroRaporuWithKatilimcilar(r) {
   return { ...r, katilimcilar: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id) }
 }
 
+// Cari Hesap (danışman borç/alacak defteri) + İşlem Masrafları — Ciro
+// Raporu onaylanınca/fatura girilince ve masraf/aylık ofis faturası
+// kaydedilince otomatik beslenir (bkz. approve()/updateKatilimciFatura()
+// aşağıda ve islemMasraflari.create()).
+const MOCK_CARI_HAREKETLER = [
+  {
+    id: 'ch-1',
+    danismanId: 'u-danisman',
+    tarih: ciroRaporuDaysAgo(5).slice(0, 10),
+    tur: 'borc',
+    tutar: 3000,
+    kategori: 'sahibinden_bedeli',
+    aciklama: 'Ekim ayı sahibinden.com ilan bedeli',
+    kaynakTip: 'manuel',
+    kaynakId: null,
+    durum: 'acik',
+    createdBy: 'u-broker',
+    createdAt: ciroRaporuDaysAgo(5),
+  },
+]
+const MOCK_ISLEM_MASRAFLARI = []
+
 export const ciroRaporlari = {
   async list() {
     return delay(MOCK_CIRO_RAPORLARI.map(mockCiroRaporuWithKatilimcilar).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
@@ -896,6 +918,14 @@ export const ciroRaporlari = {
     const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === id)
     if (!row) throw new Error('Katılımcı bulunamadı.')
     Object.assign(row, patch)
+    // Cari Hesap senkronu: approve()'da bu katılımcı için bir "alacak"
+    // satırı oluşmuşsa (kaynakId=katilimci.id), fatura tutarı/ödeme
+    // durumu değişince o satır da güncellenir.
+    const cariSatir = MOCK_CARI_HAREKETLER.find((c) => c.kaynakTip === 'ciro_raporu_katilimcisi' && c.kaynakId === id)
+    if (cariSatir) {
+      if ('faturaTutari' in patch && patch.faturaTutari != null) cariSatir.tutar = Number(patch.faturaTutari)
+      if ('odemeDurumu' in patch) cariSatir.durum = patch.odemeDurumu === 'alindi' ? 'kapandi' : 'acik'
+    }
     return delay({ ...row })
   },
   async approve(id, approverId) {
@@ -909,6 +939,25 @@ export const ciroRaporlari = {
     rapor.durum = 'onaylandi'
     rapor.onaylayanId = approverId
     rapor.onayTarihi = new Date().toISOString()
+    // Cari Hesap: her katılımcı için hak ediş kadar "alacak" satırı.
+    katilimcilar.forEach((k, i) => {
+      const tutar = Number(k.faturaTutari ?? k.komisyonTutariOnerisi ?? 0)
+      if (tutar <= 0) return
+      MOCK_CARI_HAREKETLER.push({
+        id: `ch-${Date.now()}-${i}`,
+        danismanId: k.danismanId,
+        tarih: rapor.islemTarihi,
+        tur: 'alacak',
+        tutar,
+        kategori: 'hizmet_bedeli',
+        aciklama: null,
+        kaynakTip: 'ciro_raporu_katilimcisi',
+        kaynakId: k.id,
+        durum: 'acik',
+        createdBy: approverId,
+        createdAt: new Date().toISOString(),
+      })
+    })
     return delay({ id })
   },
   async reject(id, redSebebi) {
@@ -952,19 +1001,49 @@ const MOCK_BANKA_HAREKETLERI = [
     referansNo: null,
     kaynak: 'manuel',
     durum: 'eslesmedi',
+    tip: 'giris',
+    opportunityId: null,
+    ustHareketId: null,
+    tur: 'diger',
+    mahsupTutari: null,
     eslesenKatilimciId: null,
     eslestirenId: null,
     eslesmeTarihi: null,
     olusturanId: 'u-broker',
     createdAt: ciroRaporuDaysAgo(2),
   },
+  {
+    id: 'bh-2',
+    tutar: 300000,
+    tarih: ciroRaporuDaysAgo(1).slice(0, 10),
+    gonderenAdi: 'Ayşe Şahin',
+    aciklama: 'Bağlanma parası',
+    referansNo: null,
+    kaynak: 'manuel',
+    durum: 'blokede',
+    tip: 'giris',
+    opportunityId: 'opp-1',
+    ustHareketId: null,
+    tur: 'baglanma_parasi',
+    mahsupTutari: null,
+    eslesenKatilimciId: null,
+    eslestirenId: null,
+    eslesmeTarihi: null,
+    olusturanId: 'u-broker',
+    createdAt: ciroRaporuDaysAgo(1),
+  },
 ]
+
+function mockCariSatiriKapat(katilimciId, kapat) {
+  const satir = MOCK_CARI_HAREKETLER.find((c) => c.kaynakTip === 'ciro_raporu_katilimcisi' && c.kaynakId === katilimciId)
+  if (satir) satir.durum = kapat ? 'kapandi' : 'acik'
+}
 
 export const bankaHareketleri = {
   async list() {
     return delay([...MOCK_BANKA_HAREKETLERI].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
   },
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo }, olusturanId) {
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke }, olusturanId) {
     const row = {
       id: `bh-${Date.now()}`,
       tutar: Number(tutar),
@@ -973,7 +1052,12 @@ export const bankaHareketleri = {
       aciklama: aciklama || null,
       referansNo: referansNo || null,
       kaynak: 'manuel',
-      durum: 'eslesmedi',
+      tip: 'giris',
+      opportunityId: opportunityId || null,
+      ustHareketId: null,
+      tur: bloke ? 'baglanma_parasi' : 'diger',
+      mahsupTutari: null,
+      durum: bloke ? 'blokede' : 'eslesmedi',
       eslesenKatilimciId: null,
       eslestirenId: null,
       eslesmeTarihi: null,
@@ -992,6 +1076,7 @@ export const bankaHareketleri = {
     hareket.eslesmeTarihi = new Date().toISOString()
     const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
     if (katilimci) katilimci.odemeDurumu = 'alindi'
+    mockCariSatiriKapat(katilimciId, true)
     return delay({ id: hareketId })
   },
   async eslesmeyiKaldir(hareketId) {
@@ -999,11 +1084,117 @@ export const bankaHareketleri = {
     if (!hareket) throw new Error('Hareket bulunamadı.')
     const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === hareket.eslesenKatilimciId)
     if (katilimci) katilimci.odemeDurumu = 'bekliyor'
+    mockCariSatiriKapat(hareket.eslesenKatilimciId, false)
     hareket.durum = 'eslesmedi'
     hareket.eslesenKatilimciId = null
     hareket.eslestirenId = null
     hareket.eslesmeTarihi = null
     return delay({ id: hareketId })
+  },
+  // Bloke (bağlanma parası) çözümleme — 4 senaryo, bkz. supabaseProvider.js
+  // aynı adlı fonksiyondaki açıklama.
+  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }, kullaniciId) {
+    const bloke = MOCK_BANKA_HAREKETLERI.find((h) => h.id === blokeId)
+    if (!bloke) throw new Error('Bloke kaydı bulunamadı.')
+    const mahsupVar = aksiyon === 'mahsup_et' || aksiyon === 'kismi_mahsup'
+    const cikisVar = aksiyon === 'geri_gonder' || aksiyon === 'saticiya_gonder' || aksiyon === 'kismi_mahsup'
+    const gercekMahsup = aksiyon === 'mahsup_et' ? Number(bloke.tutar) : Number(mahsupTutari || 0)
+    const cikisTutari = aksiyon === 'kismi_mahsup' ? Number(bloke.tutar) - gercekMahsup : Number(bloke.tutar)
+
+    if (mahsupVar && katilimciId) {
+      const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
+      if (katilimci) katilimci.odemeDurumu = 'alindi'
+      mockCariSatiriKapat(katilimciId, true)
+    }
+    if (cikisVar && cikisTutari > 0) {
+      MOCK_BANKA_HAREKETLERI.unshift({
+        id: `bh-${Date.now()}`,
+        tutar: cikisTutari,
+        tarih: new Date().toISOString().slice(0, 10),
+        gonderenAdi: aliciAdi || null,
+        aciklama: aksiyon === 'saticiya_gonder' ? 'Satıcıya gönderim' : 'Geri gönderim',
+        referansNo: null,
+        kaynak: 'manuel',
+        tip: 'cikis',
+        opportunityId: null,
+        ustHareketId: blokeId,
+        tur: 'diger',
+        mahsupTutari: null,
+        durum: 'eslesti',
+        eslesenKatilimciId: null,
+        eslestirenId: null,
+        eslesmeTarihi: null,
+        olusturanId: kullaniciId,
+        createdAt: new Date().toISOString(),
+      })
+    }
+    bloke.durum = 'cozuldu'
+    bloke.eslesenKatilimciId = mahsupVar ? katilimciId : null
+    bloke.mahsupTutari = aksiyon === 'kismi_mahsup' ? gercekMahsup : null
+    bloke.eslestirenId = kullaniciId
+    bloke.eslesmeTarihi = new Date().toISOString()
+    return delay({ id: blokeId })
+  },
+}
+
+export const cariHareketler = {
+  async list() {
+    return delay([...MOCK_CARI_HAREKETLER].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
+  },
+  async create({ danismanId, tarih, tur, tutar, kategori, aciklama }, createdBy) {
+    const row = {
+      id: `ch-${Date.now()}`,
+      danismanId,
+      tarih,
+      tur,
+      tutar: Number(tutar),
+      kategori,
+      aciklama: aciklama || null,
+      kaynakTip: 'manuel',
+      kaynakId: null,
+      durum: 'acik',
+      createdBy,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_CARI_HAREKETLER.unshift(row)
+    return delay(row)
+  },
+}
+
+export const islemMasraflari = {
+  async list(ciroRaporuId) {
+    return delay(MOCK_ISLEM_MASRAFLARI.filter((m) => m.ciroRaporuId === ciroRaporuId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+  },
+  async create({ ciroRaporuId, danismanId, tur, aciklama, tutar }, createdBy) {
+    const row = {
+      id: `im-${Date.now()}`,
+      ciroRaporuId,
+      danismanId: danismanId || null,
+      tur,
+      aciklama: aciklama || null,
+      tutar: Number(tutar),
+      createdBy,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_ISLEM_MASRAFLARI.unshift(row)
+    if (danismanId) {
+      const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === ciroRaporuId)
+      MOCK_CARI_HAREKETLER.unshift({
+        id: `ch-${Date.now()}-m`,
+        danismanId,
+        tarih: rapor?.islemTarihi ?? new Date().toISOString().slice(0, 10),
+        tur: 'borc',
+        tutar: Number(tutar),
+        kategori: 'islem_masrafi',
+        aciklama: aciklama || null,
+        kaynakTip: 'islem_masrafi',
+        kaynakId: row.id,
+        durum: 'acik',
+        createdBy,
+        createdAt: new Date().toISOString(),
+      })
+    }
+    return delay(row)
   },
 }
 
