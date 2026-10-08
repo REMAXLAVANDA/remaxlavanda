@@ -3,6 +3,29 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Ayarlar'a "Mentor Primi" sekmesi eklendi
+
+Broker: "Selen yeni başlayan danışmanların cirosundan 1 yıl boyunca %10
+prim alıyor, bunu kolaylaştıran bir alan hazırla. Ayarlar'da olsun ama
+açtığımda biri görmesin." Yeni `lib/mentorPrimi.js` (saf hesaplama,
+migration/DB değişikliği YOK): her danışmanın cirosu, işe başladığı
+tarihten (`users.createdAt` — `lib/yonlendirme.js`'teki `isIlk90Gunde` ile
+aynı kaynak) itibaren `gunSayisi` gün boyunca sayılır, seçilen tarih
+aralığıyla (standart `DateRangeFilter`) AYRICA kesişir. Oran (%10) ve
+süre (365 gün) KALICI DEĞİL — Ayarlar.jsx'teki form state'inde, broker
+anında değiştirip yeniden hesaplatabiliyor.
+
+Gizlilik isteği ("açtığımda biri görmesin") literal bir UI sorunuydu —
+Ayarlar'ın geneli zaten broker+owner'a açık, ama bu sekmenin konusu
+Selen'in (owner) KENDİ primi, o yüzden `canManageUsers`'ın aksine
+`canViewMentorPrimi` (lib/roles.js) SADECE broker'a açık — owner dahil.
+Aynı desen daha önce Log sekmesinde kurulmuştu (bkz. bir alttaki giriş),
+ikinci kullanımda tekrarlandı: `visibleTabs` filtresi sekmeyi owner'dan
+tamamen gizliyor, veri de hiç çekilmiyor. Playwright ile doğrulandı:
+broker sekmeyi görüp hesaplamayı kullanabiliyor, owner'a sekme hiç
+görünmüyor. 8 yeni birim testi (`lib/mentorPrimi.test.js`) + 181/181
+genel test, lint, build temiz.
+
 ## 2026-10-08 — Yetki tablosu denetimi: 4 yetki daraltıldı (ciro, mazeret, kategori, rehber doküman)
 
 Aynı denetimin devamı (önceki girişe bakın — Log sekmesi) — broker kalan 3

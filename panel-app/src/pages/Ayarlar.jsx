@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus, Webhook } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Users, Shield, Tag, ScrollText, Plus, Webhook, Percent } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -14,11 +14,13 @@ import {
   metaCapiErrors as metaCapiErrorsProvider,
   callLogs as callLogsProvider,
   opportunities as opportunitiesProvider,
+  league as leagueProvider,
 } from '../lib/dataProvider'
-import { canManageUsers, canViewAuditLog, ROLE_LABELS } from '../lib/roles'
+import { canManageUsers, canViewAuditLog, canViewMentorPrimi, ROLE_LABELS } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import { callNeedsTracking } from '../lib/callLogs'
+import { mentorPrimiRows, mentorPrimiToplam, MENTOR_PRIMI_DEFAULT_ORAN, MENTOR_PRIMI_DEFAULT_GUN } from '../lib/mentorPrimi'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import EditUserModal from '../components/settings/EditUserModal'
@@ -30,6 +32,7 @@ import AuditLogTable from '../components/settings/AuditLogTable'
 import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
 import TelsamWebhookErrorsTable from '../components/settings/TelsamWebhookErrorsTable'
 import MetaCapiErrorsTable from '../components/settings/MetaCapiErrorsTable'
+import MentorPrimiPanel from '../components/settings/MentorPrimiPanel'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
@@ -39,6 +42,7 @@ const TABS = [
   { key: 'kategori', label: 'Kategori', icon: Tag },
   { key: 'log', label: 'Log', icon: ScrollText },
   { key: 'webhook', label: 'Webhook Hataları', icon: Webhook },
+  { key: 'mentor-primi', label: 'Mentor Primi', icon: Percent },
 ]
 
 export default function Ayarlar() {
@@ -51,8 +55,20 @@ export default function Ayarlar() {
   // kapısından ayrı, kendi başına daha sıkı bir kapı — owner artık bu
   // sekmeyi ne görür ne verisini çeker (bkz. lib/roles.js canViewAuditLog).
   const canViewLog = canViewAuditLog(role)
-  const visibleTabs = TABS.filter((t) => t.key !== 'log' || canViewLog)
+  // Mentor Primi: Selen'in (owner) kendi primine ait bir hesaplama —
+  // "ayarlar bölümünde olsun ki açtığımda biri görmesin" (2026-10-08 broker
+  // talebi) — bu yüzden owner DAHİL, sadece broker görür (bkz. lib/roles.js
+  // canViewMentorPrimi, canViewLog'daki aynı sekme-gizleme deseni).
+  const canViewMentor = canViewMentorPrimi(role)
+  const visibleTabs = TABS.filter((t) => (t.key !== 'log' || canViewLog) && (t.key !== 'mentor-primi' || canViewMentor))
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
+  const [mentorPrimiForm, setMentorPrimiForm] = useState({
+    oran: MENTOR_PRIMI_DEFAULT_ORAN,
+    gunSayisi: MENTOR_PRIMI_DEFAULT_GUN,
+    dateRange: 'tumu',
+    customFrom: '',
+    customTo: '',
+  })
 
   const { data: allUsers, setData: setAllUsers, loading, error, reload } = useAsyncList(
     () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
@@ -119,6 +135,20 @@ export default function Ayarlar() {
     () => (canManage && tab === 'webhook' ? metaCapiErrorsProvider.list() : Promise.resolve([])),
     [canManage, tab],
   )
+  const {
+    data: mentorPrimiCiroGirisleri,
+    loading: loadingMentorPrimi,
+    error: mentorPrimiError,
+    reload: reloadMentorPrimi,
+  } = useAsyncList(
+    () => (canViewMentor && tab === 'mentor-primi' ? leagueProvider.listCiroGirisleri() : Promise.resolve([])),
+    [canViewMentor, tab],
+  )
+  const mentorPrimiData = useMemo(() => {
+    const rows = mentorPrimiRows(allUsers, mentorPrimiCiroGirisleri, mentorPrimiForm)
+    return { rows, toplam: mentorPrimiToplam(rows) }
+  }, [allUsers, mentorPrimiCiroGirisleri, mentorPrimiForm])
+
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
@@ -613,6 +643,21 @@ export default function Ayarlar() {
               <MetaCapiErrorsTable rows={metaCapiErrorRows ?? []} />
             )}
           </div>
+        </>
+      )}
+
+      {tab === 'mentor-primi' && canViewMentor && (
+        <>
+          {loadingMentorPrimi && <LoadingState />}
+          {!loadingMentorPrimi && mentorPrimiError && <ErrorState error={mentorPrimiError} onRetry={reloadMentorPrimi} />}
+          {!loadingMentorPrimi && !mentorPrimiError && (
+            <MentorPrimiPanel
+              form={mentorPrimiForm}
+              onFormChange={setMentorPrimiForm}
+              rows={mentorPrimiData.rows}
+              toplam={mentorPrimiData.toplam}
+            />
+          )}
         </>
       )}
 

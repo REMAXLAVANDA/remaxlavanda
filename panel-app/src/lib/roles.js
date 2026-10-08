@@ -47,6 +47,15 @@ export function canViewAuditLog(role) {
   return role === ROLES.BROKER
 }
 
+// Mentor Primi (Ayarlar) — Selen'in (owner) yeni danışmanların cirosundan
+// aldığı prim, kendi maaş/gelirine ait bir hesaplama olduğu için SADECE
+// broker'a açık ("ayarlar bölümünde olsun ki açtığımda biri görmesin",
+// 2026-10-08 broker talebi) — owner'ın KENDİSİ dahil, Ayarlar'ın genel
+// canManageUsers (broker+owner) kapısından BİLEREK daha sıkı.
+export function canViewMentorPrimi(role) {
+  return role === ROLES.BROKER
+}
+
 // leads_manage RLS kuralıyla aynı: SADECE broker/owner Lead Havuzu'na
 // erişebilir — ofis/danışman ne menüde görür ne URL'den girebilir. (Daha
 // önce ofis de dahildi, sonradan daraltıldı — bkz. AI_NOTLARI.md.)
