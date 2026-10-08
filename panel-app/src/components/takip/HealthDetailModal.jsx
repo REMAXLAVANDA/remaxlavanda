@@ -19,6 +19,7 @@ export default function HealthDetailModal({
   onAddCoachingNote,
   onToggleCoachingDurum,
   addingCoachingNote,
+  resolveCoachName,
 }) {
   const opps = useMemo(
     () => (canSeeOpportunities ? (opportunities ?? []).filter((o) => o.ownerId === user.id || o.claimerId === user.id) : []),
@@ -113,6 +114,7 @@ export default function HealthDetailModal({
           onAdd={(form) => onAddCoachingNote(user.id, form)}
           onToggleDurum={onToggleCoachingDurum}
           submitting={addingCoachingNote}
+          resolveName={resolveCoachName}
         />
       )}
     </Modal>

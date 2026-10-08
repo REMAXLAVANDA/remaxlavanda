@@ -202,6 +202,7 @@ export default function TakipTab() {
           onAddCoachingNote={handleAddCoachingNote}
           onToggleCoachingDurum={handleToggleCoachingDurum}
           addingCoachingNote={addingCoachingNote}
+          resolveCoachName={(id) => knownUsers[id]?.name ?? '—'}
         />
       )}
     </div>

@@ -3,6 +3,21 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Koçluk Notları: her kartta "yazan" gösteriliyor
+
+Broker: "Selen benim notlarımı görüp kendi alanına yazsa" — sistem
+zaten broker VE owner'ın (Selen) bağımsız not yazmasına izin veriyordu
+(her not `yazanId` ile kimin yazdığını tutuyordu), ama ekranda hiç
+gösterilmiyordu — tüm notlar kime ait olduğu belirsiz, tek bir liste
+gibi görünüyordu. Ayrı bir "alan"/bölüm eklemek yerine (veri zaten
+paylaşılan tek bir listede, bölmek yapay bir karmaşıklık olurdu) her
+not kartına yazan kişinin adını gösteren bir etiket eklendi —
+`TakipTab.jsx`'teki `knownUsers` üzerinden `resolveCoachName` ile
+`HealthDetailModal` → `CoachingNotesSection`'a taşındı. Artık Selen
+kendi yazdığı notları ("Ofis Sahibi (Owner)") broker'ın yazdıklarından
+("Ahmet Erdemir") bir bakışta ayırt edebiliyor. Mock modda Playwright
+ile doğrulandı. 173/173 test, lint, build temiz.
+
 ## 2026-10-07 — Checklist maddelerinde düzenleme (yeniden adlandırma) eklendi
 
 Broker: "süreç ve ayrılışa madde ekleme var düzenleme yok" — ekleme/

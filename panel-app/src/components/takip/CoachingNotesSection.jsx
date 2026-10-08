@@ -22,7 +22,7 @@ function emptyForm() {
 // Panel'i bu alanı hiç çekmiyor bile (ayrı, dar bir görünümden geliyor).
 // Yapılandırma (2026-10-07, broker onayı): serbest "Hedef/Aksiyon" yerine
 // raporlanabilir Konu + Portföy Hedefi/O an sayısı + kapanışta zorunlu Sonuç.
-export default function CoachingNotesSection({ notes, opportunities, danismanId, onAdd, onToggleDurum, submitting }) {
+export default function CoachingNotesSection({ notes, opportunities, danismanId, onAdd, onToggleDurum, submitting, resolveName }) {
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [completingId, setCompletingId] = useState(null)
@@ -175,6 +175,13 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
                 <span className="font-medium text-ink-700">{formatDateOnly(n.gorusmeTarihi)}</span>
                 <span className="text-ink-400">· {GORUSME_TURU_LABELS[n.gorusmeTuru] ?? n.gorusmeTuru}</span>
                 {n.konu && <span className="rounded-full bg-ink-100 px-2 py-0.5 font-medium text-ink-600">{KONU_LABELS[n.konu] ?? n.konu}</span>}
+                {/* Yazan (2026-10-08, broker: "Selen notlarımı görüp kendi
+                    alanına yazsa") — aynı listede broker/owner'ın kendi
+                    notu hangisi belli olsun diye, ayrı bir bölüm yerine
+                    her kartta kim yazdığı gösteriliyor. */}
+                {resolveName && n.yazanId && (
+                  <span className="rounded-full bg-brand-50 px-2 py-0.5 font-medium text-brand-700">{resolveName(n.yazanId)}</span>
+                )}
                 <span className={`ml-auto rounded-full px-2 py-0.5 font-medium ${DURUM_STYLES[n.durum]}`}>
                   {DURUM_LABELS[n.durum]}
                 </span>
