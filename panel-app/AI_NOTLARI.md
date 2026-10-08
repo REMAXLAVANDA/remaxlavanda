@@ -3,6 +3,20 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Kullanıcılar listesinde pasifler varsayılan gizli
+
+Broker: "kullanıcılarda pasifleri gösterme, yanda bir butonla pasifleri
+de görebilelim" — pasif kullanıcı sayısı arttıkça Ayarlar > Kullanıcılar
+listesi gereksiz kalabalıklaşıyordu. `UsersTable.jsx`'e yerel bir
+`showPasif` durumu eklendi: varsayılan SADECE aktif kullanıcılar
+listeleniyor, pasif sayısı > 0 ise sıralama seçicisinin yanında
+"Pasifleri Göster (N)" düğmesi çıkıyor — tıklanınca "Pasifleri Gizle"ye
+dönüşüp tüm listeyi gösteriyor. Veri katmanına dokunulmadı (Ayarlar.jsx
+zaten hem aktif hem pasifi tek sorguda çekiyordu), sadece görüntüleme
+filtrelendi. 182/182 test, lint, build temiz; Playwright ile bir
+danışmanı pasife alıp varsayılan listeden kaybolduğu, "Pasifleri
+Göster"e basınca geri geldiği doğrulandı.
+
 ## 2026-10-08 — Mentor Primi başlangıç tarihi artık Kullanıcılar'da ("tarihi seçemiyorum" bug fix)
 
 Az önceki düzeltmede (bir alttaki giriş) mentorluk başlangıç tarihi Mentor

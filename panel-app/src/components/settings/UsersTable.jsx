@@ -32,7 +32,14 @@ export default function UsersTable({
   onDevretRequest,
 }) {
   const [sortKey, setSortKey] = useState('ad')
-  const sorted = useMemo(() => sortRows(rows, sortKey), [rows, sortKey])
+  // Pasif danışman/kullanıcı sayısı arttıkça liste gereksiz kalabalıklaşıyordu
+  // (broker: "pasifleri gösterme, yanda bir butonla pasifleri de
+  // görebilelim") — varsayılan SADECE aktif kullanıcılar, pasifler isteğe
+  // bağlı bir anahtarla açılıyor.
+  const [showPasif, setShowPasif] = useState(false)
+  const pasifCount = useMemo(() => rows.filter((u) => u.durum === 'pasif').length, [rows])
+  const visibleRows = useMemo(() => (showPasif ? rows : rows.filter((u) => u.durum === 'aktif')), [rows, showPasif])
+  const sorted = useMemo(() => sortRows(visibleRows, sortKey), [visibleRows, sortKey])
 
   if (rows.length === 0) {
     return <p className="py-8 text-center text-sm text-text-muted">Henüz kullanıcı yok.</p>
@@ -40,7 +47,17 @@ export default function UsersTable({
 
   return (
     <div>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+        {pasifCount > 0 && (
+          <button
+            onClick={() => setShowPasif((v) => !v)}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+              showPasif ? 'bg-brand-600 text-white' : 'bg-surface-sunken text-text-secondary hover:bg-border-subtle'
+            }`}
+          >
+            {showPasif ? 'Pasifleri Gizle' : `Pasifleri Göster (${pasifCount})`}
+          </button>
+        )}
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value)}
@@ -53,6 +70,10 @@ export default function UsersTable({
           ))}
         </select>
       </div>
+
+      {sorted.length === 0 && (
+        <p className="py-8 text-center text-sm text-text-muted">Aktif kullanıcı yok.</p>
+      )}
 
       <div className="space-y-2">
         {sorted.map((u) => (
