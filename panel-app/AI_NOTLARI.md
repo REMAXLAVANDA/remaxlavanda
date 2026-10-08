@@ -3,6 +3,27 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Mentor Primi: pasif danışman ve o ay cirosu olmayan satırlar gizlendi
+
+Broker: "pasif danışmanı mentörlükte gösterme, bir de cirosu olmayan
+danışmanı o ayda gösterme". İki filtre:
+
+- `lib/mentorPrimi.js`'teki `mentorPrimiRows` artık `durum === 'aktif'`
+  şartı da arıyor — ayrılmış bir danışman, mentorluk başlangıç tarihi
+  atanmış olsa bile hesaba hiç girmiyor (hem tablodan hem "Kullanıcılar'a
+  git" kısayolunun saydığı listeden düşüyor).
+- `MentorPrimiPanel`'deki tablo artık SADECE `izleniyor && ciroToplam > 0`
+  olan satırları gösteriyor — başlangıç tarihi atanmış ama seçili ayda
+  hiç ciro girmemiş bir danışman tabloda görünmüyor (boş satır yerine
+  "Bu ay hiç ciro girişi olan bir danışman yok" mesajı). "Kullanıcılar'a
+  git" kısayolunun sayısı (`izlenmeyenSayisi`) hâlâ TÜM satırlardan
+  hesaplanıyor, bu filtreden etkilenmiyor — broker hangi danışmana
+  başlangıç tarihi ataması gerektiğini hâlâ görebiliyor.
+
+183/183 test (yeni: "pasif danışman listeye hiç girmez"), lint, build
+temiz. Mock modda Playwright ile doğrulandı: tracked bir danışmanı
+pasife alınca Mentor Primi'den anında kayboluyor, toplam ₺0'a düşüyor.
+
 ## 2026-10-08 — Kullanıcılar listesinde pasifler varsayılan gizli
 
 Broker: "kullanıcılarda pasifleri gösterme, yanda bir butonla pasifleri

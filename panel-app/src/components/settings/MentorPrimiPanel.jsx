@@ -17,13 +17,19 @@ import { formatDateOnly } from '../../lib/format'
 export default function MentorPrimiPanel({ form, onFormChange, rows, toplam, onGoToUsers }) {
   const set = (patch) => onFormChange({ ...form, ...patch })
   const izlenmeyenSayisi = rows.filter((r) => !r.izleniyor).length
+  // Broker: "cirosu olmayan danışmanı o ayda gösterme" — tablo SADECE o ay
+  // gerçekten ciro girmiş (prim'i olan) danışmanları listeler. Başlangıç
+  // tarihi atanmamışlar zaten her zaman ciroToplam=0, bu filtre onları da
+  // doğal olarak kapsıyor — ayrıca görünürlükleri üstteki "Kullanıcılar'a
+  // git" kısayoluyla (izlenmeyenSayisi, TÜM rows'tan hesaplanıyor) sağlanıyor.
+  const visibleRows = rows.filter((r) => r.izleniyor && r.ciroToplam > 0)
 
   return (
     <div>
       <p className="mb-4 text-xs text-text-muted">
         Her danışmanın cirosu, Kullanıcılar sekmesinde kendisi için girdiğin başlangıç tarihinden itibaren{' '}
-        {form.gunSayisi} gün boyunca sayılır — başlangıç tarihi girilmemiş bir danışman hiç hesaba katılmaz. Sadece
-        bu sekmeyi sen görüyorsun.
+        {form.gunSayisi} gün boyunca sayılır — başlangıç tarihi girilmemiş veya seçtiğin ayda hiç ciro girişi
+        olmayan bir danışman tabloda görünmez. Sadece bu sekmeyi sen görüyorsun.
       </p>
 
       <div className="mb-4 flex flex-wrap items-end justify-between gap-4 rounded-2xl border border-border-subtle bg-surface-sunken p-4">
@@ -71,43 +77,39 @@ export default function MentorPrimiPanel({ form, onFormChange, rows, toplam, onG
         <p className="mt-1 text-2xl font-semibold text-brand-800">{formatPrice(toplam)}</p>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border-subtle">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-border-subtle bg-surface-sunken text-text-muted">
-              <th className="px-4 py-2.5 font-medium">Danışman</th>
-              <th className="px-4 py-2.5 font-medium">Ciro Toplamı</th>
-              <th className="px-4 py-2.5 font-medium">Prim</th>
-              <th className="px-4 py-2.5 font-medium">Mentorluk Penceresi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.userId} className="border-b border-border-subtle last:border-0">
-                <td className="px-4 py-2.5 text-text-primary">{r.name}</td>
-                <td className="px-4 py-2.5 text-text-secondary">{r.izleniyor ? formatPrice(r.ciroToplam) : '—'}</td>
-                <td className="px-4 py-2.5 font-medium text-brand-700">{r.izleniyor ? formatPrice(r.prim) : '—'}</td>
-                <td className="px-4 py-2.5 text-xs text-text-muted">
-                  {!r.izleniyor ? (
-                    <span className="rounded-full bg-ink-100 px-2 py-0.5 font-medium text-ink-500">
-                      Başlangıç tarihi girilmedi
-                    </span>
-                  ) : (
-                    <>
-                      {formatDateOnly(r.baslangicTarihi)} – {formatDateOnly(r.mentorlukBitis)}
-                      {r.mentorlukDevamEdiyor && (
-                        <span className="ml-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
-                          devam ediyor
-                        </span>
-                      )}
-                    </>
-                  )}
-                </td>
+      {visibleRows.length === 0 ? (
+        <p className="py-8 text-center text-sm text-text-muted">Bu ay hiç ciro girişi olan bir danışman yok.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-border-subtle">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border-subtle bg-surface-sunken text-text-muted">
+                <th className="px-4 py-2.5 font-medium">Danışman</th>
+                <th className="px-4 py-2.5 font-medium">Ciro Toplamı</th>
+                <th className="px-4 py-2.5 font-medium">Prim</th>
+                <th className="px-4 py-2.5 font-medium">Mentorluk Penceresi</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {visibleRows.map((r) => (
+                <tr key={r.userId} className="border-b border-border-subtle last:border-0">
+                  <td className="px-4 py-2.5 text-text-primary">{r.name}</td>
+                  <td className="px-4 py-2.5 text-text-secondary">{formatPrice(r.ciroToplam)}</td>
+                  <td className="px-4 py-2.5 font-medium text-brand-700">{formatPrice(r.prim)}</td>
+                  <td className="px-4 py-2.5 text-xs text-text-muted">
+                    {formatDateOnly(r.baslangicTarihi)} – {formatDateOnly(r.mentorlukBitis)}
+                    {r.mentorlukDevamEdiyor && (
+                      <span className="ml-1.5 rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
+                        devam ediyor
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

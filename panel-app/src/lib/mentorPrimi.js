@@ -14,14 +14,17 @@ export const MENTOR_PRIMI_DEFAULT_GUN = 365
 
 // baslangicList: [{ userId, baslangicTarihi }] — dataProvider.mentorPrimi.listBaslangicTarihleri().
 // Dönen liste HER aktif danışmanı içerir (başlangıç tarihi atanmış olsun
-// olmasın) — broker, tarihi atanmamış birini de tabloda görüp
-// atayabilsin diye (bkz. MentorPrimiPanel). `izleniyor: false` olan
-// satırların ciro/prim'i her zaman 0'dır, hesaba hiç katılmaz.
+// olmasın) — broker, tarihi atanmamış birini de "Kullanıcılar'a git"
+// kısayoluyla görüp atayabilsin diye (bkz. MentorPrimiPanel'in
+// izlenmeyenSayisi hesabı). `izleniyor: false` olan satırların ciro/
+// prim'i her zaman 0'dır, hesaba hiç katılmaz. Pasif danışman BİLEREK
+// hiç listeye girmiyor (broker: "pasif danışmanı mentörlükte gösterme")
+// — ayrılmış birine artık mentorluk başlangıcı atamak anlamsız.
 export function mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran, gunSayisi, dateRange, customFrom, customTo }) {
   const baslangicByUserId = {}
   for (const b of baslangicList ?? []) baslangicByUserId[b.userId] = b
 
-  const danismanlar = (users ?? []).filter((u) => u.role === 'danisman' && !u.testHesabi)
+  const danismanlar = (users ?? []).filter((u) => u.role === 'danisman' && !u.testHesabi && u.durum === 'aktif')
 
   const rows = danismanlar.map((u) => {
     const baslangic = baslangicByUserId[u.id]

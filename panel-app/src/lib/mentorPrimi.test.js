@@ -5,10 +5,11 @@ const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOStrin
 const isoDate = (n) => daysAgo(n).slice(0, 10)
 
 const users = [
-  { id: 'u1', name: 'Yeni Danışman', role: 'danisman' },
-  { id: 'u2', name: 'Takip Edilmeyen', role: 'danisman' },
-  { id: 'u3', name: 'Test Hesabı', role: 'danisman', testHesabi: true },
-  { id: 'u4', name: 'Broker', role: 'broker' },
+  { id: 'u1', name: 'Yeni Danışman', role: 'danisman', durum: 'aktif' },
+  { id: 'u2', name: 'Takip Edilmeyen', role: 'danisman', durum: 'aktif' },
+  { id: 'u3', name: 'Test Hesabı', role: 'danisman', durum: 'aktif', testHesabi: true },
+  { id: 'u4', name: 'Broker', role: 'broker', durum: 'aktif' },
+  { id: 'u5', name: 'Ayrılan Danışman', role: 'danisman', durum: 'pasif' },
 ]
 
 describe('mentorPrimiRows', () => {
@@ -36,6 +37,13 @@ describe('mentorPrimiRows', () => {
     const ciroGirisleri = [{ userId: 'u1', value: 500000, tarih: isoDate(10) }]
     const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
     expect(rows.find((r) => r.userId === 'u1').ciroToplam).toBe(0)
+  })
+
+  it('pasif danışman listeye hiç girmez (başlangıç tarihi atanmış olsa bile)', () => {
+    const baslangicList = [{ userId: 'u5', baslangicTarihi: isoDate(10) }]
+    const ciroGirisleri = [{ userId: 'u5', value: 200000, tarih: isoDate(5) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
+    expect(rows.find((r) => r.userId === 'u5')).toBeUndefined()
   })
 
   it('test hesabı listeye hiç girmez', () => {
