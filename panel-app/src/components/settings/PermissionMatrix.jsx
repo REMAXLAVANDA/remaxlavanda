@@ -10,14 +10,15 @@ import { ROLES, ROLE_LABELS, ROLE_ORDER } from '../../lib/roles'
 const CAPABILITIES = [
   { label: 'Kullanıcı Ekle/Düzenle', roles: [ROLES.BROKER, ROLES.OWNER] },
   { label: 'Skor Girişi (Ciro)', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
-  { label: 'Lig Dönemi Aç / Sosyal Medya Puanları', roles: [ROLES.BROKER] },
+  { label: 'Lig Dönemi Aç / Sosyal Medya Puan Değerlerini Düzenle', roles: [ROLES.BROKER] },
+  { label: 'Sosyal Medya Aktivite Girişi', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
   { label: 'Kategori Yönetimi', roles: [ROLES.BROKER, ROLES.OWNER] },
   { label: 'Çağrı Atama / Yönetimi', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
   { label: 'Etkinlik Oluştur / Katılım Yönet', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
   { label: 'Mazeret Kabul / Red', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
-  { label: 'Rehber Doküman Ekle/Sil', roles: [ROLES.BROKER, ROLES.OFIS] },
+  { label: 'Rehber Doküman Ekle/Sil', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
   { label: 'Ekip Verilerini Görüntüleme (Takip/Panel)', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
-  { label: 'Log Kayıtlarını Görüntüleme', roles: [ROLES.BROKER, ROLES.OWNER] },
+  { label: 'Log Kayıtlarını Görüntüleme', roles: [ROLES.BROKER] },
 ]
 
 export default function PermissionMatrix() {

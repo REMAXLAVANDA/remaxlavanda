@@ -40,6 +40,13 @@ export function canManageCoachingNotes(role) {
   return role === ROLES.BROKER || role === ROLES.OWNER
 }
 
+// audit_log_select RLS kuralıyla aynı: Ayarlar > Log sekmesi artık SADECE
+// broker'a açık (2026-10-08 broker kararı — önceden owner da görebiliyordu,
+// Ayarlar sayfasının genel canManageUsers kapısıyla aynı kapıdan geçiyordu).
+export function canViewAuditLog(role) {
+  return role === ROLES.BROKER
+}
+
 // leads_manage RLS kuralıyla aynı: SADECE broker/owner Lead Havuzu'na
 // erişebilir — ofis/danışman ne menüde görür ne URL'den girebilir. (Daha
 // önce ofis de dahildi, sonradan daraltıldı — bkz. AI_NOTLARI.md.)

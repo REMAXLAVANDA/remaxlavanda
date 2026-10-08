@@ -15,7 +15,7 @@ import {
   callLogs as callLogsProvider,
   opportunities as opportunitiesProvider,
 } from '../lib/dataProvider'
-import { canManageUsers, ROLE_LABELS } from '../lib/roles'
+import { canManageUsers, canViewAuditLog, ROLE_LABELS } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import { callNeedsTracking } from '../lib/callLogs'
@@ -47,6 +47,11 @@ export default function Ayarlar() {
   const { knownUsers, patchKnownUser } = useKnownUsers()
   const [tab, setTab] = useState(TABS[0].key)
   const canManage = canManageUsers(role)
+  // Log sekmesi 2026-10-08'den beri Ayarlar'ın genel (broker+owner)
+  // kapısından ayrı, kendi başına daha sıkı bir kapı — owner artık bu
+  // sekmeyi ne görür ne verisini çeker (bkz. lib/roles.js canViewAuditLog).
+  const canViewLog = canViewAuditLog(role)
+  const visibleTabs = TABS.filter((t) => t.key !== 'log' || canViewLog)
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
 
   const { data: allUsers, setData: setAllUsers, loading, error, reload } = useAsyncList(
@@ -86,7 +91,7 @@ export default function Ayarlar() {
     loading: loadingAudit,
     error: auditError,
     reload: reloadAudit,
-  } = useAsyncList(() => (canManage && tab === 'log' ? auditLogProvider.list() : Promise.resolve([])), [canManage, tab])
+  } = useAsyncList(() => (canViewLog && tab === 'log' ? auditLogProvider.list() : Promise.resolve([])), [canViewLog, tab])
   const {
     data: webhookErrorRows,
     loading: loadingWebhookErrors,
@@ -483,7 +488,7 @@ export default function Ayarlar() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border-default">
         <div className="flex gap-1 overflow-x-auto">
-          {TABS.map((t) => (
+          {visibleTabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
@@ -554,7 +559,7 @@ export default function Ayarlar() {
 
       {tab === 'yetki' && <PermissionMatrix />}
 
-      {tab === 'log' && (
+      {tab === 'log' && canViewLog && (
         <>
           <p className="mb-4 text-xs text-text-muted">
             Kullanıcı, fırsat ve skor değişiklikleri — en son 200 kayıt.

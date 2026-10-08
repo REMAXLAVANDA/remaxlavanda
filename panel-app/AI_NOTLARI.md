@@ -3,6 +3,30 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Yetki tablosu denetimi: Log sekmesi artık sadece broker
+
+Broker, Ayarlar > Yetki'deki tabloyu satır satır gözden geçirip güncel
+istediği değerleri verdi. Kod tarafında koşullanan her `can*(role)`
+fonksiyonu tek tek bulunup karşılaştırıldı; birkaç madde (Skor Girişi,
+Mazeret Kabul/Red, Kategori Yönetimi, Rehber Doküman) hâlâ netleşmedi,
+onlar değiştirilmedi. Şimdilik iki karar netleşti ve uygulandı:
+
+- **Log Kayıtlarını Görüntüleme → sadece broker**: Önceden Ayarlar
+  sayfasının genel broker+owner kapısıyla aynı kapıdan geçiyordu, ayrı
+  bir kontrolü yoktu. `lib/roles.js`'e `canViewAuditLog(role)` (sadece
+  broker) eklendi; Ayarlar'daki Log sekmesi owner'a artık ne görünüyor
+  (`visibleTabs` ile filtreleniyor) ne verisi çekiliyor.
+- **Ekip Verilerini Görüntüleme (Takip/Panel) ve Lig Dönemi Aç/Sosyal
+  Medya**: Kontrol edildi, kod zaten brokerın istediği gibiydi
+  (Takip sayfası broker+owner+ofis'e açık; dönem açma sadece broker,
+  sosyal medya aktivite girişi broker+owner+ofis — ikisi ayrı
+  fonksiyon). Davranış değişmedi, sadece `PermissionMatrix.jsx`'teki
+  salt-okunur özet tablo gerçek kodu doğru yansıtacak şekilde
+  düzeltildi (Rehber Doküman satırına eksik olan owner eklendi, Lig
+  Dönemi satırı iki ayrı yetkiyi gösterecek şekilde ikiye bölündü).
+
+173/173 test, lint, build temiz.
+
 ## 2026-10-08 — Koçluk Notları: her kartta "yazan" gösteriliyor
 
 Broker: "Selen benim notlarımı görüp kendi alanına yazsa" — sistem
