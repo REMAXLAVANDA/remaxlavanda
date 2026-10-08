@@ -3,6 +3,41 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-08 — Mentor Primi: başlangıç tarihi artık broker'ın elinde, ay seçici eklendi
+
+Broker, az önce eklenen Mentor Primi'de iki sorun bildirdi: "danışman
+giriş tarihi otomatik seçildi ve herkesten prim alıyor, biz başlangıç
+tarihini belirleyebilelim" ve "açılınca ay ay seçilebilsin, otomatik
+güncel ay çıksın". İki düzeltme:
+
+- **Mentorluk başlangıç tarihi artık `users.created_at`'ten OTOMATİK
+  türetilmiyor.** Yeni `mentor_primi_baslangic` tablosu (migration
+  `20261008110000`, SADECE broker erişimi — owner dahil kimse değil,
+  diğer Mentor Primi verisiyle aynı gizlilik) her danışman için AYRI
+  bir başlangıç tarihi tutuyor. `lib/mentorPrimi.js`'teki
+  `mentorPrimiRows` artık bu listeyi parametre alıyor — hiç tarih
+  girilmemiş bir danışman `izleniyor: false` ile işaretlenip hesaba
+  HİÇ katılmıyor (önceki "herkesten prim alıyor" bulgusunu düzeltiyor).
+  `MentorPrimiPanel`'deki tabloda her danışman satırında düzenlenebilir
+  bir tarih alanı var — broker değiştirince `dataProvider.mentorPrimi.
+  upsertBaslangicTarihi()` ile anında kaydediliyor, boşaltılırsa
+  `removeBaslangicTarihi()` ile siliniyor (danışman tekrar "izlenmiyor"
+  durumuna döner).
+- **Tarih aralığı artık ay bazlı.** Yeni `components/common/
+  MonthFilter.jsx` — standart `DateRangeFilter`'ın (7g/30g/4a vb.)
+  yerine, "Ekim 2026" gibi son 24 ayı listeleyen bir `<select>`,
+  sayfa açılır açılmaz GÜNCEL ay seçili geliyor. Seçilen ay,
+  `lib/dateRange.js`'teki mevcut 'ozel' (customFrom/customTo)
+  mekanizmasına çevriliyor — `mentorPrimiRows`'un ayrı bir filtre
+  mantığı öğrenmesi gerekmedi.
+
+Migration önce commit edildi, SONRA (broker onayıyla) `apply_migration`
+ile uygulandı — CLAUDE.md kuralı. 9 birim testi (mentorPrimi.test.js
+güncellendi), 182/182 genel test, lint, build temiz. Mock modda
+Playwright ile doğrulandı: ay seçici güncel ayla açılıyor, başlangıç
+tarihi girilmemiş danışman "—"/"Başlangıç tarihi girilmedi" gösteriyor,
+tarih girilince aynı anda ciro/prim hesaplanıyor.
+
 ## 2026-10-08 — Ayarlar'a "Mentor Primi" sekmesi eklendi
 
 Broker: "Selen yeni başlayan danışmanların cirosundan 1 yıl boyunca %10

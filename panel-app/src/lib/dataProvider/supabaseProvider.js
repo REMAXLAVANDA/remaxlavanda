@@ -1402,6 +1402,29 @@ export const users = {
   },
 }
 
+// --- Mentor Primi (Ayarlar, sadece broker) ----------------------------------
+// mentor_primi_baslangic_manage RLS'i SADECE broker'a izin veriyor (owner
+// dahil hiç kimse — bkz. migration 20261008110000). Her danışman için
+// AYRICA belirlenen bir mentorluk başlangıç tarihi — users.created_at'ten
+// BİLEREK bağımsız (bkz. lib/mentorPrimi.js notu).
+export const mentorPrimi = {
+  async listBaslangicTarihleri() {
+    const data = await run(client().from('mentor_primi_baslangic').select('*'))
+    return data.map((r) => ({ userId: r.user_id, baslangicTarihi: r.baslangic_tarihi, setBy: r.set_by, updatedAt: r.updated_at }))
+  },
+  async upsertBaslangicTarihi(userId, baslangicTarihi, setBy) {
+    await run(
+      client()
+        .from('mentor_primi_baslangic')
+        .upsert({ user_id: userId, baslangic_tarihi: baslangicTarihi, set_by: setBy, updated_at: new Date().toISOString() }),
+    )
+    return { userId, baslangicTarihi }
+  },
+  async removeBaslangicTarihi(userId) {
+    await run(client().from('mentor_primi_baslangic').delete().eq('user_id', userId))
+  },
+}
+
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------
 // audit_log_select RLS'i sadece broker/owner'a okuma izni veriyor —
 // trigger'lar (bkz. 20260719070000 migration) kullanıcı/fırsat/skor

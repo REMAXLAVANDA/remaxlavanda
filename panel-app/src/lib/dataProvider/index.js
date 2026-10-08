@@ -25,6 +25,7 @@ export const coachingNotes = provider.coachingNotes
 export const metaWebhookErrors = provider.metaWebhookErrors
 export const telsamWebhookErrors = provider.telsamWebhookErrors
 export const metaCapiErrors = provider.metaCapiErrors
+export const mentorPrimi = provider.mentorPrimi
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

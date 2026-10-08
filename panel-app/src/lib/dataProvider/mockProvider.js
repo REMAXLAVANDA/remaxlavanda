@@ -959,6 +959,38 @@ export const users = {
   },
 }
 
+// --- Mentor Primi (Ayarlar, sadece broker) ----------------------------------
+// supabaseProvider.mentorPrimi ile aynı şekil — mentor_primi_baslangic
+// tablosunun mock karşılığı. 'u-danisman' bilerek izlenen bir danışman
+// olarak seed'lendi (ciro girişleri MOCK_CIRO_GIRISLERI'nde zaten var),
+// diğerleri BİLEREK boş — "henüz başlangıç tarihi atanmamış" satırını da
+// test edebilmek için (bkz. MentorPrimiPanel).
+const MOCK_MENTOR_PRIMI_BASLANGIC = [
+  { userId: 'u-danisman', baslangicTarihi: usersDaysAgo(60).slice(0, 10), setBy: 'u-broker', updatedAt: usersDaysAgo(60) },
+]
+
+export const mentorPrimi = {
+  async listBaslangicTarihleri() {
+    return delay([...MOCK_MENTOR_PRIMI_BASLANGIC])
+  },
+  async upsertBaslangicTarihi(userId, baslangicTarihi, setBy) {
+    const existing = MOCK_MENTOR_PRIMI_BASLANGIC.find((r) => r.userId === userId)
+    if (existing) {
+      existing.baslangicTarihi = baslangicTarihi
+      existing.setBy = setBy
+      existing.updatedAt = new Date().toISOString()
+    } else {
+      MOCK_MENTOR_PRIMI_BASLANGIC.push({ userId, baslangicTarihi, setBy, updatedAt: new Date().toISOString() })
+    }
+    return delay({ userId, baslangicTarihi })
+  },
+  async removeBaslangicTarihi(userId) {
+    const idx = MOCK_MENTOR_PRIMI_BASLANGIC.findIndex((r) => r.userId === userId)
+    if (idx !== -1) MOCK_MENTOR_PRIMI_BASLANGIC.splice(idx, 1)
+    return delay(null)
+  },
+}
+
 // --- Audit Log (Ayarlar > Log) -----------------------------------------------
 const MOCK_AUDIT_LOG = [
   { id: 'al-1', actorId: 'u-broker', action: 'UPDATE', tableName: 'users', recordId: 'ext-danisman-2', detay: { rol: 'danisman' }, createdAt: usersDaysAgo(1) },

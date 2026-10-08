@@ -15,12 +15,14 @@ import {
   callLogs as callLogsProvider,
   opportunities as opportunitiesProvider,
   league as leagueProvider,
+  mentorPrimi as mentorPrimiProvider,
 } from '../lib/dataProvider'
 import { canManageUsers, canViewAuditLog, canViewMentorPrimi, ROLE_LABELS } from '../lib/roles'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import { callNeedsTracking } from '../lib/callLogs'
 import { mentorPrimiRows, mentorPrimiToplam, MENTOR_PRIMI_DEFAULT_ORAN, MENTOR_PRIMI_DEFAULT_GUN } from '../lib/mentorPrimi'
+import { currentMonthKey, monthRangeFor } from '../components/common/MonthFilter'
 import UsersTable from '../components/settings/UsersTable'
 import CreateUserModal from '../components/settings/CreateUserModal'
 import EditUserModal from '../components/settings/EditUserModal'
@@ -62,13 +64,11 @@ export default function Ayarlar() {
   const canViewMentor = canViewMentorPrimi(role)
   const visibleTabs = TABS.filter((t) => (t.key !== 'log' || canViewLog) && (t.key !== 'mentor-primi' || canViewMentor))
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
-  const [mentorPrimiForm, setMentorPrimiForm] = useState({
-    oran: MENTOR_PRIMI_DEFAULT_ORAN,
-    gunSayisi: MENTOR_PRIMI_DEFAULT_GUN,
-    dateRange: 'tumu',
-    customFrom: '',
-    customTo: '',
+  const [mentorPrimiForm, setMentorPrimiForm] = useState(() => {
+    const monthKey = currentMonthKey()
+    return { oran: MENTOR_PRIMI_DEFAULT_ORAN, gunSayisi: MENTOR_PRIMI_DEFAULT_GUN, monthKey, ...monthRangeFor(monthKey) }
   })
+  const [savingMentorPrimiUserId, setSavingMentorPrimiUserId] = useState(null)
 
   const { data: allUsers, setData: setAllUsers, loading, error, reload } = useAsyncList(
     () => (canManage ? usersProvider.listAll() : Promise.resolve([])),
@@ -136,18 +136,44 @@ export default function Ayarlar() {
     [canManage, tab],
   )
   const {
-    data: mentorPrimiCiroGirisleri,
+    data: mentorPrimiRaw,
+    setData: setMentorPrimiRaw,
     loading: loadingMentorPrimi,
     error: mentorPrimiError,
     reload: reloadMentorPrimi,
   } = useAsyncList(
-    () => (canViewMentor && tab === 'mentor-primi' ? leagueProvider.listCiroGirisleri() : Promise.resolve([])),
+    () =>
+      canViewMentor && tab === 'mentor-primi'
+        ? Promise.all([leagueProvider.listCiroGirisleri(), mentorPrimiProvider.listBaslangicTarihleri()]).then(
+            ([ciroGirisleri, baslangicList]) => ({ ciroGirisleri, baslangicList }),
+          )
+        : Promise.resolve({ ciroGirisleri: [], baslangicList: [] }),
     [canViewMentor, tab],
   )
   const mentorPrimiData = useMemo(() => {
-    const rows = mentorPrimiRows(allUsers, mentorPrimiCiroGirisleri, mentorPrimiForm)
+    const rows = mentorPrimiRows(allUsers, mentorPrimiRaw?.ciroGirisleri, mentorPrimiRaw?.baslangicList, mentorPrimiForm)
     return { rows, toplam: mentorPrimiToplam(rows) }
-  }, [allUsers, mentorPrimiCiroGirisleri, mentorPrimiForm])
+  }, [allUsers, mentorPrimiRaw, mentorPrimiForm])
+
+  async function handleSetMentorPrimiBaslangic(userId, baslangicTarihi) {
+    setSavingMentorPrimiUserId(userId)
+    try {
+      if (baslangicTarihi) {
+        await mentorPrimiProvider.upsertBaslangicTarihi(userId, baslangicTarihi, user.id)
+        setMentorPrimiRaw((prev) => ({
+          ...prev,
+          baslangicList: [...(prev?.baslangicList ?? []).filter((b) => b.userId !== userId), { userId, baslangicTarihi }],
+        }))
+      } else {
+        await mentorPrimiProvider.removeBaslangicTarihi(userId)
+        setMentorPrimiRaw((prev) => ({ ...prev, baslangicList: (prev?.baslangicList ?? []).filter((b) => b.userId !== userId) }))
+      }
+    } catch (err) {
+      showToast(err.message ?? 'Başlangıç tarihi kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSavingMentorPrimiUserId(null)
+    }
+  }
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -656,6 +682,8 @@ export default function Ayarlar() {
               onFormChange={setMentorPrimiForm}
               rows={mentorPrimiData.rows}
               toplam={mentorPrimiData.toplam}
+              onSetBaslangic={handleSetMentorPrimiBaslangic}
+              savingUserId={savingMentorPrimiUserId}
             />
           )}
         </>

@@ -2,61 +2,76 @@ import { describe, expect, it } from 'vitest'
 import { mentorPrimiRows, mentorPrimiToplam } from './mentorPrimi'
 
 const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString()
+const isoDate = (n) => daysAgo(n).slice(0, 10)
 
 const users = [
-  { id: 'u1', name: 'Yeni Danışman', role: 'danisman', createdAt: daysAgo(30) },
-  { id: 'u2', name: 'Eski Danışman', role: 'danisman', createdAt: daysAgo(500) },
-  { id: 'u3', name: 'Test Hesabı', role: 'danisman', testHesabi: true, createdAt: daysAgo(10) },
-  { id: 'u4', name: 'Broker', role: 'broker', createdAt: daysAgo(900) },
+  { id: 'u1', name: 'Yeni Danışman', role: 'danisman' },
+  { id: 'u2', name: 'Takip Edilmeyen', role: 'danisman' },
+  { id: 'u3', name: 'Test Hesabı', role: 'danisman', testHesabi: true },
+  { id: 'u4', name: 'Broker', role: 'broker' },
 ]
 
 describe('mentorPrimiRows', () => {
-  it('mentorluk penceresi (başlangıç + gunSayisi) içindeki ciroyu sayar', () => {
-    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: daysAgo(10) }]
-    const rows = mentorPrimiRows(users, ciroGirisleri, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
-    expect(rows).toEqual([
-      expect.objectContaining({ userId: 'u1', ciroToplam: 100000, prim: 10000 }),
-    ])
+  it('başlangıç tarihi atanmamış danışman hesaba katılmaz (izleniyor: false)', () => {
+    const ciroGirisleri = [{ userId: 'u2', value: 500000, tarih: isoDate(10) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, [], { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
+    const u2 = rows.find((r) => r.userId === 'u2')
+    expect(u2.izleniyor).toBe(false)
+    expect(u2.ciroToplam).toBe(0)
+    expect(u2.prim).toBe(0)
   })
 
-  it('mentorluk penceresi dışında kalan (365 günden eski) satış sayılmaz', () => {
-    const ciroGirisleri = [{ userId: 'u2', value: 500000, tarih: daysAgo(10) }]
-    const rows = mentorPrimiRows(users, ciroGirisleri, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
-    expect(rows).toEqual([])
+  it('başlangıç tarihi atanan danışmanın penceresi içindeki ciroyu sayar', () => {
+    const baslangicList = [{ userId: 'u1', baslangicTarihi: isoDate(30) }]
+    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: isoDate(10) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
+    const u1 = rows.find((r) => r.userId === 'u1')
+    expect(u1.izleniyor).toBe(true)
+    expect(u1.ciroToplam).toBe(100000)
+    expect(u1.prim).toBe(10000)
   })
 
-  it('test hesabı hiç listeye girmez', () => {
-    const ciroGirisleri = [{ userId: 'u3', value: 200000, tarih: daysAgo(5) }]
-    const rows = mentorPrimiRows(users, ciroGirisleri, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
-    expect(rows).toEqual([])
+  it('mentorluk penceresi dışında kalan (365 günden eski başlangıca göre) satış sayılmaz', () => {
+    const baslangicList = [{ userId: 'u1', baslangicTarihi: isoDate(500) }]
+    const ciroGirisleri = [{ userId: 'u1', value: 500000, tarih: isoDate(10) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
+    expect(rows.find((r) => r.userId === 'u1').ciroToplam).toBe(0)
+  })
+
+  it('test hesabı listeye hiç girmez', () => {
+    const baslangicList = [{ userId: 'u3', baslangicTarihi: isoDate(10) }]
+    const ciroGirisleri = [{ userId: 'u3', value: 200000, tarih: isoDate(5) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
+    expect(rows.find((r) => r.userId === 'u3')).toBeUndefined()
   })
 
   it('seçilen tarih aralığının dışında kalan satış sayılmaz', () => {
-    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: daysAgo(10) }]
-    const rows = mentorPrimiRows(users, ciroGirisleri, { oran: 10, gunSayisi: 365, dateRange: '7g' })
-    expect(rows).toEqual([])
+    const baslangicList = [{ userId: 'u1', baslangicTarihi: isoDate(30) }]
+    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: isoDate(10) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: '7g' })
+    expect(rows.find((r) => r.userId === 'u1').ciroToplam).toBe(0)
   })
 
   it('oran değiştirilince prim yeniden hesaplanır', () => {
-    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: daysAgo(10) }]
-    const rows = mentorPrimiRows(users, ciroGirisleri, { oran: 15, gunSayisi: 365, dateRange: 'tumu' })
-    expect(rows[0].prim).toBe(15000)
+    const baslangicList = [{ userId: 'u1', baslangicTarihi: isoDate(30) }]
+    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: isoDate(10) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 15, gunSayisi: 365, dateRange: 'tumu' })
+    expect(rows.find((r) => r.userId === 'u1').prim).toBe(15000)
   })
 
-  it('birden fazla satış toplanır, en yüksek prim en üstte', () => {
-    const ciroGirisleri = [
-      { userId: 'u1', value: 100000, tarih: daysAgo(10) },
-      { userId: 'u1', value: 50000, tarih: daysAgo(5) },
-    ]
-    const rows = mentorPrimiRows(users, ciroGirisleri, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
-    expect(rows).toHaveLength(1)
-    expect(rows[0].ciroToplam).toBe(150000)
+  it('izlenenler üstte, izlenmeyenler isimle sıralı altta', () => {
+    const baslangicList = [{ userId: 'u1', baslangicTarihi: isoDate(30) }]
+    const ciroGirisleri = [{ userId: 'u1', value: 100000, tarih: isoDate(10) }]
+    const rows = mentorPrimiRows(users, ciroGirisleri, baslangicList, { oran: 10, gunSayisi: 365, dateRange: 'tumu' })
+    expect(rows[0].userId).toBe('u1')
+    expect(rows[0].izleniyor).toBe(true)
+    expect(rows.slice(1).every((r) => !r.izleniyor)).toBe(true)
   })
 })
 
 describe('mentorPrimiToplam', () => {
-  it('tüm satırların primini toplar', () => {
-    const rows = [{ prim: 1000 }, { prim: 2500 }]
+  it('sadece izlenen satırların primini toplar', () => {
+    const rows = [{ prim: 1000, izleniyor: true }, { prim: 0, izleniyor: false }, { prim: 2500, izleniyor: true }]
     expect(mentorPrimiToplam(rows)).toBe(3500)
   })
 
