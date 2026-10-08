@@ -42,27 +42,25 @@ as $$
   );
 $$;
 
-drop policy ciro_raporlari_select on public.ciro_raporlari;
-create policy ciro_raporlari_select on public.ciro_raporlari
-  for select to authenticated
+-- NOT: bu migration DROP POLICY yerine ALTER POLICY kullanıyor — uygulama
+-- anında bu Supabase projesinde DROP (hem DROP POLICY hem DELETE) tutarlı
+-- biçimde asılı kalıyordu (ayrı, araştırılan bir platform sorunu — bkz.
+-- AI_NOTLARI.md), ALTER POLICY anında çalıştı. Sonuç olarak birebir aynı.
+alter policy ciro_raporlari_select on public.ciro_raporlari
   using (
     (select is_manager())
     or olusturan_id = (select auth.uid())
     or (select public.ciro_raporunda_katilimci_mi(id))
   );
 
-drop policy ciro_raporu_katilimcilari_select on public.ciro_raporu_katilimcilari;
-create policy ciro_raporu_katilimcilari_select on public.ciro_raporu_katilimcilari
-  for select to authenticated
+alter policy ciro_raporu_katilimcilari_select on public.ciro_raporu_katilimcilari
   using (
     (select is_manager())
     or danisman_id = (select auth.uid())
     or (select public.ciro_raporu_olusturan_id(ciro_raporu_id)) = (select auth.uid())
   );
 
-drop policy ciro_raporu_katilimcilari_insert_self on public.ciro_raporu_katilimcilari;
-create policy ciro_raporu_katilimcilari_insert_self on public.ciro_raporu_katilimcilari
-  for insert to authenticated
+alter policy ciro_raporu_katilimcilari_insert_self on public.ciro_raporu_katilimcilari
   with check (
     (select is_manager())
     or (
@@ -71,9 +69,7 @@ create policy ciro_raporu_katilimcilari_insert_self on public.ciro_raporu_katili
     )
   );
 
-drop policy ciro_raporu_katilimcilari_update on public.ciro_raporu_katilimcilari;
-create policy ciro_raporu_katilimcilari_update on public.ciro_raporu_katilimcilari
-  for update to authenticated
+alter policy ciro_raporu_katilimcilari_update on public.ciro_raporu_katilimcilari
   using (
     (select is_manager())
     or (
@@ -89,9 +85,7 @@ create policy ciro_raporu_katilimcilari_update on public.ciro_raporu_katilimcila
     )
   );
 
-drop policy ciro_raporu_katilimcilari_delete on public.ciro_raporu_katilimcilari;
-create policy ciro_raporu_katilimcilari_delete on public.ciro_raporu_katilimcilari
-  for delete to authenticated
+alter policy ciro_raporu_katilimcilari_delete on public.ciro_raporu_katilimcilari
   using (
     (select is_manager())
     or (
