@@ -940,6 +940,73 @@ export const danismanAnlasmalari = {
   },
 }
 
+// --- Banka Hareketleri (Vakıfbank API bağlanana kadar elle giriş +
+// Ciro Raporu ödemeleriyle eşleştirme) --------------------------------------
+const MOCK_BANKA_HAREKETLERI = [
+  {
+    id: 'bh-1',
+    tutar: 480000,
+    tarih: ciroRaporuDaysAgo(2).slice(0, 10),
+    gonderenAdi: 'Mehmet Demir',
+    aciklama: 'EFT',
+    referansNo: null,
+    kaynak: 'manuel',
+    durum: 'eslesmedi',
+    eslesenKatilimciId: null,
+    eslestirenId: null,
+    eslesmeTarihi: null,
+    olusturanId: 'u-broker',
+    createdAt: ciroRaporuDaysAgo(2),
+  },
+]
+
+export const bankaHareketleri = {
+  async list() {
+    return delay([...MOCK_BANKA_HAREKETLERI].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
+  },
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo }, olusturanId) {
+    const row = {
+      id: `bh-${Date.now()}`,
+      tutar: Number(tutar),
+      tarih,
+      gonderenAdi: gonderenAdi || null,
+      aciklama: aciklama || null,
+      referansNo: referansNo || null,
+      kaynak: 'manuel',
+      durum: 'eslesmedi',
+      eslesenKatilimciId: null,
+      eslestirenId: null,
+      eslesmeTarihi: null,
+      olusturanId,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_BANKA_HAREKETLERI.unshift(row)
+    return delay(row)
+  },
+  async eslestir(hareketId, katilimciId, eslestirenId) {
+    const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
+    if (!hareket) throw new Error('Hareket bulunamadı.')
+    hareket.durum = 'eslesti'
+    hareket.eslesenKatilimciId = katilimciId
+    hareket.eslestirenId = eslestirenId
+    hareket.eslesmeTarihi = new Date().toISOString()
+    const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
+    if (katilimci) katilimci.odemeDurumu = 'alindi'
+    return delay({ id: hareketId })
+  },
+  async eslesmeyiKaldir(hareketId) {
+    const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
+    if (!hareket) throw new Error('Hareket bulunamadı.')
+    const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === hareket.eslesenKatilimciId)
+    if (katilimci) katilimci.odemeDurumu = 'bekliyor'
+    hareket.durum = 'eslesmedi'
+    hareket.eslesenKatilimciId = null
+    hareket.eslestirenId = null
+    hareket.eslesmeTarihi = null
+    return delay({ id: hareketId })
+  },
+}
+
 // --- Users -------------------------------------------------------------------
 // Ayarlar > Kullanıcılar'dan mock modda eklenen/düzenlenen kullanıcılar —
 // MOCK_USERS/OTHER_USERS sabit dev hesapları olduğu için ayrı tutuluyor.

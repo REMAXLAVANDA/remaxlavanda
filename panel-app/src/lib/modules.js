@@ -12,6 +12,7 @@ import {
   Inbox,
   UserSearch,
   Receipt,
+  Landmark,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -25,6 +26,9 @@ const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 // broker/owner, bkz. lib/ciroRaporlari.js canApproveCiroRaporu) yetkisi
 // var — menüde de hiç görünmüyor (2026-10-08 broker kararı).
 const CIRO_RAPORU_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN]
+// Banka Hareketleri: para hareketleri hassas bilgi — Ciro Raporu onayıyla
+// aynı seviyeden de dar, sadece broker/owner (bkz. lib/bankaHareketleri.js).
+const BANKA_HAREKETLERI_ROLES = [ROLES.BROKER, ROLES.OWNER]
 
 // "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
 // menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi
@@ -138,6 +142,15 @@ export const MODULES = [
     description: 'Kapanan işlemleri raporla, onayla — Lig ve Mentor Primi\'ni besler',
     icon: Receipt,
     roles: CIRO_RAPORU_ROLES,
+    group: 'takip',
+  },
+  {
+    key: 'banka-hareketleri',
+    path: '/banka-hareketleri',
+    label: 'Banka Hareketleri',
+    description: 'Gelen ödemeleri Ciro Raporu kayıtlarıyla eşleştir',
+    icon: Landmark,
+    roles: BANKA_HAREKETLERI_ROLES,
     group: 'takip',
   },
   {

@@ -28,6 +28,7 @@ export const metaCapiErrors = provider.metaCapiErrors
 export const mentorPrimi = provider.mentorPrimi
 export const ciroRaporlari = provider.ciroRaporlari
 export const danismanAnlasmalari = provider.danismanAnlasmalari
+export const bankaHareketleri = provider.bankaHareketleri
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

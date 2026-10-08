@@ -1422,6 +1422,87 @@ export const danismanAnlasmalari = {
   },
 }
 
+// --- Banka Hareketleri (Vakıfbank API bağlanana kadar elle giriş +
+// Ciro Raporu ödemeleriyle eşleştirme, bkz. migration
+// 20261009090000_banka_hareketleri.sql) ---------------------------------
+function mapBankaHareketi(row) {
+  return {
+    id: row.id,
+    tutar: Number(row.tutar),
+    tarih: row.tarih,
+    gonderenAdi: row.gonderen_adi,
+    aciklama: row.aciklama,
+    referansNo: row.referans_no,
+    kaynak: row.kaynak,
+    durum: row.durum,
+    eslesenKatilimciId: row.eslesen_katilimci_id,
+    eslestirenId: row.eslestiren_id,
+    eslesmeTarihi: row.eslesme_tarihi,
+    olusturanId: row.olusturan_id,
+    createdAt: row.created_at,
+  }
+}
+
+export const bankaHareketleri = {
+  async list() {
+    const data = await run(client().from('banka_hareketleri').select('*').order('tarih', { ascending: false }))
+    return data.map(mapBankaHareketi)
+  },
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo }, olusturanId) {
+    const data = await run(
+      client()
+        .from('banka_hareketleri')
+        .insert({
+          tutar: Number(tutar),
+          tarih,
+          gonderen_adi: gonderenAdi || null,
+          aciklama: aciklama || null,
+          referans_no: referansNo || null,
+          kaynak: 'manuel',
+          olusturan_id: olusturanId,
+        })
+        .select()
+        .single(),
+    )
+    return mapBankaHareketi(data)
+  },
+  // Eşleştirince hem hareket "eşleşti" olur hem o katılımcının ödeme
+  // durumu "alındı"ya döner — Ciro Raporları ekranındaki elle işaretleme
+  // ile AYNI alan, tek kaynak (bkz. CiroRaporuKatilimciRow).
+  async eslestir(hareketId, katilimciId, eslestirenId) {
+    await run(
+      client()
+        .from('banka_hareketleri')
+        .update({
+          durum: 'eslesti',
+          eslesen_katilimci_id: katilimciId,
+          eslestiren_id: eslestirenId,
+          eslesme_tarihi: new Date().toISOString(),
+        })
+        .eq('id', hareketId),
+    )
+    await run(client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'alindi' }).eq('id', katilimciId))
+  },
+  // Yanlış eşleştirmeyi düzeltmenin tek yolu — hareketi tekrar
+  // "eşleşmedi"ye, katılımcıyı "bekliyor"a döndürür.
+  async eslesmeyiKaldir(hareketId) {
+    const hareket = await run(
+      client().from('banka_hareketleri').select('eslesen_katilimci_id').eq('id', hareketId).single(),
+    )
+    await run(
+      client()
+        .from('banka_hareketleri')
+        .update({ durum: 'eslesmedi', eslesen_katilimci_id: null, eslestiren_id: null, eslesme_tarihi: null })
+        .eq('id', hareketId),
+    )
+    if (hareket.eslesen_katilimci_id) {
+      await run(
+        client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'bekliyor' }).eq('id', hareket.eslesen_katilimci_id),
+      )
+    }
+  },
+}
+
 // --- Users -----------------------------------------------------------------
 export const users = {
   async listKnown() {

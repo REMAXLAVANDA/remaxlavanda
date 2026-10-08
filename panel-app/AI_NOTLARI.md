@@ -3,6 +3,31 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-09 — Banka Hareketleri: Vakıfbank API'si bağlanana kadar elle giriş + Ciro Raporu eşleştirme
+
+Broker Vakıfbank'la API görüşmesi sürdürüyor, henüz bağlanmadı. Köprü
+çözüm: yeni `banka_hareketleri` tablosu (migration
+`20261009090000_banka_hareketleri.sql`, tek RLS politikası —
+`is_manager()`, yani sadece broker/owner). Broker ekstreyi elle girer
+(tutar/tarih/gönderen/açıklama, `kaynak='manuel'`), Ciro Raporu'ndaki
+"ödeme bekliyor" katılımcı kayıtlarından biriyle eşleştirir — eşleşince
+hem hareket "eşleşti" olur hem o katılımcının `odeme_durumu` otomatik
+"alındı"ya döner (Ciro Raporları ekranındaki elle işaretlemeyle AYNI
+alan, tek kaynak). Yanlış eşleştirme "Eşleşmeyi kaldır" ile geri
+alınabilir. API bağlanınca aynı tabloya `kaynak='otomatik'` ile
+yazılacak şekilde tasarlandı — UI/eşleştirme mantığı değişmeyecek.
+
+Yeni ekran: `/banka-hareketleri` (nav: "Gelişim" grubu, Ciro
+Raporları'nın altı, SADECE broker/owner). Eşleşme adayları tutar
+farkına göre sıralanıyor (`lib/bankaHareketleri.js` eslesmeAdaylari) —
+broker en olası eşleşmeyi en üstte görüyor.
+
+Rol-simülasyonuyla test edildi: broker ekler/görür, danışman/ofis hiçbir
+satır göremiyor, insert'i RLS reddediyor. 198/198 test, lint, build
+temiz. Mock modda Playwright ile uçtan uca doğrulandı: hareket ekleme,
+eşleştirme (ödeme otomatik "alındı" oldu), danışman'ın sayfaya hiç
+erişemediği (RestrictedAccess) doğrulandı.
+
 ## 2026-10-08 — Ciro Raporu sistemi: manuel "Ciro Gir" akışının yerine danışman kendi raporunu giriyor, broker onaylıyor
 
 Broker: bankayla entegre bir sistem kurup para transferlerini kontrol
