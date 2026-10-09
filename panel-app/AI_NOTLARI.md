@@ -3,6 +3,39 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-09 — Masraflar artık bankadan atanıyor; masraf kategorileri dinamik
+
+Broker kararı: "masraflar manuel girilen bir alan değil, bankadan gelen
+bilgiler doğrultusunda atananların olduğu alan olacak." Masraflar
+sekmesindeki eski "İşleme Bağlı Masraf" manuel formu kaldırıldı.
+
+**Yeni akış:** Banka Hareketleri'ne artık çıkış da elle girilebiliyor
+(Giriş/Çıkış seçimi). Eşleşmemiş her hareket için broker ya "Eşleştir"
+(ödeme bekleyen bir katılımcıyla) ya da "Masraf" (yeni
+MasrafIsaretleModal — kategori + opsiyonel danışman) seçiyor. Masraf
+işaretlenince `islem_masraflari` satırı otomatik oluşuyor
+(`banka_hareketi_id` ile kaynağına bağlı, artık `ciro_raporu_id`
+zorunlu değil), danışmana bağlanırsa Cari Hesabına borç yazılıyor.
+
+**Masraf kategorileri artık sabit liste değil** — broker: "yeni kalem
+olunca da ekleme yapabileyim, mesela Meta Reklam veya EFT ücreti gibi."
+Mevcut `categories` tablosu (Rehber klasörleriyle AYNI genel yapı,
+module='masraflar') üzerinden geliyor; MasrafIsaretleModal'da "+ Yeni
+kategori ekle" ile anında eklenip seçilebiliyor. 9 başlangıç kategorisi
+seed edildi (Tapu Harcı, İlan Gideri, Kira, Elektrik, Maaş, Pazarlama,
+Meta Reklam, EFT Ücreti, Diğer).
+
+**Masraflar sekmesinin üstüne Özet eklendi** (broker: "kimin ne kadar
+parası var bloke hesapta, bu ay ne kadar masraf olmuş, danışman alacak
+borç durumu") — Blokede Bekleyen (banka hareketlerinden), Bu Ay Toplam
+Masraf (kategori kırılımlı + kişi başı genel ofis gideri), Danışman
+Alacak/Borç (Cari Hesap'tan), ve onaylanan Ciro Raporlarından bu ayki
+danışman bazlı kazanç listesi.
+
+Migration'lar: `20261009193300_masraflar_bankadan_atama.sql`,
+`20261009193900_masraf_kategorileri_dinamik.sql`. "Aylık Danışman
+Faturası" formu DEĞİŞMEDİ (ayrı konu — ofis danışmana kestiği fatura).
+
 ## 2026-10-09 — Danışman Anlaşmaları menüsü kaldırıldı, paylaşım oranı Kullanıcı Ekle/Düzenle formuna taşındı (Rap/Max seçimi)
 
 Ayarlar'daki ayrı "Danışman Anlaşmaları" sekmesi tamamen kaldırıldı

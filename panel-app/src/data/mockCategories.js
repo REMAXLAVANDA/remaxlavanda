@@ -25,4 +25,15 @@ export const MOCK_CATEGORIES = [
   { id: 'cat-docs-yonetim', module: 'docs', key: 'yonetim-notlari', label: 'Yönetim Notları', sortOrder: 8, isActive: true, visibility: 'yonetim', parentId: null },
   { id: 'cat-docs-sss-komisyon', module: 'docs', key: 'sss-komisyon', label: 'Komisyon', sortOrder: 1, isActive: true, visibility: 'herkes', parentId: 'cat-docs-sss' },
   { id: 'cat-docs-sss-sifre', module: 'docs', key: 'sss-sifre-erisim', label: 'Şifre/Erişim', sortOrder: 2, isActive: true, visibility: 'herkes', parentId: 'cat-docs-sss' },
+  // Masraf kategorileri (2026-10-09 broker: "yeni kalem olunca da ekleme
+  // yapabileyim") — islem_masraflari.tur artık bu listedeki bir 'key'.
+  { id: 'cat-masraf-tapu', module: 'masraflar', key: 'tapu_harci', label: 'Tapu Harcı', sortOrder: 1, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-ilan', module: 'masraflar', key: 'ilan_gideri', label: 'İlan Gideri', sortOrder: 2, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-kira', module: 'masraflar', key: 'kira', label: 'Kira', sortOrder: 3, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-elektrik', module: 'masraflar', key: 'elektrik', label: 'Elektrik', sortOrder: 4, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-maas', module: 'masraflar', key: 'maas', label: 'Maaş', sortOrder: 5, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-pazarlama', module: 'masraflar', key: 'pazarlama', label: 'Pazarlama', sortOrder: 6, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-meta', module: 'masraflar', key: 'meta_reklam', label: 'Meta Reklam', sortOrder: 7, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-eft', module: 'masraflar', key: 'eft_ucreti', label: 'EFT Ücreti', sortOrder: 8, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-diger', module: 'masraflar', key: 'diger', label: 'Diğer', sortOrder: 9, isActive: true, visibility: 'yonetim', parentId: null },
 ]

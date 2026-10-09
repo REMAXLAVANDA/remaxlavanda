@@ -1100,7 +1100,8 @@ export const bankaHareketleri = {
   async list() {
     return delay([...MOCK_BANKA_HAREKETLERI].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
   },
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke }, olusturanId) {
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip }, olusturanId) {
+    const cikis = tip === 'cikis'
     const row = {
       id: `bh-${Date.now()}`,
       tutar: Number(tutar),
@@ -1109,12 +1110,12 @@ export const bankaHareketleri = {
       aciklama: aciklama || null,
       referansNo: referansNo || null,
       kaynak: 'manuel',
-      tip: 'giris',
-      opportunityId: opportunityId || null,
+      tip: cikis ? 'cikis' : 'giris',
+      opportunityId: !cikis && opportunityId ? opportunityId : null,
       ustHareketId: null,
-      tur: bloke ? 'baglanma_parasi' : 'diger',
+      tur: !cikis && bloke ? 'baglanma_parasi' : 'diger',
       mahsupTutari: null,
-      durum: bloke ? 'blokede' : 'eslesmedi',
+      durum: !cikis && bloke ? 'blokede' : 'eslesmedi',
       eslesenKatilimciId: null,
       eslestirenId: null,
       eslesmeTarihi: null,
@@ -1123,6 +1124,43 @@ export const bankaHareketleri = {
     }
     MOCK_BANKA_HAREKETLERI.unshift(row)
     return delay(row)
+  },
+  // bkz. supabaseProvider.js masrafOlarakIsaretle — AYNI mantık.
+  async masrafOlarakIsaretle(hareketId, { tur, aciklama, danismanId }, kullaniciId) {
+    const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
+    if (!hareket) throw new Error('Hareket bulunamadı.')
+    const masrafRow = {
+      id: `im-${Date.now()}`,
+      ciroRaporuId: null,
+      danismanId: danismanId || null,
+      tur,
+      aciklama: aciklama || null,
+      tutar: Number(hareket.tutar),
+      bankaHareketiId: hareketId,
+      createdBy: kullaniciId,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_ISLEM_MASRAFLARI.unshift(masrafRow)
+    if (danismanId) {
+      MOCK_CARI_HAREKETLER.unshift({
+        id: `ch-${Date.now()}-m`,
+        danismanId,
+        tarih: hareket.tarih,
+        tur: 'borc',
+        tutar: Number(hareket.tutar),
+        kategori: 'islem_masrafi',
+        aciklama: aciklama || null,
+        kaynakTip: 'islem_masrafi',
+        kaynakId: masrafRow.id,
+        durum: 'acik',
+        createdBy: kullaniciId,
+        createdAt: new Date().toISOString(),
+      })
+    }
+    hareket.durum = 'masraf'
+    hareket.eslestirenId = kullaniciId
+    hareket.eslesmeTarihi = new Date().toISOString()
+    return delay({ id: hareketId })
   },
   async eslestir(hareketId, katilimciId, eslestirenId) {
     const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
@@ -1218,40 +1256,12 @@ export const cariHareketler = {
   },
 }
 
+// Masraflar artık manuel girilmiyor — tamamı Banka Hareketleri'nden
+// "Masraf Olarak İşaretle" ile geliyor (bkz. bankaHareketleri.
+// masrafOlarakIsaretle yukarıda).
 export const islemMasraflari = {
-  async list(ciroRaporuId) {
-    return delay(MOCK_ISLEM_MASRAFLARI.filter((m) => m.ciroRaporuId === ciroRaporuId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
-  },
-  async create({ ciroRaporuId, danismanId, tur, aciklama, tutar }, createdBy) {
-    const row = {
-      id: `im-${Date.now()}`,
-      ciroRaporuId,
-      danismanId: danismanId || null,
-      tur,
-      aciklama: aciklama || null,
-      tutar: Number(tutar),
-      createdBy,
-      createdAt: new Date().toISOString(),
-    }
-    MOCK_ISLEM_MASRAFLARI.unshift(row)
-    if (danismanId) {
-      const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === ciroRaporuId)
-      MOCK_CARI_HAREKETLER.unshift({
-        id: `ch-${Date.now()}-m`,
-        danismanId,
-        tarih: rapor?.islemTarihi ?? new Date().toISOString().slice(0, 10),
-        tur: 'borc',
-        tutar: Number(tutar),
-        kategori: 'islem_masrafi',
-        aciklama: aciklama || null,
-        kaynakTip: 'islem_masrafi',
-        kaynakId: row.id,
-        durum: 'acik',
-        createdBy,
-        createdAt: new Date().toISOString(),
-      })
-    }
-    return delay(row)
+  async listAll() {
+    return delay([...MOCK_ISLEM_MASRAFLARI].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
   },
 }
 

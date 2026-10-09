@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react'
-import { Plus, Link2, Undo2, Unlock } from 'lucide-react'
+import { Plus, Link2, Undo2, Unlock, Receipt } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { opportunities as opportunitiesProvider, ciroRaporlari as ciroRaporlariProvider, bankaHareketleri as bankaHareketleriProvider } from '../../lib/dataProvider'
+import {
+  opportunities as opportunitiesProvider,
+  ciroRaporlari as ciroRaporlariProvider,
+  bankaHareketleri as bankaHareketleriProvider,
+  categories as categoriesProvider,
+} from '../../lib/dataProvider'
 import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, canManageBankaHareketleri, eslesmeAdaylari } from '../../lib/bankaHareketleri'
+import { slugify } from '../../lib/categories'
 import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
 import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 import BlokeCozumleModal from './BlokeCozumleModal'
+import MasrafIsaretleModal from './MasrafIsaretleModal'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -17,23 +24,25 @@ function tl(n) {
 const today = () => new Date().toISOString().slice(0, 10)
 
 async function loadAll() {
-  const [hareketler, raporlar, opportunities] = await Promise.all([
+  const [hareketler, raporlar, opportunities, kategoriler] = await Promise.all([
     bankaHareketleriProvider.list(),
     ciroRaporlariProvider.list(),
     opportunitiesProvider.list(),
+    categoriesProvider.list('masraflar'),
   ])
-  return { hareketler, raporlar, opportunities }
+  return { hareketler, raporlar, opportunities, kategoriler }
 }
 
 export default function BankaHareketleriPanel() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
-  const { data, loading, error, reload } = useAsyncList(loadAll, [])
-  const [form, setForm] = useState({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
+  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  const [form, setForm] = useState({ tip: 'giris', tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
   const [submitting, setSubmitting] = useState(false)
   const [matchTarget, setMatchTarget] = useState(null)
   const [blokeTarget, setBlokeTarget] = useState(null)
+  const [masrafTarget, setMasrafTarget] = useState(null)
 
   // Ödeme bekleyen tüm katılımcı satırları — her bankadan gelen hareket
   // için en olası eşleşme adayları buradan çıkıyor (bkz. lib/
@@ -57,13 +66,19 @@ export default function BankaHareketleriPanel() {
     return list
   }, [data])
 
+  const danismanOptions = useMemo(
+    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi),
+    [knownUsers],
+  )
+
   if (!canManageBankaHareketleri(role)) {
-    return <RestrictedAccess message="Banka Hareketleri sadece broker ve owner rollerine açıktır." />
+    return <RestrictedAccess message="Banka Hareketleri sadece broker rolüne açıktır." />
   }
 
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const parsedTutar = parseThousands(form.tutar)
-  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && (!form.bloke || form.opportunityId)
+  const cikis = form.tip === 'cikis'
+  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && (cikis || !form.bloke || form.opportunityId)
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
   const opportunityLabel = (id) => {
@@ -78,17 +93,18 @@ export default function BankaHareketleriPanel() {
     try {
       await bankaHareketleriProvider.create(
         {
+          tip: form.tip,
           tutar: parsedTutar,
           tarih: form.tarih,
           gonderenAdi: form.gonderenAdi.trim(),
           aciklama: form.aciklama.trim(),
           referansNo: form.referansNo.trim(),
-          opportunityId: form.bloke ? form.opportunityId : null,
-          bloke: form.bloke,
+          opportunityId: !cikis && form.bloke ? form.opportunityId : null,
+          bloke: !cikis && form.bloke,
         },
         user.id,
       )
-      setForm({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
+      setForm({ tip: form.tip, tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
       showToast(form.bloke ? 'Bağlanma parası bloke olarak kaydedildi.' : 'Hareket eklendi.', 'success')
       reload()
     } catch (err) {
@@ -136,17 +152,64 @@ export default function BankaHareketleriPanel() {
     }
   }
 
+  async function handleMasrafIsaretle(payload) {
+    setSubmitting(true)
+    try {
+      await bankaHareketleriProvider.masrafOlarakIsaretle(masrafTarget.id, payload, user.id)
+      setMasrafTarget(null)
+      showToast('Masraf olarak kaydedildi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleKategoriEkle(label) {
+    const maxOrder = (data?.kategoriler ?? []).reduce((max, k) => Math.max(max, k.sortOrder), 0)
+    const created = await categoriesProvider.create({
+      module: 'masraflar',
+      key: slugify(label),
+      label,
+      sortOrder: maxOrder + 1,
+      visibility: 'yonetim',
+    })
+    setData((prev) => ({ ...prev, kategoriler: [...(prev?.kategoriler ?? []), created] }))
+    showToast('Kategori eklendi.', 'success')
+    return created
+  }
+
   const hareketler = data?.hareketler ?? []
+  const kategoriler = data?.kategoriler ?? []
   const adaylar = matchTarget ? eslesmeAdaylari(matchTarget.tutar, bekleyenKatilimcilar) : []
   const blokeAdaylari = blokeTarget ? bekleyenKatilimcilar.filter((a) => a.opportunityId === blokeTarget.opportunityId) : []
 
   return (
     <div>
       <p className="mb-5 text-sm text-text-muted">
-        Banka API'si bağlanana kadar ekstreyi buraya elle gir, Ciro Raporu'ndaki ödeme bekleyen kayıtlarla eşleştir.
+        Banka API'si bağlanana kadar ekstreyi buraya elle gir — bir ödeme bekleyen kayıtla eşleştir, ya da masraf olarak
+        işaretle.
       </p>
 
       <form onSubmit={handleCreate} className="mb-6 space-y-2 rounded-2xl border border-border-default bg-surface-raised p-4">
+        <div className="flex gap-2">
+          {[
+            { key: 'giris', label: 'Giriş' },
+            { key: 'cikis', label: 'Çıkış' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => set({ tip: t.key, bloke: false, opportunityId: '' })}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                form.tip === t.key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-border-default text-text-secondary'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         <div className="grid gap-2 sm:grid-cols-5">
           <input
             required
@@ -166,7 +229,7 @@ export default function BankaHareketleriPanel() {
           <input
             value={form.gonderenAdi}
             onChange={(e) => set({ gonderenAdi: e.target.value })}
-            placeholder="Gönderen adı"
+            placeholder={cikis ? 'Alıcı adı' : 'Gönderen adı'}
             className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <input
@@ -183,24 +246,28 @@ export default function BankaHareketleriPanel() {
             <Plus size={16} /> Ekle
           </button>
         </div>
-        <label className="flex items-center gap-2 text-xs text-text-secondary">
-          <input type="checkbox" checked={form.bloke} onChange={(e) => set({ bloke: e.target.checked, opportunityId: '' })} />
-          Bu bir bağlanma parası (tapu gününe kadar bloke bekleyecek)
-        </label>
-        {form.bloke && (
-          <select
-            required
-            value={form.opportunityId}
-            onChange={(e) => set({ opportunityId: e.target.value })}
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary sm:w-1/2"
-          >
-            <option value="">Hangi fırsata ait</option>
-            {(data?.opportunities ?? []).map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.ozet || o.konum}
-              </option>
-            ))}
-          </select>
+        {!cikis && (
+          <>
+            <label className="flex items-center gap-2 text-xs text-text-secondary">
+              <input type="checkbox" checked={form.bloke} onChange={(e) => set({ bloke: e.target.checked, opportunityId: '' })} />
+              Bu bir bağlanma parası (tapu gününe kadar bloke bekleyecek)
+            </label>
+            {form.bloke && (
+              <select
+                required
+                value={form.opportunityId}
+                onChange={(e) => set({ opportunityId: e.target.value })}
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary sm:w-1/2"
+              >
+                <option value="">Hangi fırsata ait</option>
+                {(data?.opportunities ?? []).map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.ozet || o.konum}
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
         )}
       </form>
 
@@ -244,12 +311,20 @@ export default function BankaHareketleriPanel() {
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     {h.durum === 'eslesmedi' && (
-                      <button
-                        onClick={() => setMatchTarget(h)}
-                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
-                      >
-                        <Link2 size={13} /> Eşleştir
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setMatchTarget(h)}
+                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                        >
+                          <Link2 size={13} /> Eşleştir
+                        </button>
+                        <button
+                          onClick={() => setMasrafTarget(h)}
+                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                        >
+                          <Receipt size={13} /> Masraf
+                        </button>
+                      </div>
                     )}
                     {h.durum === 'blokede' && (
                       <button
@@ -325,6 +400,18 @@ export default function BankaHareketleriPanel() {
           userName={userName}
           onClose={() => setBlokeTarget(null)}
           onSubmit={handleBlokeCozumle}
+          submitting={submitting}
+        />
+      )}
+
+      {masrafTarget && (
+        <MasrafIsaretleModal
+          hareket={masrafTarget}
+          kategoriler={kategoriler}
+          danismanOptions={danismanOptions}
+          onClose={() => setMasrafTarget(null)}
+          onSubmit={handleMasrafIsaretle}
+          onKategoriEkle={handleKategoriEkle}
           submitting={submitting}
         />
       )}

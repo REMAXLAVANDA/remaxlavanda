@@ -14,12 +14,14 @@ export const BANKA_HAREKETI_DURUM_LABELS = {
   eslesti: 'Eşleşti',
   blokede: 'Bloke',
   cozuldu: 'Çözüldü',
+  masraf: 'Masraf',
 }
 export const BANKA_HAREKETI_DURUM_STYLES = {
   eslesmedi: 'bg-amber-50 text-amber-700',
   eslesti: 'bg-emerald-50 text-emerald-700',
   blokede: 'bg-sky-50 text-sky-700',
   cozuldu: 'bg-emerald-50 text-emerald-700',
+  masraf: 'bg-red-50 text-red-600',
 }
 
 export const BLOKE_AKSIYON_LABELS = {

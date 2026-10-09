@@ -1590,7 +1590,11 @@ export const bankaHareketleri = {
   // bagliOpportunityId + bloke:true verilirse "bağlanma parası" olarak
   // girilir (tapu gününü bekleyen, fırsatla doğrudan ilişkili bir giriş
   // hareketi) — ciro raporu henüz yoktur, bkz. lib/bankaHareketleri.js.
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke }, olusturanId) {
+  // tip 'cikis' verilirse (ör. kira/maaş ödemesi) bloke mantığı uygulanmaz,
+  // doğrudan eşleşmemiş bir çıkış olarak girilir — sonra "Masraf Olarak
+  // İşaretle" ile sınıflandırılır (bkz. masrafOlarakIsaretle).
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip }, olusturanId) {
+    const cikis = tip === 'cikis'
     const data = await run(
       client()
         .from('banka_hareketleri')
@@ -1601,16 +1605,60 @@ export const bankaHareketleri = {
           aciklama: aciklama || null,
           referans_no: referansNo || null,
           kaynak: 'manuel',
-          tip: 'giris',
-          opportunity_id: opportunityId || null,
-          tur: bloke ? 'baglanma_parasi' : 'diger',
-          durum: bloke ? 'blokede' : 'eslesmedi',
+          tip: cikis ? 'cikis' : 'giris',
+          opportunity_id: !cikis && opportunityId ? opportunityId : null,
+          tur: !cikis && bloke ? 'baglanma_parasi' : 'diger',
+          durum: !cikis && bloke ? 'blokede' : 'eslesmedi',
           olusturan_id: olusturanId,
         })
         .select()
         .single(),
     )
     return mapBankaHareketi(data)
+  },
+  // Eşleşmemiş bir çıkış hareketini masraf olarak sınıflandırır —
+  // kayıt kaynaksız kalmasın diye islem_masraflari.banka_hareketi_id ile
+  // bu hareketle ilişkilendirilir. danismanId verilirse Cari Hesabına
+  // "borç" satırı da yazılır (updateKatilimciFatura'daki AYNI senkron
+  // deseni — ayrı bir tabloya yazılan, kaynağı net satır).
+  async masrafOlarakIsaretle(hareketId, { tur, aciklama, danismanId }, kullaniciId) {
+    const hareket = await run(client().from('banka_hareketleri').select('tutar, tarih').eq('id', hareketId).single())
+    const masraf = await run(
+      client()
+        .from('islem_masraflari')
+        .insert({
+          ciro_raporu_id: null,
+          danisman_id: danismanId || null,
+          tur,
+          aciklama: aciklama || null,
+          tutar: Number(hareket.tutar),
+          banka_hareketi_id: hareketId,
+          created_by: kullaniciId,
+        })
+        .select()
+        .single(),
+    )
+    if (danismanId) {
+      await run(
+        client().from('cari_hareketler').insert({
+          danisman_id: danismanId,
+          tarih: hareket.tarih,
+          tur: 'borc',
+          tutar: Number(hareket.tutar),
+          kategori: 'islem_masrafi',
+          aciklama: aciklama || null,
+          kaynak_tip: 'islem_masrafi',
+          kaynak_id: masraf.id,
+          created_by: kullaniciId,
+        }),
+      )
+    }
+    await run(
+      client()
+        .from('banka_hareketleri')
+        .update({ durum: 'masraf', eslestiren_id: kullaniciId, eslesme_tarihi: new Date().toISOString() })
+        .eq('id', hareketId),
+    )
   },
   // Eşleştirince hem hareket "eşleşti" olur hem o katılımcının ödeme
   // durumu "alındı"ya döner — Ciro Raporları ekranındaki elle işaretleme
@@ -1775,50 +1823,20 @@ function mapIslemMasrafi(row) {
     tur: row.tur,
     aciklama: row.aciklama,
     tutar: Number(row.tutar),
+    bankaHareketiId: row.banka_hareketi_id,
     createdBy: row.created_by,
     createdAt: row.created_at,
   }
 }
 
 export const islemMasraflari = {
-  async list(ciroRaporuId) {
-    const data = await run(client().from('islem_masraflari').select('*').eq('ciro_raporu_id', ciroRaporuId).order('created_at', { ascending: false }))
+  // Masraflar artık manuel girilmiyor — tamamı Banka Hareketleri'nden
+  // "Masraf Olarak İşaretle" ile geliyor (bkz. bankaHareketleri.
+  // masrafOlarakIsaretle, 2026-10-09 broker kararı). listAll() Masraflar
+  // sekmesindeki rapor listesi için.
+  async listAll() {
+    const data = await run(client().from('islem_masraflari').select('*').order('created_at', { ascending: false }))
     return data.map(mapIslemMasrafi)
-  },
-  // Masraf kaydedilince, eğer bir danışmana yüklenecekse (danismanId
-  // doluysa) Cari Hesabına otomatik "borç" satırı da yazılır.
-  async create({ ciroRaporuId, danismanId, tur, aciklama, tutar }, createdBy) {
-    const data = await run(
-      client()
-        .from('islem_masraflari')
-        .insert({
-          ciro_raporu_id: ciroRaporuId,
-          danisman_id: danismanId || null,
-          tur,
-          aciklama: aciklama || null,
-          tutar: Number(tutar),
-          created_by: createdBy,
-        })
-        .select()
-        .single(),
-    )
-    if (danismanId) {
-      const rapor = await run(client().from('ciro_raporlari').select('islem_tarihi').eq('id', ciroRaporuId).single())
-      await run(
-        client().from('cari_hareketler').insert({
-          danisman_id: danismanId,
-          tarih: rapor.islem_tarihi,
-          tur: 'borc',
-          tutar: Number(tutar),
-          kategori: 'islem_masrafi',
-          aciklama: aciklama || null,
-          kaynak_tip: 'islem_masrafi',
-          kaynak_id: data.id,
-          created_by: createdBy,
-        }),
-      )
-    }
-    return mapIslemMasrafi(data)
   },
 }
 
