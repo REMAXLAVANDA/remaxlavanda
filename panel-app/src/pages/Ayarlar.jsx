@@ -165,6 +165,14 @@ export default function Ayarlar() {
     const rows = mentorPrimiRows(allUsers, mentorPrimiCiroGirisleri, mentorPrimiBaslangicList, mentorPrimiForm)
     return { rows, toplam: mentorPrimiToplam(rows) }
   }, [allUsers, mentorPrimiCiroGirisleri, mentorPrimiBaslangicList, mentorPrimiForm])
+  // Kullanıcılar listesindeki "Mentorlukta" rozeti için (2026-10-09 broker:
+  // "kullanıcılar sırasında yanına mentör kısmını al") — ciro/prim hesabı
+  // olmadan sadece başlangıç tarihini hızlıca aramaya yarayan bir map.
+  const mentorBaslangicByUserId = useMemo(() => {
+    const map = {}
+    for (const b of mentorPrimiBaslangicList ?? []) map[b.userId] = b.baslangicTarihi
+    return map
+  }, [mentorPrimiBaslangicList])
 
   // CreateUserModal/EditUserModal'dan ("bence bunu danışman kaydettiğimiz
   // yere alalım", 2026-10-08) çağrılıyor — sadece broker (canViewMentor) ve
@@ -645,6 +653,8 @@ export default function Ayarlar() {
               onResetPasswordRequest={setResetTarget}
               pendingWorkByUserId={pendingWorkByUserId ?? {}}
               onDevretRequest={handleDevretRequest}
+              canViewMentor={canViewMentor}
+              mentorBaslangicByUserId={mentorBaslangicByUserId}
             />
           )}
         </>

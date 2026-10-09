@@ -18,6 +18,19 @@ function sortRows(rows, sortKey) {
   return list.sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 }
 
+const MENTORLUK_GUN_SAYISI = 365
+
+// Bir danışmanın mentorluk başlangıç tarihinden (varsayılan 365 gün)
+// hâlâ mentorluk döneminde olup olmadığı — bkz. lib/mentorPrimi.js'deki
+// AYNI pencere mantığı (MENTOR_PRIMI_DEFAULT_GUN), burada sadece listede
+// hızlı bir "mentorlukta mı" rozeti için kullanılıyor, prim hesabı değil.
+function mentorlukDevamEdiyorMu(baslangicTarihi) {
+  if (!baslangicTarihi) return false
+  const start = new Date(baslangicTarihi)
+  const end = new Date(start.getTime() + MENTORLUK_GUN_SAYISI * 24 * 60 * 60 * 1000)
+  return new Date() < end
+}
+
 export default function UsersTable({
   rows,
   canManage,
@@ -30,6 +43,11 @@ export default function UsersTable({
   onResetPasswordRequest,
   pendingWorkByUserId = {},
   onDevretRequest,
+  // Mentor Primi gizlilik isteğiyle AYNI kapı (sadece broker, bkz.
+  // lib/roles.js canViewMentorPrimi, Ayarlar.jsx canViewMentor) — owner
+  // dahil kimse başkasının mentorluk durumunu listede görmesin.
+  canViewMentor = false,
+  mentorBaslangicByUserId = {},
 }) {
   const [sortKey, setSortKey] = useState('ad')
   // Pasif danışman/kullanıcı sayısı arttıkça liste gereksiz kalabalıklaşıyordu
@@ -127,6 +145,15 @@ export default function UsersTable({
               >
                 {u.durum === 'aktif' ? 'Aktif' : 'Pasif'}
               </button>
+
+              {canViewMentor && u.role === ROLES.DANISMAN && mentorlukDevamEdiyorMu(mentorBaslangicByUserId[u.id]) && (
+                <span
+                  title={`Mentorluk başlangıcı: ${mentorBaslangicByUserId[u.id]}`}
+                  className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700"
+                >
+                  Mentorlukta
+                </span>
+              )}
 
               {/* Pasif Danışmanın İşleri (2026-10-06) — bu özellik hayata
                   geçmeden ÖNCE pasife alınmış danışmanlarda kalmış "yetim"
