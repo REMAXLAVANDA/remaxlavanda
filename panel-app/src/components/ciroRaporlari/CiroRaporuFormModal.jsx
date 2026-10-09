@@ -1,7 +1,16 @@
 import { useMemo, useState } from 'react'
 import Modal from '../common/Modal'
 import { formatThousands, parseThousands } from '../../lib/format'
-import { ISLEM_TIPI_LABELS, guncelAnlasmaOrani, komisyonTutariOnerisi } from '../../lib/ciroRaporlari'
+import {
+  ISLEM_TIPI_LABELS,
+  PORTFOY_TIPI_LABELS,
+  guncelAnlasmaOrani,
+  guncelRtPayOrani,
+  komisyonTutariOnerisi,
+  toplamHizmetBedeli,
+  gdCirosu,
+  rtPayiOnerisi,
+} from '../../lib/ciroRaporlari'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -11,6 +20,11 @@ const today = () => new Date().toISOString().slice(0, 10)
 // Ortak çalışma seçiliyse pay oranı ikiye bölünür, toplam 100'den
 // sapıyorsa gönder düğmesi kapanır (DB'deki deferred trigger'la aynı kural,
 // bkz. lib/ciroRaporlari.js toplamPayOrani).
+//
+// Satıcı/Alıcı hizmet bedeli bölümleri RE/MAX Türkiye'nin resmi ciro
+// ekranındaki gibi checkbox'la açılıyor (2026-10-09 broker kararı: "sadece
+// bir tık koyalım") — toplamı GD Cirosu'nun (RT Payı/Ofis Payı hesabının)
+// tabanı, satış tutarından (Lig'e giden ayrı metrik) bağımsız.
 export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opportunities, danismanOptions, anlasmalar, user }) {
   const [form, setForm] = useState({
     opportunityId: '',
@@ -19,6 +33,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
     islemTarihi: today(),
     notlar: '',
   })
+  const [portfoyTipi, setPortfoyTipi] = useState('portfoyum')
+  const [disBeyanKodu, setDisBeyanKodu] = useState('')
+  const [saticiVar, setSaticiVar] = useState(false)
+  const [satici, setSatici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '', ekHizmetBedeli: '' })
+  const [aliciVar, setAliciVar] = useState(false)
+  const [alici, setAlici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '', ekHizmetBedeli: '' })
   const [ortakVar, setOrtakVar] = useState(false)
   const [partnerId, setPartnerId] = useState('')
   const [payOraniSelf, setPayOraniSelf] = useState('50')
@@ -28,6 +48,22 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
   const payOraniPartner = ortakVar ? Math.max(0, 100 - Number(payOraniSelf || 0)) : 0
   const toplamPay = ortakVar ? Number(payOraniSelf || 0) + payOraniPartner : 100
 
+  const saticiHizmetBedeliParsed = parseThousands(satici.hizmetBedeli)
+  const saticiEkHizmetBedeliParsed = parseThousands(satici.ekHizmetBedeli)
+  const aliciHizmetBedeliParsed = parseThousands(alici.hizmetBedeli)
+  const aliciEkHizmetBedeliParsed = parseThousands(alici.ekHizmetBedeli)
+
+  const toplamHizmetBedeliDeger = useMemo(
+    () =>
+      toplamHizmetBedeli({
+        saticiHizmetBedeli: saticiVar ? saticiHizmetBedeliParsed : 0,
+        saticiEkHizmetBedeli: saticiVar ? saticiEkHizmetBedeliParsed : 0,
+        aliciHizmetBedeli: aliciVar ? aliciHizmetBedeliParsed : 0,
+        aliciEkHizmetBedeli: aliciVar ? aliciEkHizmetBedeliParsed : 0,
+      }),
+    [saticiVar, saticiHizmetBedeliParsed, saticiEkHizmetBedeliParsed, aliciVar, aliciHizmetBedeliParsed, aliciEkHizmetBedeliParsed],
+  )
+
   const anlasmaSelf = useMemo(
     () => guncelAnlasmaOrani(anlasmalar, user.id, form.islemTarihi),
     [anlasmalar, user.id, form.islemTarihi],
@@ -36,46 +72,67 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
     () => (partnerId ? guncelAnlasmaOrani(anlasmalar, partnerId, form.islemTarihi) : null),
     [anlasmalar, partnerId, form.islemTarihi],
   )
+  const rtOranSelf = useMemo(
+    () => guncelRtPayOrani(anlasmalar, user.id, form.islemTarihi),
+    [anlasmalar, user.id, form.islemTarihi],
+  )
+  const rtOranPartner = useMemo(
+    () => (partnerId ? guncelRtPayOrani(anlasmalar, partnerId, form.islemTarihi) : null),
+    [anlasmalar, partnerId, form.islemTarihi],
+  )
 
   const canSubmit =
-    form.opportunityId &&
+    (portfoyTipi === 'portfoyum' ? !!form.opportunityId : disBeyanKodu.trim().length > 0) &&
     parsedTutar !== null &&
     parsedTutar > 0 &&
     form.islemTarihi &&
+    (!saticiVar || (saticiHizmetBedeliParsed !== null && saticiHizmetBedeliParsed > 0)) &&
+    (!aliciVar || (aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0)) &&
     (!ortakVar || (partnerId && toplamPay > 0 && toplamPay <= 100))
+
+  function katilimciSatiri(danismanId, payOrani, anlasmaOrani, rtOrani) {
+    const gdCirosuDeger = gdCirosu(toplamHizmetBedeliDeger, payOrani)
+    return {
+      danismanId,
+      payOrani,
+      anlasmaOraniSnapshot: anlasmaOrani,
+      komisyonTutariOnerisi: komisyonTutariOnerisi(toplamHizmetBedeliDeger, payOrani, anlasmaOrani),
+      gdCirosu: gdCirosuDeger,
+      rtPayOraniSnapshot: rtOrani,
+      rtPayiTutari: rtPayiOnerisi(gdCirosuDeger, rtOrani),
+      ofisPayiTutari: null,
+    }
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
     const katilimcilar = ortakVar
       ? [
-          {
-            danismanId: user.id,
-            payOrani: Number(payOraniSelf),
-            anlasmaOraniSnapshot: anlasmaSelf,
-            komisyonTutariOnerisi: komisyonTutariOnerisi(parsedTutar, Number(payOraniSelf), anlasmaSelf),
-          },
-          {
-            danismanId: partnerId,
-            payOrani: payOraniPartner,
-            anlasmaOraniSnapshot: anlasmaPartner,
-            komisyonTutariOnerisi: komisyonTutariOnerisi(parsedTutar, payOraniPartner, anlasmaPartner),
-          },
+          katilimciSatiri(user.id, Number(payOraniSelf), anlasmaSelf, rtOranSelf),
+          katilimciSatiri(partnerId, payOraniPartner, anlasmaPartner, rtOranPartner),
         ]
-      : [
-          {
-            danismanId: user.id,
-            payOrani: 100,
-            anlasmaOraniSnapshot: anlasmaSelf,
-            komisyonTutariOnerisi: komisyonTutariOnerisi(parsedTutar, 100, anlasmaSelf),
-          },
-        ]
+      : [katilimciSatiri(user.id, 100, anlasmaSelf, rtOranSelf)]
     onSubmit({
-      opportunityId: form.opportunityId,
+      opportunityId: portfoyTipi === 'portfoyum' ? form.opportunityId : null,
       islemTipi: form.islemTipi,
       islemTutari: parsedTutar,
       islemTarihi: form.islemTarihi,
       notlar: form.notlar.trim() || null,
+      portfoyTipi,
+      disBeyanKodu: portfoyTipi === 'dis_portfoy' ? disBeyanKodu.trim() : null,
+      saticiHizmetBedeliAlindi: saticiVar,
+      saticiAdSoyad: satici.adSoyad.trim(),
+      saticiTelefon: satici.telefon.trim(),
+      saticiKimlikNo: satici.kimlikNo.trim(),
+      saticiHizmetBedeli: saticiHizmetBedeliParsed,
+      saticiEkHizmetBedeli: saticiEkHizmetBedeliParsed,
+      aliciHizmetBedeliAlindi: aliciVar,
+      aliciAdSoyad: alici.adSoyad.trim(),
+      aliciTelefon: alici.telefon.trim(),
+      aliciKimlikNo: alici.kimlikNo.trim(),
+      aliciHizmetBedeli: aliciHizmetBedeliParsed,
+      aliciEkHizmetBedeli: aliciEkHizmetBedeliParsed,
       katilimcilar,
     })
   }
@@ -83,27 +140,52 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
   return (
     <Modal title="Yeni Ciro Raporu" onClose={onClose} dismissible={false}>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <label className="mb-1 block text-xs text-ink-500">Hangi işlem için</label>
-          <select
-            required
-            value={form.opportunityId}
-            onChange={(e) => set({ opportunityId: e.target.value })}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-          >
-            <option value="">Fırsat seç</option>
-            {opportunities.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.ozet || o.konum}
-              </option>
-            ))}
-          </select>
-          {opportunities.length === 0 && (
-            <p className="mt-1 text-xs text-amber-700">
-              "Kapandı" durumunda, henüz raporu olmayan bir işlemin yok. Fırsatı önce Fırsatlar sayfasında kapat.
-            </p>
-          )}
+        <div className="flex gap-2">
+          {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setPortfoyTipi(key)}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                portfoyTipi === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
+
+        {portfoyTipi === 'portfoyum' ? (
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">Hangi işlem için</label>
+            <select
+              required
+              value={form.opportunityId}
+              onChange={(e) => set({ opportunityId: e.target.value })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            >
+              <option value="">Fırsat seç</option>
+              {opportunities.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.ozet || o.konum}
+                </option>
+              ))}
+            </select>
+            {opportunities.length === 0 && (
+              <p className="mt-1 text-xs text-amber-700">
+                "Kapandı" durumunda, henüz raporu olmayan bir işlemin yok. Fırsatı önce Fırsatlar sayfasında kapat.
+              </p>
+            )}
+          </div>
+        ) : (
+          <input
+            required
+            value={disBeyanKodu}
+            onChange={(e) => setDisBeyanKodu(e.target.value)}
+            placeholder="Dış Beyan Kodu"
+            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+          />
+        )}
 
         <div className="flex gap-2">
           {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
@@ -140,6 +222,94 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
             onChange={(e) => set({ islemTarihi: e.target.value })}
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
           />
+        </div>
+
+        <div className="rounded-lg bg-ink-50 p-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-ink-700">
+            <input type="checkbox" checked={saticiVar} onChange={(e) => setSaticiVar(e.target.checked)} />
+            Satıcıdan hizmet bedeli aldım
+          </label>
+          {saticiVar && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <input
+                value={satici.adSoyad}
+                onChange={(e) => setSatici((s) => ({ ...s, adSoyad: e.target.value }))}
+                placeholder="Ad Soyad"
+                className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                value={satici.telefon}
+                onChange={(e) => setSatici((s) => ({ ...s, telefon: e.target.value }))}
+                placeholder="Telefon"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                value={satici.kimlikNo}
+                onChange={(e) => setSatici((s) => ({ ...s, kimlikNo: e.target.value }))}
+                placeholder="TC veya Vergi No"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                required={saticiVar}
+                inputMode="numeric"
+                value={satici.hizmetBedeli}
+                onChange={(e) => setSatici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
+                placeholder="Hizmet Bedeli (KDV Dahil)"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                inputMode="numeric"
+                value={satici.ekHizmetBedeli}
+                onChange={(e) => setSatici((s) => ({ ...s, ekHizmetBedeli: formatThousands(e.target.value) }))}
+                placeholder="Ek Hizmet Bedeli (opsiyonel)"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg bg-ink-50 p-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-ink-700">
+            <input type="checkbox" checked={aliciVar} onChange={(e) => setAliciVar(e.target.checked)} />
+            Alıcıdan/Kiracıdan hizmet bedeli aldım
+          </label>
+          {aliciVar && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <input
+                value={alici.adSoyad}
+                onChange={(e) => setAlici((s) => ({ ...s, adSoyad: e.target.value }))}
+                placeholder="Ad Soyad"
+                className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                value={alici.telefon}
+                onChange={(e) => setAlici((s) => ({ ...s, telefon: e.target.value }))}
+                placeholder="Telefon"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                value={alici.kimlikNo}
+                onChange={(e) => setAlici((s) => ({ ...s, kimlikNo: e.target.value }))}
+                placeholder="TC veya Vergi No"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                required={aliciVar}
+                inputMode="numeric"
+                value={alici.hizmetBedeli}
+                onChange={(e) => setAlici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
+                placeholder="Hizmet Bedeli (KDV Dahil)"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+              <input
+                inputMode="numeric"
+                value={alici.ekHizmetBedeli}
+                onChange={(e) => setAlici((s) => ({ ...s, ekHizmetBedeli: formatThousands(e.target.value) }))}
+                placeholder="Ek Hizmet Bedeli (opsiyonel)"
+                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              />
+            </div>
+          )}
         </div>
 
         <div className="rounded-lg bg-ink-50 p-3">

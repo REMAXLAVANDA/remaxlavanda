@@ -2,7 +2,7 @@
 // (tapu harcı, ilan gideri), hem de ofisin danışmana her ay kestiği
 // düzenli fatura (sahibinden ilan bedeli + ofis katılım bedeli). İkisi de
 // kaydedilince ilgili danışmanın Cari Hesabı'na otomatik "borç" yazılır.
-import { canManageCiroScores } from './league'
+import { ROLES } from './roles'
 
 export const MASRAF_TUR_LABELS = {
   tapu_harci: 'Tapu Harcı',
@@ -10,6 +10,8 @@ export const MASRAF_TUR_LABELS = {
   diger: 'Diğer',
 }
 
+// 2026-10-09 broker kararı: "owner sadece ciro ve cari kısmını görsün" —
+// bkz. lib/bankaHareketleri.js canManageBankaHareketleri'ndeki aynı not.
 export function canManageMasraflar(role) {
-  return canManageCiroScores(role)
+  return role === ROLES.BROKER
 }

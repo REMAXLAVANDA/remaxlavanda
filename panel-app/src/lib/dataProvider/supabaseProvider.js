@@ -1261,6 +1261,10 @@ function mapCiroRaporuKatilimcisi(k) {
     faturaDosyaUrl: k.fatura_dosya_url,
     odemeDurumu: k.odeme_durumu,
     notlar: k.notlar,
+    gdCirosu: k.gd_cirosu == null ? null : Number(k.gd_cirosu),
+    rtPayOraniSnapshot: k.rt_pay_orani_snapshot == null ? null : Number(k.rt_pay_orani_snapshot),
+    rtPayiTutari: k.rt_payi_tutari == null ? null : Number(k.rt_payi_tutari),
+    ofisPayiTutari: k.ofis_payi_tutari == null ? null : Number(k.ofis_payi_tutari),
   }
 }
 
@@ -1279,6 +1283,20 @@ function mapCiroRaporu(r) {
     notlar: r.notlar,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    portfoyTipi: r.portfoy_tipi,
+    disBeyanKodu: r.dis_beyan_kodu,
+    saticiHizmetBedeliAlindi: r.satici_hizmet_bedeli_alindi,
+    saticiAdSoyad: r.satici_ad_soyad,
+    saticiTelefon: r.satici_telefon,
+    saticiKimlikNo: r.satici_kimlik_no,
+    saticiHizmetBedeli: r.satici_hizmet_bedeli == null ? null : Number(r.satici_hizmet_bedeli),
+    saticiEkHizmetBedeli: r.satici_ek_hizmet_bedeli == null ? null : Number(r.satici_ek_hizmet_bedeli),
+    aliciHizmetBedeliAlindi: r.alici_hizmet_bedeli_alindi,
+    aliciAdSoyad: r.alici_ad_soyad,
+    aliciTelefon: r.alici_telefon,
+    aliciKimlikNo: r.alici_kimlik_no,
+    aliciHizmetBedeli: r.alici_hizmet_bedeli == null ? null : Number(r.alici_hizmet_bedeli),
+    aliciEkHizmetBedeli: r.alici_ek_hizmet_bedeli == null ? null : Number(r.alici_ek_hizmet_bedeli),
     katilimcilar: (r.ciro_raporu_katilimcilari ?? []).map(mapCiroRaporuKatilimcisi),
   }
 }
@@ -1294,17 +1312,55 @@ export const ciroRaporlari = {
     )
     return data.map(mapCiroRaporu)
   },
-  async create({ opportunityId, islemTipi, islemTutari, islemTarihi, notlar, katilimcilar }, olusturanId) {
+  async create(
+    {
+      opportunityId,
+      islemTipi,
+      islemTutari,
+      islemTarihi,
+      notlar,
+      portfoyTipi,
+      disBeyanKodu,
+      saticiHizmetBedeliAlindi,
+      saticiAdSoyad,
+      saticiTelefon,
+      saticiKimlikNo,
+      saticiHizmetBedeli,
+      saticiEkHizmetBedeli,
+      aliciHizmetBedeliAlindi,
+      aliciAdSoyad,
+      aliciTelefon,
+      aliciKimlikNo,
+      aliciHizmetBedeli,
+      aliciEkHizmetBedeli,
+      katilimcilar,
+    },
+    olusturanId,
+  ) {
     const rapor = await run(
       client()
         .from('ciro_raporlari')
         .insert({
-          opportunity_id: opportunityId,
+          opportunity_id: opportunityId ?? null,
           islem_tipi: islemTipi,
           islem_tutari: islemTutari,
           islem_tarihi: islemTarihi,
           notlar: notlar || null,
           olusturan_id: olusturanId,
+          portfoy_tipi: portfoyTipi ?? 'portfoyum',
+          dis_beyan_kodu: disBeyanKodu || null,
+          satici_hizmet_bedeli_alindi: !!saticiHizmetBedeliAlindi,
+          satici_ad_soyad: saticiHizmetBedeliAlindi ? saticiAdSoyad || null : null,
+          satici_telefon: saticiHizmetBedeliAlindi ? saticiTelefon || null : null,
+          satici_kimlik_no: saticiHizmetBedeliAlindi ? saticiKimlikNo || null : null,
+          satici_hizmet_bedeli: saticiHizmetBedeliAlindi ? saticiHizmetBedeli ?? null : null,
+          satici_ek_hizmet_bedeli: saticiHizmetBedeliAlindi ? saticiEkHizmetBedeli ?? null : null,
+          alici_hizmet_bedeli_alindi: !!aliciHizmetBedeliAlindi,
+          alici_ad_soyad: aliciHizmetBedeliAlindi ? aliciAdSoyad || null : null,
+          alici_telefon: aliciHizmetBedeliAlindi ? aliciTelefon || null : null,
+          alici_kimlik_no: aliciHizmetBedeliAlindi ? aliciKimlikNo || null : null,
+          alici_hizmet_bedeli: aliciHizmetBedeliAlindi ? aliciHizmetBedeli ?? null : null,
+          alici_ek_hizmet_bedeli: aliciHizmetBedeliAlindi ? aliciEkHizmetBedeli ?? null : null,
         })
         .select()
         .single(),
@@ -1315,6 +1371,10 @@ export const ciroRaporlari = {
       pay_orani: k.payOrani,
       anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
       komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
+      gd_cirosu: k.gdCirosu ?? null,
+      rt_pay_orani_snapshot: k.rtPayOraniSnapshot ?? null,
+      rt_payi_tutari: k.rtPayiTutari ?? null,
+      ofis_payi_tutari: k.ofisPayiTutari ?? null,
     }))
     await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
     return mapCiroRaporu(rapor)
@@ -1345,6 +1405,21 @@ export const ciroRaporlari = {
     if ('faturaDosyaUrl' in patch) dbPatch.fatura_dosya_url = patch.faturaDosyaUrl || null
     if ('odemeDurumu' in patch) dbPatch.odeme_durumu = patch.odemeDurumu
     if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
+    if ('rtPayiTutari' in patch) dbPatch.rt_payi_tutari = patch.rtPayiTutari ?? null
+
+    // Çalışan Payı (fatura) veya RT Payı değiştiyse, Ofis Payı (hep kalan)
+    // yeniden hesaplanır — üçü GD Cirosu'na eşit kalsın garantisi burada.
+    if ('faturaTutari' in patch || 'rtPayiTutari' in patch) {
+      const guncel = await run(
+        client().from('ciro_raporu_katilimcilari').select('gd_cirosu, fatura_tutari, rt_payi_tutari').eq('id', id).single(),
+      )
+      const gdCirosuDeger = guncel.gd_cirosu
+      if (gdCirosuDeger != null) {
+        const calisanPayi = 'faturaTutari' in patch ? patch.faturaTutari : guncel.fatura_tutari
+        const rtPayi = 'rtPayiTutari' in patch ? patch.rtPayiTutari : guncel.rt_payi_tutari
+        dbPatch.ofis_payi_tutari = Number(gdCirosuDeger) - Number(calisanPayi || 0) - Number(rtPayi || 0)
+      }
+    }
     await run(client().from('ciro_raporu_katilimcilari').update(dbPatch).eq('id', id))
 
     // Cari Hesap senkronu: fatura tutarı değiştiyse ilgili alacak satırının
@@ -1427,6 +1502,7 @@ export const danismanAnlasmalari = {
       id: a.id,
       danismanId: a.danisman_id,
       paylasimOrani: Number(a.paylasim_orani),
+      rtPayOrani: a.rt_pay_orani == null ? null : Number(a.rt_pay_orani),
       gecerlilikBaslangic: a.gecerlilik_baslangic,
       gecerlilikBitis: a.gecerlilik_bitis,
       createdBy: a.created_by,
@@ -1437,7 +1513,7 @@ export const danismanAnlasmalari = {
   // satırı varsa, yeni oranın başlangıcından bir gün öncesine kadar
   // kapatılır — social_activity_log'daki puan_snapshot ile AYNI "geçmişi
   // bozma" refleksi: eski rapor hesaplamaları eski oranla donmuş kalır.
-  async create({ danismanId, paylasimOrani, gecerlilikBaslangic }, createdBy) {
+  async create({ danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic }, createdBy) {
     const acikSatirlar = await run(
       client()
         .from('danisman_anlasmalari')
@@ -1460,11 +1536,23 @@ export const danismanAnlasmalari = {
     const data = await run(
       client()
         .from('danisman_anlasmalari')
-        .insert({ danisman_id: danismanId, paylasim_orani: paylasimOrani, gecerlilik_baslangic: gecerlilikBaslangic, created_by: createdBy })
+        .insert({
+          danisman_id: danismanId,
+          paylasim_orani: paylasimOrani,
+          rt_pay_orani: rtPayOrani ?? null,
+          gecerlilik_baslangic: gecerlilikBaslangic,
+          created_by: createdBy,
+        })
         .select()
         .single(),
     )
-    return { id: data.id, danismanId: data.danisman_id, paylasimOrani: Number(data.paylasim_orani), gecerlilikBaslangic: data.gecerlilik_baslangic }
+    return {
+      id: data.id,
+      danismanId: data.danisman_id,
+      paylasimOrani: Number(data.paylasim_orani),
+      rtPayOrani: data.rt_pay_orani == null ? null : Number(data.rt_pay_orani),
+      gecerlilikBaslangic: data.gecerlilik_baslangic,
+    }
   },
 }
 

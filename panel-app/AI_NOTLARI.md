@@ -3,6 +3,36 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-09 — Finans menüsü tek girdiye indirildi, Ciro Raporu'na RE/MAX Türkiye ekranı referansı (hizmet bedeli + RT Payı), owner kısıtlaması
+
+Üç ayrı broker kararı art arda uygulandı:
+
+1. **Menü**: Finans artık sidebar'da TEK girdi (önceden Ciro Raporları/
+   Masraflar/Cari Hesap ayrı maddeydi) — hepsi Finans sayfasının içinde
+   sekme. Eski route'lar (`/ciro-raporlari`, `/banka-hareketleri`,
+   `/masraflar`, `/cari-hesap`) `/finans`'a yönlendiriyor.
+2. **Cari Hesap**: danışman artık kendi borç/alacak bakiyesini salt-okunur
+   görüyor (RLS zaten izin veriyordu, sadece ekran eksikti — 2026-10-08
+   kurul raporu bulgusu).
+3. **Owner kısıtlaması**: Banka Hareketleri ve Masraflar sekmeleri artık
+   SADECE broker'a açık, owner değil (`canManageBankaHareketleri`,
+   `canManageMasraflar` artık `role === ROLES.BROKER`, eskiden
+   `canManageCiroScores` — broker/owner — kullanıyorlardı). Ciro Raporu
+   onayı ve Cari Hesap owner'da hâlâ aynı (broker/owner).
+4. **Ciro Raporu'na RE/MAX Türkiye'nin resmi ciro ekranı referans alındı**
+   (broker ekran görüntüsü paylaştı): Portföy Tipi (Portföylerim/Dış
+   Portföy + Dış Beyan Kodu), Satıcı/Alıcı hizmet bedeli (checkbox'la
+   açılan — ad soyad, telefon, TC/vergi no, hizmet bedeli, ek hizmet
+   bedeli), ve RT Payı (RE/MAX Türkiye'ye giden pay) eklendi. Danışman
+   Anlaşmaları'na RT Payı % oranı eklendi (paylaşım oranıyla aynı tarih
+   aralıklı yapı). Her katılımcı satırında artık GD Cirosu (toplam hizmet
+   bedelinin pay oranına düşen kısmı) → Çalışan Payı (mevcut fatura
+   tutarı) + RT Payı (yeni, elle de düzenlenebilir) + Ofis Payı (HER ZAMAN
+   kalan, elle girilmez) üçlemesi var. **Lig/Mentor Primi'ne giden "ciro"
+   (satış hacmi) bundan ETKİLENMEDİ** — hâlâ işlem tutarından geliyor,
+   hizmet bedeli tamamen paralel/ayrı bir hesap.
+   Migration: `20261009170600_ciro_raporu_hizmet_bedeli_ve_rt_payi.sql`.
+
 ## 2026-10-09 — Finans modülü: Cari Hesap, Masraflar, bağlanma parası (bloke) akışı + Ciro Raporları/Banka Hareketleri tek sayfada
 
 Broker bankadan gelen "bağlanma parası" (depozito) akışını anlattı: müşteri

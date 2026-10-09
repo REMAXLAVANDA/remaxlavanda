@@ -863,11 +863,35 @@ export const ciroRaporlari = {
   async list() {
     return delay(MOCK_CIRO_RAPORLARI.map(mockCiroRaporuWithKatilimcilar).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
   },
-  async create({ opportunityId, islemTipi, islemTutari, islemTarihi, notlar, katilimcilar }, olusturanId) {
+  async create(
+    {
+      opportunityId,
+      islemTipi,
+      islemTutari,
+      islemTarihi,
+      notlar,
+      portfoyTipi,
+      disBeyanKodu,
+      saticiHizmetBedeliAlindi,
+      saticiAdSoyad,
+      saticiTelefon,
+      saticiKimlikNo,
+      saticiHizmetBedeli,
+      saticiEkHizmetBedeli,
+      aliciHizmetBedeliAlindi,
+      aliciAdSoyad,
+      aliciTelefon,
+      aliciKimlikNo,
+      aliciHizmetBedeli,
+      aliciEkHizmetBedeli,
+      katilimcilar,
+    },
+    olusturanId,
+  ) {
     const now = new Date().toISOString()
     const rapor = {
       id: `cr-${Date.now()}`,
-      opportunityId,
+      opportunityId: opportunityId || null,
       islemTipi,
       islemTutari: Number(islemTutari),
       islemTarihi,
@@ -879,6 +903,20 @@ export const ciroRaporlari = {
       notlar: notlar || null,
       createdAt: now,
       updatedAt: now,
+      portfoyTipi: portfoyTipi ?? 'portfoyum',
+      disBeyanKodu: disBeyanKodu || null,
+      saticiHizmetBedeliAlindi: !!saticiHizmetBedeliAlindi,
+      saticiAdSoyad: saticiHizmetBedeliAlindi ? saticiAdSoyad || null : null,
+      saticiTelefon: saticiHizmetBedeliAlindi ? saticiTelefon || null : null,
+      saticiKimlikNo: saticiHizmetBedeliAlindi ? saticiKimlikNo || null : null,
+      saticiHizmetBedeli: saticiHizmetBedeliAlindi ? (saticiHizmetBedeli ?? null) : null,
+      saticiEkHizmetBedeli: saticiHizmetBedeliAlindi ? (saticiEkHizmetBedeli ?? null) : null,
+      aliciHizmetBedeliAlindi: !!aliciHizmetBedeliAlindi,
+      aliciAdSoyad: aliciHizmetBedeliAlindi ? aliciAdSoyad || null : null,
+      aliciTelefon: aliciHizmetBedeliAlindi ? aliciTelefon || null : null,
+      aliciKimlikNo: aliciHizmetBedeliAlindi ? aliciKimlikNo || null : null,
+      aliciHizmetBedeli: aliciHizmetBedeliAlindi ? (aliciHizmetBedeli ?? null) : null,
+      aliciEkHizmetBedeli: aliciHizmetBedeliAlindi ? (aliciEkHizmetBedeli ?? null) : null,
     }
     MOCK_CIRO_RAPORLARI.unshift(rapor)
     katilimcilar.forEach((k, i) => {
@@ -898,6 +936,10 @@ export const ciroRaporlari = {
         faturaDosyaUrl: null,
         odemeDurumu: 'bekliyor',
         notlar: null,
+        gdCirosu: k.gdCirosu ?? null,
+        rtPayOraniSnapshot: k.rtPayOraniSnapshot ?? null,
+        rtPayiTutari: k.rtPayiTutari ?? null,
+        ofisPayiTutari: k.ofisPayiTutari ?? null,
       })
     })
     return delay(mockCiroRaporuWithKatilimcilar(rapor))
@@ -918,6 +960,12 @@ export const ciroRaporlari = {
     const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === id)
     if (!row) throw new Error('Katılımcı bulunamadı.')
     Object.assign(row, patch)
+    // Çalışan Payı (fatura) veya RT Payı değiştiyse, Ofis Payı (hep kalan)
+    // yeniden hesaplanır — üçü GD Cirosu'na eşit kalsın garantisi burada
+    // (bkz. supabaseProvider.js'deki aynı mantık).
+    if (('faturaTutari' in patch || 'rtPayiTutari' in patch) && row.gdCirosu != null) {
+      row.ofisPayiTutari = Number(row.gdCirosu) - Number(row.faturaTutari || 0) - Number(row.rtPayiTutari || 0)
+    }
     // Cari Hesap senkronu: approve()'da bu katılımcı için bir "alacak"
     // satırı oluşmuşsa (kaynakId=katilimci.id), fatura tutarı/ödeme
     // durumu değişince o satır da güncellenir.
@@ -971,19 +1019,28 @@ export const ciroRaporlari = {
 
 // --- Danışman Anlaşmaları (komisyon paylaşım oranı, tarih aralıklı) --------
 const MOCK_DANISMAN_ANLASMALARI = [
-  { id: 'da-1', danismanId: 'u-danisman', paylasimOrani: 48, gecerlilikBaslangic: '2026-01-01', gecerlilikBitis: null, createdBy: 'u-broker', createdAt: ciroRaporuDaysAgo(200) },
+  { id: 'da-1', danismanId: 'u-danisman', paylasimOrani: 48, rtPayOrani: 6, gecerlilikBaslangic: '2026-01-01', gecerlilikBitis: null, createdBy: 'u-broker', createdAt: ciroRaporuDaysAgo(200) },
 ]
 
 export const danismanAnlasmalari = {
   async list() {
     return delay([...MOCK_DANISMAN_ANLASMALARI].sort((a, b) => new Date(b.gecerlilikBaslangic) - new Date(a.gecerlilikBaslangic)))
   },
-  async create({ danismanId, paylasimOrani, gecerlilikBaslangic }, createdBy) {
+  async create({ danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic }, createdBy) {
     const acikSatir = MOCK_DANISMAN_ANLASMALARI.find((a) => a.danismanId === danismanId && !a.gecerlilikBitis)
     if (acikSatir) {
       acikSatir.gecerlilikBitis = new Date(new Date(gecerlilikBaslangic).getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     }
-    const row = { id: `da-${Date.now()}`, danismanId, paylasimOrani: Number(paylasimOrani), gecerlilikBaslangic, gecerlilikBitis: null, createdBy, createdAt: new Date().toISOString() }
+    const row = {
+      id: `da-${Date.now()}`,
+      danismanId,
+      paylasimOrani: Number(paylasimOrani),
+      rtPayOrani: rtPayOrani == null || rtPayOrani === '' ? null : Number(rtPayOrani),
+      gecerlilikBaslangic,
+      gecerlilikBitis: null,
+      createdBy,
+      createdAt: new Date().toISOString(),
+    }
     MOCK_DANISMAN_ANLASMALARI.unshift(row)
     return delay(row)
   },

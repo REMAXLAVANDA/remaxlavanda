@@ -23,6 +23,8 @@ export const CIRO_RAPORU_DURUM_STYLES = {
 
 export const ISLEM_TIPI_LABELS = { satis: 'Satış', kiralama: 'Kiralama' }
 
+export const PORTFOY_TIPI_LABELS = { portfoyum: 'Portföylerim', dis_portfoy: 'Dış Portföy' }
+
 // ciro_raporlari_insert_self RLS'iyle aynı: SADECE danışman kendi adına
 // rapor oluşturup gönderebilir.
 export function canSubmitCiroRaporu(role) {
@@ -78,4 +80,48 @@ export function faturaTutarsizMi(faturaTutari, onerilenTutar) {
 // aynı kural, formda anlık uyarı göstermek için (sunucuya gitmeden önce).
 export function toplamPayOrani(katilimcilar) {
   return (katilimcilar ?? []).reduce((sum, k) => sum + Number(k.payOrani || 0), 0)
+}
+
+// RE/MAX Türkiye'nin resmi ciro ekranındaki "hizmet bedeli" — satış
+// tutarından (Lig'e giden satış hacmi) AYRI, gerçek para akışı. Satıcı/
+// alıcı tarafların checkbox'ları işaretli değilse o tarafın tutarı 0 sayılır.
+export function toplamHizmetBedeli({ saticiHizmetBedeli, saticiEkHizmetBedeli, aliciHizmetBedeli, aliciEkHizmetBedeli }) {
+  return [saticiHizmetBedeli, saticiEkHizmetBedeli, aliciHizmetBedeli, aliciEkHizmetBedeli].reduce(
+    (sum, v) => sum + Number(v || 0),
+    0,
+  )
+}
+
+// Bir katılımcının payına düşen GERÇEK ciro (hizmet bedelinden) — Çalışan/
+// RT/Ofis Payı üçlemesinin tabanı. katılımciSatisPayi'yle aynı formül,
+// sadece taban "satış tutarı" değil "toplam hizmet bedeli".
+export function gdCirosu(toplamHizmetBedeliTutari, payOrani) {
+  return katilimciSatisPayi(toplamHizmetBedeliTutari, payOrani)
+}
+
+// Danışmanın güncel RT Payı oranı — guncelAnlasmaOrani ile AYNI desen,
+// farklı alan (rtPayOrani), aynı tarih aralığı mantığı (danisman_anlasmalari).
+export function guncelRtPayOrani(anlasmalar, danismanId, tarihIso) {
+  const tarih = new Date(tarihIso)
+  const uygun = (anlasmalar ?? [])
+    .filter((a) => a.danismanId === danismanId)
+    .filter((a) => {
+      const baslangic = new Date(a.gecerlilikBaslangic)
+      const bitis = a.gecerlilikBitis ? new Date(a.gecerlilikBitis) : null
+      return tarih >= baslangic && (!bitis || tarih <= bitis)
+    })
+    .sort((a, b) => new Date(b.gecerlilikBaslangic) - new Date(a.gecerlilikBaslangic))
+  return uygun[0]?.rtPayOrani ?? null
+}
+
+export function rtPayiOnerisi(gdCirosuTutari, rtPayOrani) {
+  if (rtPayOrani == null) return null
+  return gdCirosuTutari * (Number(rtPayOrani) / 100)
+}
+
+// Ofis Payı her zaman kalan — elle girilmez, Çalışan+RT+Ofis GD Cirosu'na
+// eşit olsun garantisi bu şekilde sağlanır (üç ayrı elle girilen alan
+// toplamı tutmayabilirdi).
+export function ofisPayiTutari(gdCirosuTutari, calisanPayiTutari, rtPayiTutariDeger) {
+  return Number(gdCirosuTutari || 0) - Number(calisanPayiTutari || 0) - Number(rtPayiTutariDeger || 0)
 }

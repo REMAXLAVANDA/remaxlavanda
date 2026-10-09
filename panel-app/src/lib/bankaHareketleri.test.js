@@ -3,9 +3,9 @@ import { ROLES } from './roles'
 import { canManageBankaHareketleri, eslesmeAdaylari, kalanTutar } from './bankaHareketleri'
 
 describe('canManageBankaHareketleri', () => {
-  it('sadece broker/owner yönetebilir', () => {
+  it('sadece broker yönetebilir (owner Finans\'ta sadece ciro/cari görür)', () => {
     expect(canManageBankaHareketleri(ROLES.BROKER)).toBe(true)
-    expect(canManageBankaHareketleri(ROLES.OWNER)).toBe(true)
+    expect(canManageBankaHareketleri(ROLES.OWNER)).toBe(false)
     expect(canManageBankaHareketleri(ROLES.OFIS)).toBe(false)
     expect(canManageBankaHareketleri(ROLES.DANISMAN)).toBe(false)
   })

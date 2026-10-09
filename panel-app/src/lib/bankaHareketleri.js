@@ -1,15 +1,13 @@
 // Banka Hareketleri — Vakıfbank API'si bağlanana kadar broker ekstreyi
 // elle girip Ciro Raporu'ndaki "ödeme bekliyor" kayıtlarıyla eşleştiriyor
 // (bkz. migration 20261009090000_banka_hareketleri.sql + 20261009110000
-// genişletmesi). Yetki Ciro Raporu onayıyla AYNI seviye
-// (canManageCiroScores) — bilinçli olarak yeniden kullanılıyor, para
-// hareketleri sadece broker/owner'a açık.
+// genişletmesi).
 //
 // "Bloke" (bağlanma parası): tapu gününe kadar bekleyen giriş hareketi,
 // bir fırsatla doğrudan ilişkilendirilir (ciro raporu henüz yoktur).
 // Tapu günü "Çözümle" ile 4 senaryodan biri uygulanır — bkz.
 // BLOKE_AKSIYON_LABELS ve components/finans/BlokeCozumleModal.jsx.
-import { canManageCiroScores } from './league'
+import { ROLES } from './roles'
 
 export const BANKA_HAREKETI_DURUM_LABELS = {
   eslesmedi: 'Eşleşmedi',
@@ -31,8 +29,14 @@ export const BLOKE_AKSIYON_LABELS = {
   kismi_mahsup: 'Kısmi Mahsup + Kalanı Gönder',
 }
 
+// 2026-10-09 broker kararı: "owner sadece ciro ve cari kısmını görsün" —
+// Banka Hareketleri (ve Masraflar, bkz. lib/islemMasraflari.js) artık
+// owner'ı DEĞİL, SADECE broker'ı kapsıyor. Ciro Raporu onayı
+// (canApproveCiroRaporu) ve Cari Hesap (canManageCariHesap) bundan
+// etkilenmiyor, ikisi de hâlâ broker/owner — bilerek dar tutulan sadece bu
+// ikisi (gerçek banka parası + genel ofis masrafları).
 export function canManageBankaHareketleri(role) {
-  return canManageCiroScores(role)
+  return role === ROLES.BROKER
 }
 
 // Bir banka hareketine en olası eşleşme adaylarını (ödeme bekleyen

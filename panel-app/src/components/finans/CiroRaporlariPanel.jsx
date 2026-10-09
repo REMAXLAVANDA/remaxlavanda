@@ -70,8 +70,9 @@ export default function CiroRaporlariPanel() {
   const pendingReports = useMemo(() => visibleReports.filter((r) => r.durum === 'onay_bekliyor'), [visibleReports])
   const otherReports = useMemo(() => visibleReports.filter((r) => r.durum !== 'onay_bekliyor'), [visibleReports])
 
-  function opportunityLabel(id) {
-    const o = data?.opportunities?.find((o) => o.id === id)
+  function opportunityLabel(r) {
+    if (r.portfoyTipi === 'dis_portfoy') return `Dış Portföy · ${r.disBeyanKodu}`
+    const o = data?.opportunities?.find((o) => o.id === r.opportunityId)
     return o ? o.ozet || o.konum : 'Fırsat'
   }
 
@@ -140,6 +141,7 @@ export default function CiroRaporlariPanel() {
         kdvHaricTutar,
         vergiNo: form.vergiNo || null,
         faturaDosyaUrl: form.faturaDosyaUrl || null,
+        rtPayiTutari: form.rtPayiTutari !== '' && form.rtPayiTutari != null ? Number(form.rtPayiTutari) : null,
       })
       showToast('Fatura bilgisi kaydedildi.', 'success')
       reload()
@@ -165,7 +167,7 @@ export default function CiroRaporlariPanel() {
         <button onClick={() => setExpandedId(isExpanded ? null : r.id)} className="flex w-full items-center justify-between gap-3 text-left">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-medium text-text-primary">{opportunityLabel(r.opportunityId)}</span>
+              <span className="truncate text-sm font-medium text-text-primary">{opportunityLabel(r)}</span>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
                 {CIRO_RAPORU_DURUM_LABELS[r.durum]}
               </span>

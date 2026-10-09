@@ -11,6 +11,11 @@ function tl(n) {
 // bkz. migration 20261008120000, ciro_raporu_katilimcilari_update RLS'i).
 // odemeDurumu farklı: ofise paranın gelip gelmediğini broker/owner işaretler,
 // danışman değil — bu yüzden onToggleOdeme sadece canToggleOdeme true'yken verilir.
+//
+// GD Cirosu / Çalışan Payı (fatura tutarı) / RT Payı / Ofis Payı üçlemesi
+// 2026-10-09'da eklendi (RE/MAX Türkiye'nin resmi ciro ekranı referans
+// alındı) — Ofis Payı HER ZAMAN kalan, elle girilmez (bkz.
+// lib/ciroRaporlari.js ofisPayiTutari, dataProvider'daki senkron).
 export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, onSaveFatura, onToggleOdeme, submitting }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -20,6 +25,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
     kdvOrani: k.kdvOrani ?? '',
     vergiNo: k.vergiNo ?? '',
     faturaDosyaUrl: k.faturaDosyaUrl ?? '',
+    rtPayiTutari: k.rtPayiTutari ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tutarsiz = faturaTutarsizMi(k.faturaTutari, k.komisyonTutariOnerisi)
@@ -47,6 +53,15 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
           )}
         </div>
       </div>
+
+      {k.gdCirosu != null && (
+        <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
+          <span>GD Cirosu: <span className="font-medium text-text-primary">{tl(k.gdCirosu)}</span></span>
+          <span>Çalışan Payı: {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}</span>
+          <span>RT Payı: {tl(k.rtPayiTutari)}</span>
+          <span>Ofis Payı: {tl(k.ofisPayiTutari)}</span>
+        </div>
+      )}
 
       {tutarsiz && (
         <p className="mt-2 text-xs font-medium text-red-600">
@@ -86,7 +101,14 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
               inputMode="numeric"
               value={form.faturaTutari}
               onChange={(e) => set({ faturaTutari: e.target.value })}
-              placeholder="Fatura tutarı (₺)"
+              placeholder="Fatura tutarı (₺) — Çalışan Payı"
+              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
+            />
+            <input
+              inputMode="numeric"
+              value={form.rtPayiTutari}
+              onChange={(e) => set({ rtPayiTutari: e.target.value })}
+              placeholder="RT Payı (₺)"
               className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
             />
             <input
@@ -106,7 +128,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
               value={form.faturaDosyaUrl}
               onChange={(e) => set({ faturaDosyaUrl: e.target.value })}
               placeholder="Fatura dosyası linki (opsiyonel)"
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
+              className="col-span-2 rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
             />
           </div>
           <div className="flex justify-end gap-2">

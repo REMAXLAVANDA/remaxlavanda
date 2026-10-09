@@ -198,10 +198,10 @@ export default function Ayarlar() {
   )
   const [savingAnlasma, setSavingAnlasma] = useState(false)
 
-  async function handleCreateAnlasma(danismanId, paylasimOrani, gecerlilikBaslangic) {
+  async function handleCreateAnlasma(danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic) {
     setSavingAnlasma(true)
     try {
-      await danismanAnlasmalariProvider.create({ danismanId, paylasimOrani, gecerlilikBaslangic }, user.id)
+      await danismanAnlasmalariProvider.create({ danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic }, user.id)
       await reloadAnlasmalar()
       showToast('Komisyon oranı kaydedildi.', 'success')
     } catch (err) {

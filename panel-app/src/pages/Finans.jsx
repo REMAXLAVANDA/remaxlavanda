@@ -8,12 +8,13 @@ import CariHesapPanel from '../components/finans/CariHesapPanel'
 
 // Finans TEK menü girdisi, sekmeli — önceden Banka Hareketleri/Masraflar/
 // Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu, hepsi
-// Finans'ın içine gömülsün" dedi (2026-10-09). Banka/Masraflar sadece
-// broker/owner'a açık (bkz. lib/bankaHareketleri.js
-// canManageBankaHareketleri). Cari Hesap sekmesi İSTİSNA: danışman da
-// görür ama sadece kendi bakiyesini, salt-okunur (2026-10-09 broker
-// kararı: "kendininkini görsün cari alacak borcu") — ayrım
-// CariHesapPanel'in içinde (lib/cariHesap.js canManageCariHesap).
+// Finans'ın içine gömülsün" dedi (2026-10-09). Banka/Masraflar SADECE
+// broker'a açık (2026-10-09: "owner sadece ciro ve cari kısmını görsün" —
+// bkz. lib/bankaHareketleri.js canManageBankaHareketleri). Cari Hesap
+// sekmesi İSTİSNA: danışman da görür ama sadece kendi bakiyesini,
+// salt-okunur (2026-10-09 broker kararı: "kendininkini görsün cari
+// alacak borcu") — ayrım CariHesapPanel'in içinde (lib/cariHesap.js
+// canManageCariHesap, hâlâ broker/owner).
 const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
@@ -24,8 +25,8 @@ const TABS = [
 export default function Finans() {
   const { role } = useAuth()
   const [tab, setTab] = useState('ciro')
-  const showYonetimTabs = canManageBankaHareketleri(role)
-  const visibleTabs = showYonetimTabs ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'cari')
+  const showBrokerOnlyTabs = canManageBankaHareketleri(role)
+  const visibleTabs = showBrokerOnlyTabs ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'cari')
 
   return (
     <div>
@@ -46,8 +47,8 @@ export default function Finans() {
       )}
 
       {tab === 'ciro' && <CiroRaporlariPanel />}
-      {showYonetimTabs && tab === 'banka' && <BankaHareketleriPanel />}
-      {showYonetimTabs && tab === 'masraflar' && <MasraflarPanel />}
+      {showBrokerOnlyTabs && tab === 'banka' && <BankaHareketleriPanel />}
+      {showBrokerOnlyTabs && tab === 'masraflar' && <MasraflarPanel />}
       {tab === 'cari' && <CariHesapPanel />}
     </div>
   )

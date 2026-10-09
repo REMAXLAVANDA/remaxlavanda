@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { formatDateOnly } from '../../lib/format'
-import { guncelAnlasmaOrani } from '../../lib/ciroRaporlari'
+import { guncelAnlasmaOrani, guncelRtPayOrani } from '../../lib/ciroRaporlari'
 
 // Danışman Anlaşmaları — her danışmanın Ciro Raporu sisteminde kullanılan
 // komisyon paylaşım oranı (ör. %48, %80). Tarih aralıklı: yeni oran
@@ -10,7 +10,7 @@ import { guncelAnlasmaOrani } from '../../lib/ciroRaporlari'
 // açık — Ciro Raporu onay yetkisiyle (canApproveCiroRaporu) aynı seviye.
 export default function DanismanAnlasmalariPanel({ danismanlar, anlasmalar, onCreate, submitting }) {
   const [editingId, setEditingId] = useState(null)
-  const [form, setForm] = useState({ paylasimOrani: '', gecerlilikBaslangic: new Date().toISOString().slice(0, 10) })
+  const [form, setForm] = useState({ paylasimOrani: '', rtPayOrani: '', gecerlilikBaslangic: new Date().toISOString().slice(0, 10) })
   const bugun = new Date().toISOString().slice(0, 10)
 
   function gecmis(danismanId) {
@@ -21,23 +21,25 @@ export default function DanismanAnlasmalariPanel({ danismanlar, anlasmalar, onCr
 
   async function handleSave(danismanId) {
     if (!form.paylasimOrani) return
-    await onCreate(danismanId, Number(form.paylasimOrani), form.gecerlilikBaslangic)
+    await onCreate(danismanId, Number(form.paylasimOrani), form.rtPayOrani === '' ? null : Number(form.rtPayOrani), form.gecerlilikBaslangic)
     setEditingId(null)
-    setForm({ paylasimOrani: '', gecerlilikBaslangic: new Date().toISOString().slice(0, 10) })
+    setForm({ paylasimOrani: '', rtPayOrani: '', gecerlilikBaslangic: new Date().toISOString().slice(0, 10) })
   }
 
   return (
     <div>
       <p className="mb-4 text-xs text-text-muted">
-        Her danışmanın cirosundan kendisine kalan pay oranı — Ciro Raporu'nda önerilen fatura tutarının hesabında
-        kullanılır. Yeni oran girildiğinde eskisi otomatik kapanır, geçmiş raporlar eski oranla donmuş kalır.
+        Her danışmanın cirosundan kendisine kalan pay oranı ve RE/MAX Türkiye'ye giden RT Payı oranı — Ciro
+        Raporu'nda önerilen tutarların hesabında kullanılır. Yeni oran girildiğinde eskisi otomatik kapanır, geçmiş
+        raporlar eski oranla donmuş kalır.
       </p>
       <div className="overflow-x-auto rounded-2xl border border-border-subtle">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border-subtle bg-surface-sunken text-text-muted">
               <th className="px-4 py-2.5 font-medium">Danışman</th>
-              <th className="px-4 py-2.5 font-medium">Güncel Oran</th>
+              <th className="px-4 py-2.5 font-medium">Çalışan Payı</th>
+              <th className="px-4 py-2.5 font-medium">RT Payı</th>
               <th className="px-4 py-2.5 font-medium">Geçerlilik Başlangıcı</th>
               <th className="px-4 py-2.5 font-medium" />
             </tr>
@@ -46,12 +48,14 @@ export default function DanismanAnlasmalariPanel({ danismanlar, anlasmalar, onCr
             {danismanlar.map((d) => {
               const gecmisListe = gecmis(d.id)
               const guncelOran = guncelAnlasmaOrani(anlasmalar, d.id, bugun)
+              const guncelRt = guncelRtPayOrani(anlasmalar, d.id, bugun)
               const guncelSatir = gecmisListe.find((a) => a.paylasimOrani === guncelOran && !a.gecerlilikBitis)
               const satirAcik = editingId === d.id
               return (
                 <tr key={d.id} className="border-b border-border-subtle last:border-0 align-top">
                   <td className="px-4 py-2.5 text-text-primary">{d.name}</td>
                   <td className="px-4 py-2.5 text-text-secondary">{guncelOran != null ? `%${guncelOran}` : '—'}</td>
+                  <td className="px-4 py-2.5 text-text-secondary">{guncelRt != null ? `%${guncelRt}` : '—'}</td>
                   <td className="px-4 py-2.5 text-xs text-text-muted">
                     {guncelSatir ? formatDateOnly(guncelSatir.gecerlilikBaslangic) : '—'}
                   </td>
@@ -63,9 +67,19 @@ export default function DanismanAnlasmalariPanel({ danismanlar, anlasmalar, onCr
                           min="0"
                           max="100"
                           step="0.5"
-                          placeholder="Oran %"
+                          placeholder="Çalışan %"
                           value={form.paylasimOrani}
                           onChange={(e) => setForm((f) => ({ ...f, paylasimOrani: e.target.value }))}
+                          className="w-20 rounded-lg border border-border-default px-2 py-1 text-xs text-text-primary"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          placeholder="RT %"
+                          value={form.rtPayOrani}
+                          onChange={(e) => setForm((f) => ({ ...f, rtPayOrani: e.target.value }))}
                           className="w-20 rounded-lg border border-border-default px-2 py-1 text-xs text-text-primary"
                         />
                         <input
@@ -89,7 +103,7 @@ export default function DanismanAnlasmalariPanel({ danismanlar, anlasmalar, onCr
                       <button
                         onClick={() => {
                           setEditingId(d.id)
-                          setForm({ paylasimOrani: '', gecerlilikBaslangic: new Date().toISOString().slice(0, 10) })
+                          setForm({ paylasimOrani: '', rtPayOrani: '', gecerlilikBaslangic: new Date().toISOString().slice(0, 10) })
                         }}
                         className="rounded-lg px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
                       >
