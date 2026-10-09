@@ -6,12 +6,14 @@ import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
 import MasraflarPanel from '../components/finans/MasraflarPanel'
 import CariHesapPanel from '../components/finans/CariHesapPanel'
 
-// Finans artık TEK menü girdisi, sekmeli — önceden Banka Hareketleri/
-// Masraflar/Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu,
-// hepsi Finans'ın içine gömülsün" dedi (2026-10-09). Banka/Masraflar/
-// Cari sekmeleri hep aynı role açık (bkz. lib/bankaHareketleri.js
-// canManageBankaHareketleri) — tek kontrolle hepsi birlikte gizlenir.
-// Danışman sadece Ciro Raporları sekmesini görür (kendi cirosunu girer).
+// Finans TEK menü girdisi, sekmeli — önceden Banka Hareketleri/Masraflar/
+// Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu, hepsi
+// Finans'ın içine gömülsün" dedi (2026-10-09). Banka/Masraflar sadece
+// broker/owner'a açık (bkz. lib/bankaHareketleri.js
+// canManageBankaHareketleri). Cari Hesap sekmesi İSTİSNA: danışman da
+// görür ama sadece kendi bakiyesini, salt-okunur (2026-10-09 broker
+// kararı: "kendininkini görsün cari alacak borcu") — ayrım
+// CariHesapPanel'in içinde (lib/cariHesap.js canManageCariHesap).
 const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
@@ -23,7 +25,7 @@ export default function Finans() {
   const { role } = useAuth()
   const [tab, setTab] = useState('ciro')
   const showYonetimTabs = canManageBankaHareketleri(role)
-  const visibleTabs = showYonetimTabs ? TABS : TABS.filter((t) => t.key === 'ciro')
+  const visibleTabs = showYonetimTabs ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'cari')
 
   return (
     <div>
@@ -43,10 +45,10 @@ export default function Finans() {
         </div>
       )}
 
-      {(!showYonetimTabs || tab === 'ciro') && <CiroRaporlariPanel />}
+      {tab === 'ciro' && <CiroRaporlariPanel />}
       {showYonetimTabs && tab === 'banka' && <BankaHareketleriPanel />}
       {showYonetimTabs && tab === 'masraflar' && <MasraflarPanel />}
-      {showYonetimTabs && tab === 'cari' && <CariHesapPanel />}
+      {tab === 'cari' && <CariHesapPanel />}
     </div>
   )
 }
