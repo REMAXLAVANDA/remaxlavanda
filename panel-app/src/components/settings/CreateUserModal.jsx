@@ -4,6 +4,7 @@ import { ROLES, ROLE_LABELS } from '../../lib/roles'
 import { capitalizeWords } from '../../lib/format'
 import { generateSecurePassword } from '../../lib/password'
 import { formatPhoneInput } from '../../lib/phone'
+import { DANISMAN_TIER_LABELS, DANISMAN_TIER_RATES } from '../../lib/danismanTier'
 
 const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
 const TC_NO_PATTERN = /^\d{11}$/
@@ -11,7 +12,7 @@ const TC_NO_PATTERN = /^\d{11}$/
 // initialValues: Recruiting'de "Danışman Olarak Ekle" ile açıldığında
 // aday bilgilerini (ad/telefon/email) ön-doldurur (bkz. Recruiting.jsx
 // handleConvertToDanisman) — RecruitingDetailModal ile AYNI desen.
-export default function CreateUserModal({ onClose, onSubmit, submitting, initialValues, canSetMentorPrimi }) {
+export default function CreateUserModal({ onClose, onSubmit, submitting, initialValues, canSetMentorPrimi, canSetAnlasma }) {
   const [form, setForm] = useState({
     ad: initialValues?.ad ?? '',
     email: initialValues?.email ?? '',
@@ -21,10 +22,13 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
     dogumTarihi: '',
     tcNo: '',
     mentorBaslangicTarihi: '',
+    tier: '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
-  const canSubmit = form.ad.trim() && form.email.trim() && form.password.length >= 8 && tcNoValid
+  const showAnlasmaField = canSetAnlasma && form.rol === ROLES.DANISMAN
+  const canSubmit =
+    form.ad.trim() && form.email.trim() && form.password.length >= 8 && tcNoValid && (!showAnlasmaField || !!form.tier)
 
   return (
     <Modal title="Kullanıcı Ekle" onClose={onClose}>
@@ -116,6 +120,36 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
             />
           </div>
         )}
+
+        {/* Paylaşım oranı (Rap/Max) — Ciro Raporu fatura hesabının tabanı,
+            danışman eklenirken zorunlu (2026-10-09 broker kararı — bkz.
+            lib/danismanTier.js). Ayrı bir "Danışman Anlaşmaları" menüsü
+            YOK artık, oran kullanıcı kaydının kendi içinde tutuluyor. */}
+        {showAnlasmaField && (
+          <div>
+            <label className="mb-1 block text-xs text-text-secondary">Paylaşım Oranı</label>
+            <div className="flex gap-2">
+              {Object.entries(DANISMAN_TIER_LABELS).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => set({ tier: key })}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    form.tier === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-border-default text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {form.tier && (
+              <p className="mt-1.5 text-xs text-text-muted">
+                Çalışan Payı: %{DANISMAN_TIER_RATES[form.tier].paylasimOrani} · RT Payı: %{DANISMAN_TIER_RATES[form.tier].rtPayOrani}
+              </p>
+            )}
+          </div>
+        )}
+
         <div>
           <label className="mb-1 block text-xs text-text-secondary">Geçici şifre (kullanıcıya sen ileteceksin)</label>
           <div className="flex gap-2">

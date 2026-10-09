@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Users, Shield, Tag, ScrollText, Plus, Webhook, Percent, Handshake } from 'lucide-react'
+import { Users, Shield, Tag, ScrollText, Plus, Webhook, Percent } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -19,7 +19,8 @@ import {
   danismanAnlasmalari as danismanAnlasmalariProvider,
 } from '../lib/dataProvider'
 import { canManageUsers, canViewAuditLog, canViewMentorPrimi, ROLE_LABELS } from '../lib/roles'
-import { canApproveCiroRaporu } from '../lib/ciroRaporlari'
+import { canApproveCiroRaporu, guncelAnlasmaOrani } from '../lib/ciroRaporlari'
+import { DANISMAN_TIER_RATES, tierFromOranlar } from '../lib/danismanTier'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import { callNeedsTracking } from '../lib/callLogs'
@@ -37,7 +38,6 @@ import WebhookErrorsTable from '../components/settings/WebhookErrorsTable'
 import TelsamWebhookErrorsTable from '../components/settings/TelsamWebhookErrorsTable'
 import MetaCapiErrorsTable from '../components/settings/MetaCapiErrorsTable'
 import MentorPrimiPanel from '../components/settings/MentorPrimiPanel'
-import DanismanAnlasmalariPanel from '../components/settings/DanismanAnlasmalariPanel'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
 
@@ -48,7 +48,6 @@ const TABS = [
   { key: 'log', label: 'Log', icon: ScrollText },
   { key: 'webhook', label: 'Webhook Hataları', icon: Webhook },
   { key: 'mentor-primi', label: 'Mentor Primi', icon: Percent },
-  { key: 'danisman-anlasmalari', label: 'Danışman Anlaşmaları', icon: Handshake },
 ]
 
 export default function Ayarlar() {
@@ -66,16 +65,13 @@ export default function Ayarlar() {
   // talebi) — bu yüzden owner DAHİL, sadece broker görür (bkz. lib/roles.js
   // canViewMentorPrimi, canViewLog'daki aynı sekme-gizleme deseni).
   const canViewMentor = canViewMentorPrimi(role)
-  // Danışman Anlaşmaları (komisyon paylaşım oranı) — Ciro Raporu onay
-  // yetkisiyle AYNI seviye (broker+owner), Mentor Primi'nin aksine
-  // gizlilik isteği yok, owner da görebilir.
+  // Danışman Anlaşmaları (komisyon paylaşım oranı/RT Payı) — artık ayrı bir
+  // menü/sekme DEĞİL, Kullanıcı Ekle/Düzenle formlarının içinde Rap/Max
+  // seçimi olarak tutuluyor (2026-10-09 broker: "ekstra menüye ihtiyaç
+  // yok, kullanıcılara ekle"). Yetki Ciro Raporu onayıyla AYNI seviye
+  // (broker+owner).
   const canManageAnlasmalar = canApproveCiroRaporu(role)
-  const visibleTabs = TABS.filter(
-    (t) =>
-      (t.key !== 'log' || canViewLog) &&
-      (t.key !== 'mentor-primi' || canViewMentor) &&
-      (t.key !== 'danisman-anlasmalari' || canManageAnlasmalar),
-  )
+  const visibleTabs = TABS.filter((t) => (t.key !== 'log' || canViewLog) && (t.key !== 'mentor-primi' || canViewMentor))
   const resolveName = (id) => knownUsers[id]?.name ?? '—'
   const [mentorPrimiForm, setMentorPrimiForm] = useState(() => {
     const monthKey = currentMonthKey()
@@ -187,28 +183,27 @@ export default function Ayarlar() {
     }
   }
 
-  const {
-    data: danismanAnlasmalariList,
-    loading: loadingAnlasmalar,
-    error: anlasmalarError,
-    reload: reloadAnlasmalar,
-  } = useAsyncList(
-    () => (canManageAnlasmalar && tab === 'danisman-anlasmalari' ? danismanAnlasmalariProvider.list() : Promise.resolve([])),
-    [canManageAnlasmalar, tab],
+  // mentorPrimiBaslangicList'teki AYNI desen — tab'dan bağımsız, hafif bir
+  // liste (birkaç danışman satırı), Kullanıcı Ekle/Düzenle formlarının
+  // mevcut tier'ı gösterebilmesi için her zaman hazır.
+  const { data: danismanAnlasmalariList, setData: setDanismanAnlasmalariList } = useAsyncList(
+    () => (canManageAnlasmalar ? danismanAnlasmalariProvider.list() : Promise.resolve([])),
+    [canManageAnlasmalar],
   )
-  const [savingAnlasma, setSavingAnlasma] = useState(false)
 
-  async function handleCreateAnlasma(danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic) {
-    setSavingAnlasma(true)
-    try {
-      await danismanAnlasmalariProvider.create({ danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic }, user.id)
-      await reloadAnlasmalar()
-      showToast('Komisyon oranı kaydedildi.', 'success')
-    } catch (err) {
-      showToast(err.message ?? 'Oran kaydedilemedi, tekrar dene.', 'error')
-    } finally {
-      setSavingAnlasma(false)
-    }
+  // CreateUserModal/EditUserModal'dan ("ekstra menüye ihtiyaç yok,
+  // kullanıcılara ekle", 2026-10-09) çağrılıyor — sadece broker/owner
+  // (canManageAnlasmalar) ve sadece bir tier gerçekten seçildiğinde (form
+  // state'i SADECE "Kaydet"e basınca buraya geliyor, persistMentorBaslangic
+  // ile AYNI "kısmi değerle hiç çağrılma" deseni).
+  async function persistDanismanTier(danismanId, tier) {
+    if (!canManageAnlasmalar || !tier) return
+    const rates = DANISMAN_TIER_RATES[tier]
+    const created = await danismanAnlasmalariProvider.create(
+      { danismanId, paylasimOrani: rates.paylasimOrani, rtPayOrani: rates.rtPayOrani, gecerlilikBaslangic: new Date().toISOString().slice(0, 10) },
+      user.id,
+    )
+    setDanismanAnlasmalariList((prev) => [...(prev ?? []), created])
   }
 
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -444,6 +439,13 @@ export default function Ayarlar() {
           showToast('Kullanıcı oluşturuldu ama Mentor Primi başlangıç tarihi kaydedilemedi.', 'error')
         }
       }
+      if (form.tier) {
+        try {
+          await persistDanismanTier(created.id, form.tier)
+        } catch {
+          showToast('Kullanıcı oluşturuldu ama paylaşım oranı kaydedilemedi.', 'error')
+        }
+      }
     } catch (err) {
       showToast(err.message ?? 'Kullanıcı oluşturulamadı, tekrar dene.', 'error')
     } finally {
@@ -468,6 +470,13 @@ export default function Ayarlar() {
           await persistMentorBaslangic(editingUser.id, patch.mentorBaslangicTarihi)
         } catch {
           showToast('Kullanıcı güncellendi ama Mentor Primi başlangıç tarihi kaydedilemedi.', 'error')
+        }
+      }
+      if (patch.tier !== undefined) {
+        try {
+          await persistDanismanTier(editingUser.id, patch.tier)
+        } catch {
+          showToast('Kullanıcı güncellendi ama paylaşım oranı kaydedilemedi.', 'error')
         }
       }
       setEditingUser(null)
@@ -738,27 +747,13 @@ export default function Ayarlar() {
         </>
       )}
 
-      {tab === 'danisman-anlasmalari' && canManageAnlasmalar && (
-        <>
-          {loadingAnlasmalar && <LoadingState />}
-          {!loadingAnlasmalar && anlasmalarError && <ErrorState error={anlasmalarError} onRetry={reloadAnlasmalar} />}
-          {!loadingAnlasmalar && !anlasmalarError && (
-            <DanismanAnlasmalariPanel
-              danismanlar={(allUsers ?? []).filter((u) => u.role === 'danisman' && u.durum === 'aktif')}
-              anlasmalar={danismanAnlasmalariList ?? []}
-              onCreate={handleCreateAnlasma}
-              submitting={savingAnlasma}
-            />
-          )}
-        </>
-      )}
-
       {showCreateModal && (
         <CreateUserModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateUser}
           submitting={submitting}
           canSetMentorPrimi={canViewMentor}
+          canSetAnlasma={canManageAnlasmalar}
         />
       )}
 
@@ -768,6 +763,8 @@ export default function Ayarlar() {
           privateInfo={(privateInfoList ?? []).find((p) => p.userId === editingUser.id)}
           mentorBaslangicTarihi={(mentorPrimiBaslangicList ?? []).find((b) => b.userId === editingUser.id)?.baslangicTarihi}
           canSetMentorPrimi={canViewMentor}
+          canSetAnlasma={canManageAnlasmalar}
+          guncelTier={tierFromOranlar(guncelAnlasmaOrani(danismanAnlasmalariList ?? [], editingUser.id, new Date().toISOString().slice(0, 10)))}
           onClose={() => setEditingUser(null)}
           onSubmit={handleEditUser}
           submitting={submitting}

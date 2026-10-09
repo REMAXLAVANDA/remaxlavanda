@@ -1,10 +1,21 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 import { capitalizeWords } from '../../lib/format'
+import { DANISMAN_TIER_LABELS, DANISMAN_TIER_RATES } from '../../lib/danismanTier'
 
 const TC_NO_PATTERN = /^\d{11}$/
 
-export default function EditUserModal({ user, privateInfo, mentorBaslangicTarihi, canSetMentorPrimi, onClose, onSubmit, submitting }) {
+export default function EditUserModal({
+  user,
+  privateInfo,
+  mentorBaslangicTarihi,
+  canSetMentorPrimi,
+  canSetAnlasma,
+  guncelTier,
+  onClose,
+  onSubmit,
+  submitting,
+}) {
   const [form, setForm] = useState({
     ad: user.name,
     dogumTarihi: privateInfo?.dogumTarihi ?? '',
@@ -13,8 +24,15 @@ export default function EditUserModal({ user, privateInfo, mentorBaslangicTarihi
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
-  const canSubmit = form.ad.trim().length > 0 && tcNoValid
   const showMentorField = canSetMentorPrimi && user.role === 'danisman'
+  // Paylaşım oranı (Rap/Max) hassas bir finansal ayar — yanlışlıkla
+  // değişmesin diye varsayılan KAPALI, broker/owner bilerek tikler (2026-10-09
+  // broker: "paylaşım oranını değiştir tiki olmalı"). Tiklenince mevcut
+  // tier'dan başlar, değiştirilebilir.
+  const showAnlasmaField = canSetAnlasma && user.role === 'danisman'
+  const [anlasmaDegistir, setAnlasmaDegistir] = useState(false)
+  const [tier, setTier] = useState(guncelTier ?? 'rap')
+  const canSubmit = form.ad.trim().length > 0 && tcNoValid && (!anlasmaDegistir || !!tier)
 
   return (
     <Modal title="Kullanıcıyı Düzenle" onClose={onClose}>
@@ -27,6 +45,7 @@ export default function EditUserModal({ user, privateInfo, mentorBaslangicTarihi
             dogumTarihi: form.dogumTarihi || null,
             tcNo: form.tcNo.trim() || null,
             mentorBaslangicTarihi: showMentorField ? form.mentorBaslangicTarihi || null : undefined,
+            tier: showAnlasmaField && anlasmaDegistir ? tier : undefined,
           })
         }}
         className="space-y-3"
@@ -78,6 +97,39 @@ export default function EditUserModal({ user, privateInfo, mentorBaslangicTarihi
               onChange={(e) => set({ mentorBaslangicTarihi: e.target.value })}
               className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
             />
+          </div>
+        )}
+
+        {showAnlasmaField && (
+          <div className="rounded-lg bg-surface-sunken p-3">
+            <label className="flex items-center gap-2 text-xs text-text-secondary">
+              <input type="checkbox" checked={anlasmaDegistir} onChange={(e) => setAnlasmaDegistir(e.target.checked)} />
+              Paylaşım oranını değiştir
+              {guncelTier && <span className="text-text-muted"> — güncel: {DANISMAN_TIER_LABELS[guncelTier]}</span>}
+            </label>
+            {anlasmaDegistir && (
+              <div className="mt-2">
+                <div className="flex gap-2">
+                  {Object.entries(DANISMAN_TIER_LABELS).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setTier(key)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                        tier === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-border-default bg-surface-raised text-text-secondary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {tier && (
+                  <p className="mt-1.5 text-xs text-text-muted">
+                    Çalışan Payı: %{DANISMAN_TIER_RATES[tier].paylasimOrani} · RT Payı: %{DANISMAN_TIER_RATES[tier].rtPayOrani}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

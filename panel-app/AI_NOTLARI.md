@@ -3,6 +3,28 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-09 — Danışman Anlaşmaları menüsü kaldırıldı, paylaşım oranı Kullanıcı Ekle/Düzenle formuna taşındı (Rap/Max seçimi)
+
+Ayarlar'daki ayrı "Danışman Anlaşmaları" sekmesi tamamen kaldırıldı
+(broker: "ekstra menüye ihtiyaç yok, sen bunları kullanıcılara ekle").
+Yerine: Kullanıcı Ekle/Düzenle formlarında Rap/Max seçimi (2 düğme) —
+seçilince oranlar otomatik hesaplanıyor, elle yüzde girilmiyor (broker:
+"seçtiğimizde otomatik hesaplama başlamalı"). Rap = %48 çalışan payı,
+Max = %80, RT Payı ikisinde de %10 (bkz. lib/danismanTier.js).
+
+Düzenle formunda bu alan hassas finansal veri olduğu için varsayılan
+KAPALI — "Paylaşım oranını değiştir" tiklenmeden Rap/Max seçimi hiç
+görünmüyor/kaydedilmiyor (broker: "paylaşım oranını değiştir tiki
+olmalı" — yanlışlıkla mevcut oranın değişmesini engelliyor). Ekle
+formunda (yeni danışman, değiştirilecek mevcut bir oran olmadığı için)
+doğrudan görünüyor ve zorunlu.
+
+Veri modeli DEĞİŞMEDİ — hâlâ aynı `danisman_anlasmalari` tablosu/
+`danismanAnlasmalariProvider.create()` (tarih aralıklı versiyonlama),
+sadece UI girişi taşındı. 21 danışmanın gerçek oranı aynı gün (broker
+listeledi: Nihal Sunar + Birgül Özdemir = Max, kalan 18'i Rap) SQL ile
+tek seferde dolduruldu.
+
 ## 2026-10-09 — Finans menüsü tek girdiye indirildi, Ciro Raporu'na RE/MAX Türkiye ekranı referansı (hizmet bedeli + RT Payı), owner kısıtlaması
 
 Üç ayrı broker kararı art arda uygulandı:
