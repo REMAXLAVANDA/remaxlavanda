@@ -36,9 +36,9 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
   const [portfoyTipi, setPortfoyTipi] = useState('portfoyum')
   const [disBeyanKodu, setDisBeyanKodu] = useState('')
   const [saticiVar, setSaticiVar] = useState(false)
-  const [satici, setSatici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '', ekHizmetBedeli: '' })
+  const [satici, setSatici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '' })
   const [aliciVar, setAliciVar] = useState(false)
-  const [alici, setAlici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '', ekHizmetBedeli: '' })
+  const [alici, setAlici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '' })
   const [ortakVar, setOrtakVar] = useState(false)
   const [partnerId, setPartnerId] = useState('')
   const [payOraniSelf, setPayOraniSelf] = useState('50')
@@ -49,19 +49,15 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
   const toplamPay = ortakVar ? Number(payOraniSelf || 0) + payOraniPartner : 100
 
   const saticiHizmetBedeliParsed = parseThousands(satici.hizmetBedeli)
-  const saticiEkHizmetBedeliParsed = parseThousands(satici.ekHizmetBedeli)
   const aliciHizmetBedeliParsed = parseThousands(alici.hizmetBedeli)
-  const aliciEkHizmetBedeliParsed = parseThousands(alici.ekHizmetBedeli)
 
   const toplamHizmetBedeliDeger = useMemo(
     () =>
       toplamHizmetBedeli({
         saticiHizmetBedeli: saticiVar ? saticiHizmetBedeliParsed : 0,
-        saticiEkHizmetBedeli: saticiVar ? saticiEkHizmetBedeliParsed : 0,
         aliciHizmetBedeli: aliciVar ? aliciHizmetBedeliParsed : 0,
-        aliciEkHizmetBedeli: aliciVar ? aliciEkHizmetBedeliParsed : 0,
       }),
-    [saticiVar, saticiHizmetBedeliParsed, saticiEkHizmetBedeliParsed, aliciVar, aliciHizmetBedeliParsed, aliciEkHizmetBedeliParsed],
+    [saticiVar, saticiHizmetBedeliParsed, aliciVar, aliciHizmetBedeliParsed],
   )
 
   const anlasmaSelf = useMemo(
@@ -120,19 +116,17 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
       islemTarihi: form.islemTarihi,
       notlar: form.notlar.trim() || null,
       portfoyTipi,
-      disBeyanKodu: portfoyTipi === 'dis_portfoy' ? disBeyanKodu.trim() : null,
+      disBeyanKodu: disBeyanKodu.trim() || null,
       saticiHizmetBedeliAlindi: saticiVar,
       saticiAdSoyad: satici.adSoyad.trim(),
       saticiTelefon: satici.telefon.trim(),
       saticiKimlikNo: satici.kimlikNo.trim(),
       saticiHizmetBedeli: saticiHizmetBedeliParsed,
-      saticiEkHizmetBedeli: saticiEkHizmetBedeliParsed,
       aliciHizmetBedeliAlindi: aliciVar,
       aliciAdSoyad: alici.adSoyad.trim(),
       aliciTelefon: alici.telefon.trim(),
       aliciKimlikNo: alici.kimlikNo.trim(),
       aliciHizmetBedeli: aliciHizmetBedeliParsed,
-      aliciEkHizmetBedeli: aliciEkHizmetBedeliParsed,
       katilimcilar,
     })
   }
@@ -177,6 +171,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
                   "Kapandı" durumunda, henüz raporu olmayan bir işlemin yok. Fırsatı önce Fırsatlar sayfasında kapat.
                 </p>
               )}
+              <input
+                value={disBeyanKodu}
+                onChange={(e) => setDisBeyanKodu(e.target.value)}
+                placeholder="Kod (opsiyonel)"
+                className="mt-2 w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              />
             </>
           ) : (
             <input
@@ -257,14 +257,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
                 value={satici.hizmetBedeli}
                 onChange={(e) => setSatici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
                 placeholder="Hizmet Bedeli (KDV Dahil)"
-                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <input
-                inputMode="numeric"
-                value={satici.ekHizmetBedeli}
-                onChange={(e) => setSatici((s) => ({ ...s, ekHizmetBedeli: formatThousands(e.target.value) }))}
-                placeholder="Ek Hizmet Bedeli (opsiyonel)"
-                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
               />
             </div>
           )}
@@ -301,14 +294,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
                 value={alici.hizmetBedeli}
                 onChange={(e) => setAlici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
                 placeholder="Hizmet Bedeli (KDV Dahil)"
-                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <input
-                inputMode="numeric"
-                value={alici.ekHizmetBedeli}
-                onChange={(e) => setAlici((s) => ({ ...s, ekHizmetBedeli: formatThousands(e.target.value) }))}
-                placeholder="Ek Hizmet Bedeli (opsiyonel)"
-                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
               />
             </div>
           )}

@@ -25,10 +25,14 @@ export const ISLEM_TIPI_LABELS = { satis: 'Satış', kiralama: 'Kiralama' }
 
 export const PORTFOY_TIPI_LABELS = { portfoyum: 'Portföylerim', dis_portfoy: 'Dış Portföy' }
 
-// ciro_raporlari_insert_self RLS'iyle aynı: SADECE danışman kendi adına
-// rapor oluşturup gönderebilir.
+// ciro_raporlari_insert_self RLS'i rol kontrolü yapmıyor (sadece
+// olusturan_id = auth.uid() şartı var) — asıl kısıtlama burada, UI
+// seviyesinde. Danışmanın yanı sıra broker da kendi kapattığı işlemi
+// raporlayabilir (2026-10-09 broker kararı: "broker ciro girebilsin" —
+// gerçek RE/MAX ekranında broker de bir GD olarak kendi payıyla
+// görünüyor). Owner/ofis hâlâ giremiyor.
 export function canSubmitCiroRaporu(role) {
-  return role === ROLES.DANISMAN
+  return role === ROLES.DANISMAN || role === ROLES.BROKER
 }
 
 // ciro_raporlari_manage_broker RLS'iyle aynı: onay/red SADECE broker/owner
@@ -85,11 +89,8 @@ export function toplamPayOrani(katilimcilar) {
 // RE/MAX Türkiye'nin resmi ciro ekranındaki "hizmet bedeli" — satış
 // tutarından (Lig'e giden satış hacmi) AYRI, gerçek para akışı. Satıcı/
 // alıcı tarafların checkbox'ları işaretli değilse o tarafın tutarı 0 sayılır.
-export function toplamHizmetBedeli({ saticiHizmetBedeli, saticiEkHizmetBedeli, aliciHizmetBedeli, aliciEkHizmetBedeli }) {
-  return [saticiHizmetBedeli, saticiEkHizmetBedeli, aliciHizmetBedeli, aliciEkHizmetBedeli].reduce(
-    (sum, v) => sum + Number(v || 0),
-    0,
-  )
+export function toplamHizmetBedeli({ saticiHizmetBedeli, aliciHizmetBedeli }) {
+  return [saticiHizmetBedeli, aliciHizmetBedeli].reduce((sum, v) => sum + Number(v || 0), 0)
 }
 
 // Bir katılımcının payına düşen GERÇEK ciro (hizmet bedelinden) — Çalışan/

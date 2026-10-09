@@ -10,10 +10,11 @@ import {
 } from './ciroRaporlari'
 
 describe('canSubmitCiroRaporu / canApproveCiroRaporu', () => {
-  it('sadece danışman rapor gönderebilir', () => {
+  it('danışman ve broker rapor gönderebilir, ofis/owner gönderemez', () => {
     expect(canSubmitCiroRaporu('danisman')).toBe(true)
+    expect(canSubmitCiroRaporu('broker')).toBe(true)
     expect(canSubmitCiroRaporu('ofis')).toBe(false)
-    expect(canSubmitCiroRaporu('broker')).toBe(false)
+    expect(canSubmitCiroRaporu('owner')).toBe(false)
   })
 
   it('sadece broker/owner onaylayabilir (ofis dışarıda)', () => {
