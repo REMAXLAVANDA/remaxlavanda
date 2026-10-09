@@ -15,7 +15,13 @@ function tl(n) {
 // GD Cirosu / Çalışan Payı (fatura tutarı) / RT Payı / Ofis Payı üçlemesi
 // 2026-10-09'da eklendi (RE/MAX Türkiye'nin resmi ciro ekranı referans
 // alındı) — Ofis Payı HER ZAMAN kalan, elle girilmez (bkz.
-// lib/ciroRaporlari.js ofisPayiTutari, dataProvider'daki senkron).
+// lib/ciroRaporlari.js ofisPayiTutari, dataProvider'daki senkron). Bu
+// döküm SADECE broker/owner'a (canToggleOdeme ile aynı yetki) gösterilir
+// — danışmanın RT Payı'nı görmesine gerek yok, kendi kesmesi gereken
+// fatura rakamını ("Önerilen fatura" rozeti) görmesi yeterli (2026-10-09
+// broker kararı). Aynı sebeple RT Payı artık danışmanın kendi fatura
+// formunda hiç düzenlenmiyor — tamamen profildeki tier'dan (Rap/Max)
+// otomatik geliyor.
 export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, onSaveFatura, onToggleOdeme, submitting }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -25,7 +31,6 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
     kdvOrani: k.kdvOrani ?? '',
     vergiNo: k.vergiNo ?? '',
     faturaDosyaUrl: k.faturaDosyaUrl ?? '',
-    rtPayiTutari: k.rtPayiTutari ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tutarsiz = faturaTutarsizMi(k.faturaTutari, k.komisyonTutariOnerisi)
@@ -54,7 +59,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
       </div>
 
-      {k.gdCirosu != null && (
+      {canToggleOdeme && k.gdCirosu != null && (
         <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
           <span>GD Cirosu: <span className="font-medium text-text-primary">{tl(k.gdCirosu)}</span></span>
           <span>Çalışan Payı: {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}</span>
@@ -101,14 +106,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
               inputMode="numeric"
               value={form.faturaTutari}
               onChange={(e) => set({ faturaTutari: e.target.value })}
-              placeholder="Fatura tutarı (₺) — Çalışan Payı"
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
-            <input
-              inputMode="numeric"
-              value={form.rtPayiTutari}
-              onChange={(e) => set({ rtPayiTutari: e.target.value })}
-              placeholder="RT Payı (₺)"
+              placeholder="Fatura tutarı (₺)"
               className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
             />
             <input

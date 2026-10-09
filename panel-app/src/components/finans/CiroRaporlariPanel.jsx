@@ -141,7 +141,6 @@ export default function CiroRaporlariPanel() {
         kdvHaricTutar,
         vergiNo: form.vergiNo || null,
         faturaDosyaUrl: form.faturaDosyaUrl || null,
-        rtPayiTutari: form.rtPayiTutari !== '' && form.rtPayiTutari != null ? Number(form.rtPayiTutari) : null,
       })
       showToast('Fatura bilgisi kaydedildi.', 'success')
       reload()
