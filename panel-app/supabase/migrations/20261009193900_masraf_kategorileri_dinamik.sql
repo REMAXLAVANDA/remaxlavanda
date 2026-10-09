@@ -11,6 +11,10 @@
 alter table public.islem_masraflari
   drop constraint islem_masraflari_tur_check;
 
+alter table public.categories
+  drop constraint categories_module_check,
+  add constraint categories_module_check check (module in ('opportunities', 'docs', 'masraflar'));
+
 insert into public.categories (module, key, label, sort_order, visibility) values
   ('masraflar', 'tapu_harci', 'Tapu Harcı', 1, 'yonetim'),
   ('masraflar', 'ilan_gideri', 'İlan Gideri', 2, 'yonetim'),
