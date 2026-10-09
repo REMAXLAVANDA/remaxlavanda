@@ -20,8 +20,6 @@ const Recruiting = lazy(() => import('./pages/Recruiting'))
 const Takip = lazy(() => import('./pages/Takip'))
 const Lig = lazy(() => import('./pages/Lig'))
 const Finans = lazy(() => import('./pages/Finans'))
-const Masraflar = lazy(() => import('./pages/Masraflar'))
-const CariHesap = lazy(() => import('./pages/CariHesap'))
 const Rehber = lazy(() => import('./pages/Rehber'))
 const Ayarlar = lazy(() => import('./pages/Ayarlar'))
 const Login = lazy(() => import('./pages/Login'))
@@ -83,9 +81,13 @@ export default function App() {
                     <Route path="/takip" element={<Takip />} />
                     <Route path="/egitim" element={<Takip />} />
                     <Route path="/lig" element={<Lig />} />
-                    <Route path="/ciro-raporlari" element={<Finans />} />
-                    <Route path="/masraflar" element={<Masraflar />} />
-                    <Route path="/cari-hesap" element={<CariHesap />} />
+                    <Route path="/finans" element={<Finans />} />
+                    {/* Eski ayrı sayfa linkleri/bookmarklar kırılmasın diye tek
+                        Finans sekmeli sayfasına yönlendiriliyor (2026-10-09). */}
+                    <Route path="/ciro-raporlari" element={<Navigate to="/finans" replace />} />
+                    <Route path="/banka-hareketleri" element={<Navigate to="/finans" replace />} />
+                    <Route path="/masraflar" element={<Navigate to="/finans" replace />} />
+                    <Route path="/cari-hesap" element={<Navigate to="/finans" replace />} />
                     <Route path="/rehber" element={<Rehber />} />
                     <Route path="/kartvizitim" element={<Kartvizitim />} />
                     <Route path="/ayarlar" element={<Ayarlar />} />

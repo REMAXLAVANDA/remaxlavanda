@@ -3,27 +3,30 @@ import { useAuth } from '../context/AuthContext'
 import { canManageBankaHareketleri } from '../lib/bankaHareketleri'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
+import MasraflarPanel from '../components/finans/MasraflarPanel'
+import CariHesapPanel from '../components/finans/CariHesapPanel'
 
-// Ciro Raporları ve Banka Hareketleri tek sayfada, sekmeli — broker
-// eşleştirme yaparken ikisi arasında gidip gelmesin diye (2026-10-09
-// broker isteği: "eşleştirme yapacağız, aynı sayfada konumlandırsak daha
-// mantıklı"). Danışman Banka Hareketleri sekmesini hiç görmüyor (yetkisi
-// yok, bkz. lib/bankaHareketleri.js canManageBankaHareketleri).
+// Finans artık TEK menü girdisi, sekmeli — önceden Banka Hareketleri/
+// Masraflar/Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu,
+// hepsi Finans'ın içine gömülsün" dedi (2026-10-09). Banka/Masraflar/
+// Cari sekmeleri hep aynı role açık (bkz. lib/bankaHareketleri.js
+// canManageBankaHareketleri) — tek kontrolle hepsi birlikte gizlenir.
+// Danışman sadece Ciro Raporları sekmesini görür (kendi cirosunu girer).
 const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
+  { key: 'masraflar', label: 'Masraflar' },
+  { key: 'cari', label: 'Cari Hesap' },
 ]
 
 export default function Finans() {
   const { role } = useAuth()
   const [tab, setTab] = useState('ciro')
-  const showBankaTab = canManageBankaHareketleri(role)
-  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro')
+  const showYonetimTabs = canManageBankaHareketleri(role)
+  const visibleTabs = showYonetimTabs ? TABS : TABS.filter((t) => t.key === 'ciro')
 
   return (
     <div>
-      <h1 className="mb-1 text-lg font-semibold text-text-primary">Finans</h1>
-
       {visibleTabs.length > 1 && (
         <div className="mb-5 flex gap-1 border-b border-border-default">
           {visibleTabs.map((t) => (
@@ -40,8 +43,10 @@ export default function Finans() {
         </div>
       )}
 
-      {(!showBankaTab || tab === 'ciro') && <CiroRaporlariPanel />}
-      {showBankaTab && tab === 'banka' && <BankaHareketleriPanel />}
+      {(!showYonetimTabs || tab === 'ciro') && <CiroRaporlariPanel />}
+      {showYonetimTabs && tab === 'banka' && <BankaHareketleriPanel />}
+      {showYonetimTabs && tab === 'masraflar' && <MasraflarPanel />}
+      {showYonetimTabs && tab === 'cari' && <CariHesapPanel />}
     </div>
   )
 }

@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { ciroRaporlari as ciroRaporlariProvider, islemMasraflari as islemMasraflariProvider, cariHareketler as cariHareketlerProvider } from '../lib/dataProvider'
-import { MASRAF_TUR_LABELS, canManageMasraflar } from '../lib/islemMasraflari'
-import { formatDateOnly, formatThousands, parseThousands } from '../lib/format'
-import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { ciroRaporlari as ciroRaporlariProvider, islemMasraflari as islemMasraflariProvider, cariHareketler as cariHareketlerProvider } from '../../lib/dataProvider'
+import { MASRAF_TUR_LABELS, canManageMasraflar } from '../../lib/islemMasraflari'
+import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -19,7 +19,7 @@ async function loadAll() {
   return { raporlar }
 }
 
-export default function Masraflar() {
+export default function MasraflarPanel() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
@@ -97,7 +97,6 @@ export default function Masraflar() {
 
   return (
     <div>
-      <h1 className="mb-1 text-lg font-semibold text-text-primary">Masraflar</h1>
       <p className="mb-5 text-sm text-text-muted">İşleme bağlı masraf ve danışmana kesilen aylık fatura — ikisi de Cari Hesap'a otomatik işlenir.</p>
 
       {loading && <LoadingState />}

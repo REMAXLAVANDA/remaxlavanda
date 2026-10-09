@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { cariHareketler as cariHareketlerProvider } from '../lib/dataProvider'
-import { CARI_KATEGORI_LABELS, CARI_TUR_LABELS, canManageCariHesap, cariOzetiByDanisman } from '../lib/cariHesap'
-import { formatDateOnly } from '../lib/format'
-import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
+import { useAuth } from '../../context/AuthContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { cariHareketler as cariHareketlerProvider } from '../../lib/dataProvider'
+import { CARI_KATEGORI_LABELS, CARI_TUR_LABELS, canManageCariHesap, cariOzetiByDanisman } from '../../lib/cariHesap'
+import { formatDateOnly } from '../../lib/format'
+import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -17,7 +17,7 @@ async function loadAll() {
   return { hareketler }
 }
 
-export default function CariHesap() {
+export default function CariHesapPanel() {
   const { role } = useAuth()
   const { knownUsers } = useKnownUsers()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
@@ -36,7 +36,6 @@ export default function CariHesap() {
 
   return (
     <div>
-      <h1 className="mb-1 text-lg font-semibold text-text-primary">Cari Hesap</h1>
       <p className="mb-5 text-sm text-text-muted">
         Her danışmanın borç/alacak durumu — pozitif bakiye danışmana ödenecek, negatif bakiye danışmandan tahsil edilecek demektir.
       </p>

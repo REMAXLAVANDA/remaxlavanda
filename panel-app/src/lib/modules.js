@@ -11,8 +11,6 @@ import {
   BookOpen,
   Inbox,
   UserSearch,
-  Receipt,
-  Landmark,
   Wallet,
 } from 'lucide-react'
 import { ROLES } from './roles'
@@ -23,14 +21,15 @@ const MANAGE_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS]
 // lib/roles.js canManageLeads). Recruiting MANAGE_ROLES'te (broker/owner/
 // ofis) kalıyor, ikisi artık farklı yetki seviyeleri.
 const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
-// Ciro Raporu: ofis'in ne oluşturma (sadece danışman) ne onaylama (sadece
-// broker/owner, bkz. lib/ciroRaporlari.js canApproveCiroRaporu) yetkisi
-// var — menüde de hiç görünmüyor (2026-10-08 broker kararı).
-const CIRO_RAPORU_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN]
-// Finans'ın geri kalanı (Masraflar, Cari Hesap) ve Banka Hareketleri
-// sekmesi (Finans sayfasının içinde) — para hareketleri hassas bilgi,
-// sadece broker/owner (bkz. lib/bankaHareketleri.js, lib/cariHesap.js).
-const FINANS_YONETIM_ROLES = [ROLES.BROKER, ROLES.OWNER]
+// Finans menüsü broker/owner/danışmana görünür (danışman sadece kendi
+// Ciro Raporu'nu girer) — ama tek menü girdisi (2026-10-09 broker kararı:
+// "Finans diye menüyü teke indir, diğer konuları içine göm" — Banka
+// Hareketleri/Masraflar/Cari Hesap artık ayrı sidebar maddesi değil,
+// Finans sayfasının içinde sekme; ofis'in ne oluşturma ne onaylama
+// yetkisi yok, bu yüzden ofis listede hiç yok). Sekme bazlı asıl yetki
+// kontrolü pages/Finans.jsx'te (bkz. lib/bankaHareketleri.js
+// canManageBankaHareketleri) — danışman o sekmeleri hiç görmez.
+const FINANS_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN]
 
 // "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
 // menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi
@@ -38,10 +37,14 @@ const FINANS_YONETIM_ROLES = [ROLES.BROKER, ROLES.OWNER]
 // menü öğesinin adı/path'i aynı kaldı (kullanıcı zaten günlük konuşmada
 // spesifik sayfayı "Takip" diye biliyor, grup başlığı nadiren referans
 // alınıyor — alışkanlığı en az bozan yön, bkz. Sidebar.jsx subtitle notu).
+// "finans" grubunun tek üyesi var ve adı zaten "Finans" — grup başlığını
+// da "Finans" yapmak ekranda aynı kelimeyi üst üste gösterirdi (bkz.
+// "takip" grubunun "Gelişim"e kısaltılma gerekçesiyle aynı mantık,
+// yukarıdaki not). Grup başlığı bu yüzden "Muhasebe".
 export const MODULE_GROUPS = {
   operasyon: 'Operasyon',
   takip: 'Gelişim',
-  finans: 'Finans',
+  finans: 'Muhasebe',
 }
 
 export const MODULES = [
@@ -148,30 +151,12 @@ export const MODULES = [
     group: 'takip',
   },
   {
-    key: 'ciro-raporlari',
-    path: '/ciro-raporlari',
-    label: 'Ciro Raporları',
-    description: 'Kapanan işlemleri raporla, onayla, banka hareketleriyle eşleştir',
-    icon: Receipt,
-    roles: CIRO_RAPORU_ROLES,
-    group: 'finans',
-  },
-  {
-    key: 'masraflar',
-    path: '/masraflar',
-    label: 'Masraflar',
-    description: 'İşleme bağlı masraf + aylık danışman faturası',
-    icon: Landmark,
-    roles: FINANS_YONETIM_ROLES,
-    group: 'finans',
-  },
-  {
-    key: 'cari-hesap',
-    path: '/cari-hesap',
-    label: 'Cari Hesap',
-    description: 'Danışmanların borç/alacak defteri',
+    key: 'finans',
+    path: '/finans',
+    label: 'Finans',
+    description: 'Ciro raporu, banka hareketleri, masraflar ve cari hesap — tek yerde',
     icon: Wallet,
-    roles: FINANS_YONETIM_ROLES,
+    roles: FINANS_ROLES,
     group: 'finans',
   },
 ]
