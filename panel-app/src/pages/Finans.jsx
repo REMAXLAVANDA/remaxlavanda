@@ -3,30 +3,29 @@ import { useAuth } from '../context/AuthContext'
 import { canManageBankaHareketleri } from '../lib/bankaHareketleri'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
-import MasraflarPanel from '../components/finans/MasraflarPanel'
-import CariHesapPanel from '../components/finans/CariHesapPanel'
+import RaporlarPanel from '../components/finans/RaporlarPanel'
 
 // Finans TEK menü girdisi, sekmeli — önceden Banka Hareketleri/Masraflar/
 // Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu, hepsi
-// Finans'ın içine gömülsün" dedi (2026-10-09). Banka/Masraflar SADECE
+// Finans'ın içine gömülsün" dedi (2026-10-09). Masraflar ve Cari Hesap
+// artık ayrı üst sekme değil, "Raporlar" sekmesinin İÇİNDE (2026-10-09
+// broker: "rapor demiştim, masraflar ve cari hesabı onun içine ekle" —
+// bkz. components/finans/RaporlarPanel.jsx). Banka Hareketleri SADECE
 // broker'a açık (2026-10-09: "owner sadece ciro ve cari kısmını görsün" —
-// bkz. lib/bankaHareketleri.js canManageBankaHareketleri). Cari Hesap
-// sekmesi İSTİSNA: danışman da görür ama sadece kendi bakiyesini,
-// salt-okunur (2026-10-09 broker kararı: "kendininkini görsün cari
-// alacak borcu") — ayrım CariHesapPanel'in içinde (lib/cariHesap.js
-// canManageCariHesap, hâlâ broker/owner).
+// bkz. lib/bankaHareketleri.js canManageBankaHareketleri). Raporlar
+// sekmesi herkese açık — içindeki Cari Hesap danışmana da kendi
+// bakiyesini gösteriyor (RaporlarPanel'in kendi iç ayrımı).
 const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
-  { key: 'masraflar', label: 'Masraflar' },
-  { key: 'cari', label: 'Cari Hesap' },
+  { key: 'raporlar', label: 'Raporlar' },
 ]
 
 export default function Finans() {
   const { role } = useAuth()
   const [tab, setTab] = useState('ciro')
   const showBrokerOnlyTabs = canManageBankaHareketleri(role)
-  const visibleTabs = showBrokerOnlyTabs ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'cari')
+  const visibleTabs = showBrokerOnlyTabs ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
 
   return (
     <div>
@@ -48,8 +47,7 @@ export default function Finans() {
 
       {tab === 'ciro' && <CiroRaporlariPanel />}
       {showBrokerOnlyTabs && tab === 'banka' && <BankaHareketleriPanel />}
-      {showBrokerOnlyTabs && tab === 'masraflar' && <MasraflarPanel />}
-      {tab === 'cari' && <CariHesapPanel />}
+      {tab === 'raporlar' && <RaporlarPanel />}
     </div>
   )
 }
