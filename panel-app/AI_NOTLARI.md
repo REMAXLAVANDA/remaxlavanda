@@ -3,6 +3,25 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Kartvizit linki WhatsApp önizlemesi: markalı Open Graph etiketleri
+
+Broker: kartvizit linkini WhatsApp'ta paylaşınca önizleme kartı kişiye
+özel değil, çıplak "RE/MAX Lavanda Portal" / site adresi gösteriyordu.
+Kök sebep: `index.html`'de hiç Open Graph etiketi yoktu VE kartvizit
+route'u hash tabanlı (`#/k/<userId>`, bkz. `lib/kartvizit.js`
+`kartvizitUrl`) — link paylaşım botları (WhatsApp/Facebook) sayfayı
+çalıştırmadan sadece ham HTML'e bakıyor, hash'in ötesini hiç görmüyor.
+Bu yüzden TEK bir dinamik/kişiye-özel önizleme (danışmanın kendi adı/
+fotoğrafı) mevcut mimariyle mümkün değil — bunun için Vercel'de küçük
+bir sunucu tarafı (serverless function) gerekir, broker'a iki seçenek
+sunuldu ("1. basit: herkes için aynı ama markalı", "2. tam: kişiye
+özel, daha fazla iş"), broker "1 olsun" dedi. `index.html`'e og:title/
+og:description/og:image (icon-512.png, mutlak URL)/twitter:card
+eklendi — artık TÜM paylaşılan linkler (kartvizit dahil) RE/MAX Lavanda
+logosu + "Çorlu/Tekirdağ gayrimenkul ofisi" açıklamasıyla görünüyor,
+kişiye özel değil ama markalı/profesyonel. Kod değişikliği yok, sadece
+`index.html` meta etiketleri — migration gerekmedi.
+
 ## 2026-10-10 — Rehber: klasör listesi sadeleştirildi, SSS içerik hatası düzeltildi
 
 Broker ekran görüntüsüyle: "bu menü verimli değil, bir de bir yeri
