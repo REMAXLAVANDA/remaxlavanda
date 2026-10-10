@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Info,
 } from 'lucide-react'
-import { CALL_SOURCE_CODES, callNeedsTracking, canEditCallDetails, maskPhone } from '../../lib/callLogs'
+import { CALL_SOURCES, CALL_SOURCE_CODES, SUREC_FILTER_OPTIONS, callNeedsTracking, canEditCallDetails, maskPhone } from '../../lib/callLogs'
 import { ISLEM_TIPI_CODES, ISLEM_TIPI_STYLES, ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { ROLES } from '../../lib/roles'
 import { telHref, whatsappHref } from '../../lib/phone'
@@ -155,6 +155,29 @@ function StatusPill({ variant, label, title }) {
 
 function Arrow() {
   return <ChevronRight size={14} className="shrink-0 text-ink-300" />
+}
+
+// Kaynak/Süreç/Atanan filtreleri sütun başlıklarının İÇİNDE (2026-10-10
+// broker: "filtreleri buraya alsan ekstra olmasa") — ayrı bir filtre
+// paneli yerine, sütunla aynı yerde. onChange yoksa (örn. danışman
+// rolünde kaynak/atanan filtresi) select hiç render edilmez, sadece
+// başlık metni kalır.
+function HeaderFilterSelect({ value, onChange, options, ariaLabel }) {
+  if (!onChange) return null
+  return (
+    <select
+      value={value ?? 'tumu'}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label={ariaLabel}
+      className="mt-1 w-full max-w-[128px] rounded-md border border-ink-200 bg-white px-1 py-0.5 text-[11px] font-normal normal-case text-ink-600"
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
 }
 
 function gorusuldeVariant(value) {
@@ -411,36 +434,81 @@ export default function CallTable({
   onDelete,
   onConvertToOpportunity,
   islemTipiByOpportunityId,
+  kaynakFilter,
+  onKaynakFilterChange,
+  surecFilter,
+  onSurecFilterChange,
+  atananFilter,
+  onAtananFilterChange,
+  danismanFilterOptions,
 }) {
   // Reklam kodu (hangi reklamdan geldiği) sadece broker/owner'a görünsün
   // — ofis/danışman girer ama bu bilgiyi görmesine gerek yok (bkz.
   // Recruiting'deki AYNI kısıt, "broker ve owner görsün sadece" isteği).
   const showReklamKodu = currentRole === ROLES.BROKER || currentRole === ROLES.OWNER
+  const isEmpty = calls.length === 0
 
-  if (calls.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center text-sm text-ink-400">
-        Bu filtrelere uyan çağrı yok.
-      </div>
-    )
-  }
+  const kaynakOptions = [{ value: 'tumu', label: 'Tüm Kaynaklar' }, ...CALL_SOURCES.map((s) => ({ value: s, label: s }))]
+  const atananOptions = [
+    { value: 'tumu', label: 'Tüm Danışmanlar' },
+    ...(danismanFilterOptions ?? []).map((d) => ({ value: d.id, label: d.name })),
+  ]
 
+  // Boş sonuç mesajı artık early-return DEĞİL — tablo/başlık (filtreler
+  // orada yaşıyor) her zaman render edilir, sadece gövde "uyan çağrı yok"
+  // gösterir. Önceki haliyle filtre sıfıra düşürünce başlıktaki selectler
+  // de kaybolup kullanıcı filtreyi geri açacak kontrolü bulamıyordu.
   return (
     <>
       <div className="hidden overflow-x-auto rounded-2xl border border-ink-100 bg-white sm:block">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
-              <th className="px-3 py-2.5">{isManager ? 'Kynk' : 'Talep No'}</th>
+              <th className="px-3 py-2.5">
+                {isManager ? 'Kynk' : 'Talep No'}
+                {isManager && (
+                  <HeaderFilterSelect
+                    value={kaynakFilter}
+                    onChange={onKaynakFilterChange}
+                    options={kaynakOptions}
+                    ariaLabel="Kaynağa göre filtrele"
+                  />
+                )}
+              </th>
               <th className="max-w-[140px] px-3 py-2.5">Arayan</th>
               <th className="px-3 py-2.5">Telefon</th>
-              <th className="px-3 py-2.5">Süreç</th>
-              <th className="px-3 py-2.5">Atanan</th>
+              <th className="px-3 py-2.5">
+                Süreç
+                <HeaderFilterSelect
+                  value={surecFilter}
+                  onChange={onSurecFilterChange}
+                  options={SUREC_FILTER_OPTIONS}
+                  ariaLabel="Süreca göre filtrele"
+                />
+              </th>
+              <th className="px-3 py-2.5">
+                Atanan
+                {isManager && (
+                  <HeaderFilterSelect
+                    value={atananFilter}
+                    onChange={onAtananFilterChange}
+                    options={atananOptions}
+                    ariaLabel="Atanan danışmana göre filtrele"
+                  />
+                )}
+              </th>
               <th className="px-3 py-2.5">Tarih</th>
               <th className="px-3 py-2.5" />
             </tr>
           </thead>
           <tbody>
+            {isEmpty && (
+              <tr>
+                <td colSpan={7} className="px-3 py-16 text-center text-sm text-ink-400">
+                  Bu filtrelere uyan çağrı yok.
+                </td>
+              </tr>
+            )}
             {calls.map((call) => {
               // Süreç alanları BİLEREK yönetime değil, sadece atanan
               // kişiye açık — bu bilgiyi fiilen sahada işi üstlenen kişi
@@ -548,6 +616,60 @@ export default function CallTable({
       </div>
 
       <div className="space-y-2 sm:hidden">
+        {/* Masaüstünde filtreler sütun başlıklarında — mobilde sütun yok,
+            bu yüzden aynı üç filtre (Kaynak/Süreç/Atanan) burada kompakt
+            bir satırda toplanıyor (bkz. yukarıdaki HeaderFilterSelect notu). */}
+        <div className="flex flex-wrap gap-1.5">
+          {isManager && onKaynakFilterChange && (
+            <select
+              value={kaynakFilter ?? 'tumu'}
+              onChange={(e) => onKaynakFilterChange(e.target.value)}
+              aria-label="Kaynağa göre filtrele"
+              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+            >
+              {kaynakOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
+          {onSurecFilterChange && (
+            <select
+              value={surecFilter ?? 'tumu'}
+              onChange={(e) => onSurecFilterChange(e.target.value)}
+              aria-label="Süreca göre filtrele"
+              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+            >
+              {SUREC_FILTER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
+          {isManager && onAtananFilterChange && (
+            <select
+              value={atananFilter ?? 'tumu'}
+              onChange={(e) => onAtananFilterChange(e.target.value)}
+              aria-label="Atanan danışmana göre filtrele"
+              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+            >
+              {atananOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {isEmpty && (
+          <div className="rounded-xl border border-dashed border-ink-200 bg-white py-12 text-center text-sm text-ink-400">
+            Bu filtrelere uyan çağrı yok.
+          </div>
+        )}
+
         {calls.map((call) => {
           const canEditResult = call.assignedTo === currentUserId
           return (

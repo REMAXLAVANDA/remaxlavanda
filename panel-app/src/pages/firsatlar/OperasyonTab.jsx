@@ -357,7 +357,6 @@ export default function OperasyonTab() {
                   onNewCallClick={isManager ? () => setShowModal(true) : undefined}
                   onlyMine={onlyMine}
                   onOnlyMineChange={isManager ? setOnlyMine : undefined}
-                  danismanOptions={isManager ? danismanFilterOptions : undefined}
                 />
               </div>
             </>
@@ -377,6 +376,13 @@ export default function OperasyonTab() {
             onDelete={requestDelete}
             onConvertToOpportunity={handleConvertToOpportunity}
             islemTipiByOpportunityId={islemTipiByOpportunityId}
+            kaynakFilter={isManager && !odakActive ? filters.kaynak : undefined}
+            onKaynakFilterChange={isManager && !odakActive ? (v) => setFilters((f) => ({ ...f, kaynak: v })) : undefined}
+            surecFilter={!odakActive ? filters.surecFiltresi : undefined}
+            onSurecFilterChange={!odakActive ? (v) => setFilters((f) => ({ ...f, surecFiltresi: v })) : undefined}
+            atananFilter={isManager && !odakActive ? filters.atananDanisman : undefined}
+            onAtananFilterChange={isManager && !odakActive ? (v) => setFilters((f) => ({ ...f, atananDanisman: v })) : undefined}
+            danismanFilterOptions={isManager && !odakActive ? danismanFilterOptions : undefined}
           />
         </>
       )}

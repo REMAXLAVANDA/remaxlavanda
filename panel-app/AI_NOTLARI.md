@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Operasyon: Kaynak/Süreç/Atanan filtreleri sütun başlıklarına taşındı
+
+Broker: "bunlara filtreleri buraya alsan ekstra olmasa" (Kynk/Süreç/
+Atanan sütun başlıklarını işaret ederek). Ayrı "Filtrele" açılır paneli
+kaldırıldı — `CallTable.jsx`'teki `<th>` hücrelerinin içine küçük
+`<select>`ler eklendi (yeni `HeaderFilterSelect`), sütun adıyla filtre
+aynı yerde. Mobil kart görünümünde (sütun kavramı olmadığı için) aynı
+üç filtre kompakt bir satırda, kartların üstünde. `CallFilters.jsx`
+sadeleşti — artık sadece tarih aralığı, Herkes/Sadece Benim ve Yeni
+Çağrı var. Yan etki olarak bulunan bir hata da düzeltildi: liste
+filtreyle sıfır sonuca düşünce ESKİDEN tüm tablo (başlık dahil) "uyan
+çağrı yok" kutusuyla değişiyordu — filtre kontrolleri de kaybolup
+kullanıcı geri alacak bir yer bulamıyordu. Artık başlık her zaman
+kalıyor, sadece gövde boş mesajı gösteriyor. "Odak" (gecikmiş kayıt)
+görünümünde bu üç filtre hiç gösterilmiyor (zaten kendi sabit filtresini
+kullanıyor, broker/owner için de aynı davranış korunuyor).
+
 ## 2026-10-10 — Operasyon'a "Süreç" filtresi eklendi
 
 Broker: "fırsatlar menüsünde filtre ekleyelim" → netleştirince asıl
