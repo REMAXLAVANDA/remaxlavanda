@@ -8,6 +8,21 @@
     <meta name="theme-color" content="#dc1c2e" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RE/MAX Lavanda Portal</title>
+
+    <!-- WhatsApp/Facebook link önizlemesi için — özellikle kartvizit
+         linki paylaşılırken (bkz. pages/KartvizitPublic.jsx) WhatsApp bu
+         sayfayı çalıştırmadan, sadece ham HTML'deki bu etiketlere bakıyor.
+         Hash route'lu bir SPA olduğumuz için (#/k/<id>) kişiye özel
+         önizleme yapılamıyor (crawler hash'in ötesini hiç görmüyor) —
+         bu yüzden tüm linkler için TEK, ama en azından markalı bir
+         önizleme (2026-10-10 broker kararı: "1 olsun", bkz. AI_NOTLARI.md). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RE/MAX Lavanda" />
+    <meta property="og:title" content="RE/MAX Lavanda" />
+    <meta property="og:description" content="Çorlu / Tekirdağ gayrimenkul ofisi — dijital kartvizit ve ofis portalı" />
+    <meta property="og:image" content="https://www.remaxlavanda.com.tr/panel/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
