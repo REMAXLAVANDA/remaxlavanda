@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Kartvizit: paylaşılan kart açılınca sekme başlığı kişiye özel oluyor
+
+Broker: link çalışıyor ("açılıyor", "sorunsuz") ama sekme başlığında hep
+sabit "RE/MAX Lavanda Portal" yazıyordu — hiçbir sayfa `document.title`'ı
+değiştirmiyordu, index.html'deki sabit `<title>` her route'ta aynen
+kalıyordu. `KartvizitPublic.jsx`'e kart yüklenince sekme başlığını
+`"<ad soyad> — RE/MAX Lavanda"` yapan, sayfadan çıkınca eski başlığa
+döndüren bir `useEffect` eklendi. Kod değişikliği, migration yok.
+
 ## 2026-10-10 — Kartvizit linki WhatsApp önizlemesi: markalı Open Graph etiketleri
 
 Broker: kartvizit linkini WhatsApp'ta paylaşınca önizleme kartı kişiye

@@ -22,6 +22,18 @@ export default function KartvizitPublic() {
     return () => { cancelled = true }
   }, [userId])
 
+  // Sekme başlığı index.html'den hep sabit "RE/MAX Lavanda Portal" geliyordu
+  // (hiçbir sayfa document.title'ı değiştirmiyor) — paylaşılan bir kartvizit
+  // açıldığında kişiye özel olsun diye (2026-10-10 broker: "remax lavanda
+  // portal yazıyor"). Önceki başlık ayrı sekmeden geri dönüldüğünde
+  // bozulmasın diye unmount'ta eski haline döndürülüyor.
+  useEffect(() => {
+    if (!state.card) return
+    const previousTitle = document.title
+    document.title = `${state.card.name} — RE/MAX Lavanda`
+    return () => { document.title = previousTitle }
+  }, [state.card])
+
   return (
     <div className="min-h-screen bg-white">
       {state.loading && (
