@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -62,11 +62,6 @@ export default function Rehber() {
     [allCategories, canViewManager],
   )
   const userName = (id) => knownUsers[id]?.name ?? '—'
-
-  // Kategoriler yüklendikten sonra ilk klasör otomatik seçilsin.
-  useEffect(() => {
-    if (categories.length > 0 && !selectedCategory) setSelectedCategory(categories[0].key)
-  }, [categories, selectedCategory])
 
   const selectedCategoryRow = useMemo(
     () => allCategories.find((c) => c.key === selectedCategory) ?? null,
@@ -269,7 +264,11 @@ export default function Rehber() {
           <FolderList categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
 
           <div className="space-y-3">
-            {docsInCategory.length === 0 ? (
+            {!selectedCategory ? (
+              <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
+                Soldan bir klasör seç.
+              </div>
+            ) : docsInCategory.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
                 Bu klasörde henüz doküman yok.
               </div>

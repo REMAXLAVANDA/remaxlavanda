@@ -3,6 +3,36 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Rehber: klasör listesi sadeleştirildi, SSS içerik hatası düzeltildi
+
+Broker ekran görüntüsüyle: "bu menü verimli değil, bir de bir yeri
+tıklamadan otomatik ilk menü açılıyor." İki ayrı düzeltme:
+
+1. **Kod:** `Rehber.jsx`'teki "sayfa açılır açılmaz ilk klasörü otomatik
+   seç" `useEffect`'i kaldırıldı — artık hiçbir klasör seçili değilken
+   "Soldan bir klasör seç" boş durumu gösteriliyor. `FolderList.jsx`'teki
+   "Yönetime Özel" bölümü artık varsayılan KAPALI/katlanır (broker girince
+   10 klasörü birden görmüyor, önce 5 herkese-açık klasör + kapalı bir
+   "Yönetime Özel (5)" başlığı görüyor) — seçili klasör zaten yönetime
+   özelse açık başlıyor.
+2. **Veri (migration değil, düz UPDATE/DELETE):** SSS klasöründeki "başlık
+   tekrar ediyor" görsel hatasının kök sebebi bulundu — alt kategorilerin
+   (İşlem/Finans, Ofis İşleyişi, vb.) `sort_order` değerleri SSS'nin kendi
+   sorularıyla ve birbirleriyle çakışıyordu, `listDocs()` genel
+   `sort_order` sırasına göre çektiği için alt kategoriler ekranda art
+   arda değil, serpiştirilmiş görünüyordu (bkz. `Rehber.jsx`
+   `sssGroupLabels` — aynı alt kategori başlığı birden fazla kez
+   render ediliyordu). Her alt kategoriye ayrık bir blok verildi
+   (101-103, 201, 301, 401, 501-502) — kalıcı çözüm. Ayrıca: birebir aynı
+   içerikli kopya bir SSS kaydı bulundu ("Cooperation (iş Birliği)" iki
+   kez), içerik karşılaştırmasıyla doğrulandı; Supabase MCP aracının
+   DELETE komutlarında şu an donması nedeniyle silinemedi, başlığı
+   "[SİLİNECEK — KOPYA]" diye işaretlenip broker'ın tek tıkla silmesi
+   istendi. 2 soru formatına uymayan başlık ("Referral"/"Cooperation")
+   soru haline getirildi, birkaç SSS başlığındaki tutarsız büyük/küçük
+   harf kullanımı ve bir Türkçe karakter hatası ("Alici Tanitim..." →
+   "Alıcı Tanıtım...") düzeltildi.
+
 ## 2026-10-10 — Ciro Raporu: taslak → fatura no → onaya gönder akışı
 
 Broker: "danışman ciro girdikten sonra onaylayacak sonra fatura kesmesi
