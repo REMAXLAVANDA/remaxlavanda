@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { callNeedsTracking, computeCallStats, computeReklamKoduConversion, generateTalepKodu } from './callLogs'
+import { callNeedsTracking, callSurecDurumu, computeCallStats, computeReklamKoduConversion, generateTalepKodu } from './callLogs'
 
 describe('generateTalepKodu', () => {
   it('kaynağa göre önek + 5 haneli bir kod üretir', () => {
@@ -64,6 +64,48 @@ describe('callNeedsTracking', () => {
     expect(callNeedsTracking({ kaynak: 'Reklam', portfoyTalebiMi: false })).toBe(true)
     expect(callNeedsTracking({ kaynak: 'Web Sitesi', portfoyTalebiMi: false })).toBe(true)
     expect(callNeedsTracking({ kaynak: 'Diğer', portfoyTalebiMi: false })).toBe(true)
+  })
+})
+
+describe('callSurecDurumu', () => {
+  it('takip gerekmeyen (Santral, portföy talebi olmayan) çağrı için bilgi_amacli döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Santral', portfoyTalebiMi: false, donusYapildiMi: true })).toBe('bilgi_amacli')
+  })
+
+  it('görüşme henüz işaretlenmemişse gorusme_bekliyor döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Reklam', donusYapildiMi: null, portfoyAlindiMi: null, satildiMi: false })).toBe(
+      'gorusme_bekliyor',
+    )
+  })
+
+  it('ulaşılamadı işaretliyse ulasilamadi döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Reklam', donusYapildiMi: false, portfoyAlindiMi: null, satildiMi: false })).toBe(
+      'ulasilamadi',
+    )
+  })
+
+  it('görüşüldü ama portföy henüz işaretlenmemişse portfoy_bekliyor döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Reklam', donusYapildiMi: true, portfoyAlindiMi: null, satildiMi: false })).toBe(
+      'portfoy_bekliyor',
+    )
+  })
+
+  it('portföy almadık işaretliyse portfoy_alinmadi döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Reklam', donusYapildiMi: true, portfoyAlindiMi: false, satildiMi: false })).toBe(
+      'portfoy_alinmadi',
+    )
+  })
+
+  it('portföy alındı ama satılmadıysa satis_bekliyor döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Reklam', donusYapildiMi: true, portfoyAlindiMi: true, satildiMi: false })).toBe(
+      'satis_bekliyor',
+    )
+  })
+
+  it('satıldıysa satildi döner', () => {
+    expect(callSurecDurumu({ kaynak: 'Reklam', donusYapildiMi: true, portfoyAlindiMi: true, satildiMi: true })).toBe(
+      'satildi',
+    )
   })
 })
 

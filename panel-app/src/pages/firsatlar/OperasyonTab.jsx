@@ -11,7 +11,7 @@ import {
   users as usersProvider,
   auditLog as auditLogProvider,
 } from '../../lib/dataProvider'
-import { canManageCalls, canViewCall, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
+import { canManageCalls, canViewCall, callSurecDurumu, computeCallStats, generateTalepKodu } from '../../lib/callLogs'
 import { isWithinRange } from '../../lib/dateRange'
 import { isStaleReturn } from '../../lib/attention'
 import { parseThousands, sortByName } from '../../lib/format'
@@ -27,7 +27,7 @@ import NewOpportunityModal from '../../components/opportunities/NewOpportunityMo
 import { LoadingState, ErrorState } from '../../components/common/AsyncState'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 
-const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '', atananDanisman: 'tumu' }
+const INITIAL_FILTERS = { kaynak: 'tumu', dateRange: '7g', customFrom: '', customTo: '', atananDanisman: 'tumu', surecFiltresi: 'tumu' }
 
 // Yükleme bitmeden önce data null olur — useMemo bağımlılıklarının her
 // render'da referans değiştirmemesi için sabit, boş bir dizi kullanılır.
@@ -125,6 +125,7 @@ export default function OperasyonTab() {
     return roleFiltered
       .filter((c) => filters.kaynak === 'tumu' || c.kaynak === filters.kaynak)
       .filter((c) => (filters.atananDanisman ?? 'tumu') === 'tumu' || c.assignedTo === filters.atananDanisman)
+      .filter((c) => (filters.surecFiltresi ?? 'tumu') === 'tumu' || callSurecDurumu(c) === filters.surecFiltresi)
       .filter((c) => isWithinRange(c.createdAt, filters.dateRange, filters.customFrom, filters.customTo))
       // Sadece tarihe göre, en yeni üstte — bir durumu (Görüşüldü/Portföy)
       // işaretlemek satırı listede yukarı/aşağı sıçratmasın istendi (bkz.

@@ -45,6 +45,29 @@ export function callNeedsTracking(call) {
   return call.kaynak !== 'Santral' || call.portfoyTalebiMi
 }
 
+// Operasyon'daki "Süreç" filtresi (2026-10-10 broker isteği) — CallTable'daki
+// CallProgressSteps zincirinin (Görüşüldü > Portföy > Satış) aynı durumlarını
+// TEK bir değere indirger, filtre dropdown'u bununla karşılaştırır.
+export const SUREC_FILTER_OPTIONS = [
+  { value: 'tumu', label: 'Tüm Süreçler' },
+  { value: 'gorusme_bekliyor', label: 'Görüşme Bekliyor' },
+  { value: 'ulasilamadi', label: 'Ulaşılamadı' },
+  { value: 'portfoy_bekliyor', label: 'Görüşüldü, Portföy Bekliyor' },
+  { value: 'portfoy_alinmadi', label: 'Portföy Alınmadı' },
+  { value: 'satis_bekliyor', label: 'Portföy Alındı, Satış Bekliyor' },
+  { value: 'satildi', label: 'Satıldı' },
+  { value: 'bilgi_amacli', label: 'Bilgi Amaçlı (Takipsiz)' },
+]
+
+export function callSurecDurumu(call) {
+  if (!callNeedsTracking(call)) return 'bilgi_amacli'
+  if (call.donusYapildiMi == null) return 'gorusme_bekliyor'
+  if (call.donusYapildiMi === false) return 'ulasilamadi'
+  if (call.portfoyAlindiMi == null) return 'portfoy_bekliyor'
+  if (call.portfoyAlindiMi === false) return 'portfoy_alinmadi'
+  return call.satildiMi ? 'satildi' : 'satis_bekliyor'
+}
+
 // Her yeni çağrı oluşturulduğunda (portföy alınmasını beklemeden) otomatik
 // verilen talep numarası — müşteriden gelen tapu vs. belgeleri danışmana
 // yönlendirirken "şu numaralı talep" diye referans verilebilsin diye

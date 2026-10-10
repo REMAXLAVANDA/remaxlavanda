@@ -3,6 +3,22 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Operasyon'a "Süreç" filtresi eklendi
+
+Broker: "fırsatlar menüsünde filtre ekleyelim" → netleştirince asıl
+istenen Fırsatlar değil, Operasyon bölümüydü ("operasyona") ve filtre
+türü "süreçler" (CallTable'daki Görüşüldü > Portföy > Satış zinciri,
+CallProgressSteps). `lib/callLogs.js`'e `callSurecDurumu(call)` eklendi
+— üç alanı (donusYapildiMi/portfoyAlindiMi/satildiMi + callNeedsTracking)
+tek bir durum değerine indirgiyor (gorusme_bekliyor/ulasilamadi/
+portfoy_bekliyor/portfoy_alinmadi/satis_bekliyor/satildi/bilgi_amacli) —
+CallTable'daki rozet mantığıyla birebir aynı, iki yerde ayrı ayrı mantık
+olmasın diye. `CallFilters.jsx`'teki "Filtrele" paneli artık HERKESE
+açık (eskiden sadece yönetim rollerinde görünüyordu, kaynak/danışman
+filtreleri hâlâ öyle) — danışman da kendi çağrılarını süreç durumuna
+göre filtreleyebilir. 7 yeni test (`callLogs.test.js`). Migration yok,
+veri modeli değişmedi.
+
 ## 2026-10-10 — Kartvizit: paylaşılan kart açılınca sekme başlığı kişiye özel oluyor
 
 Broker: link çalışıyor ("açılıyor", "sorunsuz") ama sekme başlığında hep

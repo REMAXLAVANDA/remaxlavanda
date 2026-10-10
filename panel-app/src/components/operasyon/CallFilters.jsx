@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, SlidersHorizontal, ChevronDown } from 'lucide-react'
-import { CALL_SOURCES } from '../../lib/callLogs'
+import { CALL_SOURCES, SUREC_FILTER_OPTIONS } from '../../lib/callLogs'
 import DateRangeFilter from '../common/DateRangeFilter'
 import SourceLegendInfo from './SourceLegendInfo'
 
@@ -47,11 +47,15 @@ export default function CallFilters({
   const set = (patch) => onChange({ ...filters, ...patch })
   const [expanded, setExpanded] = useState(false)
 
-  const hasExtraFilters = showKaynak || Boolean(danismanOptions) || Boolean(onOnlyMineChange)
+  // Süreç filtresi herkese açık (danışman dahil) — "Filtrele" paneli artık
+  // her rolde var, eskiden sadece yönetime özel (kaynak/danışman/sadece
+  // benim) filtrelerle tetikleniyordu.
+  const hasExtraFilters = true
   const extraFiltersActive =
     (showKaynak && filters.kaynak !== 'tumu') ||
     (danismanOptions && (filters.atananDanisman ?? 'tumu') !== 'tumu') ||
-    Boolean(onlyMine)
+    Boolean(onlyMine) ||
+    (filters.surecFiltresi ?? 'tumu') !== 'tumu'
 
   return (
     <div className="space-y-3 rounded-2xl border border-ink-100 bg-white p-4">
@@ -85,6 +89,18 @@ export default function CallFilters({
 
       {expanded && hasExtraFilters && (
         <div className="space-y-3 border-t border-ink-50 pt-3">
+          <select
+            value={filters.surecFiltresi ?? 'tumu'}
+            onChange={(e) => set({ surecFiltresi: e.target.value })}
+            className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-700"
+          >
+            {SUREC_FILTER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+
           {showKaynak && (
             <div className="flex flex-wrap gap-1.5">
               <Chip active={filters.kaynak === 'tumu'} onClick={() => set({ kaynak: 'tumu' })}>
