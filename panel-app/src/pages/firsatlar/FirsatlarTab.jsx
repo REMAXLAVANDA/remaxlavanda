@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -55,11 +56,11 @@ export default function FirsatlarTab() {
     for (const u of data?.allUsers ?? []) map[u.id] = u
     return map
   }, [data])
-  // Kategori+İşlemTipi+Taraf kombinasyonu — artık 3 kademeli accordion
-  // değil, tek bir kutu grid'i (bkz. OpportunityCategoryTree.jsx, broker
-  // 2026-10-10: "bir portföye 5 tıklamayla uğraşılıyor"). Bir kutuya
-  // tıklamak path'in tamamını tek seferde ayarlıyor (handleSelectLeaf).
-  const [path, setPath] = useState({ category: null, islemTipi: null, taraf: null })
+  // Kategori+İşlemTipi kombinasyonu — Taraf (Satıcı/Alıcı) artık ayrı bir
+  // kutu değil, seçili kutunun içinde iki ayrı blok (bkz.
+  // OpportunityCategoryTree.jsx, broker 2026-10-10: "konut tıkladım,
+  // alıcı/satıcı alt alta olsa").
+  const [path, setPath] = useState({ category: null, islemTipi: null })
   const [detailOpp, setDetailOpp] = useState(null)
   const [expressingId, setExpressingId] = useState(null)
   const [interestTargetId, setInterestTargetId] = useState(null)
@@ -72,9 +73,9 @@ export default function FirsatlarTab() {
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
-  // "Yeni Fırsat" artık her dalın (Kategori>İşlemTipi>Taraf) içinde bir "+"
-  // butonu — hangi daldan basıldığına göre modal category/islemTipi/type
-  // önceden dolu açılır (bkz. handleCreateClick).
+  // "Yeni Fırsat" artık TEK, her zaman görünen bir buton (broker, 2026-10-10:
+  // "fırsat ekleme bir tane olsun") — modal kendi varsayılanlarıyla açılır
+  // (ilk kategori, Satıcı), kategori/tip/taraf içeride değiştirilebilir.
   const [createContext, setCreateContext] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -90,6 +91,17 @@ export default function FirsatlarTab() {
     [opportunities, user, knownUsers],
   )
 
+  // "Benim girdiklerim" ayrımı — açık havuzdaki diğer herkesin fırsatları
+  // arasında kendi girdiğini bulamayan danışman şikayeti üzerine (2026-10-10:
+  // "ben girdiğim fırsatları göremiyorum"). Veride/erişimde bir sorun yoktu
+  // (owner_id = kendisi zaten her zaman görünür, bkz. canViewOpportunity) —
+  // sorun kutu+taraf gezinmesinde havuzdakilerle karışıp gözden kaçmasıydı.
+  const [onlyMine, setOnlyMine] = useState(false)
+  const scopedVisible = useMemo(
+    () => (onlyMine ? roleVisible.filter((o) => o.ownerId === user.id) : roleVisible),
+    [roleVisible, onlyMine, user],
+  )
+
   // Panel'in "Dikkat Gerekiyor" bölümünden ?odak=1 ile gelindiğinde, normal
   // kategori-kutusu gezinmesi yerine SADECE 3 günden uzun süredir havuzda
   // bekleyen fırsatları düz bir liste olarak gösteriyoruz.
@@ -99,27 +111,24 @@ export default function FirsatlarTab() {
     [roleVisible, odakActive],
   )
 
-  const tree = useMemo(() => buildOpportunityTree(roleVisible), [roleVisible])
-  const legacyOpps = useMemo(() => legacyCategoryOpportunities(roleVisible), [roleVisible])
+  const tree = useMemo(() => buildOpportunityTree(scopedVisible), [scopedVisible])
+  const legacyOpps = useMemo(() => legacyCategoryOpportunities(scopedVisible), [scopedVisible])
   // "Kategorisi belirsiz" bandı sadece yönetim rollerine — bu bir veri
   // hijyeni konusu, danışman ekranını sade tutmak isteyen broker kararıyla
   // (2026-09-17) uyumlu.
   const canSeeLegacyReview = role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
 
-  const tableRows = useMemo(() => {
-    if (!path.category || !path.islemTipi || !path.taraf) return []
-    return roleVisible
-      .filter(
-        (o) => o.category === path.category && o.islemTipi === path.islemTipi && o.type === path.taraf,
-      )
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [roleVisible, path])
+  // Seçili Kategori+İşlemTipi için Satıcı ve Alıcı listeleri ayrı ayrı —
+  // OpportunityCategoryTree bunları iki ayrı blok olarak alt alta gösterir.
+  const rowsByTaraf = useMemo(() => {
+    if (!path.category || !path.islemTipi) return { satici: [], alici: [] }
+    const base = scopedVisible.filter((o) => o.category === path.category && o.islemTipi === path.islemTipi)
+    const byType = (type) => base.filter((o) => o.type === type).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return { satici: byType('satici'), alici: byType('alici') }
+  }, [scopedVisible, path])
 
-  function handleSelectLeaf(category, islemTipi, taraf) {
-    setPath({ category, islemTipi, taraf })
-  }
-  function handleCreateClick(category, islemTipi, type) {
-    setCreateContext({ type, category, islemTipi })
+  function handleSelectBranch(category, islemTipi) {
+    setPath({ category, islemTipi })
   }
 
   async function performExpressInterest(id) {
@@ -243,7 +252,7 @@ export default function FirsatlarTab() {
 
   const canCreate = CAN_CREATE_ROLES.includes(role)
 
-  // Üst çubuktaki "Hızlı kayıt" menüsünden ?yeni=firsat ile gelindiğinde
+  // Mobil alt navigasyondaki "+" kısayolundan ?yeni=firsat ile gelindiğinde
   // yeni fırsat formu otomatik açılır (satıcı varsayılan) — parametre
   // hemen temizlenir ki sayfa yenilenince tekrar açılmasın.
   useEffect(() => {
@@ -293,6 +302,40 @@ export default function FirsatlarTab() {
 
       {!loading && !error && !odakActive && (
         <div className="space-y-4">
+          {/* Kutular artık boşsa hiç görünmüyor (bkz. OpportunityCategoryTree.jsx) —
+              bu yüzden genel, her zaman görünen bir ekleme butonu şart; aksi halde
+              hiç fırsatı olmayan biri nereye tıklayacağını bulamaz (broker, 2026-10-10:
+              "fırsat ekleme ikonu nerde"). Kategori/tip seçimi olmadan açılır, modal
+              kendi varsayılanlarıyla (ilk kategori, Satıcı) gelir, içeride değiştirilebilir. */}
+          {canCreate && (
+            <div className="flex items-center justify-end gap-2">
+              <div className="flex rounded-lg border border-border-default bg-surface-raised p-0.5 text-sm">
+                <button
+                  onClick={() => setOnlyMine(false)}
+                  className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
+                    !onlyMine ? 'bg-brand-600 text-white' : 'text-text-muted hover:text-text-primary'
+                  }`}
+                >
+                  Herkes
+                </button>
+                <button
+                  onClick={() => setOnlyMine(true)}
+                  className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
+                    onlyMine ? 'bg-brand-600 text-white' : 'text-text-muted hover:text-text-primary'
+                  }`}
+                >
+                  Girdiklerim
+                </button>
+              </div>
+              <button
+                onClick={() => setCreateContext({ type: 'satici' })}
+                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              >
+                <Plus size={16} /> Yeni Fırsat
+              </button>
+            </div>
+          )}
+
           {canSeeLegacyReview && (
             <LegacyCategoryReview
               opportunities={legacyOpps}
@@ -307,14 +350,13 @@ export default function FirsatlarTab() {
           <OpportunityCategoryTree
             tree={tree}
             path={path}
-            onSelectLeaf={handleSelectLeaf}
-            tableRows={tableRows}
+            onSelectBranch={handleSelectBranch}
+            rowsByTaraf={rowsByTaraf}
             onRowClick={setDetailOpp}
             onExpressInterest={(opp) => setInterestTargetId(opp.id)}
             expressingId={expressingId}
             user={user}
             interestedIds={interestedIds}
-            onCreateClick={canCreate ? handleCreateClick : undefined}
           />
         </div>
       )}

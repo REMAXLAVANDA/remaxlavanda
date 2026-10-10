@@ -1,6 +1,4 @@
 import { Menu } from 'lucide-react'
-import GlobalSearch from './GlobalSearch'
-import QuickAddMenu from './QuickAddMenu'
 
 export default function Topbar({ title, subtitle, onMenuClick }) {
   return (
@@ -16,14 +14,6 @@ export default function Topbar({ title, subtitle, onMenuClick }) {
           <h1 className="truncate text-lg font-semibold text-text-primary">{title}</h1>
           {subtitle ? <p className="truncate text-xs text-text-muted">{subtitle}</p> : null}
         </div>
-      </div>
-
-      <div className="hidden flex-1 justify-center md:flex">
-        <GlobalSearch />
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        <QuickAddMenu />
       </div>
     </header>
   )

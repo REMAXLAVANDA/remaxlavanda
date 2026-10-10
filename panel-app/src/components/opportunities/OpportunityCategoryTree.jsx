@@ -1,4 +1,4 @@
-import { Plus, UserSearch, Handshake, Building, User } from 'lucide-react'
+import { UserSearch, Handshake, Building, User } from 'lucide-react'
 import OpportunityTable from './OpportunityTable'
 
 // Taraf ikonu — ticari+kiralık dalında Mülk/Kiracı'ya özel ikon
@@ -22,123 +22,101 @@ function IconBadge({ Icon, bg, text, size, iconSize }) {
   )
 }
 
-// tree'yi (Kategori>İşlemTipi>Taraf) tek seviyeli bir kutu listesine
-// indirger — her kutu artık doğrudan tıklanabilir bir uç nokta (leaf).
-function flattenLeaves(tree) {
-  const leaves = []
+// tree'yi (Kategori>İşlemTipi>Taraf) Kategori+İşlemTipi seviyesinde
+// kutulara indirger — Taraf artık kutu değil, seçili kutunun İÇİNDE
+// Satıcı/Alıcı alt bölümleri (broker, 2026-10-10: "konut tıkladım,
+// alıcı alt alta satıcı alt alta ayrı satır olsa"). Hiç kaydı olmayan
+// kutular hiç gösterilmez (broker: "menüler içinde bilgi varsa direk
+// görünse, boş olanlar görünmese").
+function flattenBranches(tree) {
+  const branches = []
   for (const cat of tree) {
     for (const tipi of cat.islemTipleri) {
-      for (const taraf of tipi.taraflar) {
-        leaves.push({
-          category: cat.key,
-          categoryLabel: cat.label,
-          islemTipi: tipi.key,
-          islemTipiLabel: tipi.label,
-          taraf: taraf.type,
-          tarafLabel: taraf.label,
-          total: taraf.total,
-          today: taraf.today,
-        })
-      }
+      const total = tipi.taraflar.reduce((sum, t) => sum + t.total, 0)
+      const today = tipi.taraflar.reduce((sum, t) => sum + t.today, 0)
+      if (total === 0) continue
+      branches.push({
+        category: cat.key,
+        categoryLabel: cat.label,
+        islemTipi: tipi.key,
+        islemTipiLabel: tipi.label,
+        taraflar: tipi.taraflar,
+        total,
+        today,
+      })
     }
   }
-  return leaves
+  return branches
 }
 
 // Fırsatlar menüsü — eskiden Kategori > İşlem Tipi > Taraf şeklinde 3
 // kademeli accordion'du, bir portföye ulaşmak 3 açma tıklaması + satıra
 // tıklama gerektiriyordu (broker, 2026-10-10: "bir portföye 5 tıklamayla
-// uğraşılıyor... kutu kutu olsa"). Artık TEK seviyeli düz bir kutu grid'i
-// — her kombinasyon (Konut Satılık Satıcı, Ticari Kiralık Mülk vb.) kendi
-// kutusu, tek tıkla altında tablo açılıyor. Portföye ulaşım artık 2 tıklama
-// (kutu + satır).
+// uğraşılıyor"). Önce Kategori+İşlemTipi+Taraf'ı tek seviyeli 10 kutuya
+// indirgedik, broker "göz yoruyor" dedi — renk değil, kutu sayısı/
+// kopukluk sorunuymuş ("konut tıkladım, alıcı/satıcı alt alta olsa").
+// Artık Kategori+İşlemTipi TEK kutu (max 5, boş olanlar hiç görünmüyor);
+// tıklayınca altında Satıcı ve Alıcı iki ayrı blok halinde alt alta açılıyor.
 export default function OpportunityCategoryTree({
   tree,
   path,
-  onSelectLeaf,
-  tableRows,
+  onSelectBranch,
+  rowsByTaraf,
   onRowClick,
   onExpressInterest,
   expressingId,
   user,
   interestedIds,
-  onCreateClick,
 }) {
-  const leaves = flattenLeaves(tree)
-  const selected = leaves.find(
-    (l) => l.category === path.category && l.islemTipi === path.islemTipi && l.taraf === path.taraf,
-  )
-  // Satıcı (Mülk dahil) ve Alıcı (Kiracı dahil) kutuları artık ayrı
-  // satırlarda — eskiden grid'de karışık sırada duruyordu, broker:
-  // "alıcı ayrı bir satır satıcı ayrı bir satır olmalı değil mi" (bkz.
-  // lib/opportunities.js type alanı — ticari+kiralık'ta etiket Mülk/
-  // Kiracı olsa da altta hep satici/alici).
-  const saticiLeaves = leaves.filter((l) => l.taraf === 'satici')
-  const aliciLeaves = leaves.filter((l) => l.taraf === 'alici')
-
-  function renderRow(rowLeaves, label) {
-    return (
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {rowLeaves.map((leaf) => {
-            const isSelected =
-              selected && selected.category === leaf.category && selected.islemTipi === leaf.islemTipi && selected.taraf === leaf.taraf
-            return (
-              <button
-                key={`${leaf.category}-${leaf.islemTipi}-${leaf.taraf}`}
-                onClick={() => onSelectLeaf(isSelected ? null : leaf.category, isSelected ? null : leaf.islemTipi, isSelected ? null : leaf.taraf)}
-                className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
-                  isSelected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
-                }`}
-              >
-                <IconBadge {...tarafIcon(leaf.category, leaf.islemTipi, leaf.taraf)} size="h-9 w-9" iconSize={18} />
-                <div>
-                  <p className={`text-sm font-semibold ${isSelected ? 'text-brand-700' : 'text-text-primary'}`}>
-                    {leaf.categoryLabel} {leaf.islemTipiLabel}
-                  </p>
-                  <p className="text-xs text-text-muted">{leaf.tarafLabel}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{leaf.total}</span>
-                  {leaf.today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{leaf.today}</span>}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
+  const branches = flattenBranches(tree)
+  const selected = branches.find((b) => b.category === path.category && b.islemTipi === path.islemTipi)
 
   return (
     <div className="space-y-4">
-      {renderRow(saticiLeaves, 'Satıcı')}
-      {renderRow(aliciLeaves, 'Alıcı')}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {branches.map((branch) => {
+          const isSelected = selected && selected.category === branch.category && selected.islemTipi === branch.islemTipi
+          return (
+            <button
+              key={`${branch.category}-${branch.islemTipi}`}
+              onClick={() => onSelectBranch(isSelected ? null : branch.category, isSelected ? null : branch.islemTipi)}
+              className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
+                isSelected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
+              }`}
+            >
+              <p className={`text-sm font-semibold ${isSelected ? 'text-brand-700' : 'text-text-primary'}`}>
+                {branch.categoryLabel} {branch.islemTipiLabel}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{branch.total}</span>
+                {branch.today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{branch.today}</span>}
+              </div>
+            </button>
+          )
+        })}
+      </div>
 
       {selected && (
-        <div className="rounded-2xl border border-border-default bg-surface-raised p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-text-primary">
-              {selected.categoryLabel} {selected.islemTipiLabel} · {selected.tarafLabel}
-            </h3>
-            {onCreateClick && (
-              <button
-                onClick={() => onCreateClick(selected.category, selected.islemTipi, selected.taraf)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
-              >
-                <Plus size={14} /> Yeni Fırsat
-              </button>
-            )}
-          </div>
-          <OpportunityTable
-            opportunities={tableRows}
-            onRowClick={onRowClick}
-            onExpressInterest={onExpressInterest}
-            expressingId={expressingId}
-            user={user}
-            interestedIds={interestedIds}
-          />
+        <div className="space-y-4">
+          {selected.taraflar
+            .filter((taraf) => taraf.total > 0)
+            .map((taraf) => (
+              <div key={taraf.type} className="rounded-2xl border border-border-default bg-surface-raised p-4">
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+                  <IconBadge {...tarafIcon(selected.category, selected.islemTipi, taraf.type)} size="h-7 w-7" iconSize={14} />
+                  {taraf.label}
+                  <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{taraf.total}</span>
+                </h3>
+                <OpportunityTable
+                  opportunities={rowsByTaraf[taraf.type] ?? []}
+                  onRowClick={onRowClick}
+                  onExpressInterest={onExpressInterest}
+                  expressingId={expressingId}
+                  user={user}
+                  interestedIds={interestedIds}
+                />
+              </div>
+            ))}
         </div>
       )}
     </div>

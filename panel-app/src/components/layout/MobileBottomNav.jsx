@@ -3,8 +3,8 @@ import { LayoutDashboard, Target, Plus, CalendarDays, Trophy } from 'lucide-reac
 
 // Sadece <768px'de görünen alt navigasyon — masaüstündeki sol menüyle AYNI
 // rotalara gider, yeni bir özellik değil, sık kullanılan 4 sayfa + ortadaki
-// "+" (Hızlı kayıt'ın Fırsat seçeneğiyle aynı hedef: ?yeni=firsat) için
-// tek dokunuşluk kısayol (bkz. tasarım paketi "mobil alt navigasyon").
+// "+" (doğrudan /firsatlar?yeni=firsat'a gider) için tek dokunuşluk kısayol
+// (bkz. tasarım paketi "mobil alt navigasyon").
 const ITEMS = [
   { key: 'panel', label: 'Panel', icon: LayoutDashboard, path: '/panel' },
   { key: 'firsatlar', label: 'Fırsat', icon: Target, path: '/firsatlar' },

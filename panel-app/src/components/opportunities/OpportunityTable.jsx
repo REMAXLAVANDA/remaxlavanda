@@ -44,6 +44,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
         <Table>
           <Thead>
             <Tr>
+              <Th>Satılık/Kiralık</Th>
               <Th>Mahalle</Th>
               <Th>Tür</Th>
               <Th>Fiyat</Th>
@@ -70,12 +71,10 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
                   urgent={urgent}
                   ariaLabel={`${opp.konum || 'Fırsat'} detayını aç`}
                 >
-                  <Td className="text-text-secondary">
-                    <span className="flex items-center gap-1.5">
-                      <IslemTipiBadge islemTipi={opp.islemTipi} />
-                      {opp.konum || '—'}
-                    </span>
+                  <Td>
+                    <IslemTipiBadge islemTipi={opp.islemTipi} />
                   </Td>
+                  <Td className="text-text-secondary">{opp.konum || '—'}</Td>
                   <Td className="text-text-muted">{categoryLabel(opp.category)}</Td>
                   <Td className="font-medium text-text-primary">{priceLabel}</Td>
                   <Td className="max-w-[260px] truncate text-text-muted">{opp.ozet || '—'}</Td>
