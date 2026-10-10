@@ -14,9 +14,11 @@ import {
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-// Danışman kendi kapattığı bir işlem için ciro raporu oluşturup direkt
-// onaya gönderir — "taslak" durumu kullanıcıya hiç gösterilmiyor (create +
-// submit burada tek adımda, bkz. pages/CiroRaporlari.jsx handleCreate).
+// Danışman kendi kapattığı bir işlem için ciro raporu oluşturur — rapor
+// "taslak" durumunda kalır, onaya gönderme ayrı bir adım (fatura no
+// girilmesi şart, bkz. CiroRaporlariPanel.jsx handleCreate/
+// handleSubmitTaslak — 2026-10-09 broker kararı: "fatura kestikten
+// sonra asıl o zaman onaya göndermiş olmalı").
 // Ortak çalışma seçiliyse pay oranı ikiye bölünür, toplam 100'den
 // sapıyorsa gönder düğmesi kapanır (DB'deki deferred trigger'la aynı kural,
 // bkz. lib/ciroRaporlari.js toplamPayOrani).
@@ -355,7 +357,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
             disabled={!canSubmit || submitting}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
-            {submitting ? 'Gönderiliyor...' : 'Onaya Gönder'}
+            {submitting ? 'Kaydediliyor...' : 'Taslak Olarak Kaydet'}
           </button>
         </div>
       </form>

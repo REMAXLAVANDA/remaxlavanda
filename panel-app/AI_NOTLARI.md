@@ -3,6 +3,23 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Ciro Raporu: taslak → fatura no → onaya gönder akışı
+
+Broker: "danışman ciro girdikten sonra onaylayacak sonra fatura kesmesi
+gerekiyor, kestikten sonra tam onaylasın. ve asıl o zaman onaya
+göndermiş olmalı. fatura numarasını yazacağı alan olsun." Önceden
+`handleCreate` oluşturduğu raporu otomatik `submit()` ile onaya
+gönderiyordu (taslak durumu kullanıcıya hiç gösterilmiyordu). Artık
+oluşturma sadece taslak olarak kaydediyor; danışman kendi katılımcı
+satırına fatura no girmeden "Onaya Gönder" butonu kapalı kalıyor
+(`ownFaturaNoVar` kontrolü). Yeni "Taslaklarım" bölümü danışman
+ekranında en üstte. Fatura no alanı zaten vardı (katılımcı satırındaki
+"Fatura bilgisi ekle"), yeni bir alan eklenmedi — sadece gönderme
+zorunluluğu bağlandı. `CiroRaporuFormModal`'daki "Onaya Gönder" submit
+butonu ve üstteki yorum da yeni akışa göre güncellendi ("Taslak Olarak
+Kaydet"). Migration gerekmedi — `ciro_raporlari_update_self` RLS'i zaten
+taslak durumundan geçişe izin veriyordu.
+
 ## 2026-10-09 — Masraflar artık bankadan atanıyor; masraf kategorileri dinamik
 
 Broker kararı: "masraflar manuel girilen bir alan değil, bankadan gelen

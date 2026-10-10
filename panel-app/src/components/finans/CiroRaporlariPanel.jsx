@@ -67,8 +67,33 @@ export default function CiroRaporlariPanel() {
     return all.filter((r) => r.olusturanId === user.id || r.katilimcilar?.some((k) => k.danismanId === user.id))
   }, [data, isApprover, user.id])
 
+  // Taslaklarım: SADECE kendi oluşturduğun, henüz onaya göndermediğin
+  // raporlar — fatura no'nu girip "Onaya Gönder"e basana kadar burada
+  // bekler (2026-10-09 broker kararı: "fatura kestikten sonra asıl o
+  // zaman onaya göndermiş olmalı" — create() artık submit() ÇAĞIRMIYOR,
+  // bkz. handleCreate).
+  const taslakReports = useMemo(
+    () => visibleReports.filter((r) => r.durum === 'taslak' && r.olusturanId === user.id),
+    [visibleReports, user.id],
+  )
   const pendingReports = useMemo(() => visibleReports.filter((r) => r.durum === 'onay_bekliyor'), [visibleReports])
-  const otherReports = useMemo(() => visibleReports.filter((r) => r.durum !== 'onay_bekliyor'), [visibleReports])
+  // Broker/owner: "Diğer Raporlar" sadece sonuçlanmışları gösterir (onay
+  // bekleyenler ayrı bölümde, taslaklar henüz gönderilmediği için ilgisiz).
+  // Danışman: "Raporlarım" taslak HARİÇ her şeyi gösterir — kendi onay
+  // bekleyeni de (ayrı bir "bekleyenler" bölümü danışman için yok) burada.
+  const otherReports = useMemo(
+    () => visibleReports.filter((r) => r.durum !== 'onay_bekliyor' && r.durum !== 'taslak'),
+    [visibleReports],
+  )
+  const danismanRaporlarim = useMemo(() => visibleReports.filter((r) => r.durum !== 'taslak'), [visibleReports])
+
+  // Onaya gönderebilmek için kendi katılımcı satırında fatura no gerekli
+  // (2026-10-09 broker kararı: "fatura numarasını yazacağı alan olsun",
+  // "kestikten sonra onaya göndermiş olmalı") — ortak çalışmada partner'ın
+  // kendi faturası ayrı, bu kontrolü etkilemiyor.
+  function ownFaturaNoVar(r) {
+    return !!r.katilimcilar?.find((k) => k.danismanId === r.olusturanId)?.faturaNo
+  }
 
   function opportunityLabel(r) {
     if (r.portfoyTipi === 'dis_portfoy') return `Dış Portföy · ${r.disBeyanKodu}`
@@ -79,9 +104,25 @@ export default function CiroRaporlariPanel() {
   async function handleCreate(form) {
     setSubmitting(true)
     try {
-      const created = await ciroRaporlariProvider.create(form, user.id)
-      await ciroRaporlariProvider.submit(created.id)
+      await ciroRaporlariProvider.create(form, user.id)
       setShowFormModal(false)
+      showToast('Taslak kaydedildi — fatura no\'nu girip onaya gönder.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleSubmitTaslak(r) {
+    if (!ownFaturaNoVar(r)) {
+      showToast('Onaya göndermeden önce fatura no\'nu gir.', 'error')
+      return
+    }
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.submit(r.id)
       showToast('Ciro raporu onaya gönderildi.', 'success')
       reload()
     } catch (err) {
@@ -184,6 +225,11 @@ export default function CiroRaporlariPanel() {
             {r.durum === 'reddedildi' && r.redSebebi && (
               <p className="rounded-lg bg-red-50 p-2 text-xs text-red-700">Red sebebi: {r.redSebebi}</p>
             )}
+            {isDanisman && isOwner && r.durum === 'taslak' && !ownFaturaNoVar(r) && (
+              <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-700">
+                Onaya göndermeden önce aşağıdan kendi fatura no'nu gir.
+              </p>
+            )}
             {(r.katilimcilar ?? []).map((k) => (
               <CiroRaporuKatilimciRow
                 key={k.id}
@@ -197,6 +243,16 @@ export default function CiroRaporlariPanel() {
               />
             ))}
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+              {isDanisman && isOwner && r.durum === 'taslak' && (
+                <button
+                  onClick={() => handleSubmitTaslak(r)}
+                  disabled={!ownFaturaNoVar(r) || submitting}
+                  title={!ownFaturaNoVar(r) ? 'Önce fatura no\'nu gir' : undefined}
+                  className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Check size={13} /> Onaya Gönder
+                </button>
+              )}
               {isDanisman && isOwner && r.durum === 'reddedildi' && (
                 <button
                   onClick={() => handleResubmit(r.id)}
@@ -250,6 +306,17 @@ export default function CiroRaporlariPanel() {
 
       {!loading && !error && (
         <div className="space-y-5">
+          {isDanisman && (
+            <div>
+              <h2 className="mb-2 text-sm font-semibold text-text-primary">Taslaklarım ({taslakReports.length})</h2>
+              {taslakReports.length === 0 ? (
+                <p className="text-sm text-text-muted">Taslak rapor yok.</p>
+              ) : (
+                <div className="space-y-2">{taslakReports.map(renderReportRow)}</div>
+              )}
+            </div>
+          )}
+
           {isApprover && (
             <div>
               <h2 className="mb-2 text-sm font-semibold text-text-primary">Onay Bekleyenler ({pendingReports.length})</h2>
@@ -263,10 +330,10 @@ export default function CiroRaporlariPanel() {
 
           <div>
             <h2 className="mb-2 text-sm font-semibold text-text-primary">{isApprover ? 'Diğer Raporlar' : 'Raporlarım'}</h2>
-            {(isApprover ? otherReports : visibleReports).length === 0 ? (
+            {(isApprover ? otherReports : danismanRaporlarim).length === 0 ? (
               <p className="text-sm text-text-muted">Henüz rapor yok.</p>
             ) : (
-              <div className="space-y-2">{(isApprover ? otherReports : visibleReports).map(renderReportRow)}</div>
+              <div className="space-y-2">{(isApprover ? otherReports : danismanRaporlarim).map(renderReportRow)}</div>
             )}
           </div>
         </div>
