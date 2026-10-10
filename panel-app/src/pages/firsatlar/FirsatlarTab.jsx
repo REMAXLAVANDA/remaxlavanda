@@ -10,6 +10,7 @@ import {
   canCloseOpportunity,
   canDeleteOpportunity,
   canEditOpportunity,
+  canReleaseToPool,
   canViewOpportunity,
   buildOpportunityTree,
   legacyCategoryOpportunities,
@@ -69,6 +70,7 @@ export default function FirsatlarTab() {
   const [editingSubmitting, setEditingSubmitting] = useState(false)
   const [closingId, setClosingId] = useState(null)
   const [assigningId, setAssigningId] = useState(null)
+  const [releasingId, setReleasingId] = useState(null)
   // Bu oturumda ilgi gösterilen fırsatlar — sunucudan tekrar sorgulamadan
   // "İlgileniyorum" butonunu anında güncellemek için (bkz. performExpressInterest).
   const [interestedIds, setInterestedIds] = useState(() => new Set())
@@ -249,6 +251,24 @@ export default function FirsatlarTab() {
     }
   }
 
+  // "Havuza ekleme tikini yanlışlıkla tıklamadım" telafisi (broker,
+  // 2026-10-10) — release_opportunity_to_pool() RPC'si claimer/claimed_at'ı
+  // temizler, durumu 'acik'e döndürür (bkz. lib/opportunities.js
+  // canReleaseToPool, migration 20261010200000).
+  async function performRelease(id) {
+    setReleasingId(id)
+    try {
+      const updated = await opportunitiesProvider.releaseToPool(id)
+      setOpportunities((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)))
+      setDetailOpp(null)
+      showToast('Fırsat havuza bırakıldı.', 'success')
+    } catch (err) {
+      showToast(err.message ?? 'Fırsat havuza bırakılamadı, tekrar dene.', 'error')
+    } finally {
+      setReleasingId(null)
+    }
+  }
+
   const canCreate = CAN_CREATE_ROLES.includes(role)
 
   // Mobil alt navigasyondaki "+" kısayolundan ?yeni=firsat ile gelindiğinde
@@ -374,6 +394,7 @@ export default function FirsatlarTab() {
           canEdit={canEditOpportunity(detailOpp, user)}
           canClose={canCloseOpportunity(detailOpp, user)}
           canAssign={isManager && detailOpp.status === 'acik' && !detailOpp.claimerId}
+          canRelease={canReleaseToPool(detailOpp, user)}
           assignableOptions={assignableOptions}
           fetchContact={() => opportunitiesProvider.getContact(detailOpp.id, user)}
           fetchInterestList={() => opportunitiesProvider.listInterest(detailOpp.id)}
@@ -383,9 +404,11 @@ export default function FirsatlarTab() {
           onEditRequest={(contact) => setEditTarget({ opp: detailOpp, contact })}
           onCloseRequest={(status) => performClose(detailOpp.id, status)}
           onAssignRequest={(userId, gerekce) => performAssign(detailOpp.id, userId, gerekce)}
+          onReleaseRequest={() => performRelease(detailOpp.id)}
           expressing={expressingId === detailOpp.id}
           closing={closingId === detailOpp.id}
           assigning={assigningId === detailOpp.id}
+          releasing={releasingId === detailOpp.id}
         />
       )}
 

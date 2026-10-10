@@ -154,6 +154,18 @@ export const opportunities = {
   },
   // "İlgileniyorum" artık exclusive claim değil — müşteri bilgisini AÇMAZ,
   // sadece kim ilgilendiğini kaydeder (fırsatı giren kişi bunu görüp arar).
+  // supabaseProvider.releaseToPool() ile birebir aynı davranış — yetki
+  // kontrolü (canReleaseToPool) UI tarafında zaten yapıldığı için burada
+  // tekrar edilmiyor (assignTo/close ile aynı yaklaşım).
+  async releaseToPool(id) {
+    const row = MOCK_OPPORTUNITIES.find((o) => o.id === id)
+    if (!row) throw new Error('Fırsat bulunamadı.')
+    if (row.status !== 'claimed') throw new Error('Bu fırsat havuza bırakılamadı (zaten havuzda/kapalı olabilir).')
+    row.claimerId = null
+    row.claimedAt = null
+    row.status = 'acik'
+    return delay({ id: row.id, status: row.status, claimerId: row.claimerId, claimedAt: row.claimedAt })
+  },
   async expressInterest(opportunityId, userId) {
     const exists = MOCK_OPPORTUNITY_INTEREST.some(
       (r) => r.opportunityId === opportunityId && r.userId === userId,

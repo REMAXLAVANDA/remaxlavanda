@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Lock, MapPin, Pencil, Phone, Trash2, User, Users, XCircle } from 'lucide-react'
+import { CheckCircle2, Lock, MapPin, Pencil, Phone, Trash2, Undo2, User, Users, XCircle } from 'lucide-react'
 import Modal from '../common/Modal'
 import ConfirmDialog from '../common/ConfirmDialog'
 import DusukPuanGerekceDialog from '../common/DusukPuanGerekceDialog'
@@ -43,6 +43,7 @@ export default function OpportunityDetailModal({
   canEdit,
   canClose,
   canAssign,
+  canRelease,
   assignableOptions,
   yonlendirmeMap = {},
   fetchContact,
@@ -53,9 +54,11 @@ export default function OpportunityDetailModal({
   onEditRequest,
   onCloseRequest,
   onAssignRequest,
+  onReleaseRequest,
   expressing,
   closing,
   assigning,
+  releasing,
 }) {
   const { showToast } = useToast()
   const [contact, setContact] = useState(null)
@@ -68,6 +71,11 @@ export default function OpportunityDetailModal({
   // önceden tek dokunuşla, onaysız yapılıyordu (bkz. /kurul görsel+
   // kullanılabilirlik raporu, 2026-10-04, madde 2). Atama onayıyla AYNI desen.
   const [closeConfirm, setCloseConfirm] = useState(null)
+  // Havuza bırakma — "havuza ekleme tikini yanlışlıkla tıklamadım" hatasının
+  // telafisi (bkz. release_opportunity_to_pool RPC). Kapatma kadar kalıcı
+  // bir işlem değil (tekrar üstlenilebilir) ama yine de yanlış tıklamaya
+  // karşı aynı ConfirmDialog deseni kullanılıyor.
+  const [releaseConfirm, setReleaseConfirm] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -242,6 +250,21 @@ export default function OpportunityDetailModal({
         </div>
       )}
 
+      {canRelease && (
+        <div className="mt-4 rounded-xl border border-ink-100 p-4">
+          <p className="mb-2 text-xs font-medium text-ink-500">
+            Yanlışlıkla üstlenilmiş/havuza atılmamış mı? Geri bırakabilirsin.
+          </p>
+          <button
+            onClick={() => setReleaseConfirm(true)}
+            disabled={releasing}
+            className="flex items-center gap-1.5 rounded-lg bg-ink-100 px-3 py-2 text-xs font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
+          >
+            <Undo2 size={14} /> {releasing ? 'Bırakılıyor...' : 'Havuza Bırak'}
+          </button>
+        </div>
+      )}
+
       {canAssign && (
         <div className="mt-4 rounded-xl border border-ink-100 p-4">
           <p className="mb-2 text-xs font-medium text-ink-500">Bir danışmana ata</p>
@@ -383,6 +406,19 @@ export default function OpportunityDetailModal({
         }}
         onCancel={() => setCloseConfirm(null)}
         confirming={closing}
+      />
+    )}
+    {releaseConfirm && (
+      <ConfirmDialog
+        title="Fırsatı havuza bırak"
+        message="Bu fırsat üstlenilmemiş hale gelip açık havuza dönecek — herkes görebilir ve ilgi gösterebilir."
+        confirmLabel="Evet, havuza bırak"
+        onConfirm={() => {
+          onReleaseRequest()
+          setReleaseConfirm(false)
+        }}
+        onCancel={() => setReleaseConfirm(false)}
+        confirming={releasing}
       />
     )}
     </>

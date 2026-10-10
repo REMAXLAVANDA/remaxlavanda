@@ -161,6 +161,15 @@ export const opportunities = {
     const row = Array.isArray(data) ? data[0] : data
     return { id: row.id, status: row.status, claimerId: row.claimer_id, claimedAt: row.claimed_at }
   },
+  // release_opportunity_to_pool() RPC'si — broker/owner herhangi bir
+  // üstlenilmiş fırsatı, ofis/danışman SADECE kendi girdiği+üstlendiği
+  // (self-claim) fırsatı havuza geri bırakabilir (bkz. migration
+  // 20261010200000, lib/opportunities.js canReleaseToPool).
+  async releaseToPool(id) {
+    const data = await run(client().rpc('release_opportunity_to_pool', { p_opportunity_id: id }))
+    const row = Array.isArray(data) ? data[0] : data
+    return { id: row.id, status: row.status, claimerId: row.claimer_id, claimedAt: row.claimed_at }
+  },
   // Pasife alınan danışmanın açık/üstlenilmiş fırsatlarını başka bir
   // danışmana toplu devreder (bkz. Ayarlar.jsx DevretModal, /kurul
   // "danışman takip menüleri" denetimi — pasife alma işi hiç devretmiyordu).

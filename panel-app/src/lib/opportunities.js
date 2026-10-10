@@ -101,6 +101,18 @@ export function canCloseOpportunity(opp, user) {
   return opp.claimerId === user.id
 }
 
+// Havuza bırakma — release_opportunity_to_pool() RPC'siyle birebir aynı
+// kural: broker/owner herhangi bir üstlenilmiş fırsatı havuza bırakabilir;
+// ofis/danışman SADECE kendi girdiği VE kendi üstlendiği (self-claim) bir
+// fırsatı geri bırakabilir (broker, 2026-10-10: "havuza ekleme tikini
+// yanlışlıkla tıklamadım" — bu hatayı kendisi düzeltebilsin istiyor).
+export function canReleaseToPool(opp, user) {
+  if (!user) return false
+  if (opp.status !== 'claimed') return false
+  if (user.role === ROLES.BROKER || user.role === ROLES.OWNER) return true
+  return opp.ownerId === user.id && opp.claimerId === user.id
+}
+
 export function formatPrice(amount) {
   if (amount == null) return '—'
   return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(
