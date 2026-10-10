@@ -3,6 +3,24 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Fırsatlar: 3 kademeli accordion yerine tek tıkla kutu grid'i
+
+Broker: "havuz portföyler kullanışlı değil... bir portföye 5 tıklamayla
+uğraşılıyor... yayılmış değil kutu kutu olsa." Eskiden Kategori > İşlem
+Tipi > Taraf 3 kademeli accordion'du — bir portföye ulaşmak 3 açma
+tıklaması + satıra tıklama (4-5 tıklama) gerektiriyordu.
+`OpportunityCategoryTree.jsx` tamamen yeniden yazıldı: `tree`'yi tek
+seviyeli 10 "uç" kutuya indirgeyen `flattenLeaves()` eklendi (Konut/
+Arsa/Ticari × Satılık/Kiralık × Satıcı/Alıcı — Arsa'da sadece Satılık
+var, toplam 10). Her kutu kendi ikonu/sayısı/"Bugün +N" rozetiyle tek
+bir grid'de duruyor, tıklayınca path tek seferde ayarlanıp (yeni
+`handleSelectLeaf`, eski üç ayrı handler — handleSelectCategory/
+IslemTipi/Taraf — kaldırıldı) hemen altında tablo açılıyor. Portföye
+ulaşım artık 2 tıklama (kutu + satır). Not: Bu değişiklik, 2026-09-17'de
+broker'ın "aynı anda birden fazla dal açıkken kafa karışıyor" diye
+bilinçli seçtiği accordion yapısını TERSİNE çeviriyor — eski karar
+artık geçerli değil, broker'ın yeni kararı bu notla üzerine yazıldı.
+
 ## 2026-10-10 — Operasyon sütun başlıkları: "Tüm X" yerine tek kelimelik, tek başlık
 
 Broker: "tüm kaynaklar yerine kaynak ... tek başlık olsun." Filtre

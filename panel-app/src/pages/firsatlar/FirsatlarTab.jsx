@@ -55,11 +55,10 @@ export default function FirsatlarTab() {
     for (const u of data?.allUsers ?? []) map[u.id] = u
     return map
   }, [data])
-  // Kategori > İşlem Tipi > Taraf accordion — her zaman TEK bir yol açık
-  // kalır (broker kararı, 2026-09-17: "en az bilgili kullanıcı" için
-  // sadelik, aynı anda birden fazla dal açıkken "neredeyim" hissi
-  // kaybolmasın diye). Bir üst seviye değişince alt seviyeler otomatik
-  // sıfırlanır (bkz. handleSelectCategory/handleSelectIslemTipi).
+  // Kategori+İşlemTipi+Taraf kombinasyonu — artık 3 kademeli accordion
+  // değil, tek bir kutu grid'i (bkz. OpportunityCategoryTree.jsx, broker
+  // 2026-10-10: "bir portföye 5 tıklamayla uğraşılıyor"). Bir kutuya
+  // tıklamak path'in tamamını tek seferde ayarlıyor (handleSelectLeaf).
   const [path, setPath] = useState({ category: null, islemTipi: null, taraf: null })
   const [detailOpp, setDetailOpp] = useState(null)
   const [expressingId, setExpressingId] = useState(null)
@@ -116,14 +115,8 @@ export default function FirsatlarTab() {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [roleVisible, path])
 
-  function handleSelectCategory(category) {
-    setPath({ category, islemTipi: null, taraf: null })
-  }
-  function handleSelectIslemTipi(islemTipi) {
-    setPath((p) => ({ ...p, islemTipi, taraf: null }))
-  }
-  function handleSelectTaraf(taraf) {
-    setPath((p) => ({ ...p, taraf }))
+  function handleSelectLeaf(category, islemTipi, taraf) {
+    setPath({ category, islemTipi, taraf })
   }
   function handleCreateClick(category, islemTipi, type) {
     setCreateContext({ type, category, islemTipi })
@@ -314,9 +307,7 @@ export default function FirsatlarTab() {
           <OpportunityCategoryTree
             tree={tree}
             path={path}
-            onSelectCategory={handleSelectCategory}
-            onSelectIslemTipi={handleSelectIslemTipi}
-            onSelectTaraf={handleSelectTaraf}
+            onSelectLeaf={handleSelectLeaf}
             tableRows={tableRows}
             onRowClick={setDetailOpp}
             onExpressInterest={(opp) => setInterestTargetId(opp.id)}
