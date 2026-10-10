@@ -49,7 +49,7 @@ export function callNeedsTracking(call) {
 // CallProgressSteps zincirinin (Görüşüldü > Portföy > Satış) aynı durumlarını
 // TEK bir değere indirger, filtre dropdown'u bununla karşılaştırır.
 export const SUREC_FILTER_OPTIONS = [
-  { value: 'tumu', label: 'Tüm Süreçler' },
+  { value: 'tumu', label: 'Süreç' },
   { value: 'gorusme_bekliyor', label: 'Görüşme Bekliyor' },
   { value: 'ulasilamadi', label: 'Ulaşılamadı' },
   { value: 'portfoy_bekliyor', label: 'Görüşüldü, Portföy Bekliyor' },

@@ -169,7 +169,7 @@ function HeaderFilterSelect({ value, onChange, options, ariaLabel }) {
       value={value ?? 'tumu'}
       onChange={(e) => onChange(e.target.value)}
       aria-label={ariaLabel}
-      className="mt-1 w-full max-w-[128px] rounded-md border border-ink-200 bg-white px-1 py-0.5 text-[11px] font-normal normal-case text-ink-600"
+      className="w-full min-w-[72px] max-w-[128px] rounded-md border border-ink-200 bg-white px-1 py-0.5 text-[11px] font-normal normal-case text-ink-600"
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>
@@ -448,9 +448,9 @@ export default function CallTable({
   const showReklamKodu = currentRole === ROLES.BROKER || currentRole === ROLES.OWNER
   const isEmpty = calls.length === 0
 
-  const kaynakOptions = [{ value: 'tumu', label: 'Tüm Kaynaklar' }, ...CALL_SOURCES.map((s) => ({ value: s, label: s }))]
+  const kaynakOptions = [{ value: 'tumu', label: 'Kaynak' }, ...CALL_SOURCES.map((s) => ({ value: s, label: s }))]
   const atananOptions = [
-    { value: 'tumu', label: 'Tüm Danışmanlar' },
+    { value: 'tumu', label: 'Danışman' },
     ...(danismanFilterOptions ?? []).map((d) => ({ value: d.id, label: d.name })),
   ]
 
@@ -465,36 +465,43 @@ export default function CallTable({
           <thead>
             <tr className="sticky top-0 z-10 border-b border-ink-100 bg-ink-50 text-xs font-medium text-ink-400">
               <th className="px-3 py-2.5">
-                {isManager ? 'Kynk' : 'Talep No'}
-                {isManager && (
+                {isManager && onKaynakFilterChange ? (
                   <HeaderFilterSelect
                     value={kaynakFilter}
                     onChange={onKaynakFilterChange}
                     options={kaynakOptions}
                     ariaLabel="Kaynağa göre filtrele"
                   />
+                ) : isManager ? (
+                  'Kynk'
+                ) : (
+                  'Talep No'
                 )}
               </th>
               <th className="max-w-[140px] px-3 py-2.5">Arayan</th>
               <th className="px-3 py-2.5">Telefon</th>
               <th className="px-3 py-2.5">
-                Süreç
-                <HeaderFilterSelect
-                  value={surecFilter}
-                  onChange={onSurecFilterChange}
-                  options={SUREC_FILTER_OPTIONS}
-                  ariaLabel="Süreca göre filtrele"
-                />
+                {onSurecFilterChange ? (
+                  <HeaderFilterSelect
+                    value={surecFilter}
+                    onChange={onSurecFilterChange}
+                    options={SUREC_FILTER_OPTIONS}
+                    ariaLabel="Süreca göre filtrele"
+                  />
+                ) : (
+                  'Süreç'
+                )}
               </th>
               <th className="px-3 py-2.5">
-                Atanan
-                {isManager && (
+                {isManager && onAtananFilterChange ? (
                   <HeaderFilterSelect
                     value={atananFilter}
                     onChange={onAtananFilterChange}
                     options={atananOptions}
                     ariaLabel="Atanan danışmana göre filtrele"
                   />
+                ) : (
+                  'Atanan'
                 )}
               </th>
               <th className="px-3 py-2.5">Tarih</th>

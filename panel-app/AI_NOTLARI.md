@@ -3,6 +3,17 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Operasyon sütun başlıkları: "Tüm X" yerine tek kelimelik, tek başlık
+
+Broker: "tüm kaynaklar yerine kaynak ... tek başlık olsun." Filtre
+select'lerinin varsayılan option'ları kısaltıldı (Tüm Kaynaklar→Kaynak,
+Tüm Süreçler→Süreç, Tüm Danışmanlar→Danışman) VE artık ayrı bir statik
+sütun adıyla ÜST ÜSTE durmuyorlar — select varsa SADECE select
+görünüyor (kendi "Kaynak"/"Süreç"/"Danışman" varsayılan metni başlık
+görevi görüyor), select yoksa (danışman rolünde Kynk/Atanan, odak
+modunda hepsi) düz metin başlık kalıyor. Kynk sütunundaki select'in
+"Kaynak" yazısı dar sütunda kesiliyordu, `min-w-[72px]` ile düzeltildi.
+
 ## 2026-10-10 — Operasyon: Kaynak/Süreç/Atanan filtreleri sütun başlıklarına taşındı
 
 Broker: "bunlara filtreleri buraya alsan ekstra olmasa" (Kynk/Süreç/
