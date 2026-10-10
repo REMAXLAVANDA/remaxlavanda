@@ -68,36 +68,53 @@ export default function OpportunityCategoryTree({
   const selected = leaves.find(
     (l) => l.category === path.category && l.islemTipi === path.islemTipi && l.taraf === path.taraf,
   )
+  // Satıcı (Mülk dahil) ve Alıcı (Kiracı dahil) kutuları artık ayrı
+  // satırlarda — eskiden grid'de karışık sırada duruyordu, broker:
+  // "alıcı ayrı bir satır satıcı ayrı bir satır olmalı değil mi" (bkz.
+  // lib/opportunities.js type alanı — ticari+kiralık'ta etiket Mülk/
+  // Kiracı olsa da altta hep satici/alici).
+  const saticiLeaves = leaves.filter((l) => l.taraf === 'satici')
+  const aliciLeaves = leaves.filter((l) => l.taraf === 'alici')
+
+  function renderRow(rowLeaves, label) {
+    return (
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {rowLeaves.map((leaf) => {
+            const isSelected =
+              selected && selected.category === leaf.category && selected.islemTipi === leaf.islemTipi && selected.taraf === leaf.taraf
+            return (
+              <button
+                key={`${leaf.category}-${leaf.islemTipi}-${leaf.taraf}`}
+                onClick={() => onSelectLeaf(isSelected ? null : leaf.category, isSelected ? null : leaf.islemTipi, isSelected ? null : leaf.taraf)}
+                className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
+                  isSelected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
+                }`}
+              >
+                <IconBadge {...tarafIcon(leaf.category, leaf.islemTipi, leaf.taraf)} size="h-9 w-9" iconSize={18} />
+                <div>
+                  <p className={`text-sm font-semibold ${isSelected ? 'text-brand-700' : 'text-text-primary'}`}>
+                    {leaf.categoryLabel} {leaf.islemTipiLabel}
+                  </p>
+                  <p className="text-xs text-text-muted">{leaf.tarafLabel}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{leaf.total}</span>
+                  {leaf.today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{leaf.today}</span>}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {leaves.map((leaf) => {
-          const isSelected =
-            selected && selected.category === leaf.category && selected.islemTipi === leaf.islemTipi && selected.taraf === leaf.taraf
-          return (
-            <button
-              key={`${leaf.category}-${leaf.islemTipi}-${leaf.taraf}`}
-              onClick={() => onSelectLeaf(isSelected ? null : leaf.category, isSelected ? null : leaf.islemTipi, isSelected ? null : leaf.taraf)}
-              className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
-                isSelected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
-              }`}
-            >
-              <IconBadge {...tarafIcon(leaf.category, leaf.islemTipi, leaf.taraf)} size="h-9 w-9" iconSize={18} />
-              <div>
-                <p className={`text-sm font-semibold ${isSelected ? 'text-brand-700' : 'text-text-primary'}`}>
-                  {leaf.categoryLabel} {leaf.islemTipiLabel}
-                </p>
-                <p className="text-xs text-text-muted">{leaf.tarafLabel}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{leaf.total}</span>
-                {leaf.today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{leaf.today}</span>}
-              </div>
-            </button>
-          )
-        })}
-      </div>
+      {renderRow(saticiLeaves, 'Satıcı')}
+      {renderRow(aliciLeaves, 'Alıcı')}
 
       {selected && (
         <div className="rounded-2xl border border-border-default bg-surface-raised p-4">

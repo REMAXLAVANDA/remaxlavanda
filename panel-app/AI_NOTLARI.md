@@ -3,6 +3,15 @@
 Bu dosya, AI asistan (Claude) tarafından yapılan yapısal değişikliklerin kısa
 bir günlüğüdür — brief'lerdeki "değişiklikleri buraya işle" kuralı gereği.
 
+## 2026-10-10 — Fırsatlar kutu grid'i: Satıcı/Alıcı ayrı satırlara bölündü
+
+Broker: "alıcı ayrı bir satır satıcı ayrı bir satır olmalı değil mi."
+Bir önceki değişiklikte (aynı gün) 10 kutu tek grid'de karışık sırada
+duruyordu. `OpportunityCategoryTree.jsx`'te kutular artık `taraf`
+alanına göre (satici/alici — ticari+kiralık'ta Mülk/Kiracı etiketi
+farklı ama altta aynı alan) iki ayrı satıra bölünüyor, her satırın
+üstünde "SATICI"/"ALICI" başlığı var.
+
 ## 2026-10-10 — Fırsatlar: 3 kademeli accordion yerine tek tıkla kutu grid'i
 
 Broker: "havuz portföyler kullanışlı değil... bir portföye 5 tıklamayla
