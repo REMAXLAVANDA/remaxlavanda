@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Home } from 'lucide-react'
+import { Home, Target } from 'lucide-react'
 import FirsatlarTab from './firsatlar/FirsatlarTab'
 import OperasyonTab from './firsatlar/OperasyonTab'
 
@@ -24,7 +24,14 @@ export default function Firsatlar() {
 
   return (
     <div>
-      <section>
+      {/* Operasyon bölümüyle AYNI başlıklı-kart deseni (broker, 2026-10-10:
+          "portföy havuzu diye de başlık koyalım büyük yine") — eskiden bu
+          bölümün hiç başlığı yoktu, hemen altındaki "Operasyon" kartının
+          yanında kimliksiz/önemsiz kalıyordu. */}
+      <section className="rounded-2xl border border-t-4 border-border-default border-t-brand-600 bg-surface-raised p-5">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+          <Target size={16} className="text-brand-600" /> Portföy Havuzu
+        </h2>
         <FirsatlarTab />
       </section>
 

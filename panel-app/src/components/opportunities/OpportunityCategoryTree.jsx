@@ -23,19 +23,24 @@ function IconBadge({ Icon, bg, text, size, iconSize }) {
   )
 }
 
+// Sayı önce, etiket altında — Operasyon'daki İstatistikler kartlarıyla
+// (StatsCards.jsx) AYNI görsel ağırlık dili (broker, 2026-10-10: "konut
+// arsa ticari diğer diğerlerinin yanında çok küçük kaldı" — eskiden etiket
+// büyük, adet küçük rozetti; hemen altındaki Operasyon istatistik
+// kartlarının yanında bu kutular önemsiz görünüyordu).
 function GridBox({ label, total, today, selected, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
+      className={`rounded-2xl border p-4 text-left transition-colors ${
         selected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
       }`}
     >
-      <p className={`text-sm font-semibold ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{label}</p>
-      <div className="flex items-center gap-2">
-        <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{total}</span>
-        {today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{today}</span>}
-      </div>
+      <p className={`text-2xl font-semibold ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{total}</p>
+      <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
+        <span className={selected ? 'font-medium text-brand-700' : ''}>{label}</span>
+        {today > 0 && <span className="font-medium text-emerald-600">Bugün +{today}</span>}
+      </p>
     </button>
   )
 }
