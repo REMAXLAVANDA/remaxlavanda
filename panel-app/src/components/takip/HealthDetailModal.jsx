@@ -53,6 +53,23 @@ export default function HealthDetailModal({
         })}
       </div>
 
+      {/* Koçluk notları metrik çubuklarının hemen altına alındı — eskiden
+          en altta, fırsat/çağrı listelerinin ardından geliyordu ve not
+          eklemek için onların hepsini geçip en alta inmek gerekiyordu
+          (broker, 2026-10-10: "en alta inmen lazım ki not ekleyebilesin,
+          zor bir kullanıma sahip"). */}
+      {canManageCoaching && (
+        <CoachingNotesSection
+          notes={coachingNotes ?? []}
+          opportunities={opportunities}
+          danismanId={user.id}
+          onAdd={(form) => onAddCoachingNote(user.id, form)}
+          onToggleDurum={onToggleCoachingDurum}
+          submitting={addingCoachingNote}
+          resolveName={resolveCoachName}
+        />
+      )}
+
       {/* Ofis/danışman bu bölümü hiç görmez — sadece yönetim (broker/owner)
           "bu danışmana ne yönlendirdik, ne yapmış" diye inceleyebilir (bkz.
           "yönetim olarak danışmanları filtreleyebilelim" isteği). */}
@@ -104,18 +121,6 @@ export default function HealthDetailModal({
             </div>
           )}
         </div>
-      )}
-
-      {canManageCoaching && (
-        <CoachingNotesSection
-          notes={coachingNotes ?? []}
-          opportunities={opportunities}
-          danismanId={user.id}
-          onAdd={(form) => onAddCoachingNote(user.id, form)}
-          onToggleDurum={onToggleCoachingDurum}
-          submitting={addingCoachingNote}
-          resolveName={resolveCoachName}
-        />
       )}
     </Modal>
   )

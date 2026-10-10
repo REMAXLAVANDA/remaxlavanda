@@ -18,7 +18,6 @@ import { isStaleOpp } from '../../lib/attention'
 import { parseThousands, sortByName } from '../../lib/format'
 import { ROLES } from '../../lib/roles'
 import OpportunityCategoryTree from '../../components/opportunities/OpportunityCategoryTree'
-import LegacyCategoryReview from '../../components/opportunities/LegacyCategoryReview'
 import OpportunityTable from '../../components/opportunities/OpportunityTable'
 import OpportunityDetailModal from '../../components/opportunities/OpportunityDetailModal'
 import NewOpportunityModal from '../../components/opportunities/NewOpportunityModal'
@@ -336,17 +335,6 @@ export default function FirsatlarTab() {
             </div>
           )}
 
-          {canSeeLegacyReview && (
-            <LegacyCategoryReview
-              opportunities={legacyOpps}
-              onRowClick={setDetailOpp}
-              onExpressInterest={(opp) => setInterestTargetId(opp.id)}
-              expressingId={expressingId}
-              user={user}
-              interestedIds={interestedIds}
-            />
-          )}
-
           <OpportunityCategoryTree
             tree={tree}
             path={path}
@@ -357,6 +345,8 @@ export default function FirsatlarTab() {
             expressingId={expressingId}
             user={user}
             interestedIds={interestedIds}
+            legacyOpps={legacyOpps}
+            canSeeLegacyReview={canSeeLegacyReview}
           />
         </div>
       )}

@@ -1,5 +1,6 @@
 import { UserSearch, Handshake, Building, User } from 'lucide-react'
 import OpportunityTable from './OpportunityTable'
+import LegacyCategoryReview from './LegacyCategoryReview'
 
 // Taraf ikonu — ticari+kiralık dalında Mülk/Kiracı'ya özel ikon
 // (lib/opportunities.js'teki tarafLabel ile aynı istisna).
@@ -22,41 +23,32 @@ function IconBadge({ Icon, bg, text, size, iconSize }) {
   )
 }
 
-// tree'yi (Kategori>İşlemTipi>Taraf) Kategori+İşlemTipi seviyesinde
-// kutulara indirger — Taraf artık kutu değil, seçili kutunun İÇİNDE
-// Satıcı/Alıcı alt bölümleri (broker, 2026-10-10: "konut tıkladım,
-// alıcı alt alta satıcı alt alta ayrı satır olsa"). Hiç kaydı olmayan
-// kutular hiç gösterilmez (broker: "menüler içinde bilgi varsa direk
-// görünse, boş olanlar görünmese").
-function flattenBranches(tree) {
-  const branches = []
-  for (const cat of tree) {
-    for (const tipi of cat.islemTipleri) {
-      const total = tipi.taraflar.reduce((sum, t) => sum + t.total, 0)
-      const today = tipi.taraflar.reduce((sum, t) => sum + t.today, 0)
-      if (total === 0) continue
-      branches.push({
-        category: cat.key,
-        categoryLabel: cat.label,
-        islemTipi: tipi.key,
-        islemTipiLabel: tipi.label,
-        taraflar: tipi.taraflar,
-        total,
-        today,
-      })
-    }
-  }
-  return branches
+function GridBox({ label, total, today, selected, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
+        selected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
+      }`}
+    >
+      <p className={`text-sm font-semibold ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{label}</p>
+      <div className="flex items-center gap-2">
+        <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{total}</span>
+        {today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{today}</span>}
+      </div>
+    </button>
+  )
 }
 
-// Fırsatlar menüsü — eskiden Kategori > İşlem Tipi > Taraf şeklinde 3
-// kademeli accordion'du, bir portföye ulaşmak 3 açma tıklaması + satıra
-// tıklama gerektiriyordu (broker, 2026-10-10: "bir portföye 5 tıklamayla
-// uğraşılıyor"). Önce Kategori+İşlemTipi+Taraf'ı tek seviyeli 10 kutuya
-// indirgedik, broker "göz yoruyor" dedi — renk değil, kutu sayısı/
-// kopukluk sorunuymuş ("konut tıkladım, alıcı/satıcı alt alta olsa").
-// Artık Kategori+İşlemTipi TEK kutu (max 5, boş olanlar hiç görünmüyor);
-// tıklayınca altında Satıcı ve Alıcı iki ayrı blok halinde alt alta açılıyor.
+// Fırsatlar menüsü — 3 seviyeli geziniyor: 1) Kategori (Konut/Arsa/Ticari,
+// + yönetime "Diğer" eski-kayıt bandı), 2) o kategorideki İşlem Tipi
+// (Satılık/Kiralık — boş olan hiç gösterilmez), 3) seçili İşlem Tipi'nin
+// altında Satıcı ve Alıcı iki ayrı blok halinde alt alta. Broker, 2026-10-10:
+// "menü ilk: konut arsa ticari diğer altında da adet yazsın" — ilk seviye
+// artık SAF kategori, İşlem Tipi kutudan çıkıp bir alt seviyeye indi. Bir
+// kategoride İşlem Tipi tek seçenekse (örn. Arsa'da sadece Satılık var),
+// o adım atlanıp doğrudan Satıcı/Alıcı bloklarına geçiliyor — gereksiz
+// tıklama eklenmesin diye (bkz. broker'ın eski "5 tıklama" şikayeti).
 export default function OpportunityCategoryTree({
   tree,
   path,
@@ -67,43 +59,71 @@ export default function OpportunityCategoryTree({
   expressingId,
   user,
   interestedIds,
+  legacyOpps,
+  canSeeLegacyReview,
 }) {
-  const branches = flattenBranches(tree)
-  const selected = branches.find((b) => b.category === path.category && b.islemTipi === path.islemTipi)
+  const selectedCat = tree.find((c) => c.key === path.category)
+  const selectedTipi = selectedCat?.islemTipleri.find((t) => t.key === path.islemTipi)
+
+  function handleSelectCategory(cat) {
+    if (path.category === cat.key) {
+      onSelectBranch(null, null)
+      return
+    }
+    const nonEmpty = cat.islemTipleri.filter((t) => t.total > 0)
+    onSelectBranch(cat.key, nonEmpty.length === 1 ? nonEmpty[0].key : null)
+  }
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {branches.map((branch) => {
-          const isSelected = selected && selected.category === branch.category && selected.islemTipi === branch.islemTipi
-          return (
-            <button
-              key={`${branch.category}-${branch.islemTipi}`}
-              onClick={() => onSelectBranch(isSelected ? null : branch.category, isSelected ? null : branch.islemTipi)}
-              className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
-                isSelected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
-              }`}
-            >
-              <p className={`text-sm font-semibold ${isSelected ? 'text-brand-700' : 'text-text-primary'}`}>
-                {branch.categoryLabel} {branch.islemTipiLabel}
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{branch.total}</span>
-                {branch.today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{branch.today}</span>}
-              </div>
-            </button>
-          )
-        })}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {tree.map((cat) => (
+          <GridBox
+            key={cat.key}
+            label={cat.label}
+            total={cat.total}
+            today={cat.islemTipleri.reduce((sum, t) => sum + t.taraflar.reduce((s, ta) => s + ta.today, 0), 0)}
+            selected={path.category === cat.key}
+            onClick={() => handleSelectCategory(cat)}
+          />
+        ))}
+        {canSeeLegacyReview && (
+          <LegacyCategoryReview
+            opportunities={legacyOpps}
+            onRowClick={onRowClick}
+            onExpressInterest={onExpressInterest}
+            expressingId={expressingId}
+            user={user}
+            interestedIds={interestedIds}
+          />
+        )}
       </div>
 
-      {selected && (
+      {selectedCat && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {selectedCat.islemTipleri
+            .filter((tipi) => tipi.total > 0)
+            .map((tipi) => (
+              <GridBox
+                key={tipi.key}
+                label={tipi.label}
+                total={tipi.total}
+                today={tipi.taraflar.reduce((sum, t) => sum + t.today, 0)}
+                selected={path.islemTipi === tipi.key}
+                onClick={() => onSelectBranch(selectedCat.key, path.islemTipi === tipi.key ? null : tipi.key)}
+              />
+            ))}
+        </div>
+      )}
+
+      {selectedTipi && (
         <div className="space-y-4">
-          {selected.taraflar
+          {selectedTipi.taraflar
             .filter((taraf) => taraf.total > 0)
             .map((taraf) => (
               <div key={taraf.type} className="rounded-2xl border border-border-default bg-surface-raised p-4">
                 <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
-                  <IconBadge {...tarafIcon(selected.category, selected.islemTipi, taraf.type)} size="h-7 w-7" iconSize={14} />
+                  <IconBadge {...tarafIcon(selectedCat.key, selectedTipi.key, taraf.type)} size="h-7 w-7" iconSize={14} />
                   {taraf.label}
                   <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{taraf.total}</span>
                 </h3>
