@@ -44,7 +44,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
     isPhoneComplete(form.leadTelefon)
 
   return (
-    <Modal title="Fırsatı Düzenle" onClose={onClose} dismissible={false}>
+    <Modal title="Fırsatı Düzenle" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault()

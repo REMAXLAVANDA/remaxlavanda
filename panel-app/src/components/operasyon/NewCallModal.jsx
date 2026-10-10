@@ -34,7 +34,7 @@ export default function NewCallModal({ onClose, onSubmit, submitting, inviteeOpt
   }, [form.arayanTelefon, existingCalls])
 
   return (
-    <Modal title="Yeni Çağrı" onClose={onClose} dismissible={false}>
+    <Modal title="Yeni Çağrı" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault()

@@ -45,7 +45,7 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
   }
 
   return (
-    <Modal title="Masraf Olarak İşaretle" onClose={onClose} dismissible={false} maxWidth="max-w-md">
+    <Modal title="Masraf Olarak İşaretle" onClose={onClose} maxWidth="max-w-md">
       <p className="mb-4 text-sm text-text-muted">
         {tl(hareket.tutar)} · {formatDateOnly(hareket.tarih)} · {hareket.gonderenAdi || 'Açıklama yok'}
       </p>

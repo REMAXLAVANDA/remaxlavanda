@@ -134,7 +134,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
   }
 
   return (
-    <Modal title="Yeni Ciro Raporu" onClose={onClose} dismissible={false}>
+    <Modal title="Yeni Ciro Raporu" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="flex gap-2">
           {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (

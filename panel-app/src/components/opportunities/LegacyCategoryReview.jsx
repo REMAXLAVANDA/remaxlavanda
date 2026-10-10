@@ -19,13 +19,17 @@ export default function LegacyCategoryReview({ opportunities, onRowClick, onExpr
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left transition-colors hover:border-amber-300"
+        className="rounded-2xl border border-t-4 border-amber-200 border-t-amber-500 bg-amber-50 p-4 text-left transition-colors hover:border-amber-300"
       >
-        <p className="text-2xl font-semibold text-amber-800">{opportunities.length}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-amber-700">
-          <AlertTriangle size={12} className="shrink-0" />
+        <p className="flex items-center gap-1.5 text-base font-semibold text-amber-800">
+          <AlertTriangle size={14} className="shrink-0" />
           Diğer
         </p>
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+            {opportunities.length}
+          </span>
+        </div>
       </button>
 
       {open && (

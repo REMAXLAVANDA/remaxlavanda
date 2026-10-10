@@ -9,14 +9,18 @@ const FOCUSABLE_SELECTOR =
 // ESC ile kapatma, arka plana tıklayınca kapatma, ilk form alanına otomatik
 // odak, Tab ile modal içinde döngü (focus trap), ARIA (role=dialog).
 //
-// dismissible=false: form içeren pencerelerde (Yeni Fırsat, Fırsatı
-// Düzenle, Yeni Çağrı, Müşteri Notu) arka plana dokunma veya ESC artık
-// pencereyi KAPATMIYOR — mobilde pencere kenarındaki dar boşluğa (p-4)
-// kayarken değen başparmak yazılmış formu sessizce siliyordu (bkz. /kurul
-// görsel+kullanılabilirlik raporu, 2026-10-04, madde 3). X düğmesi ve
-// formun kendi "Vazgeç" düğmesi hâlâ çalışır — bunlar kazara değil,
-// bilerek hedeflenen kapatma yolları.
-export default function Modal({ title, onClose, children, maxWidth = 'max-w-md', dismissible = true }) {
+// Varsayılan artık dismissible=false: arka plana tıklama veya ESC HİÇBİR
+// modalda kapatmıyor — kenara (mobilde pencere kenarındaki dar boşluğa,
+// masaüstünde arka plana) değen bir tıklama yazılmış bir formu sessizce
+// silip gidiyordu (broker, 2026-10-10: "bir şey yazdıysan siliniyor
+// gidiyor, çarpıdan kapatma olmalı" — eskiden SADECE form içeren birkaç
+// modalda bu düzeltme vardı, broker aynı sorunu form olmayan bir modalda
+// da yaşadı, bu yüzden kural artık TÜM modallar için geçerli). X düğmesi
+// ve formun kendi "Vazgeç" düğmesi hâlâ çalışır — bunlar kazara değil,
+// bilerek hedeflenen kapatma yollarıdır. dismissible={true} artık SADECE
+// gerçekten veri kaybı riski taşımayan, bilinçli olarak seçilmiş yerlerde
+// kullanılmalı.
+export default function Modal({ title, onClose, children, maxWidth = 'max-w-md', dismissible = false }) {
   const panelRef = useRef(null)
   const contentRef = useRef(null)
 

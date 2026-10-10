@@ -23,24 +23,34 @@ function IconBadge({ Icon, bg, text, size, iconSize }) {
   )
 }
 
-// Sayı önce, etiket altında — Operasyon'daki İstatistikler kartlarıyla
-// (StatsCards.jsx) AYNI görsel ağırlık dili (broker, 2026-10-10: "konut
-// arsa ticari diğer diğerlerinin yanında çok küçük kaldı" — eskiden etiket
-// büyük, adet küçük rozetti; hemen altındaki Operasyon istatistik
-// kartlarının yanında bu kutular önemsiz görünüyordu).
+// Bu bir GEZİNME kutusu — önce okunan/aranan şey kategori ADI (Konut/Arsa/
+// Ticari), adet yardımcı bilgi. Bir önceki deneme (adet büyük, etiket küçük
+// rozet — Operasyon'daki salt-bilgi İstatistikler kartlarıyla aynı dil)
+// mantıksızdı: broker, 2026-10-10 "konut küçük olmuş sayı büyük olmuş,
+// mantık dışı" diye düzeltti. "Küçük kaldı" şikayetinin asıl sebebi etiket
+// boyutu değil, kutunun İstatistikler kartlarındaki gibi renkli bir üst
+// çizgisi olmamasıydı — o eklendi, etiket-önce hiyerarşisi KORUNDU.
 function GridBox({ label, total, today, selected, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-2xl border p-4 text-left transition-colors ${
-        selected ? 'border-brand-400 bg-tint-red' : 'border-border-default bg-surface-raised hover:border-brand-200'
+      className={`rounded-2xl border border-t-4 p-4 text-left transition-colors ${
+        selected
+          ? 'border-brand-400 border-t-brand-600 bg-tint-red'
+          : 'border-border-default border-t-brand-300 bg-surface-raised hover:border-brand-200'
       }`}
     >
-      <p className={`text-2xl font-semibold ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{total}</p>
-      <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
-        <span className={selected ? 'font-medium text-brand-700' : ''}>{label}</span>
-        {today > 0 && <span className="font-medium text-emerald-600">Bugün +{today}</span>}
-      </p>
+      <p className={`text-base font-semibold ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{label}</p>
+      <div className="mt-1.5 flex items-center gap-2">
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+            selected ? 'bg-brand-100 text-brand-700' : 'bg-surface-sunken text-text-muted'
+          }`}
+        >
+          {total}
+        </span>
+        {today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{today}</span>}
+      </div>
     </button>
   )
 }

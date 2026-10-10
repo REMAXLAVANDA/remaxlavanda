@@ -14,7 +14,7 @@ export default function CallNoteModal({ call, onClose, onSubmit, submitting }) {
   const [notlar, setNotlar] = useState(call.notlar ?? '')
 
   return (
-    <Modal title="Müşteri Notu" onClose={onClose} dismissible={false}>
+    <Modal title="Müşteri Notu" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
