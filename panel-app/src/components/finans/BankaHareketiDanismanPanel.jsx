@@ -33,7 +33,7 @@ export default function BankaHareketiDanismanPanel() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { data, setData, loading, error, reload } = useAsyncList(() => bankaHareketleriProvider.list(), [])
-  const [form, setForm] = useState({ tutar: '', tarih: today(), aciklama: '', tur: 'hizmet_bedeli', bankaAdi: '' })
+  const [form, setForm] = useState({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', tur: 'hizmet_bedeli', bankaAdi: '' })
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -43,7 +43,12 @@ export default function BankaHareketiDanismanPanel() {
   const ownHareketler = (data ?? []).filter((h) => h.olusturanId === user.id)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const parsedTutar = parseThousands(form.tutar)
-  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih
+  // Broker, 2026-10-11: "danışman gelen para transferini işlesin, hizmet
+  // bedelini işlesin kimden ne geldiğini" — tutar (ne) zaten vardı, kimden
+  // geldiği (gönderen adı, satıcı/alıcıdan hangisiyse) de zorunlu oldu.
+  // DB kolonu (gonderen_adi) zaten vardı, broker'ın kendi ekranında
+  // kullanılıyordu — sadece danışman formuna eklendi.
+  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && form.gonderenAdi.trim().length > 0
 
   function handleFileChange(e) {
     const selected = e.target.files?.[0] ?? null
@@ -72,6 +77,7 @@ export default function BankaHareketiDanismanPanel() {
         {
           tutar: parsedTutar,
           tarih: form.tarih,
+          gonderenAdi: form.gonderenAdi.trim(),
           aciklama: form.aciklama.trim(),
           tur: form.tur,
           bankaAdi: form.bankaAdi.trim(),
@@ -80,7 +86,7 @@ export default function BankaHareketiDanismanPanel() {
         user.id,
       )
       setData((prev) => [created, ...(prev ?? [])])
-      setForm({ tutar: '', tarih: today(), aciklama: '', tur: 'hizmet_bedeli', bankaAdi: '' })
+      setForm({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', tur: 'hizmet_bedeli', bankaAdi: '' })
       setFile(null)
       showToast('Dekont kaydedildi, broker eşleştirip onaylayacak.', 'success')
     } catch (err) {
@@ -136,6 +142,13 @@ export default function BankaHareketiDanismanPanel() {
             value={form.tarih}
             onChange={(e) => set({ tarih: e.target.value })}
             className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+          />
+          <input
+            required
+            value={form.gonderenAdi}
+            onChange={(e) => set({ gonderenAdi: e.target.value })}
+            placeholder="Kimden geldi (gönderen adı) *"
+            className="sm:col-span-2 rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <select
             value={form.tur}
@@ -193,6 +206,7 @@ export default function BankaHareketiDanismanPanel() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-sm text-text-primary">
                     <span className="font-medium">{tl(h.tutar)}</span>
+                    <span className="text-text-muted">— {h.gonderenAdi || 'gönderen belirtilmemiş'}</span>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
                       {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
                     </span>
