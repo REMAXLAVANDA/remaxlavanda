@@ -47,7 +47,17 @@ export default function BankaHareketleriPanel() {
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
-  const [form, setForm] = useState({ tip: 'giris', tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
+  const [form, setForm] = useState({
+    tip: 'giris',
+    tutar: '',
+    tarih: today(),
+    dekontTarihi: today(),
+    gonderenAdi: '',
+    aciklama: '',
+    referansNo: '',
+    bloke: false,
+    opportunityId: '',
+  })
   const [submitting, setSubmitting] = useState(false)
   const [matchTarget, setMatchTarget] = useState(null)
   const [blokeTarget, setBlokeTarget] = useState(null)
@@ -110,6 +120,7 @@ export default function BankaHareketleriPanel() {
           tip: form.tip,
           tutar: parsedTutar,
           tarih: form.tarih,
+          dekontTarihi: form.dekontTarihi,
           gonderenAdi: form.gonderenAdi.trim(),
           aciklama: form.aciklama.trim(),
           referansNo: form.referansNo.trim(),
@@ -118,7 +129,17 @@ export default function BankaHareketleriPanel() {
         },
         user.id,
       )
-      setForm({ tip: form.tip, tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', referansNo: '', bloke: false, opportunityId: '' })
+      setForm({
+        tip: form.tip,
+        tutar: '',
+        tarih: today(),
+        dekontTarihi: today(),
+        gonderenAdi: '',
+        aciklama: '',
+        referansNo: '',
+        bloke: false,
+        opportunityId: '',
+      })
       showToast(form.bloke ? 'Bağlanma parası bloke olarak kaydedildi.' : 'Hareket eklendi.', 'success')
       reload()
     } catch (err) {
@@ -259,6 +280,19 @@ export default function BankaHareketleriPanel() {
             value={form.aciklama}
             onChange={(e) => set({ aciklama: e.target.value })}
             placeholder="Açıklama"
+            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+          <input
+            type="date"
+            value={form.dekontTarihi}
+            onChange={(e) => set({ dekontTarihi: e.target.value })}
+            title="Dekont tarihi"
+            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+          />
+          <input
+            value={form.referansNo}
+            onChange={(e) => set({ referansNo: e.target.value })}
+            placeholder="Dekont numarası"
             className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <button

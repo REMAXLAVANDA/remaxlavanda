@@ -33,7 +33,16 @@ export default function BankaHareketiDanismanPanel() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { data, setData, loading, error, reload } = useAsyncList(() => bankaHareketleriProvider.list(), [])
-  const [form, setForm] = useState({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', tur: 'hizmet_bedeli', bankaAdi: '' })
+  const [form, setForm] = useState({
+    tutar: '',
+    tarih: today(),
+    dekontTarihi: today(),
+    gonderenAdi: '',
+    referansNo: '',
+    aciklama: '',
+    tur: 'hizmet_bedeli',
+    bankaAdi: '',
+  })
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -48,7 +57,20 @@ export default function BankaHareketiDanismanPanel() {
   // geldiği (gönderen adı, satıcı/alıcıdan hangisiyse) de zorunlu oldu.
   // DB kolonu (gonderen_adi) zaten vardı, broker'ın kendi ekranında
   // kullanılıyordu — sadece danışman formuna eklendi.
-  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && form.gonderenAdi.trim().length > 0
+  //
+  // Aynı gün ikinci talimat: "dekont ve transfer tarihi bir de dekont
+  // numarası olsun ve başka bir işlemle karışmasın" — dekontun kendi
+  // tarihi (dekontTarihi) transfer tarihinden (tarih) AYRI tutuluyor
+  // (ikisi aynı gün olmayabilir), dekont numarası (referansNo, DB'de
+  // referans_no olarak zaten vardı) zorunlu hale geldi ki aynı tutarlı
+  // iki ayrı transfer birbirine karışmasın.
+  const canSubmit =
+    parsedTutar !== null &&
+    parsedTutar > 0 &&
+    form.tarih &&
+    form.dekontTarihi &&
+    form.gonderenAdi.trim().length > 0 &&
+    form.referansNo.trim().length > 0
 
   function handleFileChange(e) {
     const selected = e.target.files?.[0] ?? null
@@ -77,7 +99,9 @@ export default function BankaHareketiDanismanPanel() {
         {
           tutar: parsedTutar,
           tarih: form.tarih,
+          dekontTarihi: form.dekontTarihi,
           gonderenAdi: form.gonderenAdi.trim(),
+          referansNo: form.referansNo.trim(),
           aciklama: form.aciklama.trim(),
           tur: form.tur,
           bankaAdi: form.bankaAdi.trim(),
@@ -86,7 +110,16 @@ export default function BankaHareketiDanismanPanel() {
         user.id,
       )
       setData((prev) => [created, ...(prev ?? [])])
-      setForm({ tutar: '', tarih: today(), gonderenAdi: '', aciklama: '', tur: 'hizmet_bedeli', bankaAdi: '' })
+      setForm({
+        tutar: '',
+        tarih: today(),
+        dekontTarihi: today(),
+        gonderenAdi: '',
+        referansNo: '',
+        aciklama: '',
+        tur: 'hizmet_bedeli',
+        bankaAdi: '',
+      })
       setFile(null)
       showToast('Dekont kaydedildi, broker eşleştirip onaylayacak.', 'success')
     } catch (err) {
@@ -136,18 +169,38 @@ export default function BankaHareketiDanismanPanel() {
             placeholder="Tutar (₺)"
             className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
-          <input
-            required
-            type="date"
-            value={form.tarih}
-            onChange={(e) => set({ tarih: e.target.value })}
-            className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
-          />
+          <div>
+            <label className="mb-1 block text-xs text-text-muted">Transfer Tarihi *</label>
+            <input
+              required
+              type="date"
+              value={form.tarih}
+              onChange={(e) => set({ tarih: e.target.value })}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-text-muted">Dekont Tarihi *</label>
+            <input
+              required
+              type="date"
+              value={form.dekontTarihi}
+              onChange={(e) => set({ dekontTarihi: e.target.value })}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+            />
+          </div>
           <input
             required
             value={form.gonderenAdi}
             onChange={(e) => set({ gonderenAdi: e.target.value })}
             placeholder="Kimden geldi (gönderen adı) *"
+            className="sm:col-span-2 rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+          <input
+            required
+            value={form.referansNo}
+            onChange={(e) => set({ referansNo: e.target.value })}
+            placeholder="Dekont numarası *"
             className="sm:col-span-2 rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <select
@@ -213,6 +266,8 @@ export default function BankaHareketiDanismanPanel() {
                   </div>
                   <p className="text-xs text-text-muted">
                     {formatDateOnly(h.tarih)} · {BANKA_HAREKETI_TUR_LABELS[h.tur] ?? h.tur}
+                    {h.referansNo && ` · Dekont No: ${h.referansNo}`}
+                    {h.dekontTarihi && ` · Dekont Tarihi: ${formatDateOnly(h.dekontTarihi)}`}
                     {h.bankaAdi && ` · ${h.bankaAdi}`}
                     {h.aciklama && ` · ${h.aciklama}`}
                   </p>

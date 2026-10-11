@@ -1274,6 +1274,9 @@ function mapCiroRaporuKatilimcisi(k) {
     rtPayOraniSnapshot: k.rt_pay_orani_snapshot == null ? null : Number(k.rt_pay_orani_snapshot),
     rtPayiTutari: k.rt_payi_tutari == null ? null : Number(k.rt_payi_tutari),
     ofisPayiTutari: k.ofis_payi_tutari == null ? null : Number(k.ofis_payi_tutari),
+    teyitEdildi: k.teyit_edildi,
+    teyitEdenId: k.teyit_eden_id,
+    teyitTarihi: k.teyit_tarihi,
   }
 }
 
@@ -1316,6 +1319,13 @@ function mapCiroRaporu(r) {
     raporKategori: r.rapor_kategori,
     krediDurumu: r.kredi_durumu,
     krediBankasi: r.kredi_bankasi,
+    ofisFaturaNo: r.ofis_fatura_no,
+    ofisFaturaTarihi: r.ofis_fatura_tarihi,
+    ofisFaturaTutari: r.ofis_fatura_tutari == null ? null : Number(r.ofis_fatura_tutari),
+    myremaxGirildi: r.myremax_girildi,
+    muhasebeTamamlandi: r.muhasebe_tamamlandi,
+    muhasebeTamamlanmaTarihi: r.muhasebe_tamamlanma_tarihi,
+    muhasebeTamamlayanId: r.muhasebe_tamamlayan_id,
     katilimcilar: (r.ciro_raporu_katilimcilari ?? []).map(mapCiroRaporuKatilimcisi),
   }
 }
@@ -1536,6 +1546,46 @@ export const ciroRaporlari = {
   async reject(id, redSebebi) {
     await run(client().from('ciro_raporlari').update({ durum: 'reddedildi', red_sebebi: redSebebi }).eq('id', id))
   },
+  // Finans > Raporlar > Fatura Kontrol — broker/owner'ın danışmanın kestiği
+  // faturayı teyit etmesi. RLS zaten is_manager() ile sınırlı
+  // (ciro_raporu_katilimcilari_update), ayrı bir kontrol burada gerekmiyor.
+  async katilimciTeyitEt(katilimciId, kullaniciId, deger = true) {
+    await run(
+      client()
+        .from('ciro_raporu_katilimcilari')
+        .update({
+          teyit_edildi: deger,
+          teyit_eden_id: deger ? kullaniciId : null,
+          teyit_tarihi: deger ? new Date().toISOString() : null,
+        })
+        .eq('id', katilimciId),
+    )
+  },
+  // Ofisin (RE/MAX Lavanda'nın) müşteriye kestiği TEK hizmet bedeli
+  // faturası — rapor bazında, katılımcıların kendi faturalarından AYRI.
+  async ofisFaturasiKaydet(id, { no, tarih, tutar }) {
+    await run(
+      client()
+        .from('ciro_raporlari')
+        .update({ ofis_fatura_no: no || null, ofis_fatura_tarihi: tarih || null, ofis_fatura_tutari: tutar ?? null })
+        .eq('id', id),
+    )
+  },
+  async setMyremaxGirildi(id, deger) {
+    await run(client().from('ciro_raporlari').update({ myremax_girildi: deger }).eq('id', id))
+  },
+  async setMuhasebeTamamlandi(id, deger, kullaniciId) {
+    await run(
+      client()
+        .from('ciro_raporlari')
+        .update({
+          muhasebe_tamamlandi: deger,
+          muhasebe_tamamlanma_tarihi: deger ? new Date().toISOString() : null,
+          muhasebe_tamamlayan_id: deger ? kullaniciId : null,
+        })
+        .eq('id', id),
+    )
+  },
 }
 
 // --- Danışman Anlaşmaları (komisyon paylaşım oranı, tarih aralıklı) ------
@@ -1608,6 +1658,7 @@ function mapBankaHareketi(row) {
     id: row.id,
     tutar: Number(row.tutar),
     tarih: row.tarih,
+    dekontTarihi: row.dekont_tarihi,
     gonderenAdi: row.gonderen_adi,
     aciklama: row.aciklama,
     referansNo: row.referans_no,
@@ -1625,6 +1676,9 @@ function mapBankaHareketi(row) {
     eslesmeTarihi: row.eslesme_tarihi,
     olusturanId: row.olusturan_id,
     createdAt: row.created_at,
+    teyitEdildi: row.teyit_edildi,
+    teyitEdenId: row.teyit_eden_id,
+    teyitTarihi: row.teyit_tarihi,
   }
 }
 
@@ -1639,6 +1693,21 @@ export const bankaHareketleri = {
   async remove(id) {
     await run(client().from('banka_hareketleri').delete().eq('id', id))
   },
+  // Finans > Raporlar > Fatura Kontrol — broker, 2026-10-11: "muhasebe
+  // işlemine geçince muhasebe bunları kontrol etsin" (dekontlar için,
+  // ciro_raporu_katilimcilari'ndaki aynı teyit desenine paralel).
+  async teyitEt(id, kullaniciId, deger = true) {
+    await run(
+      client()
+        .from('banka_hareketleri')
+        .update({
+          teyit_edildi: deger,
+          teyit_eden_id: deger ? kullaniciId : null,
+          teyit_tarihi: deger ? new Date().toISOString() : null,
+        })
+        .eq('id', id),
+    )
+  },
   // bagliOpportunityId + bloke:true verilirse "bağlanma parası" olarak
   // girilir (tapu gününü bekleyen, fırsatla doğrudan ilişkili bir giriş
   // hareketi) — ciro raporu henüz yoktur, bkz. lib/bankaHareketleri.js.
@@ -1649,7 +1718,10 @@ export const bankaHareketleri = {
   // migration 20261011093000 RLS'i zaten sadece kendi olusturan_id'siyle
   // ve durum='eslesmedi' insert'e izin veriyor — bloke/tip seçenekleri
   // sadece broker ekranında kullanılıyor, danışman formunda yok).
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl }, olusturanId) {
+  async create(
+    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
+    olusturanId,
+  ) {
     const cikis = tip === 'cikis'
     const data = await run(
       client()
@@ -1657,6 +1729,7 @@ export const bankaHareketleri = {
         .insert({
           tutar: Number(tutar),
           tarih,
+          dekont_tarihi: dekontTarihi || null,
           gonderen_adi: gonderenAdi || null,
           aciklama: aciklama || null,
           referans_no: referansNo || null,

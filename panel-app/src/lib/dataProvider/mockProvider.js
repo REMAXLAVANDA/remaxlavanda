@@ -951,6 +951,13 @@ export const ciroRaporlari = {
       raporKategori: raporKategori ?? null,
       krediDurumu: krediDurumu ?? null,
       krediBankasi: krediDurumu === 'kredi' ? krediBankasi || null : null,
+      ofisFaturaNo: null,
+      ofisFaturaTarihi: null,
+      ofisFaturaTutari: null,
+      myremaxGirildi: false,
+      muhasebeTamamlandi: false,
+      muhasebeTamamlanmaTarihi: null,
+      muhasebeTamamlayanId: null,
     }
     MOCK_CIRO_RAPORLARI.unshift(rapor)
     katilimcilar.forEach((k, i) => {
@@ -974,6 +981,9 @@ export const ciroRaporlari = {
         rtPayOraniSnapshot: k.rtPayOraniSnapshot ?? null,
         rtPayiTutari: k.rtPayiTutari ?? null,
         ofisPayiTutari: k.ofisPayiTutari ?? null,
+        teyitEdildi: false,
+        teyitEdenId: null,
+        teyitTarihi: null,
       })
     })
     return delay(mockCiroRaporuWithKatilimcilar(rapor))
@@ -1049,6 +1059,36 @@ export const ciroRaporlari = {
     rapor.redSebebi = redSebebi
     return delay({ id })
   },
+  async katilimciTeyitEt(katilimciId, kullaniciId, deger = true) {
+    const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
+    if (!row) throw new Error('Katılımcı bulunamadı.')
+    row.teyitEdildi = deger
+    row.teyitEdenId = deger ? kullaniciId : null
+    row.teyitTarihi = deger ? new Date().toISOString() : null
+    return delay({ ...row })
+  },
+  async ofisFaturasiKaydet(id, { no, tarih, tutar }) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    rapor.ofisFaturaNo = no || null
+    rapor.ofisFaturaTarihi = tarih || null
+    rapor.ofisFaturaTutari = tutar ?? null
+    return delay({ id })
+  },
+  async setMyremaxGirildi(id, deger) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    rapor.myremaxGirildi = deger
+    return delay({ id })
+  },
+  async setMuhasebeTamamlandi(id, deger, kullaniciId) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    rapor.muhasebeTamamlandi = deger
+    rapor.muhasebeTamamlanmaTarihi = deger ? new Date().toISOString() : null
+    rapor.muhasebeTamamlayanId = deger ? kullaniciId : null
+    return delay({ id })
+  },
 }
 
 // --- Danışman Anlaşmaları (komisyon paylaşım oranı, tarih aralıklı) --------
@@ -1087,6 +1127,7 @@ const MOCK_BANKA_HAREKETLERI = [
     id: 'bh-1',
     tutar: 480000,
     tarih: ciroRaporuDaysAgo(2).slice(0, 10),
+    dekontTarihi: ciroRaporuDaysAgo(2).slice(0, 10),
     gonderenAdi: 'Mehmet Demir',
     aciklama: 'EFT',
     referansNo: null,
@@ -1102,11 +1143,15 @@ const MOCK_BANKA_HAREKETLERI = [
     eslesmeTarihi: null,
     olusturanId: 'u-broker',
     createdAt: ciroRaporuDaysAgo(2),
+    teyitEdildi: false,
+    teyitEdenId: null,
+    teyitTarihi: null,
   },
   {
     id: 'bh-2',
     tutar: 300000,
     tarih: ciroRaporuDaysAgo(1).slice(0, 10),
+    dekontTarihi: ciroRaporuDaysAgo(1).slice(0, 10),
     gonderenAdi: 'Ayşe Şahin',
     aciklama: 'Bağlanma parası',
     referansNo: null,
@@ -1122,6 +1167,9 @@ const MOCK_BANKA_HAREKETLERI = [
     eslesmeTarihi: null,
     olusturanId: 'u-broker',
     createdAt: ciroRaporuDaysAgo(1),
+    teyitEdildi: false,
+    teyitEdenId: null,
+    teyitTarihi: null,
   },
 ]
 
@@ -1139,12 +1187,16 @@ export const bankaHareketleri = {
     if (idx !== -1) MOCK_BANKA_HAREKETLERI.splice(idx, 1)
     return delay(null)
   },
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl }, olusturanId) {
+  async create(
+    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
+    olusturanId,
+  ) {
     const cikis = tip === 'cikis'
     const row = {
       id: `bh-${Date.now()}`,
       tutar: Number(tutar),
       tarih,
+      dekontTarihi: dekontTarihi || null,
       gonderenAdi: gonderenAdi || null,
       aciklama: aciklama || null,
       referansNo: referansNo || null,
@@ -1162,9 +1214,20 @@ export const bankaHareketleri = {
       eslesmeTarihi: null,
       olusturanId,
       createdAt: new Date().toISOString(),
+      teyitEdildi: false,
+      teyitEdenId: null,
+      teyitTarihi: null,
     }
     MOCK_BANKA_HAREKETLERI.unshift(row)
     return delay(row)
+  },
+  async teyitEt(id, kullaniciId, deger = true) {
+    const row = MOCK_BANKA_HAREKETLERI.find((h) => h.id === id)
+    if (!row) throw new Error('Hareket bulunamadı.')
+    row.teyitEdildi = deger
+    row.teyitEdenId = deger ? kullaniciId : null
+    row.teyitTarihi = deger ? new Date().toISOString() : null
+    return delay({ ...row })
   },
   // bkz. supabaseProvider.js masrafOlarakIsaretle — AYNI mantık.
   async masrafOlarakIsaretle(hareketId, { tur, aciklama, danismanId }, kullaniciId) {

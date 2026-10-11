@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { canManageMasraflar } from '../../lib/islemMasraflari'
-import { canApproveCiroRaporu } from '../../lib/ciroRaporlari'
+import { canApproveCiroRaporu, canControlFaturaKontrol } from '../../lib/ciroRaporlari'
 import CariHesapPanel from './CariHesapPanel'
 import MasraflarPanel from './MasraflarPanel'
 import KarlilikPanel from './KarlilikPanel'
+import FaturaKontrolPanel from './FaturaKontrolPanel'
 
 // Finans > Raporlar — Cari Hesap ve Masraflar burada toplandı (2026-10-09
 // broker: "rapor demiştim ama sen masraflar menüsüne eklemişsin, rapor
@@ -20,6 +21,7 @@ const TABS = [
   { key: 'cari', label: 'Cari Hesap' },
   { key: 'masraflar', label: 'Masraflar' },
   { key: 'karlilik', label: 'Kârlılık' },
+  { key: 'fatura_kontrol', label: 'Fatura Kontrol' },
 ]
 
 export default function RaporlarPanel() {
@@ -27,7 +29,10 @@ export default function RaporlarPanel() {
   const [tab, setTab] = useState('cari')
   const showMasraflar = canManageMasraflar(role)
   const showKarlilik = canApproveCiroRaporu(role)
-  const visibleTabs = TABS.filter((t) => (t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : true))
+  const showFaturaKontrol = canControlFaturaKontrol(role)
+  const visibleTabs = TABS.filter((t) =>
+    t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : t.key === 'fatura_kontrol' ? showFaturaKontrol : true,
+  )
 
   return (
     <div>
@@ -50,6 +55,7 @@ export default function RaporlarPanel() {
       {tab === 'cari' && <CariHesapPanel />}
       {showMasraflar && tab === 'masraflar' && <MasraflarPanel />}
       {showKarlilik && tab === 'karlilik' && <KarlilikPanel />}
+      {showFaturaKontrol && tab === 'fatura_kontrol' && <FaturaKontrolPanel />}
     </div>
   )
 }
