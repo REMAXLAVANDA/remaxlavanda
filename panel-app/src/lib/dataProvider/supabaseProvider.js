@@ -1455,15 +1455,123 @@ export const ciroRaporlari = {
     }
     return mapCiroRaporu(rapor)
   },
-  // Taslak/reddedilen bir raporun başlık alanlarını düzenler — RLS zaten
-  // sadece olusturan_id + taslak/reddedildi durumunda izin veriyor.
-  async update(id, { islemTipi, islemTutari, islemTarihi, notlar }) {
+  // Taslak/reddedilen bir raporun TÜM alanlarını düzenler — broker,
+  // 2026-10-11: "sil ve düzenle diye seçim olmalı". RLS zaten sadece
+  // olusturan_id + taslak/reddedildi durumunda izin veriyor
+  // (ciro_raporlari_update_self). Katılımcılar create()'teki AYNI
+  // mantıkla TAMAMEN yeniden yazılır (sil + ekle) — taslak durumunda
+  // henüz hiçbir onay/Lig etkisi olmadığı için güvenli. paraHareketleri
+  // sadece bu düzenlemede YENİ eklenen satırları temsil eder, mevcut
+  // bağlı banka_hareketleri dokunulmadan kalır.
+  async update(
+    id,
+    {
+      islemTipi,
+      islemTutari,
+      islemTarihi,
+      notlar,
+      portfoyTipi,
+      disBeyanKodu,
+      tapuBilgileri,
+      saticiHizmetBedeliAlindi,
+      saticiAdSoyad,
+      saticiTelefon,
+      saticiKimlikNo,
+      saticiHizmetBedeli,
+      saticiEkHizmetBedeli,
+      saticiKdvOrani,
+      saticiHizmetBedeliHaric,
+      saticiDigerKisiler,
+      aliciHizmetBedeliAlindi,
+      aliciAdSoyad,
+      aliciTelefon,
+      aliciKimlikNo,
+      aliciHizmetBedeli,
+      aliciEkHizmetBedeli,
+      aliciKdvOrani,
+      aliciHizmetBedeliHaric,
+      aliciDigerKisiler,
+      raporKategori,
+      krediDurumu,
+      krediBankasi,
+      katilimcilar,
+      paraHareketleri,
+    },
+    olusturanId,
+  ) {
     await run(
       client()
         .from('ciro_raporlari')
-        .update({ islem_tipi: islemTipi, islem_tutari: islemTutari, islem_tarihi: islemTarihi, notlar: notlar || null })
+        .update({
+          islem_tipi: islemTipi,
+          islem_tutari: islemTutari,
+          islem_tarihi: islemTarihi,
+          notlar: notlar || null,
+          portfoy_tipi: portfoyTipi ?? 'portfoyum',
+          dis_beyan_kodu: disBeyanKodu || null,
+          tapu_bilgileri: tapuBilgileri || null,
+          satici_hizmet_bedeli_alindi: !!saticiHizmetBedeliAlindi,
+          satici_ad_soyad: saticiAdSoyad || null,
+          satici_telefon: saticiTelefon || null,
+          satici_kimlik_no: saticiKimlikNo || null,
+          satici_hizmet_bedeli: saticiHizmetBedeliAlindi ? saticiHizmetBedeli ?? null : null,
+          satici_ek_hizmet_bedeli: saticiHizmetBedeliAlindi ? saticiEkHizmetBedeli ?? null : null,
+          satici_kdv_orani: saticiHizmetBedeliAlindi ? saticiKdvOrani ?? null : null,
+          satici_hizmet_bedeli_haric: saticiHizmetBedeliAlindi ? saticiHizmetBedeliHaric ?? null : null,
+          satici_diger_kisiler: saticiDigerKisiler ?? [],
+          alici_hizmet_bedeli_alindi: !!aliciHizmetBedeliAlindi,
+          alici_ad_soyad: aliciAdSoyad || null,
+          alici_telefon: aliciTelefon || null,
+          alici_kimlik_no: aliciKimlikNo || null,
+          alici_hizmet_bedeli: aliciHizmetBedeliAlindi ? aliciHizmetBedeli ?? null : null,
+          alici_ek_hizmet_bedeli: aliciHizmetBedeliAlindi ? aliciEkHizmetBedeli ?? null : null,
+          alici_kdv_orani: aliciHizmetBedeliAlindi ? aliciKdvOrani ?? null : null,
+          alici_hizmet_bedeli_haric: aliciHizmetBedeliAlindi ? aliciHizmetBedeliHaric ?? null : null,
+          alici_diger_kisiler: aliciDigerKisiler ?? [],
+          rapor_kategori: raporKategori ?? null,
+          kredi_durumu: krediDurumu ?? null,
+          kredi_bankasi: krediDurumu === 'kredi' ? krediBankasi || null : null,
+        })
         .eq('id', id),
     )
+    if (katilimcilar) {
+      await run(client().from('ciro_raporu_katilimcilari').delete().eq('ciro_raporu_id', id))
+      const katilimciRows = katilimcilar.map((k) => ({
+        ciro_raporu_id: id,
+        danisman_id: k.danismanId,
+        pay_orani: k.payOrani,
+        anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
+        komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
+        gd_cirosu: k.gdCirosu ?? null,
+        rt_pay_orani_snapshot: k.rtPayOraniSnapshot ?? null,
+        rt_payi_tutari: k.rtPayiTutari ?? null,
+        ofis_payi_tutari: k.ofisPayiTutari ?? null,
+      }))
+      await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
+    }
+    if (paraHareketleri?.length) {
+      const hareketRows = paraHareketleri.map((h) => ({
+        tutar: Number(h.tutar),
+        tarih: h.tarih,
+        dekont_tarihi: h.dekontTarihi || null,
+        gonderen_adi: h.gonderenAdi || null,
+        referans_no: h.referansNo || null,
+        kaynak: 'manuel',
+        tip: h.tip === 'cikis' ? 'cikis' : 'giris',
+        tur: 'hizmet_bedeli',
+        durum: 'eslesmedi',
+        ciro_raporu_id: id,
+        olusturan_id: olusturanId,
+      }))
+      await run(client().from('banka_hareketleri').insert(hareketRows))
+    }
+  },
+  // Danışman kendi taslak/reddedildi raporunu siler — RLS
+  // (ciro_raporlari_delete_self) zaten bu iki duruma kısıtlıyor.
+  // Katılımcılar ve bağlı para hareketi beyanları ON DELETE CASCADE ile
+  // otomatik gidiyor (bkz. migration 20261011160000).
+  async remove(id) {
+    await run(client().from('ciro_raporlari').delete().eq('id', id))
   },
   // "Gönder" — taslak/reddedildi -> onay_bekliyor. RLS WITH CHECK'i
   // danışmanın doğrudan 'onaylandi'ya atlamasını zaten engelliyor.

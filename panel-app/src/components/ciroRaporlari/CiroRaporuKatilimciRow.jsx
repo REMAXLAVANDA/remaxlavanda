@@ -118,12 +118,14 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
       </div>
 
+      {/* RT Payı/Ofis Payı 2026-10-11'de kaldırıldı — broker: "RT Payı: —
+          Ofis Payı: — bunları kaldır" (anlaşma oranı tanımlı olmayan
+          danışmanlarda hep "—" çıkıyordu, kafa karıştırıyordu). GD
+          Cirosu/Çalışan Payı anlamlı oldukları için kalıyor. */}
       {canToggleOdeme && k.gdCirosu != null && (
         <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
           <span>GD Cirosu: <span className="font-medium text-text-primary">{tl(k.gdCirosu)}</span></span>
           <span>Çalışan Payı: {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}</span>
-          <span>RT Payı: {tl(k.rtPayiTutari)}</span>
-          <span>Ofis Payı: {tl(k.ofisPayiTutari)}</span>
         </div>
       )}
 

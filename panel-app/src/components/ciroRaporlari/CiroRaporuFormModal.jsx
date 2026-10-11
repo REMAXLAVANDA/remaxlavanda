@@ -43,35 +43,53 @@ function generateDisBeyanKodu() {
 // ekranındaki gibi checkbox'la açılıyor (2026-10-09 broker kararı: "sadece
 // bir tık koyalım") — toplamı GD Cirosu'nun (RT Payı/Ofis Payı hesabının)
 // tabanı, satış tutarından (Lig'e giden ayrı metrik) bağımsız.
-export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, danismanOptions, anlasmalar, user }) {
+// Broker, 2026-10-11: "sil ve düzenle diye seçim olmalı" — `editing`
+// (düzenlenen mevcut rapor) verilirse tüm state ondan dolduruluyor,
+// submit "Güncelle" olarak çalışıyor; verilmezse davranış AYNEN eskisi
+// (yeni rapor oluşturma).
+export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, danismanOptions, anlasmalar, user, editing, existingParaHareketleri }) {
+  const ownKatilimci = editing?.katilimcilar?.find((k) => k.danismanId === user.id)
+  const partnerKatilimci = editing?.katilimcilar?.find((k) => k.danismanId !== user.id)
   const [form, setForm] = useState({
-    islemTipi: 'satis',
-    islemTarihi: today(),
-    notlar: '',
+    islemTipi: editing?.islemTipi ?? 'satis',
+    islemTarihi: editing?.islemTarihi ?? today(),
+    notlar: editing?.notlar ?? '',
   })
-  const [portfoyTipi, setPortfoyTipi] = useState('portfoyum')
-  const [disBeyanKodu, setDisBeyanKodu] = useState('')
-  const [tapuBilgileri, setTapuBilgileri] = useState('')
-  const [raporKategori, setRaporKategori] = useState('')
-  const [krediDurumu, setKrediDurumu] = useState('nakit')
-  const [krediBankasi, setKrediBankasi] = useState('')
+  const [portfoyTipi, setPortfoyTipi] = useState(editing?.portfoyTipi ?? 'portfoyum')
+  const [disBeyanKodu, setDisBeyanKodu] = useState(editing?.disBeyanKodu ?? '')
+  const [tapuBilgileri, setTapuBilgileri] = useState(editing?.tapuBilgileri ?? '')
+  const [raporKategori, setRaporKategori] = useState(editing?.raporKategori ?? '')
+  const [krediDurumu, setKrediDurumu] = useState(editing?.krediDurumu ?? 'nakit')
+  const [krediBankasi, setKrediBankasi] = useState(editing?.krediBankasi ?? '')
   // null = henüz seçilmedi — broker, 2026-10-11: "bir seçim zorunlu olmalı,
   // yoksa işaretlemeden gözden kaçabilir". Checkbox'ın varsayılan "boş =
   // hayır" haliyle sessizce atlanabilmesi yerine, Nakit/Kredi'yle AYNI
   // desende açıkça "Aldım"/"Almadım" seçilmesi zorunlu (bkz. canSubmit).
-  const [saticiVar, setSaticiVar] = useState(null)
-  const [satici, setSatici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '', kdvOrani: '20' })
+  const [saticiVar, setSaticiVar] = useState(editing ? !!editing.saticiHizmetBedeliAlindi : null)
+  const [satici, setSatici] = useState({
+    adSoyad: editing?.saticiAdSoyad ?? '',
+    telefon: editing?.saticiTelefon ?? '',
+    kimlikNo: editing?.saticiKimlikNo ?? '',
+    hizmetBedeli: editing?.saticiHizmetBedeli != null ? formatThousands(String(editing.saticiHizmetBedeli)) : '',
+    kdvOrani: editing?.saticiKdvOrani != null ? String(editing.saticiKdvOrani) : '20',
+  })
   // "+" ile eklenen EK satıcılar (ör. miras payı/hisse ortaklığı) — broker,
   // 2026-10-11: "artı işareti ekleyerek başka satıcı da eklenebilsin, isim
   // soyisim tc zorunlu olacak". Hizmet bedeli/KDV tek taraf olarak kalıyor
   // (satici state'inde), bu dizi sadece ek kimlik bilgisi topluyor.
-  const [saticiDiger, setSaticiDiger] = useState([])
-  const [aliciVar, setAliciVar] = useState(null)
-  const [alici, setAlici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '', kdvOrani: '20' })
-  const [aliciDiger, setAliciDiger] = useState([])
-  const [ortakVar, setOrtakVar] = useState(false)
-  const [partnerId, setPartnerId] = useState('')
-  const [payOraniSelf, setPayOraniSelf] = useState('50')
+  const [saticiDiger, setSaticiDiger] = useState(editing?.saticiDigerKisiler ?? [])
+  const [aliciVar, setAliciVar] = useState(editing ? !!editing.aliciHizmetBedeliAlindi : null)
+  const [alici, setAlici] = useState({
+    adSoyad: editing?.aliciAdSoyad ?? '',
+    telefon: editing?.aliciTelefon ?? '',
+    kimlikNo: editing?.aliciKimlikNo ?? '',
+    hizmetBedeli: editing?.aliciHizmetBedeli != null ? formatThousands(String(editing.aliciHizmetBedeli)) : '',
+    kdvOrani: editing?.aliciKdvOrani != null ? String(editing.aliciKdvOrani) : '20',
+  })
+  const [aliciDiger, setAliciDiger] = useState(editing?.aliciDigerKisiler ?? [])
+  const [ortakVar, setOrtakVar] = useState(!!partnerKatilimci)
+  const [partnerId, setPartnerId] = useState(partnerKatilimci?.danismanId ?? '')
+  const [payOraniSelf, setPayOraniSelf] = useState(ownKatilimci?.payOrani != null ? String(ownKatilimci.payOrani) : '50')
   // Broker, 2026-10-11: "danışman beyan girerken bu bilgileri işlesin,
   // bankadan ayrıca eşleştirelim. yani beyan menüsünde para girişlerini
   // ve çıkışlarını danışmanın gireceği satır olmalı" — ayrı bir Banka
@@ -268,7 +286,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   }
 
   return (
-    <Modal title="Yeni Ciro Raporu" onClose={onClose}>
+    <Modal title={editing ? 'Ciro Raporunu Düzenle' : 'Yeni Ciro Raporu'} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="flex gap-2">
           {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
@@ -682,6 +700,16 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           <p className="mb-2 text-[11px] text-ink-500">
             Bu işleme ait banka giriş/çıkışlarını buraya ekle — broker/ofis bunları sonra gerçek banka ekstresiyle eşleştirecek.
           </p>
+          {existingParaHareketleri?.length > 0 && (
+            <div className="mb-2 space-y-1 rounded-lg bg-white p-2 text-[11px] text-ink-600">
+              <p className="font-medium text-ink-700">Daha önce eklenmiş (düzenlenemez):</p>
+              {existingParaHareketleri.map((h) => (
+                <p key={h.id}>
+                  {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {tl(h.tutar)} · {h.gonderenAdi || '—'}
+                </p>
+              ))}
+            </div>
+          )}
           {paraHareketleri.map((h, i) => (
             <div key={i} className="mb-2 rounded-lg border border-ink-200 bg-white p-2 last:mb-0">
               <div className="mb-2 flex gap-2">
@@ -777,7 +805,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             disabled={!canSubmit || submitting}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
-            {submitting ? 'Kaydediliyor...' : 'Taslak Olarak Kaydet'}
+            {submitting ? 'Kaydediliyor...' : editing ? 'Güncelle' : 'Taslak Olarak Kaydet'}
           </button>
         </div>
       </form>

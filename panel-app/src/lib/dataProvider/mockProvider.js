@@ -1020,11 +1020,157 @@ export const ciroRaporlari = {
     }
     return delay(mockCiroRaporuWithKatilimcilar(rapor))
   },
-  async update(id, { islemTipi, islemTutari, islemTarihi, notlar }) {
+  // Broker, 2026-10-11: "sil ve düzenle diye seçim olmalı" — create()'teki
+  // AYNI tüm alanlar güncellenebiliyor, katılımcılar TAMAMEN yeniden
+  // yazılıyor (taslakta henüz Lig/onay etkisi yok, güvenli), paraHareketleri
+  // sadece bu düzenlemede eklenen YENİ satırları temsil ediyor.
+  async update(
+    id,
+    {
+      islemTipi,
+      islemTutari,
+      islemTarihi,
+      notlar,
+      portfoyTipi,
+      disBeyanKodu,
+      tapuBilgileri,
+      saticiHizmetBedeliAlindi,
+      saticiAdSoyad,
+      saticiTelefon,
+      saticiKimlikNo,
+      saticiHizmetBedeli,
+      saticiEkHizmetBedeli,
+      saticiKdvOrani,
+      saticiHizmetBedeliHaric,
+      saticiDigerKisiler,
+      aliciHizmetBedeliAlindi,
+      aliciAdSoyad,
+      aliciTelefon,
+      aliciKimlikNo,
+      aliciHizmetBedeli,
+      aliciEkHizmetBedeli,
+      aliciKdvOrani,
+      aliciHizmetBedeliHaric,
+      aliciDigerKisiler,
+      raporKategori,
+      krediDurumu,
+      krediBankasi,
+      katilimcilar,
+      paraHareketleri,
+    },
+    olusturanId,
+  ) {
     const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
     if (!rapor) throw new Error('Rapor bulunamadı.')
-    Object.assign(rapor, { islemTipi, islemTutari: Number(islemTutari), islemTarihi, notlar: notlar || null, updatedAt: new Date().toISOString() })
+    Object.assign(rapor, {
+      islemTipi,
+      islemTutari: Number(islemTutari),
+      islemTarihi,
+      notlar: notlar || null,
+      portfoyTipi: portfoyTipi ?? 'portfoyum',
+      disBeyanKodu: disBeyanKodu || null,
+      tapuBilgileri: tapuBilgileri || null,
+      saticiHizmetBedeliAlindi: !!saticiHizmetBedeliAlindi,
+      saticiAdSoyad: saticiAdSoyad || null,
+      saticiTelefon: saticiTelefon || null,
+      saticiKimlikNo: saticiKimlikNo || null,
+      saticiHizmetBedeli: saticiHizmetBedeliAlindi ? (saticiHizmetBedeli ?? null) : null,
+      saticiEkHizmetBedeli: saticiHizmetBedeliAlindi ? (saticiEkHizmetBedeli ?? null) : null,
+      saticiKdvOrani: saticiHizmetBedeliAlindi ? (saticiKdvOrani ?? null) : null,
+      saticiHizmetBedeliHaric: saticiHizmetBedeliAlindi ? (saticiHizmetBedeliHaric ?? null) : null,
+      saticiDigerKisiler: saticiDigerKisiler ?? [],
+      aliciHizmetBedeliAlindi: !!aliciHizmetBedeliAlindi,
+      aliciAdSoyad: aliciAdSoyad || null,
+      aliciTelefon: aliciTelefon || null,
+      aliciKimlikNo: aliciKimlikNo || null,
+      aliciHizmetBedeli: aliciHizmetBedeliAlindi ? (aliciHizmetBedeli ?? null) : null,
+      aliciEkHizmetBedeli: aliciHizmetBedeliAlindi ? (aliciEkHizmetBedeli ?? null) : null,
+      aliciKdvOrani: aliciHizmetBedeliAlindi ? (aliciKdvOrani ?? null) : null,
+      aliciHizmetBedeliHaric: aliciHizmetBedeliAlindi ? (aliciHizmetBedeliHaric ?? null) : null,
+      aliciDigerKisiler: aliciDigerKisiler ?? [],
+      raporKategori: raporKategori ?? null,
+      krediDurumu: krediDurumu ?? null,
+      krediBankasi: krediDurumu === 'kredi' ? krediBankasi || null : null,
+      updatedAt: new Date().toISOString(),
+    })
+    if (katilimcilar) {
+      for (let i = MOCK_CIRO_RAPORU_KATILIMCILARI.length - 1; i >= 0; i--) {
+        if (MOCK_CIRO_RAPORU_KATILIMCILARI[i].ciroRaporuId === id) MOCK_CIRO_RAPORU_KATILIMCILARI.splice(i, 1)
+      }
+      katilimcilar.forEach((k, i) => {
+        MOCK_CIRO_RAPORU_KATILIMCILARI.push({
+          id: `crk-${Date.now()}-${i}`,
+          ciroRaporuId: id,
+          danismanId: k.danismanId,
+          payOrani: Number(k.payOrani),
+          anlasmaOraniSnapshot: k.anlasmaOraniSnapshot ?? null,
+          komisyonTutariOnerisi: k.komisyonTutariOnerisi ?? null,
+          faturaNo: null,
+          faturaTarihi: null,
+          faturaTutari: null,
+          kdvOrani: null,
+          kdvHaricTutar: null,
+          vergiNo: null,
+          faturaDosyaUrl: null,
+          odemeDurumu: 'bekliyor',
+          notlar: null,
+          gdCirosu: k.gdCirosu ?? null,
+          rtPayOraniSnapshot: k.rtPayOraniSnapshot ?? null,
+          rtPayiTutari: k.rtPayiTutari ?? null,
+          ofisPayiTutari: k.ofisPayiTutari ?? null,
+          teyitEdildi: false,
+          teyitEdenId: null,
+          teyitTarihi: null,
+        })
+      })
+    }
+    if (paraHareketleri?.length) {
+      paraHareketleri.forEach((h, i) => {
+        MOCK_BANKA_HAREKETLERI.unshift({
+          id: `bh-${Date.now()}-${i}`,
+          tutar: Number(h.tutar),
+          tarih: h.tarih,
+          dekontTarihi: h.dekontTarihi || null,
+          gonderenAdi: h.gonderenAdi || null,
+          aciklama: null,
+          referansNo: h.referansNo || null,
+          kaynak: 'manuel',
+          durum: 'eslesmedi',
+          tip: h.tip === 'cikis' ? 'cikis' : 'giris',
+          opportunityId: null,
+          ciroRaporuId: id,
+          ustHareketId: null,
+          tur: 'hizmet_bedeli',
+          bankaAdi: null,
+          dekontDosyaUrl: null,
+          mahsupTutari: null,
+          eslesenKatilimciId: null,
+          eslestirenId: null,
+          eslesmeTarihi: null,
+          olusturanId,
+          createdAt: new Date().toISOString(),
+          teyitEdildi: false,
+          teyitEdenId: null,
+          teyitTarihi: null,
+        })
+      })
+    }
     return delay(mockCiroRaporuWithKatilimcilar(rapor))
+  },
+  // Broker, 2026-10-11: "sil ve düzenle diye seçim olmalı" — taslak/
+  // reddedildi raporu siler; katılımcılar ve bağlı para hareketi
+  // beyanları da birlikte gider (supabaseProvider.js'deki CASCADE'in
+  // mock karşılığı).
+  async remove(id) {
+    const idx = MOCK_CIRO_RAPORLARI.findIndex((r) => r.id === id)
+    if (idx !== -1) MOCK_CIRO_RAPORLARI.splice(idx, 1)
+    for (let i = MOCK_CIRO_RAPORU_KATILIMCILARI.length - 1; i >= 0; i--) {
+      if (MOCK_CIRO_RAPORU_KATILIMCILARI[i].ciroRaporuId === id) MOCK_CIRO_RAPORU_KATILIMCILARI.splice(i, 1)
+    }
+    for (let i = MOCK_BANKA_HAREKETLERI.length - 1; i >= 0; i--) {
+      if (MOCK_BANKA_HAREKETLERI[i].ciroRaporuId === id) MOCK_BANKA_HAREKETLERI.splice(i, 1)
+    }
+    return delay(null)
   },
   async submit(id) {
     const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)

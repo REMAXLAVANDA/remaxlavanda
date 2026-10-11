@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, ChevronDown, ChevronUp, Check, X as XIcon, RotateCcw } from 'lucide-react'
+import { Plus, ChevronDown, ChevronUp, Check, X as XIcon, RotateCcw, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -23,6 +23,7 @@ import { LoadingState, ErrorState } from '../common/AsyncState'
 import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
 import CiroRaporuKatilimciRow from '../ciroRaporlari/CiroRaporuKatilimciRow'
 import RejectCiroRaporuModal from '../ciroRaporlari/RejectCiroRaporuModal'
+import ConfirmDialog from '../common/ConfirmDialog'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -43,6 +44,8 @@ export default function CiroRaporlariPanel() {
   const { knownUsers } = useKnownUsers()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const [showFormModal, setShowFormModal] = useState(false)
+  const [editTarget, setEditTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [rejectTarget, setRejectTarget] = useState(null)
@@ -109,6 +112,35 @@ export default function CiroRaporlariPanel() {
       reload()
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Broker, 2026-10-11: "sil ve düzenle diye seçim olmalı".
+  async function handleUpdate(form) {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.update(editTarget.id, form, user.id)
+      setEditTarget(null)
+      showToast('Rapor güncellendi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Güncellenemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleDelete() {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.remove(deleteTarget)
+      setDeleteTarget(null)
+      showToast('Rapor silindi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Silinemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -246,6 +278,22 @@ export default function CiroRaporlariPanel() {
               />
             ))}
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+              {isDanisman && isOwner && (r.durum === 'taslak' || r.durum === 'reddedildi') && (
+                <>
+                  <button
+                    onClick={() => setDeleteTarget(r.id)}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={13} /> Sil
+                  </button>
+                  <button
+                    onClick={() => setEditTarget(r)}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-sunken"
+                  >
+                    <Pencil size={13} /> Düzenle
+                  </button>
+                </>
+              )}
               {isDanisman && isOwner && r.durum === 'taslak' && (
                 <button
                   onClick={() => handleSubmitTaslak(r)}
@@ -350,6 +398,31 @@ export default function CiroRaporlariPanel() {
           danismanOptions={danismanOptions}
           anlasmalar={data?.anlasmalar ?? []}
           user={user}
+        />
+      )}
+
+      {editTarget && (
+        <CiroRaporuFormModal
+          onClose={() => setEditTarget(null)}
+          onSubmit={handleUpdate}
+          submitting={submitting}
+          danismanOptions={danismanOptions}
+          anlasmalar={data?.anlasmalar ?? []}
+          user={user}
+          editing={editTarget}
+          existingParaHareketleri={(data?.hareketler ?? []).filter((h) => h.ciroRaporuId === editTarget.id)}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Raporu sil"
+          message="Bu ciro raporu taslağı kalıcı olarak silinecek."
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          confirming={submitting}
         />
       )}
 
