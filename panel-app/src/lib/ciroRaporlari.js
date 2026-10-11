@@ -21,20 +21,22 @@ export const CIRO_RAPORU_DURUM_STYLES = {
   reddedildi: 'bg-red-50 text-red-600',
 }
 
-// MyRemax'in resmi sınıflandırmasıyla birebir (broker, 2026-10-11) — Lig/
-// Mentor Primi puanlaması bundan ETKİLENMİYOR, islem_tutari her tip için
-// aynı şekilde league.addScore()'a gidiyor (broker kararı: "evet Lig'e de
-// girsin", bkz. migration 20261011090000).
+// Lig/Mentor Primi puanlaması bundan ETKİLENMİYOR, islem_tutari her tip
+// için aynı şekilde league.addScore()'a gidiyor (broker kararı: "evet
+// Lig'e de girsin", bkz. migration 20261011090000). 2026-10-11 (2. karar):
+// Co-operation/Referral'ın Gönderilen/Alınan ayrımı kaldırıldı, broker
+// "satış kiralama ref corp olsun sadece" dedi — bkz. migration
+// 20261011110000.
 export const ISLEM_TIPI_LABELS = {
   satis: 'Satış',
   kiralama: 'Kiralama',
-  cooperation_gonderilen: 'Co-operation Gönderilen',
-  cooperation_alinan: 'Co-operation Alınan',
-  referral_gonderilen: 'Referral Gönderilen',
-  referral_alinan: 'Referral Alınan',
+  referral: 'Referral',
+  cooperation: 'Co-operation',
 }
 
-export const RAPOR_KATEGORI_LABELS = { konut: 'Konut', ticari: 'Ticari' }
+// Fırsatlar'daki 3 kategoriyle hizalı (broker, 2026-10-11: "konut arsa
+// ticari olmalı" — ilk halinde Arsa unutulmuştu).
+export const RAPOR_KATEGORI_LABELS = { konut: 'Konut', arsa: 'Arsa', ticari: 'Ticari' }
 
 export const KREDI_DURUMU_LABELS = { nakit: 'Nakit', kredi: 'Kredi' }
 

@@ -180,23 +180,24 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
           <label className="mb-1 block text-xs text-ink-500">Hangi işlem için</label>
           {portfoyTipi === 'portfoyum' ? (
             <>
-              <select
-                required
-                value={form.opportunityId}
-                onChange={(e) => set({ opportunityId: e.target.value })}
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-              >
-                <option value="">Portföy seç</option>
-                {opportunities.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.ozet || o.konum}
-                  </option>
-                ))}
-              </select>
-              {opportunities.length === 0 && (
-                <p className="mt-1 text-xs text-amber-700">
+              {opportunities.length === 0 ? (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
                   "Kapandı" durumunda, henüz raporu olmayan bir işlemin yok. Fırsatı önce Fırsatlar sayfasında kapat.
                 </p>
+              ) : (
+                <select
+                  required
+                  value={form.opportunityId}
+                  onChange={(e) => set({ opportunityId: e.target.value })}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+                >
+                  <option value="">Portföy seç</option>
+                  {opportunities.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.ozet || o.konum}
+                    </option>
+                  ))}
+                </select>
               )}
               <input
                 value={disBeyanKodu}
