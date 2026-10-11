@@ -146,17 +146,19 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     !!raporKategori &&
     (krediDurumu !== 'kredi' || krediBankasi.trim().length > 0) &&
     satici.adSoyad.trim().length > 0 &&
+    satici.telefon.trim().length > 0 &&
     satici.kimlikNo.trim().length > 0 &&
     saticiVar !== null &&
     (saticiVar === false ||
       (saticiHizmetBedeliParsed !== null && saticiHizmetBedeliParsed > 0 && saticiKdvOraniParsed !== null && saticiKdvOraniParsed >= 0)) &&
     alici.adSoyad.trim().length > 0 &&
+    alici.telefon.trim().length > 0 &&
     alici.kimlikNo.trim().length > 0 &&
     aliciVar !== null &&
     (aliciVar === false ||
       (aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0 && aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) &&
-    saticiDiger.every((k) => k.adSoyad.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
-    aliciDiger.every((k) => k.adSoyad.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
+    saticiDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
+    aliciDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
     (!ortakVar || (partnerId && toplamPay > 0 && toplamPay <= 100))
 
   function katilimciSatiri(danismanId, payOrani, anlasmaOrani, rtOrani) {
@@ -323,9 +325,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
             />
             <input
+              required
               value={satici.telefon}
               onChange={(e) => setSatici((s) => ({ ...s, telefon: e.target.value }))}
-              placeholder="Telefon"
+              placeholder="Telefon *"
               className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
             />
             <input
@@ -347,9 +350,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
               />
               <input
+                required
                 value={k.telefon}
                 onChange={(e) => updateDigerKisi(setSaticiDiger, i, { telefon: e.target.value })}
-                placeholder="Telefon"
+                placeholder="Telefon *"
                 className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
               />
               <div className="flex gap-1">
@@ -440,9 +444,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
             />
             <input
+              required
               value={alici.telefon}
               onChange={(e) => setAlici((s) => ({ ...s, telefon: e.target.value }))}
-              placeholder="Telefon"
+              placeholder="Telefon *"
               className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
             />
             <input
@@ -464,9 +469,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
               />
               <input
+                required
                 value={k.telefon}
                 onChange={(e) => updateDigerKisi(setAliciDiger, i, { telefon: e.target.value })}
-                placeholder="Telefon"
+                placeholder="Telefon *"
                 className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
               />
               <div className="flex gap-1">
