@@ -210,7 +210,14 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       (aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0 && aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) &&
     saticiDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
     aliciDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
-    (!ortakVar || (partnerId && toplamPay > 0 && toplamPay <= 100))
+    // DB'deki ciro_raporu_katilimcilari_pay_orani_check (pay_orani > 0 AND
+    // <= 100) her İKİ tarafı da ayrı ayrı kapsıyor — sadece toplamın 100
+    // olması yetmez, kendi payını %100 yapıp ortağınkini %0'a düşürmek de
+    // bu kısıtı ihlal eder ve kayıt yarı yolda (katılımcısız bir taslak
+    // olarak) kalır. Bu yüzden Number(payOraniSelf) < 100 şartı da eklendi
+    // (2026-10-11, üretimde yaşanan "hata veriyor ama taslaklara
+    // kaydoluyor" olayının kök nedeni).
+    (!ortakVar || (partnerId && toplamPay > 0 && toplamPay <= 100 && Number(payOraniSelf || 0) < 100 && payOraniPartner > 0))
 
   function katilimciSatiri(danismanId, payOrani, anlasmaOrani, rtOrani) {
     const gdCirosuDeger = gdCirosu(toplamHizmetBedeliDeger, payOrani)
@@ -652,6 +659,9 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 <span>% — ortağımın payı otomatik %{payOraniPartner}</span>
               </div>
               {toplamPay > 100 && <p className="text-xs text-red-600">Toplam pay %100'ü geçemez.</p>}
+              {payOraniPartner <= 0 && (
+                <p className="text-xs text-red-600">Ortağının payı %0 olamaz — kendi payını düşür.</p>
+              )}
             </div>
           )}
         </div>

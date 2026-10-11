@@ -1420,38 +1420,48 @@ export const ciroRaporlari = {
         .select()
         .single(),
     )
-    const katilimciRows = katilimcilar.map((k) => ({
-      ciro_raporu_id: rapor.id,
-      danisman_id: k.danismanId,
-      pay_orani: k.payOrani,
-      anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
-      komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
-      gd_cirosu: k.gdCirosu ?? null,
-      rt_pay_orani_snapshot: k.rtPayOraniSnapshot ?? null,
-      rt_payi_tutari: k.rtPayiTutari ?? null,
-      ofis_payi_tutari: k.ofisPayiTutari ?? null,
-    }))
-    await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
-    // Broker, 2026-10-11: "beyan menüsünde para girişlerini ve çıkışlarını
-    // danışmanın gireceği satır olmalı" — bu beyana ait para hareketleri
-    // (varsa) banka_hareketleri'ne ciro_raporu_id ile bağlı olarak yazılır.
-    // Broker/ofis daha sonra gerçek banka ekstresiyle eşleştirme/teyit
-    // adımını AYRICA yapar (bkz. migration 20261011150000).
-    if (paraHareketleri?.length) {
-      const hareketRows = paraHareketleri.map((h) => ({
-        tutar: Number(h.tutar),
-        tarih: h.tarih,
-        dekont_tarihi: h.dekontTarihi || null,
-        gonderen_adi: h.gonderenAdi || null,
-        referans_no: h.referansNo || null,
-        kaynak: 'manuel',
-        tip: h.tip === 'cikis' ? 'cikis' : 'giris',
-        tur: 'hizmet_bedeli',
-        durum: 'eslesmedi',
+    // katılımcı/para hareketi eklerken bir hata olursa (ör. pay_orani
+    // check constraint'i — 2026-10-11'de prod'da gerçekten yaşandı: "hata
+    // veriyor ama taslaklara kaydoluyor"), ilk sorguda oluşan rapor
+    // YARIM/katılımcısız kalmasın diye geri alınıyor — kullanıcı hiçbir
+    // şeyin kaydedilmediğini görür, yarım bir taslakla baş başa kalmaz.
+    try {
+      const katilimciRows = katilimcilar.map((k) => ({
         ciro_raporu_id: rapor.id,
-        olusturan_id: olusturanId,
+        danisman_id: k.danismanId,
+        pay_orani: k.payOrani,
+        anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
+        komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
+        gd_cirosu: k.gdCirosu ?? null,
+        rt_pay_orani_snapshot: k.rtPayOraniSnapshot ?? null,
+        rt_payi_tutari: k.rtPayiTutari ?? null,
+        ofis_payi_tutari: k.ofisPayiTutari ?? null,
       }))
-      await run(client().from('banka_hareketleri').insert(hareketRows))
+      await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
+      // Broker, 2026-10-11: "beyan menüsünde para girişlerini ve çıkışlarını
+      // danışmanın gireceği satır olmalı" — bu beyana ait para hareketleri
+      // (varsa) banka_hareketleri'ne ciro_raporu_id ile bağlı olarak yazılır.
+      // Broker/ofis daha sonra gerçek banka ekstresiyle eşleştirme/teyit
+      // adımını AYRICA yapar (bkz. migration 20261011150000).
+      if (paraHareketleri?.length) {
+        const hareketRows = paraHareketleri.map((h) => ({
+          tutar: Number(h.tutar),
+          tarih: h.tarih,
+          dekont_tarihi: h.dekontTarihi || null,
+          gonderen_adi: h.gonderenAdi || null,
+          referans_no: h.referansNo || null,
+          kaynak: 'manuel',
+          tip: h.tip === 'cikis' ? 'cikis' : 'giris',
+          tur: 'hizmet_bedeli',
+          durum: 'eslesmedi',
+          ciro_raporu_id: rapor.id,
+          olusturan_id: olusturanId,
+        }))
+        await run(client().from('banka_hareketleri').insert(hareketRows))
+      }
+    } catch (err) {
+      await client().from('ciro_raporlari').delete().eq('id', rapor.id)
+      throw err
     }
     return mapCiroRaporu(rapor)
   },
