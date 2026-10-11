@@ -5,7 +5,6 @@ import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import {
-  opportunities as opportunitiesProvider,
   ciroRaporlari as ciroRaporlariProvider,
   danismanAnlasmalari as danismanAnlasmalariProvider,
   bankaHareketleri as bankaHareketleriProvider,
@@ -14,6 +13,7 @@ import {
   CIRO_RAPORU_DURUM_LABELS,
   CIRO_RAPORU_DURUM_STYLES,
   ISLEM_TIPI_LABELS,
+  PORTFOY_TIPI_LABELS,
   canSubmitCiroRaporu,
   canApproveCiroRaporu,
 } from '../../lib/ciroRaporlari'
@@ -29,13 +29,12 @@ function tl(n) {
 }
 
 async function loadAll() {
-  const [opportunities, raporlar, anlasmalar, hareketler] = await Promise.all([
-    opportunitiesProvider.list(),
+  const [raporlar, anlasmalar, hareketler] = await Promise.all([
     ciroRaporlariProvider.list(),
     danismanAnlasmalariProvider.list(),
     bankaHareketleriProvider.list(),
   ])
-  return { opportunities, raporlar, anlasmalar, hareketler }
+  return { raporlar, anlasmalar, hareketler }
 }
 
 export default function CiroRaporlariPanel() {
@@ -56,15 +55,6 @@ export default function CiroRaporlariPanel() {
     () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi && u.id !== user.id),
     [knownUsers, user.id],
   )
-
-  // Danışmanın raporlayabileceği fırsatlar: kendi üstlendiği, kapanmış, ve
-  // henüz reddedilmemiş bir raporu olmayan (aynı fırsata iki aktif rapor
-  // açılmasın diye — reddedilen bir fırsat için yeniden rapor açılabilir).
-  const eligibleOpportunities = useMemo(() => {
-    if (!data) return []
-    const activeOppIds = new Set((data.raporlar ?? []).filter((r) => r.durum !== 'reddedildi').map((r) => r.opportunityId))
-    return (data.opportunities ?? []).filter((o) => o.claimerId === user.id && o.status === 'kapandi' && !activeOppIds.has(o.id))
-  }, [data, user.id])
 
   // Danışman: kendi oluşturduğu ya da ortak katılımcısı olduğu raporlar.
   // Broker/owner: RLS zaten herkesinkini döndürüyor, filtre gereksiz.
@@ -102,10 +92,12 @@ export default function CiroRaporlariPanel() {
     return !!r.katilimcilar?.find((k) => k.danismanId === r.olusturanId)?.faturaNo
   }
 
+  // Broker, 2026-10-11: "biz bir portföy takibi yapmadığımız için" —
+  // gerçek bir Fırsat'a bağlama kaldırıldı, artık her iki portföy tipi de
+  // (Portföylerim/Dış Portföy) sadece elle yazılan bir kodla tanımlanıyor
+  // (bkz. CiroRaporuFormModal.jsx, migration 20261011120000).
   function opportunityLabel(r) {
-    if (r.portfoyTipi === 'dis_portfoy') return `Dış Portföy · ${r.disBeyanKodu}`
-    const o = data?.opportunities?.find((o) => o.id === r.opportunityId)
-    return o ? o.ozet || o.konum : 'Fırsat'
+    return `${PORTFOY_TIPI_LABELS[r.portfoyTipi] ?? 'Portföy'} · ${r.disBeyanKodu ?? '—'}`
   }
 
   async function handleCreate(form) {
@@ -355,7 +347,6 @@ export default function CiroRaporlariPanel() {
           onClose={() => setShowFormModal(false)}
           onSubmit={handleCreate}
           submitting={submitting}
-          opportunities={eligibleOpportunities}
           danismanOptions={danismanOptions}
           anlasmalar={data?.anlasmalar ?? []}
           user={user}
