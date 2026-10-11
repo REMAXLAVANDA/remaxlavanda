@@ -41,7 +41,10 @@ export default function FaturaKontrolPanel() {
     () => (data?.raporlar ?? []).filter((r) => r.durum === 'onay_bekliyor' || r.durum === 'onaylandi'),
     [data],
   )
-  const dekontlar = useMemo(() => (data?.hareketler ?? []).filter((h) => h.tip !== 'cikis'), [data])
+  // Broker, 2026-10-11: "şu an banka hallolmamış gibi danışman para
+  // giriş çıkışlarını işleyebilsin" — muhasebe kontrolü de her ikisini
+  // (giriş + çıkış) kapsamalı, sadece giriş değil.
+  const dekontlar = data?.hareketler ?? []
 
   function ofisForm(raporId, rapor) {
     return (
@@ -247,10 +250,15 @@ export default function FaturaKontrolPanel() {
             {dekontlar.map((h) => (
               <div key={h.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-subtle p-3">
                 <div className="min-w-0 text-xs text-text-secondary">
-                  <span className="font-medium text-text-primary">{tl(h.tutar)}</span> — {h.gonderenAdi || 'gönderen belirtilmemiş'}
-                  <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
-                    {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
-                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${h.tip === 'cikis' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'}`}>
+                    {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'}
+                  </span>{' '}
+                  <span className="font-medium text-text-primary">{tl(h.tutar)}</span> — {h.gonderenAdi || 'belirtilmemiş'}
+                  {h.tip !== 'cikis' && (
+                    <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
+                      {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
+                    </span>
+                  )}
                   <p className="mt-0.5 text-text-muted">
                     {formatDateOnly(h.tarih)}
                     {h.referansNo && ` · Referans No: ${h.referansNo}`}

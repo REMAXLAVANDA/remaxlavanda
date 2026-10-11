@@ -34,6 +34,7 @@ export default function BankaHareketiDanismanPanel() {
   const { showToast } = useToast()
   const { data, setData, loading, error, reload } = useAsyncList(() => bankaHareketleriProvider.list(), [])
   const [form, setForm] = useState({
+    tip: 'giris',
     tutar: '',
     tarih: today(),
     dekontTarihi: today(),
@@ -52,6 +53,7 @@ export default function BankaHareketiDanismanPanel() {
   const ownHareketler = (data ?? []).filter((h) => h.olusturanId === user.id)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const parsedTutar = parseThousands(form.tutar)
+  const cikis = form.tip === 'cikis'
   // Broker, 2026-10-11: "danışman gelen para transferini işlesin, hizmet
   // bedelini işlesin kimden ne geldiğini" — tutar (ne) zaten vardı, kimden
   // geldiği (gönderen adı, satıcı/alıcıdan hangisiyse) de zorunlu oldu.
@@ -69,6 +71,13 @@ export default function BankaHareketiDanismanPanel() {
   // hesap hareketlerinde GERÇEKTEN göreceği ve eşleştirmeye yarayan alan
   // bu (broker onayı, 2026-10-11). referansNo/referans_no alan adı
   // değişmedi, sadece etiket düzeltildi.
+  //
+  // Üçüncü talimat: "şu an banka hallolmamış gibi danışman para giriş
+  // çıkışlarını işleyebilsin" — banka API entegrasyonu (Vakıfbank) hâlâ
+  // bağlanmadığı için danışman SADECE giriş değil, çıkış hareketlerini de
+  // kendi elle girebiliyor (broker'ın kendi ekranındaki AYNI Giriş/Çıkış
+  // ayrımı, bkz. BankaHareketleriPanel.jsx). RLS zaten tip'i
+  // kısıtlamıyordu (migration 20261011093000), eksik olan sadece UI'daydı.
   const canSubmit =
     parsedTutar !== null &&
     parsedTutar > 0 &&
@@ -102,6 +111,7 @@ export default function BankaHareketiDanismanPanel() {
       const dekontDosyaUrl = file ? await uploadFinansFile(file, user.id) : null
       const created = await bankaHareketleriProvider.create(
         {
+          tip: form.tip,
           tutar: parsedTutar,
           tarih: form.tarih,
           dekontTarihi: form.dekontTarihi,
@@ -116,6 +126,7 @@ export default function BankaHareketiDanismanPanel() {
       )
       setData((prev) => [created, ...(prev ?? [])])
       setForm({
+        tip: form.tip,
         tutar: '',
         tarih: today(),
         dekontTarihi: today(),
@@ -126,7 +137,7 @@ export default function BankaHareketiDanismanPanel() {
         bankaAdi: '',
       })
       setFile(null)
-      showToast('Dekont kaydedildi, broker eşleştirip onaylayacak.', 'success')
+      showToast(cikis ? 'Çıkış hareketi kaydedildi.' : 'Dekont kaydedildi, broker eşleştirip onaylayacak.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
     } finally {
@@ -160,11 +171,28 @@ export default function BankaHareketiDanismanPanel() {
   return (
     <div>
       <p className="mb-5 text-sm text-text-muted">
-        Sana gelen ödemenin dekont bilgisini buraya gir — parçalı geldiyse her parçayı ayrı ayrı ekleyebilirsin. Broker
-        bunları bekleyen faturalarla eşleştirip son onayı verir.
+        Banka API entegrasyonu bağlanana kadar para giriş/çıkışlarını burada elle gir — parçalı geldiyse her parçayı ayrı
+        ayrı ekleyebilirsin. Girişler için broker bunları bekleyen faturalarla eşleştirip son onayı verir.
       </p>
 
       <form onSubmit={handleCreate} className="mb-6 space-y-2 rounded-2xl border border-border-default bg-surface-raised p-4">
+        <div className="flex gap-2">
+          {[
+            { key: 'giris', label: 'Giriş (bana para geldi)' },
+            { key: 'cikis', label: 'Çıkış (ben para gönderdim)' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => set({ tip: t.key })}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                form.tip === t.key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-border-default text-text-secondary'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
         <div className="grid gap-2 sm:grid-cols-2">
           <input
             required
@@ -198,7 +226,7 @@ export default function BankaHareketiDanismanPanel() {
             required
             value={form.gonderenAdi}
             onChange={(e) => set({ gonderenAdi: e.target.value })}
-            placeholder="Kimden geldi (gönderen adı) *"
+            placeholder={cikis ? 'Kime gönderildi (alıcı adı) *' : 'Kimden geldi (gönderen adı) *'}
             className="sm:col-span-2 rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <input
@@ -263,11 +291,16 @@ export default function BankaHareketiDanismanPanel() {
               <div key={h.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-subtle p-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-sm text-text-primary">
-                    <span className="font-medium">{tl(h.tutar)}</span>
-                    <span className="text-text-muted">— {h.gonderenAdi || 'gönderen belirtilmemiş'}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
-                      {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${h.tip === 'cikis' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'}`}>
+                      {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'}
                     </span>
+                    <span className="font-medium">{tl(h.tutar)}</span>
+                    <span className="text-text-muted">— {h.gonderenAdi || 'belirtilmemiş'}</span>
+                    {h.tip !== 'cikis' && (
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
+                        {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-text-muted">
                     {formatDateOnly(h.tarih)} · {BANKA_HAREKETI_TUR_LABELS[h.tur] ?? h.tur}
