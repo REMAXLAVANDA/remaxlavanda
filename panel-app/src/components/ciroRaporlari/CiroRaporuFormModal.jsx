@@ -20,6 +20,16 @@ function tl(n) {
 
 const today = () => new Date().toISOString().slice(0, 10)
 
+// Broker, 2026-10-11: "dış beyan kodu otomatik verilsin" — Dış Portföy
+// seçildiğinde danışmanın elle bir kod icat etmesi gerekmiyor (gerçek bir
+// portföy kaydına bağlı değil, sadece bir beyan etiketi). Portföylerim
+// seçiliyken kod hâlâ elle giriliyor — gerçek portföyün kendi koduyla
+// eşleşmesi gerekiyor, otomatik üretim izlenebilirliği bozar.
+function generateDisBeyanKodu() {
+  const parca = Date.now().toString(36).toUpperCase().slice(-5) + Math.random().toString(36).slice(2, 5).toUpperCase()
+  return `DIS-${parca}`
+}
+
 // Danışman kendi kapattığı bir işlem için ciro raporu oluşturur — rapor
 // "taslak" durumunda kalır, onaya gönderme ayrı bir adım (fatura no
 // girilmesi şart, bkz. CiroRaporlariPanel.jsx handleCreate/
@@ -232,7 +242,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             <button
               key={key}
               type="button"
-              onClick={() => setPortfoyTipi(key)}
+              onClick={() => {
+                setPortfoyTipi(key)
+                if (key === 'dis_portfoy' && !disBeyanKodu.trim()) {
+                  setDisBeyanKodu(generateDisBeyanKodu())
+                }
+              }}
               className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                 portfoyTipi === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
               }`}
