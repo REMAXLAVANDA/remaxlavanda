@@ -1373,6 +1373,7 @@ export const ciroRaporlari = {
       krediDurumu,
       krediBankasi,
       katilimcilar,
+      paraHareketleri,
     },
     olusturanId,
   ) {
@@ -1431,6 +1432,27 @@ export const ciroRaporlari = {
       ofis_payi_tutari: k.ofisPayiTutari ?? null,
     }))
     await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
+    // Broker, 2026-10-11: "beyan menüsünde para girişlerini ve çıkışlarını
+    // danışmanın gireceği satır olmalı" — bu beyana ait para hareketleri
+    // (varsa) banka_hareketleri'ne ciro_raporu_id ile bağlı olarak yazılır.
+    // Broker/ofis daha sonra gerçek banka ekstresiyle eşleştirme/teyit
+    // adımını AYRICA yapar (bkz. migration 20261011150000).
+    if (paraHareketleri?.length) {
+      const hareketRows = paraHareketleri.map((h) => ({
+        tutar: Number(h.tutar),
+        tarih: h.tarih,
+        dekont_tarihi: h.dekontTarihi || null,
+        gonderen_adi: h.gonderenAdi || null,
+        referans_no: h.referansNo || null,
+        kaynak: 'manuel',
+        tip: h.tip === 'cikis' ? 'cikis' : 'giris',
+        tur: 'hizmet_bedeli',
+        durum: 'eslesmedi',
+        ciro_raporu_id: rapor.id,
+        olusturan_id: olusturanId,
+      }))
+      await run(client().from('banka_hareketleri').insert(hareketRows))
+    }
     return mapCiroRaporu(rapor)
   },
   // Taslak/reddedilen bir raporun başlık alanlarını düzenler — RLS zaten
@@ -1679,6 +1701,7 @@ function mapBankaHareketi(row) {
     teyitEdildi: row.teyit_edildi,
     teyitEdenId: row.teyit_eden_id,
     teyitTarihi: row.teyit_tarihi,
+    ciroRaporuId: row.ciro_raporu_id,
   }
 }
 
@@ -1719,7 +1742,7 @@ export const bankaHareketleri = {
   // ve durum='eslesmedi' insert'e izin veriyor — bloke/tip seçenekleri
   // sadece broker ekranında kullanılıyor, danışman formunda yok).
   async create(
-    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
+    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, ciroRaporuId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
     olusturanId,
   ) {
     const cikis = tip === 'cikis'
@@ -1736,6 +1759,7 @@ export const bankaHareketleri = {
           kaynak: 'manuel',
           tip: cikis ? 'cikis' : 'giris',
           opportunity_id: !cikis && opportunityId ? opportunityId : null,
+          ciro_raporu_id: ciroRaporuId || null,
           tur: !cikis && bloke ? 'baglanma_parasi' : tur || 'diger',
           durum: !cikis && bloke ? 'blokede' : 'eslesmedi',
           banka_adi: bankaAdi || null,

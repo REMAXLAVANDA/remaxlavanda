@@ -907,6 +907,7 @@ export const ciroRaporlari = {
       krediDurumu,
       krediBankasi,
       katilimcilar,
+      paraHareketleri,
     },
     olusturanId,
   ) {
@@ -986,6 +987,37 @@ export const ciroRaporlari = {
         teyitTarihi: null,
       })
     })
+    if (paraHareketleri?.length) {
+      paraHareketleri.forEach((h, i) => {
+        MOCK_BANKA_HAREKETLERI.unshift({
+          id: `bh-${Date.now()}-${i}`,
+          tutar: Number(h.tutar),
+          tarih: h.tarih,
+          dekontTarihi: h.dekontTarihi || null,
+          gonderenAdi: h.gonderenAdi || null,
+          aciklama: null,
+          referansNo: h.referansNo || null,
+          kaynak: 'manuel',
+          durum: 'eslesmedi',
+          tip: h.tip === 'cikis' ? 'cikis' : 'giris',
+          opportunityId: null,
+          ciroRaporuId: rapor.id,
+          ustHareketId: null,
+          tur: 'hizmet_bedeli',
+          bankaAdi: null,
+          dekontDosyaUrl: null,
+          mahsupTutari: null,
+          eslesenKatilimciId: null,
+          eslestirenId: null,
+          eslesmeTarihi: null,
+          olusturanId,
+          createdAt: new Date().toISOString(),
+          teyitEdildi: false,
+          teyitEdenId: null,
+          teyitTarihi: null,
+        })
+      })
+    }
     return delay(mockCiroRaporuWithKatilimcilar(rapor))
   },
   async update(id, { islemTipi, islemTutari, islemTarihi, notlar }) {
@@ -1135,6 +1167,7 @@ const MOCK_BANKA_HAREKETLERI = [
     durum: 'eslesmedi',
     tip: 'giris',
     opportunityId: null,
+    ciroRaporuId: null,
     ustHareketId: null,
     tur: 'diger',
     mahsupTutari: null,
@@ -1159,6 +1192,7 @@ const MOCK_BANKA_HAREKETLERI = [
     durum: 'blokede',
     tip: 'giris',
     opportunityId: 'opp-1',
+    ciroRaporuId: null,
     ustHareketId: null,
     tur: 'baglanma_parasi',
     mahsupTutari: null,
@@ -1188,7 +1222,7 @@ export const bankaHareketleri = {
     return delay(null)
   },
   async create(
-    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
+    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, ciroRaporuId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
     olusturanId,
   ) {
     const cikis = tip === 'cikis'
@@ -1203,6 +1237,7 @@ export const bankaHareketleri = {
       kaynak: 'manuel',
       tip: cikis ? 'cikis' : 'giris',
       opportunityId: !cikis && opportunityId ? opportunityId : null,
+      ciroRaporuId: ciroRaporuId || null,
       ustHareketId: null,
       tur: !cikis && bloke ? 'baglanma_parasi' : tur || 'diger',
       bankaAdi: bankaAdi || null,

@@ -72,7 +72,30 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const [ortakVar, setOrtakVar] = useState(false)
   const [partnerId, setPartnerId] = useState('')
   const [payOraniSelf, setPayOraniSelf] = useState('50')
+  // Broker, 2026-10-11: "danışman beyan girerken bu bilgileri işlesin,
+  // bankadan ayrıca eşleştirelim. yani beyan menüsünde para girişlerini
+  // ve çıkışlarını danışmanın gireceği satır olmalı" — ayrı bir Banka
+  // Hareketleri ekranına gitmeye gerek kalmadan, bu işleme ait para
+  // hareketleri (giriş/çıkış) doğrudan beyan formunun içinden satır
+  // olarak eklenebiliyor. Kaydedilince banka_hareketleri tablosuna
+  // yazılıyor (ciro_raporu_id ile bu beyana bağlı), broker/ofis
+  // GERÇEK banka ekstresiyle eşleştirme/teyit adımını SONRA ayrıca yapar
+  // (bkz. migration 20261011150000, FaturaKontrolPanel teyit akışı).
+  const [paraHareketleri, setParaHareketleri] = useState([])
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+
+  function addParaHareketi() {
+    setParaHareketleri((list) => [
+      ...list,
+      { tip: 'giris', tutar: '', tarih: today(), dekontTarihi: today(), gonderenAdi: '', referansNo: '' },
+    ])
+  }
+  function updateParaHareketi(index, patch) {
+    setParaHareketleri((list) => list.map((h, i) => (i === index ? { ...h, ...patch } : h)))
+  }
+  function removeParaHareketi(index) {
+    setParaHareketleri((list) => list.filter((_, i) => i !== index))
+  }
 
   function addDigerKisi(setList) {
     setList((list) => [...list, { adSoyad: '', telefon: '', kimlikNo: '' }])
@@ -231,6 +254,16 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       krediDurumu,
       krediBankasi: krediDurumu === 'kredi' ? krediBankasi.trim() : null,
       katilimcilar,
+      paraHareketleri: paraHareketleri
+        .map((h) => ({
+          tip: h.tip,
+          tutar: parseThousands(h.tutar),
+          tarih: h.tarih,
+          dekontTarihi: h.dekontTarihi || null,
+          gonderenAdi: h.gonderenAdi.trim(),
+          referansNo: h.referansNo.trim(),
+        }))
+        .filter((h) => h.tutar !== null && h.tutar > 0 && h.tarih),
     })
   }
 
@@ -642,6 +675,84 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
             />
           )}
+        </div>
+
+        <div className="rounded-lg bg-ink-50 p-3">
+          <p className="mb-2 text-xs font-medium text-ink-700">Para Hareketleri (opsiyonel)</p>
+          <p className="mb-2 text-[11px] text-ink-500">
+            Bu işleme ait banka giriş/çıkışlarını buraya ekle — broker/ofis bunları sonra gerçek banka ekstresiyle eşleştirecek.
+          </p>
+          {paraHareketleri.map((h, i) => (
+            <div key={i} className="mb-2 rounded-lg border border-ink-200 bg-white p-2 last:mb-0">
+              <div className="mb-2 flex gap-2">
+                {[
+                  { key: 'giris', label: 'Giriş' },
+                  { key: 'cikis', label: 'Çıkış' },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => updateParaHareketi(i, { tip: t.key })}
+                    className={`rounded-lg border px-2 py-1 text-xs font-medium ${
+                      h.tip === t.key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => removeParaHareketi(i)}
+                  className="ml-auto rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
+                  aria-label="Satırı kaldır"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  inputMode="numeric"
+                  value={h.tutar}
+                  onChange={(e) => updateParaHareketi(i, { tutar: formatThousands(e.target.value) })}
+                  placeholder="Tutar (₺)"
+                  className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  value={h.gonderenAdi}
+                  onChange={(e) => updateParaHareketi(i, { gonderenAdi: e.target.value })}
+                  placeholder={h.tip === 'cikis' ? 'Kime gönderildi' : 'Kimden geldi'}
+                  className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                />
+                <div>
+                  <label className="mb-0.5 block text-[10px] text-ink-500">Transfer Tarihi</label>
+                  <input
+                    type="date"
+                    value={h.tarih}
+                    onChange={(e) => updateParaHareketi(i, { tarih: e.target.value })}
+                    className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                  />
+                </div>
+                <div>
+                  <label className="mb-0.5 block text-[10px] text-ink-500">Dekont Tarihi</label>
+                  <input
+                    type="date"
+                    value={h.dekontTarihi}
+                    onChange={(e) => updateParaHareketi(i, { dekontTarihi: e.target.value })}
+                    className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                  />
+                </div>
+                <input
+                  value={h.referansNo}
+                  onChange={(e) => updateParaHareketi(i, { referansNo: e.target.value })}
+                  placeholder="İşlem Referans No (EFT/FAST)"
+                  className="col-span-2 rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                />
+              </div>
+            </div>
+          ))}
+          <button type="button" onClick={addParaHareketi} className="text-xs font-medium text-brand-700 hover:underline">
+            + Para hareketi ekle
+          </button>
         </div>
 
         <div className="flex items-center justify-between rounded-lg bg-ink-50 p-3">
