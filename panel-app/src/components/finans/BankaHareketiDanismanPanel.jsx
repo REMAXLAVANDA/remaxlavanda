@@ -61,9 +61,14 @@ export default function BankaHareketiDanismanPanel() {
   // Aynı gün ikinci talimat: "dekont ve transfer tarihi bir de dekont
   // numarası olsun ve başka bir işlemle karışmasın" — dekontun kendi
   // tarihi (dekontTarihi) transfer tarihinden (tarih) AYRI tutuluyor
-  // (ikisi aynı gün olmayabilir), dekont numarası (referansNo, DB'de
-  // referans_no olarak zaten vardı) zorunlu hale geldi ki aynı tutarlı
-  // iki ayrı transfer birbirine karışmasın.
+  // (ikisi aynı gün olmayabilir). Alan adı "Dekont Numarası" değil
+  // "İşlem Referans Numarası" (EFT/FAST Referans No) — dekontun kendi
+  // belge no'su sadece gönderenin dekontunda görünür, ama EFT/FAST
+  // referans no'su TCMB sisteminden geldiği için hem gönderenin hem
+  // alanın hesap hareketlerinde AYNI şekilde görünür — danışmanın kendi
+  // hesap hareketlerinde GERÇEKTEN göreceği ve eşleştirmeye yarayan alan
+  // bu (broker onayı, 2026-10-11). referansNo/referans_no alan adı
+  // değişmedi, sadece etiket düzeltildi.
   const canSubmit =
     parsedTutar !== null &&
     parsedTutar > 0 &&
@@ -200,7 +205,7 @@ export default function BankaHareketiDanismanPanel() {
             required
             value={form.referansNo}
             onChange={(e) => set({ referansNo: e.target.value })}
-            placeholder="Dekont numarası *"
+            placeholder="İşlem Referans Numarası (EFT/FAST) *"
             className="sm:col-span-2 rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <select
@@ -266,7 +271,7 @@ export default function BankaHareketiDanismanPanel() {
                   </div>
                   <p className="text-xs text-text-muted">
                     {formatDateOnly(h.tarih)} · {BANKA_HAREKETI_TUR_LABELS[h.tur] ?? h.tur}
-                    {h.referansNo && ` · Dekont No: ${h.referansNo}`}
+                    {h.referansNo && ` · Referans No: ${h.referansNo}`}
                     {h.dekontTarihi && ` · Dekont Tarihi: ${formatDateOnly(h.dekontTarihi)}`}
                     {h.bankaAdi && ` · ${h.bankaAdi}`}
                     {h.aciklama && ` · ${h.aciklama}`}

@@ -292,7 +292,7 @@ export default function BankaHareketleriPanel() {
           <input
             value={form.referansNo}
             onChange={(e) => set({ referansNo: e.target.value })}
-            placeholder="Dekont numarası"
+            placeholder="İşlem Referans No (EFT/FAST)"
             className="rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <button

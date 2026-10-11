@@ -253,7 +253,7 @@ export default function FaturaKontrolPanel() {
                   </span>
                   <p className="mt-0.5 text-text-muted">
                     {formatDateOnly(h.tarih)}
-                    {h.referansNo && ` · Dekont No: ${h.referansNo}`}
+                    {h.referansNo && ` · Referans No: ${h.referansNo}`}
                     {h.dekontTarihi && ` · Dekont Tarihi: ${formatDateOnly(h.dekontTarihi)}`}
                   </p>
                 </div>
