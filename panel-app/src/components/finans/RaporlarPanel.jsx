@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { canManageMasraflar } from '../../lib/islemMasraflari'
+import { canApproveCiroRaporu } from '../../lib/ciroRaporlari'
 import CariHesapPanel from './CariHesapPanel'
 import MasraflarPanel from './MasraflarPanel'
+import KarlilikPanel from './KarlilikPanel'
 
 // Finans > Raporlar — Cari Hesap ve Masraflar burada toplandı (2026-10-09
 // broker: "rapor demiştim ama sen masraflar menüsüne eklemişsin, rapor
@@ -10,17 +12,22 @@ import MasraflarPanel from './MasraflarPanel'
 // HERKESE görünür (danışman kendi bakiyesini görür, bkz. CariHesapPanel
 // içindeki ayrım), Masraflar sadece broker'a (bkz.
 // lib/islemMasraflari.js canManageMasraflar) — iç sekme burada,
-// dış Finans.jsx sekme mantığıyla AYNI desen.
+// dış Finans.jsx sekme mantığıyla AYNI desen. Kârlılık (2026-10-11
+// eklendi) ofis payı gibi hassas iç veriyi topluyor — CiroRaporuKatilimciRow'daki
+// AYNI yetki sınırı (canApproveCiroRaporu/broker+owner), danışman
+// başkasının/ofisin kârlılığını görmemeli.
 const TABS = [
   { key: 'cari', label: 'Cari Hesap' },
   { key: 'masraflar', label: 'Masraflar' },
+  { key: 'karlilik', label: 'Kârlılık' },
 ]
 
 export default function RaporlarPanel() {
   const { role } = useAuth()
   const [tab, setTab] = useState('cari')
   const showMasraflar = canManageMasraflar(role)
-  const visibleTabs = showMasraflar ? TABS : TABS.filter((t) => t.key === 'cari')
+  const showKarlilik = canApproveCiroRaporu(role)
+  const visibleTabs = TABS.filter((t) => (t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : true))
 
   return (
     <div>
@@ -42,6 +49,7 @@ export default function RaporlarPanel() {
 
       {tab === 'cari' && <CariHesapPanel />}
       {showMasraflar && tab === 'masraflar' && <MasraflarPanel />}
+      {showKarlilik && tab === 'karlilik' && <KarlilikPanel />}
     </div>
   )
 }

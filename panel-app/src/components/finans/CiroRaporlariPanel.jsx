@@ -4,7 +4,12 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { opportunities as opportunitiesProvider, ciroRaporlari as ciroRaporlariProvider, danismanAnlasmalari as danismanAnlasmalariProvider } from '../../lib/dataProvider'
+import {
+  opportunities as opportunitiesProvider,
+  ciroRaporlari as ciroRaporlariProvider,
+  danismanAnlasmalari as danismanAnlasmalariProvider,
+  bankaHareketleri as bankaHareketleriProvider,
+} from '../../lib/dataProvider'
 import {
   CIRO_RAPORU_DURUM_LABELS,
   CIRO_RAPORU_DURUM_STYLES,
@@ -12,6 +17,7 @@ import {
   canSubmitCiroRaporu,
   canApproveCiroRaporu,
 } from '../../lib/ciroRaporlari'
+import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
 import { formatDateOnly } from '../../lib/format'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
@@ -23,12 +29,13 @@ function tl(n) {
 }
 
 async function loadAll() {
-  const [opportunities, raporlar, anlasmalar] = await Promise.all([
+  const [opportunities, raporlar, anlasmalar, hareketler] = await Promise.all([
     opportunitiesProvider.list(),
     ciroRaporlariProvider.list(),
     danismanAnlasmalariProvider.list(),
+    bankaHareketleriProvider.list(),
   ])
-  return { opportunities, raporlar, anlasmalar }
+  return { opportunities, raporlar, anlasmalar, hareketler }
 }
 
 export default function CiroRaporlariPanel() {
@@ -181,7 +188,10 @@ export default function CiroRaporlariPanel() {
         kdvOrani,
         kdvHaricTutar,
         vergiNo: form.vergiNo || null,
-        faturaDosyaUrl: form.faturaDosyaUrl || null,
+        // Sadece yeni bir dosya yüklendiyse gönderilir (bkz.
+        // CiroRaporuKatilimciRow handleSave) — yoksa var olan
+        // fatura_dosya_url'in üzerine boş yazılmasın.
+        ...('faturaDosyaUrl' in form ? { faturaDosyaUrl: form.faturaDosyaUrl || null } : {}),
       })
       showToast('Fatura bilgisi kaydedildi.', 'success')
       reload()
@@ -237,6 +247,7 @@ export default function CiroRaporlariPanel() {
                 userName={userName}
                 isOwnRow={k.danismanId === user.id}
                 canToggleOdeme={isApprover}
+                eslesenTutar={toplamEslesenTutar(k.id, data?.hareketler)}
                 onSaveFatura={handleSaveFatura}
                 onToggleOdeme={handleToggleOdeme}
                 submitting={submitting}

@@ -896,6 +896,9 @@ export const ciroRaporlari = {
       aliciKimlikNo,
       aliciHizmetBedeli,
       aliciEkHizmetBedeli,
+      raporKategori,
+      krediDurumu,
+      krediBankasi,
       katilimcilar,
     },
     olusturanId,
@@ -929,6 +932,9 @@ export const ciroRaporlari = {
       aliciKimlikNo: aliciHizmetBedeliAlindi ? aliciKimlikNo || null : null,
       aliciHizmetBedeli: aliciHizmetBedeliAlindi ? (aliciHizmetBedeli ?? null) : null,
       aliciEkHizmetBedeli: aliciHizmetBedeliAlindi ? (aliciEkHizmetBedeli ?? null) : null,
+      raporKategori: raporKategori ?? null,
+      krediDurumu: krediDurumu ?? null,
+      krediBankasi: krediDurumu === 'kredi' ? krediBankasi || null : null,
     }
     MOCK_CIRO_RAPORLARI.unshift(rapor)
     katilimcilar.forEach((k, i) => {
@@ -1112,7 +1118,12 @@ export const bankaHareketleri = {
   async list() {
     return delay([...MOCK_BANKA_HAREKETLERI].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
   },
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip }, olusturanId) {
+  async remove(id) {
+    const idx = MOCK_BANKA_HAREKETLERI.findIndex((h) => h.id === id)
+    if (idx !== -1) MOCK_BANKA_HAREKETLERI.splice(idx, 1)
+    return delay(null)
+  },
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl }, olusturanId) {
     const cikis = tip === 'cikis'
     const row = {
       id: `bh-${Date.now()}`,
@@ -1125,7 +1136,9 @@ export const bankaHareketleri = {
       tip: cikis ? 'cikis' : 'giris',
       opportunityId: !cikis && opportunityId ? opportunityId : null,
       ustHareketId: null,
-      tur: !cikis && bloke ? 'baglanma_parasi' : 'diger',
+      tur: !cikis && bloke ? 'baglanma_parasi' : tur || 'diger',
+      bankaAdi: bankaAdi || null,
+      dekontDosyaUrl: dekontDosyaUrl || null,
       mahsupTutari: null,
       durum: !cikis && bloke ? 'blokede' : 'eslesmedi',
       eslesenKatilimciId: null,
@@ -1174,6 +1187,8 @@ export const bankaHareketleri = {
     hareket.eslesmeTarihi = new Date().toISOString()
     return delay({ id: hareketId })
   },
+  // Artık odeme_durumu'nu otomatik 'alindi' yapmıyor — bkz.
+  // supabaseProvider.js'teki aynı fonksiyondaki 2026-10-11 notu.
   async eslestir(hareketId, katilimciId, eslestirenId) {
     const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
     if (!hareket) throw new Error('Hareket bulunamadı.')
@@ -1181,17 +1196,11 @@ export const bankaHareketleri = {
     hareket.eslesenKatilimciId = katilimciId
     hareket.eslestirenId = eslestirenId
     hareket.eslesmeTarihi = new Date().toISOString()
-    const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
-    if (katilimci) katilimci.odemeDurumu = 'alindi'
-    mockCariSatiriKapat(katilimciId, true)
     return delay({ id: hareketId })
   },
   async eslesmeyiKaldir(hareketId) {
     const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
     if (!hareket) throw new Error('Hareket bulunamadı.')
-    const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === hareket.eslesenKatilimciId)
-    if (katilimci) katilimci.odemeDurumu = 'bekliyor'
-    mockCariSatiriKapat(hareket.eslesenKatilimciId, false)
     hareket.durum = 'eslesmedi'
     hareket.eslesenKatilimciId = null
     hareket.eslestirenId = null

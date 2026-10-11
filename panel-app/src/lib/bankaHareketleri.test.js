@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ROLES } from './roles'
-import { canManageBankaHareketleri, eslesmeAdaylari, kalanTutar } from './bankaHareketleri'
+import { canManageBankaHareketleri, canSubmitBankaHareketi, eslesmeAdaylari, kalanTutar, toplamEslesenTutar } from './bankaHareketleri'
 
 describe('canManageBankaHareketleri', () => {
   it('sadece broker yönetebilir (owner Finans\'ta sadece ciro/cari görür)', () => {
@@ -8,6 +8,32 @@ describe('canManageBankaHareketleri', () => {
     expect(canManageBankaHareketleri(ROLES.OWNER)).toBe(false)
     expect(canManageBankaHareketleri(ROLES.OFIS)).toBe(false)
     expect(canManageBankaHareketleri(ROLES.DANISMAN)).toBe(false)
+  })
+})
+
+describe('canSubmitBankaHareketi', () => {
+  it('danışman/ofis/broker kendi dekontunu girebilir, owner giremez', () => {
+    expect(canSubmitBankaHareketi(ROLES.DANISMAN)).toBe(true)
+    expect(canSubmitBankaHareketi(ROLES.OFIS)).toBe(true)
+    expect(canSubmitBankaHareketi(ROLES.BROKER)).toBe(true)
+    expect(canSubmitBankaHareketi(ROLES.OWNER)).toBe(false)
+  })
+})
+
+describe('toplamEslesenTutar', () => {
+  it('sadece eşleşmiş (durum=eslesti) ve aynı katılımcıya ait hareketleri toplar (parçalı ödeme)', () => {
+    const hareketler = [
+      { eslesenKatilimciId: 'k1', durum: 'eslesti', tutar: 15000 },
+      { eslesenKatilimciId: 'k1', durum: 'eslesti', tutar: 10000 },
+      { eslesenKatilimciId: 'k1', durum: 'eslesmedi', tutar: 5000 },
+      { eslesenKatilimciId: 'k2', durum: 'eslesti', tutar: 999 },
+    ]
+    expect(toplamEslesenTutar('k1', hareketler)).toBe(25000)
+  })
+
+  it('boş/eşleşmemiş listede 0 döner', () => {
+    expect(toplamEslesenTutar('k1', [])).toBe(0)
+    expect(toplamEslesenTutar('k1', undefined)).toBe(0)
   })
 })
 

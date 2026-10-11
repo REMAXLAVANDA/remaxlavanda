@@ -31,14 +31,47 @@ export const BLOKE_AKSIYON_LABELS = {
   kismi_mahsup: 'Kısmi Mahsup + Kalanı Gönder',
 }
 
+export const BANKA_HAREKETI_TUR_LABELS = {
+  baglanma_parasi: 'Bağlanma Parası',
+  hizmet_bedeli: 'Hizmet Bedeli',
+  iade: 'İade',
+  diger: 'Diğer',
+}
+
 // 2026-10-09 broker kararı: "owner sadece ciro ve cari kısmını görsün" —
 // Banka Hareketleri (ve Masraflar, bkz. lib/islemMasraflari.js) artık
 // owner'ı DEĞİL, SADECE broker'ı kapsıyor. Ciro Raporu onayı
 // (canApproveCiroRaporu) ve Cari Hesap (canManageCariHesap) bundan
 // etkilenmiyor, ikisi de hâlâ broker/owner — bilerek dar tutulan sadece bu
-// ikisi (gerçek banka parası + genel ofis masrafları).
+// ikisi (gerçek banka parası + genel ofis masrafları). Bu fonksiyon TAM
+// yönetim yetkisini (tüm hareketleri görme, eşleştirme, bloke çözümleme)
+// kapsar — danışman/ofis'in kendi dekontunu eklemesi AYRI bir yetki,
+// bkz. canSubmitBankaHareketi.
 export function canManageBankaHareketleri(role) {
   return role === ROLES.BROKER
+}
+
+// 2026-10-11 broker kararı: "danışman kendi dekontunu girsin, istediği
+// kadar (parçalı ödeme olabiliyor), ama ödemeyi tam/onaylı sayma yetkisi
+// broker'da kalsın" — bu yüzden danışman/ofis SADECE kendi eklediği,
+// henüz eşleşmemiş kayıtları ekleyip düzenleyebilir (bkz. migration
+// 20261011093000 RLS). Broker/owner zaten canManageBankaHareketleri ile
+// her şeyi yapabildiği için burada ayrıca sayılmıyor.
+export function canSubmitBankaHareketi(role) {
+  return role === ROLES.DANISMAN || role === ROLES.OFIS || role === ROLES.BROKER
+}
+
+// Bir katılımcıya eşleşmiş (durum='eslesti') banka hareketlerinin toplamı —
+// parçalı ödemede (birden fazla banka hareketi aynı katılımcıya eşleşebilir,
+// bkz. migration notu) "X TL / Y TL geldi" göstergesi için. Beklenen tutar
+// (faturaTutari ?? komisyonTutariOnerisi) ile birlikte UI'da kullanılır;
+// tam karşılanıp karşılanmadığına broker karar verip odemeDurumu'nu elle
+// 'alindi' yapar — eslestir() artık bunu OTOMATİK yapmıyor (bkz.
+// dataProvider, 2026-10-11 öncesi davranışın aksine).
+export function toplamEslesenTutar(katilimciId, hareketler) {
+  return (hareketler ?? [])
+    .filter((h) => h.eslesenKatilimciId === katilimciId && h.durum === 'eslesti')
+    .reduce((sum, h) => sum + Number(h.tutar || 0), 0)
 }
 
 // Bir banka hareketine en olası eşleşme adaylarını (ödeme bekleyen

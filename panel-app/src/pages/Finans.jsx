@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { canManageBankaHareketleri } from '../lib/bankaHareketleri'
+import { canSubmitBankaHareketi } from '../lib/bankaHareketleri'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
 import RaporlarPanel from '../components/finans/RaporlarPanel'
@@ -10,11 +10,16 @@ import RaporlarPanel from '../components/finans/RaporlarPanel'
 // Finans'ın içine gömülsün" dedi (2026-10-09). Masraflar ve Cari Hesap
 // artık ayrı üst sekme değil, "Raporlar" sekmesinin İÇİNDE (2026-10-09
 // broker: "rapor demiştim, masraflar ve cari hesabı onun içine ekle" —
-// bkz. components/finans/RaporlarPanel.jsx). Banka Hareketleri SADECE
-// broker'a açık (2026-10-09: "owner sadece ciro ve cari kısmını görsün" —
-// bkz. lib/bankaHareketleri.js canManageBankaHareketleri). Raporlar
-// sekmesi herkese açık — içindeki Cari Hesap danışmana da kendi
-// bakiyesini gösteriyor (RaporlarPanel'in kendi iç ayrımı).
+// bkz. components/finans/RaporlarPanel.jsx). Banka Hareketleri sekmesi
+// eskiden SADECE broker'a açıktı (owner sadece ciro/cari görsün); 2026-10-11
+// broker kararıyla danışman/ofis de kendi dekontunu girebilsin diye açıldı
+// — BankaHareketleriPanel içeride rol'e göre tam yönetim ekranını mı yoksa
+// sade "kendi dekontum" görünümünü mü (BankaHareketiDanismanPanel)
+// göstereceğine kendi karar veriyor, bkz. lib/bankaHareketleri.js
+// canSubmitBankaHareketi/canManageBankaHareketleri notu. Owner hâlâ
+// göremiyor (canSubmitBankaHareketi owner için false). Raporlar sekmesi
+// herkese açık — içindeki Cari Hesap danışmana da kendi bakiyesini
+// gösteriyor (RaporlarPanel'in kendi iç ayrımı).
 const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
@@ -24,8 +29,8 @@ const TABS = [
 export default function Finans() {
   const { role } = useAuth()
   const [tab, setTab] = useState('ciro')
-  const showBrokerOnlyTabs = canManageBankaHareketleri(role)
-  const visibleTabs = showBrokerOnlyTabs ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
+  const showBankaTab = canSubmitBankaHareketi(role)
+  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
 
   return (
     <div>
@@ -46,7 +51,7 @@ export default function Finans() {
       )}
 
       {tab === 'ciro' && <CiroRaporlariPanel />}
-      {showBrokerOnlyTabs && tab === 'banka' && <BankaHareketleriPanel />}
+      {showBankaTab && tab === 'banka' && <BankaHareketleriPanel />}
       {tab === 'raporlar' && <RaporlarPanel />}
     </div>
   )

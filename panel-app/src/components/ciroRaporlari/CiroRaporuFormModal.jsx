@@ -4,6 +4,8 @@ import { formatThousands, parseThousands } from '../../lib/format'
 import {
   ISLEM_TIPI_LABELS,
   PORTFOY_TIPI_LABELS,
+  RAPOR_KATEGORI_LABELS,
+  KREDI_DURUMU_LABELS,
   guncelAnlasmaOrani,
   guncelRtPayOrani,
   komisyonTutariOnerisi,
@@ -11,6 +13,10 @@ import {
   gdCirosu,
   rtPayiOnerisi,
 } from '../../lib/ciroRaporlari'
+
+function tl(n) {
+  return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
+}
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -37,6 +43,9 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
   })
   const [portfoyTipi, setPortfoyTipi] = useState('portfoyum')
   const [disBeyanKodu, setDisBeyanKodu] = useState('')
+  const [raporKategori, setRaporKategori] = useState('')
+  const [krediDurumu, setKrediDurumu] = useState('nakit')
+  const [krediBankasi, setKrediBankasi] = useState('')
   const [saticiVar, setSaticiVar] = useState(false)
   const [satici, setSatici] = useState({ adSoyad: '', telefon: '', kimlikNo: '', hizmetBedeli: '' })
   const [aliciVar, setAliciVar] = useState(false)
@@ -79,11 +88,24 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
     [anlasmalar, partnerId, form.islemTarihi],
   )
 
+  // Canlı "kesmen gereken fatura" tahmini — broker, 2026-10-11: "danışman
+  // tutar girdiği anda anlık görsün". Mevcut önerilen-fatura formülüyle
+  // (katılımcı satırındaki "Önerilen fatura" rozetiyle) AYNI hesap: taban
+  // toplam hizmet bedeli (satış tutarı değil — RE/MAX Türkiye'nin resmi
+  // ciro modeli), kendi payı ve o anki anlaşma oranı üzerinden.
+  const payOraniSelfEffective = ortakVar ? Number(payOraniSelf || 0) : 100
+  const tahminiFatura = useMemo(
+    () => komisyonTutariOnerisi(toplamHizmetBedeliDeger, payOraniSelfEffective, anlasmaSelf),
+    [toplamHizmetBedeliDeger, payOraniSelfEffective, anlasmaSelf],
+  )
+
   const canSubmit =
     (portfoyTipi === 'portfoyum' ? !!form.opportunityId : disBeyanKodu.trim().length > 0) &&
     parsedTutar !== null &&
     parsedTutar > 0 &&
     form.islemTarihi &&
+    !!raporKategori &&
+    (krediDurumu !== 'kredi' || krediBankasi.trim().length > 0) &&
     (!saticiVar || (saticiHizmetBedeliParsed !== null && saticiHizmetBedeliParsed > 0)) &&
     (!aliciVar || (aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0)) &&
     (!ortakVar || (partnerId && toplamPay > 0 && toplamPay <= 100))
@@ -129,6 +151,9 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
       aliciTelefon: alici.telefon.trim(),
       aliciKimlikNo: alici.kimlikNo.trim(),
       aliciHizmetBedeli: aliciHizmetBedeliParsed,
+      raporKategori,
+      krediDurumu,
+      krediBankasi: krediDurumu === 'kredi' ? krediBankasi.trim() : null,
       katilimcilar,
     })
   }
@@ -191,14 +216,29 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
             <button
               key={key}
               type="button"
               onClick={() => set({ islemTipi: key })}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+              className={`rounded-lg border px-3 py-2 text-xs font-medium ${
                 form.islemTipi === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setRaporKategori(key)}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                raporKategori === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
               }`}
             >
               {label}
@@ -337,6 +377,45 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, opp
               </div>
               {toplamPay > 100 && <p className="text-xs text-red-600">Toplam pay %100'ü geçemez.</p>}
             </div>
+          )}
+        </div>
+
+        {toplamHizmetBedeliDeger > 0 && (
+          <div className="rounded-lg bg-brand-50 p-3 text-xs text-brand-800">
+            {tahminiFatura != null ? (
+              <>
+                Kesmen gereken tahmini fatura: <span className="font-semibold">{tl(tahminiFatura)}</span> (%{anlasmaSelf} anlaşma oranın üzerinden)
+              </>
+            ) : (
+              'Anlaşma oranın tanımlı değil — broker/owner ile kontrol et.'
+            )}
+          </div>
+        )}
+
+        <div className="rounded-lg bg-ink-50 p-3">
+          <p className="mb-2 text-xs font-medium text-ink-700">Diğer Bilgiler</p>
+          <div className="flex gap-2">
+            {Object.entries(KREDI_DURUMU_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setKrediDurumu(key)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium ${
+                  krediDurumu === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 bg-white text-ink-500'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {krediDurumu === 'kredi' && (
+            <input
+              required
+              value={krediBankasi}
+              onChange={(e) => setKrediBankasi(e.target.value)}
+              placeholder="Kredi bankası"
+              className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
           )}
         </div>
 

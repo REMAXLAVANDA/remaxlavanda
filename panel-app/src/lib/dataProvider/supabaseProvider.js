@@ -1306,6 +1306,9 @@ function mapCiroRaporu(r) {
     aliciKimlikNo: r.alici_kimlik_no,
     aliciHizmetBedeli: r.alici_hizmet_bedeli == null ? null : Number(r.alici_hizmet_bedeli),
     aliciEkHizmetBedeli: r.alici_ek_hizmet_bedeli == null ? null : Number(r.alici_ek_hizmet_bedeli),
+    raporKategori: r.rapor_kategori,
+    krediDurumu: r.kredi_durumu,
+    krediBankasi: r.kredi_bankasi,
     katilimcilar: (r.ciro_raporu_katilimcilari ?? []).map(mapCiroRaporuKatilimcisi),
   }
 }
@@ -1342,6 +1345,9 @@ export const ciroRaporlari = {
       aliciKimlikNo,
       aliciHizmetBedeli,
       aliciEkHizmetBedeli,
+      raporKategori,
+      krediDurumu,
+      krediBankasi,
       katilimcilar,
     },
     olusturanId,
@@ -1370,6 +1376,9 @@ export const ciroRaporlari = {
           alici_kimlik_no: aliciHizmetBedeliAlindi ? aliciKimlikNo || null : null,
           alici_hizmet_bedeli: aliciHizmetBedeliAlindi ? aliciHizmetBedeli ?? null : null,
           alici_ek_hizmet_bedeli: aliciHizmetBedeliAlindi ? aliciEkHizmetBedeli ?? null : null,
+          rapor_kategori: raporKategori ?? null,
+          kredi_durumu: krediDurumu ?? null,
+          kredi_bankasi: krediDurumu === 'kredi' ? krediBankasi || null : null,
         })
         .select()
         .single(),
@@ -1582,6 +1591,8 @@ function mapBankaHareketi(row) {
     opportunityId: row.opportunity_id,
     ustHareketId: row.ust_hareket_id,
     tur: row.tur,
+    bankaAdi: row.banka_adi,
+    dekontDosyaUrl: row.dekont_dosya_url,
     mahsupTutari: row.mahsup_tutari == null ? null : Number(row.mahsup_tutari),
     eslesenKatilimciId: row.eslesen_katilimci_id,
     eslestirenId: row.eslestiren_id,
@@ -1596,13 +1607,23 @@ export const bankaHareketleri = {
     const data = await run(client().from('banka_hareketleri').select('*').order('tarih', { ascending: false }))
     return data.map(mapBankaHareketi)
   },
+  // Danışman/ofis kendi eklediği, henüz eşleşmemiş kaydı silebilir — RLS
+  // (banka_hareketleri_delete_self) zaten bunu zorunlu kılıyor, burada
+  // ayrıca kontrol gerekmiyor.
+  async remove(id) {
+    await run(client().from('banka_hareketleri').delete().eq('id', id))
+  },
   // bagliOpportunityId + bloke:true verilirse "bağlanma parası" olarak
   // girilir (tapu gününü bekleyen, fırsatla doğrudan ilişkili bir giriş
   // hareketi) — ciro raporu henüz yoktur, bkz. lib/bankaHareketleri.js.
   // tip 'cikis' verilirse (ör. kira/maaş ödemesi) bloke mantığı uygulanmaz,
   // doğrudan eşleşmemiş bir çıkış olarak girilir — sonra "Masraf Olarak
-  // İşaretle" ile sınıflandırılır (bkz. masrafOlarakIsaretle).
-  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip }, olusturanId) {
+  // İşaretle" ile sınıflandırılır (bkz. masrafOlarakIsaretle). 2026-10-11:
+  // danışman/ofis de kendi dekontunu girebiliyor (bkz. canSubmitBankaHareketi,
+  // migration 20261011093000 RLS'i zaten sadece kendi olusturan_id'siyle
+  // ve durum='eslesmedi' insert'e izin veriyor — bloke/tip seçenekleri
+  // sadece broker ekranında kullanılıyor, danışman formunda yok).
+  async create({ tutar, tarih, gonderenAdi, aciklama, referansNo, opportunityId, bloke, tip, tur, bankaAdi, dekontDosyaUrl }, olusturanId) {
     const cikis = tip === 'cikis'
     const data = await run(
       client()
@@ -1616,8 +1637,10 @@ export const bankaHareketleri = {
           kaynak: 'manuel',
           tip: cikis ? 'cikis' : 'giris',
           opportunity_id: !cikis && opportunityId ? opportunityId : null,
-          tur: !cikis && bloke ? 'baglanma_parasi' : 'diger',
+          tur: !cikis && bloke ? 'baglanma_parasi' : tur || 'diger',
           durum: !cikis && bloke ? 'blokede' : 'eslesmedi',
+          banka_adi: bankaAdi || null,
+          dekont_dosya_url: dekontDosyaUrl || null,
           olusturan_id: olusturanId,
         })
         .select()
@@ -1669,10 +1692,14 @@ export const bankaHareketleri = {
         .eq('id', hareketId),
     )
   },
-  // Eşleştirince hem hareket "eşleşti" olur hem o katılımcının ödeme
-  // durumu "alındı"ya döner — Ciro Raporları ekranındaki elle işaretleme
-  // ile AYNI alan, tek kaynak (bkz. CiroRaporuKatilimciRow). Cari Hesap'taki
-  // ilgili alacak satırı da kapanır (approve() orada oluşturmuştu).
+  // Eşleştirme artık katılımcının ödeme durumunu OTOMATİK "alındı" yapmıyor
+  // (2026-10-11 broker kararı: "danışman girer, broker onaylar" — parçalı
+  // ödemede tek bir eşleşme tüm tutarı karşılamayabilir). Broker, toplam
+  // eşleşen tutarı (bkz. lib/bankaHareketleri.js toplamEslesenTutar, UI'da
+  // "X TL / Y TL geldi" göstergesi) kendi gözüyle kontrol edip
+  // CiroRaporuKatilimciRow'daki mevcut "Ödeme alındı" düğmesiyle (zaten var
+  // olan updateKatilimciFatura odemeDurumu akışı, cari hareketi de o zaten
+  // kapatıyor) son onayı veriyor.
   async eslestir(hareketId, katilimciId, eslestirenId) {
     await run(
       client()
@@ -1685,39 +1712,19 @@ export const bankaHareketleri = {
         })
         .eq('id', hareketId),
     )
-    await run(client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'alindi' }).eq('id', katilimciId))
-    await run(
-      client()
-        .from('cari_hareketler')
-        .update({ durum: 'kapandi' })
-        .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
-        .eq('kaynak_id', katilimciId),
-    )
   },
-  // Yanlış eşleştirmeyi düzeltmenin tek yolu — hareketi tekrar
-  // "eşleşmedi"ye, katılımcıyı "bekliyor"a, cari hareketi "açık"a döndürür.
+  // Yanlış eşleştirmeyi düzeltmenin tek yolu — hareketi tekrar "eşleşmedi"ye
+  // döndürür. Katılımcının ödeme durumuna ARTIK dokunmuyor (2026-10-11,
+  // eslestir() notuyla aynı sebep: "ödeme alındı" artık broker'ın AYRI,
+  // elle verdiği bir onay — bir eşleşmeyi kaldırmak, parçalı ödemede hâlâ
+  // geçerli olabilecek diğer eşleşmelerin/onayın üzerine yazmamalı).
   async eslesmeyiKaldir(hareketId) {
-    const hareket = await run(
-      client().from('banka_hareketleri').select('eslesen_katilimci_id').eq('id', hareketId).single(),
-    )
     await run(
       client()
         .from('banka_hareketleri')
         .update({ durum: 'eslesmedi', eslesen_katilimci_id: null, eslestiren_id: null, eslesme_tarihi: null })
         .eq('id', hareketId),
     )
-    if (hareket.eslesen_katilimci_id) {
-      await run(
-        client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'bekliyor' }).eq('id', hareket.eslesen_katilimci_id),
-      )
-      await run(
-        client()
-          .from('cari_hareketler')
-          .update({ durum: 'acik' })
-          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
-          .eq('kaynak_id', hareket.eslesen_katilimci_id),
-      )
-    }
   },
   // Bloke (bağlanma parası) tapu günü çözümlenir — 4 senaryo:
   // geri_gonder/saticiya_gonder (tamamı çıkış), mahsup_et (tamamı hizmet

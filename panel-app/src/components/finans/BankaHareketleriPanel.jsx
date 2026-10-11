@@ -10,12 +10,21 @@ import {
   bankaHareketleri as bankaHareketleriProvider,
   categories as categoriesProvider,
 } from '../../lib/dataProvider'
-import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, canManageBankaHareketleri, eslesmeAdaylari } from '../../lib/bankaHareketleri'
+import {
+  BANKA_HAREKETI_DURUM_LABELS,
+  BANKA_HAREKETI_DURUM_STYLES,
+  BANKA_HAREKETI_TUR_LABELS,
+  canManageBankaHareketleri,
+  canSubmitBankaHareketi,
+  eslesmeAdaylari,
+} from '../../lib/bankaHareketleri'
 import { slugify } from '../../lib/categories'
 import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 import BlokeCozumleModal from './BlokeCozumleModal'
 import MasrafIsaretleModal from './MasrafIsaretleModal'
+import BankaHareketiDanismanPanel from './BankaHareketiDanismanPanel'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -72,7 +81,12 @@ export default function BankaHareketleriPanel() {
   )
 
   if (!canManageBankaHareketleri(role)) {
-    return <RestrictedAccess message="Banka Hareketleri sadece broker rolüne açıktır." />
+    // Danışman/ofis tam yönetim ekranını (eşleştirme/bloke/masraf) hiç
+    // görmüyor — sadece kendi dekontunu ekleyip görebildiği sade bir
+    // alt görünüm (bkz. BankaHareketiDanismanPanel, 2026-10-11 broker
+    // kararı: "danışman girsin ama onaylama broker'da kalsın").
+    if (canSubmitBankaHareketi(role)) return <BankaHareketiDanismanPanel />
+    return <RestrictedAccess message="Banka Hareketleri sadece broker ve danışmanlara açıktır." />
   }
 
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
@@ -163,6 +177,15 @@ export default function BankaHareketleriPanel() {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleViewDekont(path) {
+    try {
+      const url = await getSignedFinansUrl(path)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      showToast('Dosya açılamadı, tekrar dene.', 'error')
     }
   }
 
@@ -299,10 +322,17 @@ export default function BankaHareketleriPanel() {
                 <tr key={h.id} className="border-b border-border-subtle last:border-0">
                   <td className="px-4 py-2.5 text-text-secondary">{formatDateOnly(h.tarih)}</td>
                   <td className="px-4 py-2.5 text-text-muted">
-                    {h.tip === 'cikis' ? 'Çıkış' : h.tur === 'baglanma_parasi' ? 'Bağlanma Parası' : 'Giriş'}
+                    {h.tip === 'cikis' ? 'Çıkış' : (BANKA_HAREKETI_TUR_LABELS[h.tur] ?? 'Giriş')}
                   </td>
                   <td className="px-4 py-2.5 font-medium text-text-primary">{tl(h.tutar)}</td>
-                  <td className="px-4 py-2.5 text-text-secondary">{h.gonderenAdi || '—'}</td>
+                  <td className="px-4 py-2.5 text-text-secondary">
+                    {h.gonderenAdi || '—'}
+                    {h.dekontDosyaUrl && (
+                      <button onClick={() => handleViewDekont(h.dekontDosyaUrl)} className="ml-1.5 text-xs font-medium text-brand-700 hover:underline">
+                        Dekont
+                      </button>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
                       {BANKA_HAREKETI_DURUM_LABELS[h.durum]}

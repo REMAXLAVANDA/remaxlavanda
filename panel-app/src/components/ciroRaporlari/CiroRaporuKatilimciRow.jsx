@@ -1,9 +1,17 @@
 import { useState } from 'react'
+import { Upload } from 'lucide-react'
 import { formatDateOnly } from '../../lib/format'
 import { faturaTutarsizMi } from '../../lib/ciroRaporlari'
+import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
+import { useToast } from '../../context/ToastContext'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 // Fatura alanları SADECE o katılımcının kendisi tarafından düzenlenir
@@ -22,7 +30,8 @@ function tl(n) {
 // broker kararı). Aynı sebeple RT Payı artık danışmanın kendi fatura
 // formunda hiç düzenlenmiyor — tamamen profildeki tier'dan (Rap/Max)
 // otomatik geliyor.
-export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, onSaveFatura, onToggleOdeme, submitting }) {
+export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, eslesenTutar, onSaveFatura, onToggleOdeme, submitting }) {
+  const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
     faturaNo: k.faturaNo ?? '',
@@ -30,10 +39,60 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
     faturaTutari: k.faturaTutari ?? '',
     kdvOrani: k.kdvOrani ?? '',
     vergiNo: k.vergiNo ?? '',
-    faturaDosyaUrl: k.faturaDosyaUrl ?? '',
   })
+  const [file, setFile] = useState(null)
+  const [fileError, setFileError] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [viewingFile, setViewingFile] = useState(false)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tutarsiz = faturaTutarsizMi(k.faturaTutari, k.komisyonTutariOnerisi)
+
+  function handleFileChange(e) {
+    const selected = e.target.files?.[0] ?? null
+    if (!selected) {
+      setFile(null)
+      setFileError(null)
+      return
+    }
+    const check = validateFinansFile(selected)
+    if (!check.ok) {
+      setFile(null)
+      setFileError(check.reason)
+      return
+    }
+    setFile(selected)
+    setFileError(null)
+  }
+
+  // Fatura dosyası private bucket'ta (bkz. migration 20261011100000) —
+  // doğrudan link yok, her açışta imzalı URL istenir (Rehber'deki
+  // PreviewModal ile AYNI desen).
+  async function handleViewFile() {
+    setViewingFile(true)
+    try {
+      const url = await getSignedFinansUrl(k.faturaDosyaUrl)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      showToast('Dosya açılamadı, tekrar dene.', 'error')
+    } finally {
+      setViewingFile(false)
+    }
+  }
+
+  async function handleSave() {
+    if (fileError) return
+    setUploading(true)
+    try {
+      const faturaDosyaUrl = file ? await uploadFinansFile(file, k.danismanId) : undefined
+      await onSaveFatura(k.id, { ...form, ...(faturaDosyaUrl !== undefined ? { faturaDosyaUrl } : {}) })
+      setEditing(false)
+      setFile(null)
+    } catch (err) {
+      showToast(err.message ?? 'Dosya yüklenemedi, tekrar dene.', 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <div className="rounded-lg border border-border-subtle p-3">
@@ -68,6 +127,18 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
       )}
 
+      {/* Parçalı ödeme göstergesi — birden fazla banka hareketi aynı
+          katılımcıya eşleşmiş olabilir (bkz. lib/bankaHareketleri.js
+          toplamEslesenTutar). "Ödeme alındı" son onayını hâlâ broker
+          yukarıdaki düğmeyle elle veriyor, bu SADECE bilgi amaçlı. */}
+      {canToggleOdeme && eslesenTutar != null && (
+        <p className="mt-1.5 text-xs text-text-muted">
+          Bankadan eşleşen: <span className="font-medium text-text-primary">{tl(eslesenTutar)}</span>
+          {' / '}
+          beklenen {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}
+        </p>
+      )}
+
       {tutarsiz && (
         <p className="mt-2 text-xs font-medium text-red-600">
           Girilen fatura tutarı ({tl(k.faturaTutari)}) önerilenden farklı — onaylamadan önce kontrol et.
@@ -78,6 +149,11 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         <div className="mt-2 text-xs text-text-muted">
           Fatura {k.faturaNo || '—'} · {k.faturaTarihi ? formatDateOnly(k.faturaTarihi) : '—'} · {tl(k.faturaTutari)}
           {k.kdvOrani != null && ` · KDV %${k.kdvOrani}`}
+          {k.faturaDosyaUrl && (
+            <button onClick={handleViewFile} disabled={viewingFile} className="ml-1.5 font-medium text-brand-700 hover:underline disabled:opacity-50">
+              {viewingFile ? 'Açılıyor...' : 'Dosyayı görüntüle'}
+            </button>
+          )}
         </div>
       )}
 
@@ -122,12 +198,20 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
               placeholder="Vergi no"
               className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
             />
-            <input
-              value={form.faturaDosyaUrl}
-              onChange={(e) => set({ faturaDosyaUrl: e.target.value })}
-              placeholder="Fatura dosyası linki (opsiyonel)"
-              className="col-span-2 rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
+            <div className="col-span-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border-default bg-white px-2 py-2 text-xs text-text-secondary hover:bg-surface-sunken">
+                <Upload size={14} className="shrink-0 text-text-muted" />
+                <span className="truncate">
+                  {file
+                    ? `${file.name} (${formatSize(file.size)})`
+                    : k.faturaDosyaUrl
+                      ? 'Dosya yüklü — değiştirmek için seç (PDF/görsel)'
+                      : 'Fatura dosyası seç (PDF/görsel, opsiyonel)'}
+                </span>
+                <input type="file" onChange={handleFileChange} className="hidden" />
+              </label>
+              {fileError && <p className="mt-1 text-red-600">{fileError}</p>}
+            </div>
           </div>
           <div className="flex justify-end gap-2">
             <button
@@ -139,14 +223,11 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
             </button>
             <button
               type="button"
-              disabled={submitting}
-              onClick={async () => {
-                await onSaveFatura(k.id, form)
-                setEditing(false)
-              }}
+              disabled={submitting || uploading}
+              onClick={handleSave}
               className="rounded-lg bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
             >
-              Kaydet
+              {uploading ? 'Yükleniyor...' : 'Kaydet'}
             </button>
           </div>
         </div>

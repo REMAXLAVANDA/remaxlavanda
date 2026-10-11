@@ -103,6 +103,53 @@ export async function deleteDocFile(path) {
   if (error) throw mapSupabaseError(error)
 }
 
+// --- Finans belgeleri (Ciro Raporu faturası, Banka Hareketi dekontu) --------
+// "docs" bucket'ından BİLEREK ayrı — Rehber'in "herkese açık ofis
+// dokümanı" görünürlüğü yerine KİŞİYE ÖZEL bir erişim modeli (bkz.
+// migration 20261011100000): path'in ilk parçası yükleyen kullanıcının
+// id'si, bucket RLS'i bunu zaten zorunlu kılıyor — userId burada da path'i
+// doğru kurmak için şart.
+const FINANS_BUCKET = 'finans'
+const FINANS_ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg']
+
+export function validateFinansFile(file) {
+  if (!file) return { ok: false, reason: 'Dosya seçilmedi.' }
+  if (file.size > MAX_SIZE_BYTES) return { ok: false, reason: 'Dosya 20 MB sınırını aşıyor.' }
+  const ext = file.name.split('.').pop()?.toLowerCase()
+  if (!ext || !FINANS_ALLOWED_EXTENSIONS.includes(ext)) {
+    return { ok: false, reason: `Bu dosya türü desteklenmiyor (izin verilenler: ${FINANS_ALLOWED_EXTENSIONS.join(', ')}).` }
+  }
+  return { ok: true }
+}
+
+// Mock modda gerçek Storage yok — uploadDocFile ile AYNI blob URL deseni.
+export async function uploadFinansFile(file, userId) {
+  const check = validateFinansFile(file)
+  if (!check.ok) throw new Error(check.reason)
+
+  if (!USE_SUPABASE) {
+    return URL.createObjectURL(file)
+  }
+
+  const client = getSupabaseClient()
+  const path = `${userId}/${Date.now()}-${normalizeFilename(file.name)}`
+
+  const { error } = await client.storage.from(FINANS_BUCKET).upload(path, file, {
+    contentType: file.type,
+    upsert: false,
+  })
+  if (error) throw mapSupabaseError(error)
+  return path
+}
+
+export async function getSignedFinansUrl(path, expiresInSeconds = 300) {
+  if (!USE_SUPABASE) return path
+  const client = getSupabaseClient()
+  const { data, error } = await client.storage.from(FINANS_BUCKET).createSignedUrl(path, expiresInSeconds)
+  if (error) throw mapSupabaseError(error)
+  return data.signedUrl
+}
+
 // --- Kartvizit profil fotoğrafı ----------------------------------------------
 // "docs" bucket'ının aksine PUBLIC — kartvizit sayfası girişsiz (anon)
 // açıldığı için signed URL değil, doğrudan kalıcı bir public URL gerekiyor.
