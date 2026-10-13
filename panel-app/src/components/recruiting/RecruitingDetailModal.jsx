@@ -83,7 +83,14 @@ export default function RecruitingDetailModal({
     gorusmeSure: toDurationMinutes(interviewEvent),
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const canSubmit = form.adSoyad.trim().length > 0 && (form.durum !== 'olumsuz' || form.olumsuzSebebi.length > 0)
+  // Görüşme tarihi girilip saat boş bırakılırsa handleSubmit ikisini de ''
+  // yapıp randevuyu sessizce siliyordu (broker: "randevu oluşturdum oluşmadı",
+  // production loglarında recruiting_candidates PATCH gidiyor ama
+  // calendar_events POST hiç gitmiyordu) — tarih girildiyse saat de zorunlu.
+  const canSubmit =
+    form.adSoyad.trim().length > 0 &&
+    (form.durum !== 'olumsuz' || form.olumsuzSebebi.length > 0) &&
+    (!form.gorusmeTarih || form.gorusmeSaat)
   const isOlumlu = candidate?.durum === 'olumlu'
 
   // Aynı numarayla daha önce aday girilmiş mi — sadece YENİ aday eklerken
@@ -290,11 +297,18 @@ export default function RecruitingDetailModal({
             />
             <input
               type="time"
+              required={Boolean(form.gorusmeTarih)}
               value={form.gorusmeSaat}
               onChange={(e) => set({ gorusmeSaat: e.target.value })}
               className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
             />
           </div>
+          {form.gorusmeTarih && !form.gorusmeSaat && (
+            <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
+              <Info size={13} className="mt-0.5 shrink-0" />
+              Saat seçilmeden randevu kaydedilemez.
+            </p>
+          )}
           <select
             value={form.gorusmeSure}
             onChange={(e) => set({ gorusmeSure: Number(e.target.value) })}
