@@ -12,6 +12,7 @@ import {
   league as leagueProvider,
   coachingNotes as coachingNotesProvider,
   education as educationProvider,
+  mentorPrimi as mentorPrimiProvider,
 } from '../../lib/dataProvider'
 import { computeHealthScore } from '../../lib/takip'
 import { checklistProgress } from '../../lib/education'
@@ -60,6 +61,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     coaching,
     checklistItems,
     checklistStatus,
+    baslangicList,
   ] = await Promise.all([
     calendarProvider.list(),
     calendarProvider.listAttendance(),
@@ -74,6 +76,11 @@ async function loadAll(includeOpportunities, includeCoaching) {
     includeCoaching ? coachingNotesProvider.list() : Promise.resolve([]),
     educationProvider.listChecklistItems(),
     educationProvider.listChecklistStatus(),
+    // mentor_primi_baslangic_select_owner RLS'i sadece broker/owner'a izin
+    // veriyor (bkz. migration 20261013095500) — ciroHedefPercent/isIlk90Gunde
+    // gerçek işe başlama tarihi için bunu kullanıyor (bkz. lib/takip.js
+    // gercekBaslangicTarihi notu), ofis/danışman için created_at'e düşülür.
+    includeOpportunities ? mentorPrimiProvider.listBaslangicTarihleri() : Promise.resolve([]),
   ])
   return {
     events,
@@ -89,6 +96,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     coaching,
     checklistItems,
     checklistStatus,
+    baslangicList,
   }
 }
 

@@ -7,6 +7,7 @@ import {
   yonlendirmeMesaji,
   buildYonlendirmeMap,
 } from './yonlendirme'
+import { gercekBaslangicTarihi } from './takip'
 
 const day = 24 * 60 * 60 * 1000
 
@@ -25,6 +26,30 @@ describe('isIlk90Gunde', () => {
 
   it('createdAt yoksa false döner', () => {
     expect(isIlk90Gunde({}, new Date())).toBe(false)
+  })
+
+  it('üçüncü parametre (gerçek başlangıç tarihi) verilirse createdAt yerine o kullanılır', () => {
+    // Broker, 2026-10-13: "Alper bir yıldır bizimle" ama users.created_at
+    // toplu taşıma tarihiydi (88 gün önce) — gerçek tarih (1 yıl önce)
+    // verilince ilk90Gunde artık doğru şekilde false dönmeli.
+    const now = new Date()
+    const user = { createdAt: new Date(now.getTime() - 88 * day).toISOString() }
+    const gercekBaslangic = new Date(now.getTime() - 365 * day).toISOString()
+    expect(isIlk90Gunde(user, now, gercekBaslangic)).toBe(false)
+  })
+})
+
+describe('gercekBaslangicTarihi', () => {
+  it('mentor_primi_baslangic listesinde kayıt varsa onu kullanır, created_at\'i değil', () => {
+    const user = { id: 'u1', createdAt: '2026-07-16' }
+    const baslangicList = [{ userId: 'u1', baslangicTarihi: '2025-09-08' }]
+    expect(gercekBaslangicTarihi(user, baslangicList)).toBe('2025-09-08')
+  })
+
+  it('listede kayıt yoksa (veya liste verilmemişse) created_at\'e düşer', () => {
+    const user = { id: 'u2', createdAt: '2026-07-16' }
+    expect(gercekBaslangicTarihi(user, [{ userId: 'u1', baslangicTarihi: '2025-09-08' }])).toBe('2026-07-16')
+    expect(gercekBaslangicTarihi(user, undefined)).toBe('2026-07-16')
   })
 })
 

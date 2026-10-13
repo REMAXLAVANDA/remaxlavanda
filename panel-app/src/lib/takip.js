@@ -87,21 +87,36 @@ export function customerReviewPercent(userId, ciroMusterileri) {
   return Math.round((alinan / mine.length) * 100)
 }
 
-// Yıllık ciro hedefi, danışmanın işe başlama tarihine (users.created_at)
-// göre orantılanır: ilk (eksik) yılda hedef = (yıllık hedef / 365) * yıl
-// sonuna kalan gün sayısı, sonraki her tam yılda hedef sıfırlanıp tam
-// tutara döner. "Sağlıklı mı" sorusu güne kadar orantılanan beklenen
-// tutarla (bugüne kadar geçmesi gereken gün sayısı * günlük hedef)
-// gerçekleşen ciro karşılaştırılarak günlük çözünürlükte cevaplanır — bu,
-// ay ay bakmaktan daha hassas ama aynı "yolda mısın" sorusunu cevaplıyor.
+// Danışmanın GERÇEK işe başlama tarihi — users.created_at (hesabın
+// portala kaydedildiği/toplu taşındığı tarih) BİLEREK kullanılmıyor,
+// çünkü toplu taşınan danışmanlarda bu tarih gerçek kıdemi yansıtmıyor
+// (broker, 2026-10-13: "Alper bir yıldır bizimle" ama created_at 88 gün
+// önceydi — toplu taşıma tarihiydi). Gerçek tarih zaten
+// mentor_primi_baslangic'te tutuluyor (broker: "mentorluk başlangıcı =
+// başlama tarihi, aynı şey") — o tabloda kaydı olmayan biri için (yeni
+// danışman, henüz hiç mentor başlangıcı girilmemiş) created_at'e düşülür.
+export function gercekBaslangicTarihi(user, baslangicList) {
+  const match = (baslangicList ?? []).find((b) => b.userId === user?.id)
+  return match?.baslangicTarihi ?? user?.createdAt ?? null
+}
+
+// Yıllık ciro hedefi, danışmanın GERÇEK işe başlama tarihine (bkz.
+// gercekBaslangicTarihi) göre orantılanır: ilk (eksik) yılda hedef =
+// (yıllık hedef / 365) * yıl sonuna kalan gün sayısı, sonraki her tam
+// yılda hedef sıfırlanıp tam tutara döner. "Sağlıklı mı" sorusu güne
+// kadar orantılanan beklenen tutarla (bugüne kadar geçmesi gereken gün
+// sayısı * günlük hedef) gerçekleşen ciro karşılaştırılarak günlük
+// çözünürlükte cevaplanır — bu, ay ay bakmaktan daha hassas ama aynı
+// "yolda mısın" sorusunu cevaplıyor.
 // NOT: ciro rakamı asla ham olarak dışarı verilmez (bkz. data/mockLeague.js
 // notu) — sadece 0-100 arası bir sağlık yüzdesi döner. Hedef henüz
 // başlamamışsa (örn. işe başladığı gün) ya da veri eksikse %0 döner —
 // diğer bileşenlerle aynı "veri yok = %0" mantığı.
-export function ciroHedefPercent(userId, users, ciroGirisleri, referenceDate = new Date()) {
+export function ciroHedefPercent(userId, users, ciroGirisleri, referenceDate = new Date(), baslangicList) {
   const person = users.find((u) => u.id === userId)
-  if (!person?.createdAt) return 0
-  const startDate = new Date(person.createdAt)
+  const baslangicTarihi = gercekBaslangicTarihi(person, baslangicList)
+  if (!baslangicTarihi) return 0
+  const startDate = new Date(baslangicTarihi)
   if (Number.isNaN(startDate.getTime())) return 0
 
   const today = new Date(referenceDate)
@@ -145,13 +160,13 @@ export function socialUsagePercent(userId, users, scores, periods) {
 
 export function computeHealthScore(
   userId,
-  { events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods },
+  { events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, baslangicList },
 ) {
   const meetingPercent = meetingAttendPercent(userId, events, attendance)
   const leadPercent = leadResponsePercent(userId, calls)
   const portalPercent = portalUsagePercent(userId, activity)
   const reviewPercent = customerReviewPercent(userId, ciroMusterileri)
-  const ciroPercent = ciroHedefPercent(userId, users ?? [], ciroGirisleri ?? [])
+  const ciroPercent = ciroHedefPercent(userId, users ?? [], ciroGirisleri ?? [], new Date(), baslangicList)
   const socialPercent = socialUsagePercent(userId, users ?? [], scores ?? [], periods ?? [])
 
   // Her bileşen her zaman 0-100 arası gerçek bir sayıdır — veri yoksa (hiç

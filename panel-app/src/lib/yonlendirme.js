@@ -6,7 +6,7 @@
 // leadResponsePercent/portalUsagePercent) takip.js'ten birebir reuse edilir,
 // yeniden yazılmaz.
 
-import { meetingAttendPercent, leadResponsePercent, portalUsagePercent } from './takip'
+import { meetingAttendPercent, leadResponsePercent, portalUsagePercent, gercekBaslangicTarihi } from './takip'
 import { memnuniyetPuani } from './league'
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -30,13 +30,16 @@ export const YONLENDIRME_METRIC_LABELS = {
   portalUsage: 'Portal Kullanımı',
 }
 
-// Danışmanın işe başlama tarihinden (users.created_at — lib/takip.js
-// ciroHedefPercent ile AYNI kaynak) bu yana geçen gün 90'dan azsa, puan ne
-// olursa olsun yönlendirmeye her zaman açık sayılır (broker onayı: yeni
-// başlayan birini henüz oluşmamış istatistikle kapatmak haksızlık olur).
-export function isIlk90Gunde(user, now = new Date()) {
-  if (!user?.createdAt) return false
-  const start = new Date(user.createdAt)
+// Danışmanın GERÇEK işe başlama tarihinden (gercekBaslangicTarihi — bkz.
+// lib/takip.js, ciroHedefPercent ile AYNI kaynak) bu yana geçen gün
+// 90'dan azsa, puan ne olursa olsun yönlendirmeye her zaman açık sayılır
+// (broker onayı: yeni başlayan birini henüz oluşmamış istatistikle
+// kapatmak haksızlık olur). baslangicTarihi verilmezse (ör. doğrudan
+// user.createdAt ile çağrılan eski kullanım/testler) created_at'e düşülür.
+export function isIlk90Gunde(user, now = new Date(), baslangicTarihi) {
+  const kaynak = baslangicTarihi ?? user?.createdAt
+  if (!kaynak) return false
+  const start = new Date(kaynak)
   if (Number.isNaN(start.getTime())) return false
   return now.getTime() - start.getTime() < ILK_90_GUN_MS
 }
@@ -104,7 +107,8 @@ export function buildYonlendirmeMap(users, data, now = new Date()) {
   const map = {}
   for (const user of users) {
     const { puan, metrics } = computeYonlendirmePuani(user.id, data)
-    const ilk90Gunde = isIlk90Gunde(user, now)
+    const baslangicTarihi = gercekBaslangicTarihi(user, data.baslangicList)
+    const ilk90Gunde = isIlk90Gunde(user, now, baslangicTarihi)
     const durum = yonlendirmeDurumu(puan, ilk90Gunde)
     const sira = siralamaPuani(user.id, puan, data)
     map[user.id] = { puan, durum, siralamaPuani: sira, ilk90Gunde, metrics }
