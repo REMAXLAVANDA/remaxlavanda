@@ -610,11 +610,11 @@ export const callLogs = {
   },
   // Pasife alınan danışmanın takip gerektiren, dönüşü yapılmamış
   // çağrılarını başka bir danışmana toplu devreder (bkz. Ayarlar.jsx
-  // DevretModal). callNeedsTracking dışında kalanlar (santral kaynaklı,
-  // portföy talebi olmayan bilgi çağrıları) zaten takip gerektirmediği
-  // için devredilmiyor — tek tek ID ile güncellenir (RLS'in anladığı
-  // tek UPDATE şekli bu, SQL'de callNeedsTracking'i tekrar yazmak yerine
-  // tek doğru kaynağı (lib/callLogs.js) kullanıyoruz).
+  // DevretModal). callNeedsTracking dışında kalanlar (Fırsat'a
+  // çevrilmemiş santral kaynaklı bilgi çağrıları) zaten takip
+  // gerektirmediği için devredilmiyor — tek tek ID ile güncellenir
+  // (RLS'in anladığı tek UPDATE şekli bu, SQL'de callNeedsTracking'i
+  // tekrar yazmak yerine tek doğru kaynağı (lib/callLogs.js) kullanıyoruz).
   async reassignPending(callIds, toUserId, fromUserId) {
     if (callIds.length === 0) return
     await run(

@@ -279,9 +279,13 @@ export default function OperasyonTab() {
       const created = await opportunitiesProvider.create(payload, targetOwnerId, selfClaim)
       // Çağrı zaten portföye dönüştüğü için "Portföy" durumu da otomatik
       // "Alındı" oluyor — Fırsat oluşup Portföy hâlâ "Bekliyor" görünmesin diye.
-      // portfoyTalebiMi de true'ya çekilir — "bilgi amaçlı" işaretlenmiş bir
-      // Santral çağrısı fiilen portföye dönüşürse Süreç zinciri (Portföy/
-      // Satış) artık görünmeli, "Bilgi amaçlı" rozetinde takılı kalmamalı.
+      // opportunityId/portfoyAlindiMi dolması, callNeedsTracking'in (bkz.
+      // lib/callLogs.js) bu çağrıyı artık Santral olsa da takip etmesini
+      // sağlıyor — "bilgi amaçlı" işaretlenmiş bir Santral çağrısı fiilen
+      // portföye dönüşürse Süreç zinciri (Portföy/Satış) artık görünür,
+      // "Bilgi amaçlı" rozetinde takılı kalmaz. portfoyTalebiMi hâlâ true'ya
+      // çekiliyor (geçmiş veriyle tutarlılık için), ama artık bu kararın
+      // kaynağı değil.
       const updated = await callLogsProvider.update(convertingCall.id, {
         opportunityId: created.id,
         portfoyAlindiMi: true,

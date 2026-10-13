@@ -266,15 +266,16 @@ function StatusPickerPill({ variant, label, title, options, currentValue, descri
 // alındıktan sonra zincire eklenen bilgi amaçlı bir adımdır (kendi
 // düzenleme akışı zaten EditCallDetailsModal'da).
 //
-// Santral çağrısı portföy talebi değilse (callNeedsTracking=false) zincir
-// hiç gösterilmez — danışmandan hiçbir işaretleme beklenmiyor, sadece
-// kendisine aktarılmış çağrıyı bilgi amaçlı görüyor (bkz. "portföy çağrısı
-// değilse danışman bilgi girmesi gerekmesin" isteği).
+// Santral çağrısı için (gerçek bir Fırsat'a çevrilmediyse, bkz.
+// callNeedsTracking) zincir hiç gösterilmez — danışmandan hiçbir
+// işaretleme beklenmiyor, sadece kendisine aktarılmış çağrıyı bilgi
+// amaçlı görüyor. "Fırsata Çevir" ile dönüştürülmüş bir Santral çağrısı
+// ise callNeedsTracking artık true döndüğü için normal zincire düşer.
 function CallProgressSteps({ call, canEdit, onToggle }) {
   if (!callNeedsTracking(call)) {
     return (
       <span
-        title="Bu çağrı portföy talebi değil — bilgi amaçlı aktarıldı, işlem yapman gerekmiyor"
+        title="Bu çağrı bilgi amaçlı aktarıldı — işlem yapman gerekmiyor"
         className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-ink-200 px-2.5 py-1 text-xs text-ink-400"
       >
         <Info size={12} /> Bilgi amaçlı

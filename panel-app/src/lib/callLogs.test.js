@@ -52,9 +52,18 @@ describe('computeReklamKoduConversion', () => {
 })
 
 describe('callNeedsTracking', () => {
-  it('Santral kaynaklı çağrı için (portföy talebi olsa da) false döner', () => {
+  it('Santral kaynaklı, Fırsat\'a çevrilmemiş çağrı için (portföy talebi olsa da) false döner', () => {
     expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: false })).toBe(false)
     expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: true })).toBe(false)
+  })
+
+  // /kurul bulgusu, 2026-10-13: "Fırsata Çevir" ile dönüştürülmüş bir
+  // Santral çağrısı hâlâ "Bilgi Amaçlı" rozetinde kalıp ilerlemesi hiç
+  // görünmüyordu — opportunityId/portfoyAlindiMi'den biri doluysa artık
+  // kaynak Santral olsa da takip gerekiyor.
+  it('Santral kaynaklı ama gerçek bir Fırsat\'a çevrilmiş çağrı için true döner', () => {
+    expect(callNeedsTracking({ kaynak: 'Santral', opportunityId: 'opp-1' })).toBe(true)
+    expect(callNeedsTracking({ kaynak: 'Santral', portfoyAlindiMi: true })).toBe(true)
   })
 
   it('Santral dışındaki kaynaklarda portfoyTalebiMi ne olursa olsun true döner', () => {

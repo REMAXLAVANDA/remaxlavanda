@@ -7,10 +7,11 @@
 // StatusPickerPill). "sonuc" kolonu artık UI'da kullanılmıyor ama geçmiş veri
 // kaybolmasın diye burada da (gerçek DB'deki gibi) duruyor.
 //
-// portfoyTalebiMi: sadece kaynak='Santral' olan çağrılarda anlamlı — bkz.
-// migration 20260804130000/lib/callLogs.js callNeedsTracking. Diğer
-// kaynaklarda (Reklam/Web Sitesi/Diğer) hiç okunmuyor, yine de gerçek
-// DB'deki gibi (not null default false) her satırda duruyor.
+// portfoyTalebiMi: artık callNeedsTracking tarafından hiç okunmuyor
+// (2026-10-13'te kaldırıldı — bkz. lib/callLogs.js notu, santral çağrıları
+// Fırsat'a çevrilmediyse/portföy alınmadıysa her zaman bilgi amaçlı).
+// Alan yine de gerçek DB'deki gibi (not null default false) her satırda
+// duruyor, sadece ofis formunda elle girilen bir not olarak kalıyor.
 
 const day = 24 * 60 * 60 * 1000
 const daysAgo = (n) => new Date(Date.now() - n * day).toISOString()

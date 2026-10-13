@@ -36,14 +36,18 @@ export const CALL_SOURCE_CODES = {
 // Telsam entegrasyonuyla gelen HER Santral çağrısı call_logs'a otomatik
 // düşüyor — bu fonksiyon "danışman bu çağrı için Görüşüldü/Portföy
 // zincirini işaretlemek zorunda mı" sorusuna cevap verir. Santral
-// çağrıları TAMAMEN bilgi amaçlı sayılır, portföy talebi işaretli olsa
-// bile (broker, 2026-10-13: "santralden gelen çağrılar sadece bilgi
-// amaçlı olduğu için danışmanın herhangi bir bilgi vermesine gerek yok"
-// — eski kural portföy talebiyse hâlâ takip bekliyordu, bu istisna artık
-// kaldırıldı). Santral DIŞINDAKİ kaynaklar (Reklam/Web Sitesi/Diğer) bu
+// çağrıları TAMAMEN bilgi amaçlı sayılır (broker, 2026-10-13: "santralden
+// gelen çağrılar sadece bilgi amaçlı olduğu için danışmanın herhangi bir
+// bilgi vermesine gerek yok") — TEK istisna: çağrı gerçekten bir Fırsat'a
+// çevrilmişse (opportunityId dolu) veya portföy zaten alınmışsa, kaynağı
+// Santral olsa da artık gerçek bir iş var ve takip edilmesi gerekir
+// (/kurul bulgusu, 2026-10-13: "Fırsata Çevir" ile dönüştürülmüş bir
+// Santral çağrısı hâlâ "Bilgi Amaçlı" rozetinde kalıp ilerlemesi hiç
+// görünmüyordu). Santral DIŞINDAKİ kaynaklar (Reklam/Web Sitesi/Diğer) bu
 // alandan etkilenmiyor, her zaman takip edilir — broker: "reklamlardan
 // gelenler sağlıklı ilerlesin".
 export function callNeedsTracking(call) {
+  if (call.opportunityId || call.portfoyAlindiMi) return true
   return call.kaynak !== 'Santral'
 }
 
