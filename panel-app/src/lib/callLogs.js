@@ -34,15 +34,17 @@ export const CALL_SOURCE_CODES = {
 // yazılıyor (bkz. StatusPickerPill, 2026-09-17).
 
 // Telsam entegrasyonuyla gelen HER Santral çağrısı call_logs'a otomatik
-// düşüyor ama çoğu portföy talebi değil (bilgi/alıcı görüşmesi vb.) —
-// bu fonksiyon "danışman bu çağrı için Görüşüldü/Portföy zincirini
-// işaretlemek zorunda mı" sorusuna cevap verir (bkz. migration
-// 20260804130000, broker: "portföy çağrısı değilse danışman bilgi girmesi
-// gerekmesin"). Santral DIŞINDAKİ kaynaklar (Reklam/Web Sitesi/Diğer) bu
+// düşüyor — bu fonksiyon "danışman bu çağrı için Görüşüldü/Portföy
+// zincirini işaretlemek zorunda mı" sorusuna cevap verir. Santral
+// çağrıları TAMAMEN bilgi amaçlı sayılır, portföy talebi işaretli olsa
+// bile (broker, 2026-10-13: "santralden gelen çağrılar sadece bilgi
+// amaçlı olduğu için danışmanın herhangi bir bilgi vermesine gerek yok"
+// — eski kural portföy talebiyse hâlâ takip bekliyordu, bu istisna artık
+// kaldırıldı). Santral DIŞINDAKİ kaynaklar (Reklam/Web Sitesi/Diğer) bu
 // alandan etkilenmiyor, her zaman takip edilir — broker: "reklamlardan
 // gelenler sağlıklı ilerlesin".
 export function callNeedsTracking(call) {
-  return call.kaynak !== 'Santral' || call.portfoyTalebiMi
+  return call.kaynak !== 'Santral'
 }
 
 // Operasyon'daki "Süreç" filtresi (2026-10-10 broker isteği) — CallTable'daki

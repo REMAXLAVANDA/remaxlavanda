@@ -52,12 +52,9 @@ describe('computeReklamKoduConversion', () => {
 })
 
 describe('callNeedsTracking', () => {
-  it('Santral kaynaklı, portföy talebi olmayan çağrı için false döner', () => {
+  it('Santral kaynaklı çağrı için (portföy talebi olsa da) false döner', () => {
     expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: false })).toBe(false)
-  })
-
-  it('Santral kaynaklı, portföy talebi olan çağrı için true döner', () => {
-    expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: true })).toBe(true)
+    expect(callNeedsTracking({ kaynak: 'Santral', portfoyTalebiMi: true })).toBe(false)
   })
 
   it('Santral dışındaki kaynaklarda portfoyTalebiMi ne olursa olsun true döner', () => {
@@ -110,12 +107,12 @@ describe('callSurecDurumu', () => {
 })
 
 describe('computeCallStats — pendingReturn işlem gerekmeyen çağrıları hariç tutar', () => {
-  it('Santral + portföy talebi olmayan, atanmış ve dönüş yapılmamış çağrı dönüş bekleyen sayılmaz', () => {
+  it('Santral çağrısı (portföy talebi olsa da) dönüş bekleyen sayılmaz, diğer kaynaklar sayılır', () => {
     const calls = [
       { assignedTo: 'u1', donusYapildiMi: null, portfoyAlindiMi: null, kaynak: 'Santral', portfoyTalebiMi: false },
       { assignedTo: 'u1', donusYapildiMi: null, portfoyAlindiMi: null, kaynak: 'Santral', portfoyTalebiMi: true },
       { assignedTo: 'u1', donusYapildiMi: null, portfoyAlindiMi: null, kaynak: 'Reklam', portfoyTalebiMi: false },
     ]
-    expect(computeCallStats(calls).pendingReturn).toBe(2)
+    expect(computeCallStats(calls).pendingReturn).toBe(1)
   })
 })
