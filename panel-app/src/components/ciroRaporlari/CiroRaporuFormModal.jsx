@@ -374,7 +374,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
         {mulkBedeliGerekli && (
           <div>
             <label className="mb-1 block text-xs text-ink-500">
-              {form.islemTipi === 'satis' ? 'Satış Bedeli (₺) *' : 'Aylık Kira Bedeli (₺) *'}
+              Anlaşılan Bedel (₺) {form.islemTipi === 'kiralama' ? '— aylık' : ''} *
             </label>
             <input
               required
