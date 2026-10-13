@@ -130,6 +130,24 @@ export default function Leads() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dateFilter])
 
+  // Reklam Kaynakları tablosu aşağıda dateFilter'dan HABERSİZDİ — "son 7 gün"
+  // seçiliyken bile tüm zamanların reklam performansını gösteriyordu (broker,
+  // 2026-10-13: "kaç gün seçiliyse o tarihteki sonuçları vermesi gerekmez
+  // mi"). Üstteki lead listesiyle (visible/routedLeads) AYNI isWithinRange
+  // süzgeci, recruiting adayları ve çağrılar için de burada uygulanıyor.
+  const recruitingCandidatesInRange = useMemo(() => {
+    return (data?.recruitingCandidates ?? []).filter((c) =>
+      isWithinRange(c.createdAt, dateFilter.dateRange, dateFilter.customFrom, dateFilter.customTo),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dateFilter])
+  const callsInRange = useMemo(() => {
+    return (data?.calls ?? []).filter((c) =>
+      isWithinRange(c.createdAt, dateFilter.dateRange, dateFilter.customFrom, dateFilter.customTo),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dateFilter])
+
   // Portföy'e giden lead için DANIŞMAN SEÇİMİ zorunlu bilgi (sistemde yok,
   // tahmin edilemez) — o yüzden AssignPortfolioLeadModal açılıyor, TEK alanı
   // var (bkz. o dosyanın notu). Recruiting'de ise atanan danışman diye bir
@@ -283,8 +301,8 @@ export default function Leads() {
               <Megaphone size={16} className="text-brand-600" /> Reklam Kaynakları
             </h2>
             <ReklamKaynaklariTable
-              recruitingRows={computeRecruitingReklamConversion(data?.recruitingCandidates ?? [])}
-              portfoyRows={computeReklamKoduConversion(data?.calls ?? [])}
+              recruitingRows={computeRecruitingReklamConversion(recruitingCandidatesInRange)}
+              portfoyRows={computeReklamKoduConversion(callsInRange)}
             />
           </section>
         </>
