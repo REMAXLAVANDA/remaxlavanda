@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import Modal from '../common/Modal'
 import { METRIC_LABELS, STATUS_LABELS, STATUS_STYLES } from '../../lib/takip'
+import { callNeedsTracking } from '../../lib/callLogs'
 import { formatDateOnly } from '../../lib/format'
 import { OPPORTUNITY_TYPE_LABELS, OPPORTUNITY_STATUS_LABELS, OPPORTUNITY_STATUS_STYLES, formatPrice } from '../../lib/opportunities'
 import CoachingNotesSection from './CoachingNotesSection'
@@ -108,13 +109,22 @@ export default function HealthDetailModal({
                     {c.arayanAd || '—'}
                     {c.arayanTelefon && <span className="ml-1 text-ink-400">({c.arayanTelefon})</span>}
                   </span>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 font-medium ${
-                      c.donusYapildiMi ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
-                    }`}
-                  >
-                    {c.donusYapildiMi ? 'Dönüş Yapıldı' : 'Dönüş Yapılmadı'}
-                  </span>
+                  {callNeedsTracking(c) ? (
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 font-medium ${
+                        c.donusYapildiMi ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                      }`}
+                    >
+                      {c.donusYapildiMi ? 'Dönüş Yapıldı' : 'Dönüş Yapılmadı'}
+                    </span>
+                  ) : (
+                    <span
+                      title="Bu çağrı portföy talebi değil — bilgi amaçlı aktarıldı, danışmandan işlem beklenmiyor"
+                      className="shrink-0 rounded-full border border-dashed border-ink-200 px-2 py-0.5 font-medium text-ink-400"
+                    >
+                      Bilgi Amaçlı
+                    </span>
+                  )}
                   <span className="shrink-0 text-ink-400">{formatDateOnly(c.createdAt)}</span>
                 </div>
               ))}
