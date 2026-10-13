@@ -31,7 +31,7 @@ import {
   coachingNotes as coachingNotesProvider,
   auditLog as auditLogProvider,
 } from '../lib/dataProvider'
-import { canManageCalls, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
+import { canManageCalls, callNeedsTracking, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
 import { matchesKayitTipiFilter, computeRecruitingReklamConversion } from '../lib/recruiting'
 import { ROLES } from '../lib/roles'
 import {
@@ -403,9 +403,15 @@ export default function Panel() {
   // takip menüleri" denetimi, 2026-10-04).
   const pendingCalls = useMemo(() => {
     if (!data) return []
+    // Santral'den gelen, portföy talebi olmayan (bilgi amaçlı) çağrılarda
+    // danışmandan hiçbir işaretleme beklenmiyor (bkz. callNeedsTracking,
+    // Operasyon'daki CallProgressSteps ile AYNI kural) — bu filtre
+    // olmadan o çağrılar da "dönüş bekliyor" gibi sayılıp buraya
+    // düşüyordu (broker, 2026-10-13: "santralden gelen çağrılar sanki
+    // dönüş yapılmamış gibi görünüyor").
     const list = isManager
       ? data.calls.filter((c) => !c.assignedTo)
-      : data.calls.filter((c) => c.assignedTo === user.id && !c.donusYapildiMi)
+      : data.calls.filter((c) => c.assignedTo === user.id && !c.donusYapildiMi && callNeedsTracking(c))
     return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }, [data, isManager, user.id])
 
