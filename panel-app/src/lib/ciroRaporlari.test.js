@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  beklenenHizmetBedeli,
   canApproveCiroRaporu,
   canSubmitCiroRaporu,
   faturaTutarsizMi,
   guncelAnlasmaOrani,
+  hizmetBedeliStandartDisiMi,
   katilimciSatisPayi,
   komisyonTutariOnerisi,
   toplamPayOrani,
@@ -68,6 +70,36 @@ describe('faturaTutarsizMi', () => {
 
   it('belirgin farkı tutarsız sayar', () => {
     expect(faturaTutarsizMi(250000, 288000)).toBe(true)
+  })
+})
+
+describe('beklenenHizmetBedeli / hizmetBedeliStandartDisiMi', () => {
+  it('satışta mülk bedelinin %2si + %20 KDV\'yi hesaplar', () => {
+    // 1.000.000 * %2 = 20.000, +%20 KDV = 24.000
+    expect(beklenenHizmetBedeli('satis', 1000000)).toBe(24000)
+  })
+
+  it('kiralamada bir aylık kira + %20 KDV\'yi hesaplar', () => {
+    expect(beklenenHizmetBedeli('kiralama', 15000)).toBe(18000)
+  })
+
+  it('referral/cooperation\'da mülk bedeli kavramı yok, null döner', () => {
+    expect(beklenenHizmetBedeli('referral', 1000000)).toBeNull()
+    expect(beklenenHizmetBedeli('cooperation', 1000000)).toBeNull()
+  })
+
+  it('mülk bedeli girilmemişse null döner', () => {
+    expect(beklenenHizmetBedeli('satis', null)).toBeNull()
+    expect(beklenenHizmetBedeli('satis', 0)).toBeNull()
+  })
+
+  it('standart orandan sapma varsa true döner', () => {
+    expect(hizmetBedeliStandartDisiMi(15000, 24000)).toBe(true)
+    expect(hizmetBedeliStandartDisiMi(24000.5, 24000)).toBe(false)
+  })
+
+  it('beklenen tutar yoksa (null) sapma kontrolü yapılmaz', () => {
+    expect(hizmetBedeliStandartDisiMi(15000, null)).toBe(false)
   })
 })
 

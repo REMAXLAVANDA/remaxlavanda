@@ -12,6 +12,8 @@ import {
   toplamHizmetBedeli,
   gdCirosu,
   rtPayiOnerisi,
+  beklenenHizmetBedeli,
+  hizmetBedeliStandartDisiMi,
 } from '../../lib/ciroRaporlari'
 
 function tl(n) {
@@ -58,6 +60,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const [portfoyTipi, setPortfoyTipi] = useState(editing?.portfoyTipi ?? 'portfoyum')
   const [disBeyanKodu, setDisBeyanKodu] = useState(editing?.disBeyanKodu ?? '')
   const [tapuBilgileri, setTapuBilgileri] = useState(editing?.tapuBilgileri ?? '')
+  const [mulkBedeli, setMulkBedeli] = useState(editing?.mulkBedeli != null ? formatThousands(String(editing.mulkBedeli)) : '')
   const [raporKategori, setRaporKategori] = useState(editing?.raporKategori ?? '')
   const [krediDurumu, setKrediDurumu] = useState(editing?.krediDurumu ?? 'nakit')
   const [krediBankasi, setKrediBankasi] = useState(editing?.krediBankasi ?? '')
@@ -128,6 +131,16 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const payOraniPartner = ortakVar ? Math.max(0, 100 - Number(payOraniSelf || 0)) : 0
   const toplamPay = ortakVar ? Number(payOraniSelf || 0) + payOraniPartner : 100
 
+  // Mülk bedeli (satış/kira) sadece Satış ve Kiralama'da zorunlu —
+  // Referral/Cooperation'da mülkün kendisi bu danışmanın işlemi değil,
+  // mülk bedeli kavramı yok (broker, 2026-10-13).
+  const mulkBedeliGerekli = form.islemTipi === 'satis' || form.islemTipi === 'kiralama'
+  const mulkBedeliParsed = parseThousands(mulkBedeli)
+  // Standart hizmet bedeli oranı (satışta %2+KDV, kiralamada 1 kira+KDV) —
+  // danışman girdiği tutar bundan sapıyorsa uyarı gösterilir, kaydetmeyi
+  // engellemez (broker: "ona uyarı versin beni bilgilendirsin").
+  const beklenenHizmetBedeliTutari = mulkBedeliGerekli ? beklenenHizmetBedeli(form.islemTipi, mulkBedeliParsed) : null
+
   const saticiHizmetBedeliParsed = parseThousands(satici.hizmetBedeli)
   const aliciHizmetBedeliParsed = parseThousands(alici.hizmetBedeli)
   const saticiKdvOraniParsed = satici.kdvOrani.trim() === '' ? null : Number(satici.kdvOrani)
@@ -193,6 +206,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const canSubmit =
     disBeyanKodu.trim().length > 0 &&
     islemTutariToplam > 0 &&
+    (!mulkBedeliGerekli || (mulkBedeliParsed !== null && mulkBedeliParsed > 0)) &&
     form.islemTarihi &&
     !!raporKategori &&
     (krediDurumu !== 'kredi' || krediBankasi.trim().length > 0) &&
@@ -251,6 +265,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       portfoyTipi,
       disBeyanKodu: disBeyanKodu.trim() || null,
       tapuBilgileri: tapuBilgileri.trim() || null,
+      mulkBedeli: mulkBedeliGerekli ? mulkBedeliParsed : null,
       saticiHizmetBedeliAlindi: saticiVar,
       saticiAdSoyad: satici.adSoyad.trim(),
       saticiTelefon: satici.telefon.trim(),
@@ -355,6 +370,22 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             ))}
           </div>
         </div>
+
+        {mulkBedeliGerekli && (
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">
+              {form.islemTipi === 'satis' ? 'Satış Bedeli (₺) *' : 'Aylık Kira Bedeli (₺) *'}
+            </label>
+            <input
+              required
+              inputMode="numeric"
+              value={mulkBedeli}
+              onChange={(e) => setMulkBedeli(formatThousands(e.target.value))}
+              placeholder={form.islemTipi === 'satis' ? 'Mülkün satış bedeli' : 'Aylık kira bedeli'}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </div>
+        )}
 
         <div>
           <label className="mb-1 block text-xs text-ink-500">Kategori *</label>
@@ -504,6 +535,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           {saticiVar === true && saticiHizmetBedeliHaric != null && (
             <p className="mt-1 text-[11px] text-ink-500">KDV hariç: {tl(saticiHizmetBedeliHaric)}</p>
           )}
+          {saticiVar === true && hizmetBedeliStandartDisiMi(saticiHizmetBedeliParsed, beklenenHizmetBedeliTutari) && (
+            <p className="mt-1 text-[11px] text-amber-600">
+              Standart oranda ({form.islemTipi === 'satis' ? '%2+KDV' : '1 kira+KDV'}) bu tutar {tl(beklenenHizmetBedeliTutari)} olurdu — girdiğin tutarı kontrol et.
+            </p>
+          )}
         </div>
 
         <div className="rounded-lg bg-ink-50 p-3">
@@ -622,6 +658,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           )}
           {aliciVar === true && aliciHizmetBedeliHaric != null && (
             <p className="mt-1 text-[11px] text-ink-500">KDV hariç: {tl(aliciHizmetBedeliHaric)}</p>
+          )}
+          {aliciVar === true && hizmetBedeliStandartDisiMi(aliciHizmetBedeliParsed, beklenenHizmetBedeliTutari) && (
+            <p className="mt-1 text-[11px] text-amber-600">
+              Standart oranda ({form.islemTipi === 'satis' ? '%2+KDV' : '1 kira+KDV'}) bu tutar {tl(beklenenHizmetBedeliTutari)} olurdu — girdiğin tutarı kontrol et.
+            </p>
           )}
         </div>
 

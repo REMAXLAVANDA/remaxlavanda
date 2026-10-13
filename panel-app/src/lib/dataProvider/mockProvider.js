@@ -885,6 +885,7 @@ export const ciroRaporlari = {
       portfoyTipi,
       disBeyanKodu,
       tapuBilgileri,
+      mulkBedeli,
       saticiHizmetBedeliAlindi,
       saticiAdSoyad,
       saticiTelefon,
@@ -929,6 +930,7 @@ export const ciroRaporlari = {
       portfoyTipi: portfoyTipi ?? 'portfoyum',
       disBeyanKodu: disBeyanKodu || null,
       tapuBilgileri: tapuBilgileri || null,
+      mulkBedeli: mulkBedeli ?? null,
       // Taraf kimlik bilgileri artık checkbox'tan bağımsız her zaman
       // zorunlu — bkz. supabaseProvider.js'teki aynı not.
       saticiHizmetBedeliAlindi: !!saticiHizmetBedeliAlindi,
@@ -1034,6 +1036,7 @@ export const ciroRaporlari = {
       portfoyTipi,
       disBeyanKodu,
       tapuBilgileri,
+      mulkBedeli,
       saticiHizmetBedeliAlindi,
       saticiAdSoyad,
       saticiTelefon,
@@ -1070,6 +1073,7 @@ export const ciroRaporlari = {
       portfoyTipi: portfoyTipi ?? 'portfoyum',
       disBeyanKodu: disBeyanKodu || null,
       tapuBilgileri: tapuBilgileri || null,
+      mulkBedeli: mulkBedeli ?? null,
       saticiHizmetBedeliAlindi: !!saticiHizmetBedeliAlindi,
       saticiAdSoyad: saticiAdSoyad || null,
       saticiTelefon: saticiTelefon || null,

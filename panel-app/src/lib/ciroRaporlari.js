@@ -108,6 +108,27 @@ export function faturaTutarsizMi(faturaTutari, onerilenTutar) {
   return Math.abs(Number(faturaTutari) - onerilenTutar) > 1
 }
 
+// Standart hizmet bedeli oranı (broker, 2026-10-13): satışta mülk
+// bedelinin %2'si + bunun üstüne %20 KDV; kiralamada bir aylık kira
+// bedeli + %20 KDV. Referral/cooperation'da mülk bedeli kavramı yok,
+// bu yüzden standart oran hesaplanamaz (null döner, uyarı gösterilmez).
+export function beklenenHizmetBedeli(islemTipi, mulkBedeli) {
+  if (mulkBedeli == null || mulkBedeli <= 0) return null
+  if (islemTipi === 'satis') return mulkBedeli * 0.02 * 1.2
+  if (islemTipi === 'kiralama') return mulkBedeli * 1.2
+  return null
+}
+
+// Danışmanın girdiği hizmet bedeli standart orandan sapıyorsa uyarı —
+// faturaTutarsizMi ile AYNI yuvarlama toleransı (±1 TL), ama burada
+// "yanlış" demiyoruz, sadece "standarttan farklı, kontrol et" diyoruz
+// (broker: "ona uyarı versin beni bilgilendirsin" — bilgilendirme,
+// engelleme değil).
+export function hizmetBedeliStandartDisiMi(girilenTutar, beklenenTutar) {
+  if (girilenTutar == null || beklenenTutar == null) return false
+  return Math.abs(Number(girilenTutar) - beklenenTutar) > 1
+}
+
 // Katılımcı paylarının toplamı — DB'deki deferred constraint trigger'ıyla
 // aynı kural, formda anlık uyarı göstermek için (sunucuya gitmeden önce).
 export function toplamPayOrani(katilimcilar) {

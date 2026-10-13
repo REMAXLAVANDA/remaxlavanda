@@ -16,7 +16,22 @@ import {
   PORTFOY_TIPI_LABELS,
   canSubmitCiroRaporu,
   canApproveCiroRaporu,
+  beklenenHizmetBedeli,
+  hizmetBedeliStandartDisiMi,
 } from '../../lib/ciroRaporlari'
+
+// Standart hizmet bedeli oranından (satışta %2+KDV, kiralamada 1 kira+KDV)
+// sapan rapor — broker/owner listede tek bakışta görsün diye (broker,
+// 2026-10-13: "alınmış hizmet bedeli de doğru mu teyidi kontrolü olsun...
+// beni bilgilendirsin").
+function hizmetBedeliUyarisiVar(r) {
+  const beklenen = beklenenHizmetBedeli(r.islemTipi, r.mulkBedeli)
+  if (beklenen == null) return false
+  return (
+    (r.saticiHizmetBedeliAlindi && hizmetBedeliStandartDisiMi(r.saticiHizmetBedeli, beklenen)) ||
+    (r.aliciHizmetBedeliAlindi && hizmetBedeliStandartDisiMi(r.aliciHizmetBedeli, beklenen))
+  )
+}
 import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
 import { formatDateOnly } from '../../lib/format'
 import { LoadingState, ErrorState } from '../common/AsyncState'
@@ -245,6 +260,14 @@ export default function CiroRaporlariPanel() {
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
                 {CIRO_RAPORU_DURUM_LABELS[r.durum]}
               </span>
+              {hizmetBedeliUyarisiVar(r) && (
+                <span
+                  title="Hizmet bedeli standart orandan (satışta %2+KDV, kiralamada 1 kira+KDV) farklı"
+                  className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
+                >
+                  Oran Uyarısı
+                </span>
+              )}
             </div>
             <p className="mt-0.5 text-xs text-text-muted">
               {ISLEM_TIPI_LABELS[r.islemTipi]} · {tl(r.islemTutari)} · {formatDateOnly(r.islemTarihi)}
