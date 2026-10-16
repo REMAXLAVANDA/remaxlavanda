@@ -37,9 +37,12 @@ function generateDisBeyanKodu() {
 // girilmesi şart, bkz. CiroRaporlariPanel.jsx handleCreate/
 // handleSubmitTaslak — 2026-10-09 broker kararı: "fatura kestikten
 // sonra asıl o zaman onaya göndermiş olmalı").
-// Ortak çalışma seçiliyse pay oranı ikiye bölünür, toplam 100'den
-// sapıyorsa gönder düğmesi kapanır (DB'deki deferred trigger'la aynı kural,
-// bkz. lib/ciroRaporlari.js toplamPayOrani).
+// Satıcı/Alıcı farklı danışmanlar tarafından temsil ediliyorsa (broker,
+// 2026-10-16) pay oranı artık ELLE YAZILMIYOR — her tarafı getiren
+// danışman o taraftan alınan hizmet bedelini otomatik alır (bkz. aşağıdaki
+// katilimciPaylari). Toplamın 100'ü aşmaması DB'deki deferred trigger'la
+// zaten garanti (bkz. lib/ciroRaporlari.js toplamPayOrani) ama bu hesap
+// yöntemiyle zaten aşamaz.
 //
 // Satıcı/Alıcı hizmet bedeli bölümleri RE/MAX Türkiye'nin resmi ciro
 // ekranındaki gibi checkbox'la açılıyor (2026-10-09 broker kararı: "sadece
@@ -50,8 +53,14 @@ function generateDisBeyanKodu() {
 // submit "Güncelle" olarak çalışıyor; verilmezse davranış AYNEN eskisi
 // (yeni rapor oluşturma).
 export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, danismanOptions, anlasmalar, user, editing, existingParaHareketleri }) {
-  const ownKatilimci = editing?.katilimcilar?.find((k) => k.danismanId === user.id)
-  const partnerKatilimci = editing?.katilimcilar?.find((k) => k.danismanId !== user.id)
+  // Eski kayıtlarda (ciro_raporu_katilimcilari) hangi katılımcının satıcı
+  // mı alıcı mı tarafını temsil ettiği HİÇ tutulmuyordu — sadece pay_orani
+  // vardı (bkz. aşağıdaki saticiDanismanId/aliciDanismanId notu). 2 kişilik
+  // eski bir taslağı düzenlerken en iyi tahmin: ilk katılımcı satıcı,
+  // ikincisi alıcı tarafı — ikisi de forma geldiğinde danışman yanlışsa
+  // elle düzeltebilir, hiçbiri sessizce kaybolmaz.
+  const [saticiDanismanId, setSaticiDanismanId] = useState(editing?.katilimcilar?.[0]?.danismanId ?? user.id)
+  const [aliciDanismanId, setAliciDanismanId] = useState(editing?.katilimcilar?.[1]?.danismanId ?? editing?.katilimcilar?.[0]?.danismanId ?? user.id)
   const [form, setForm] = useState({
     islemTipi: editing?.islemTipi ?? 'satis',
     islemTarihi: editing?.islemTarihi ?? today(),
@@ -90,9 +99,6 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     kdvOrani: editing?.aliciKdvOrani != null ? String(editing.aliciKdvOrani) : '20',
   })
   const [aliciDiger, setAliciDiger] = useState(editing?.aliciDigerKisiler ?? [])
-  const [ortakVar, setOrtakVar] = useState(!!partnerKatilimci)
-  const [partnerId, setPartnerId] = useState(partnerKatilimci?.danismanId ?? '')
-  const [payOraniSelf, setPayOraniSelf] = useState(ownKatilimci?.payOrani != null ? String(ownKatilimci.payOrani) : '50')
   // Broker, 2026-10-11: "danışman beyan girerken bu bilgileri işlesin,
   // bankadan ayrıca eşleştirelim. yani beyan menüsünde para girişlerini
   // ve çıkışlarını danışmanın gireceği satır olmalı" — ayrı bir Banka
@@ -127,9 +133,6 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   function removeDigerKisi(setList, index) {
     setList((list) => list.filter((_, i) => i !== index))
   }
-
-  const payOraniPartner = ortakVar ? Math.max(0, 100 - Number(payOraniSelf || 0)) : 0
-  const toplamPay = ortakVar ? Number(payOraniSelf || 0) + payOraniPartner : 100
 
   // Mülk bedeli (satış/kira) sadece Satış ve Kiralama'da zorunlu —
   // Referral/Cooperation'da mülkün kendisi bu danışmanın işlemi değil,
@@ -175,33 +178,62 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const islemTutariToplam =
     (saticiVar === true ? saticiHizmetBedeliParsed ?? 0 : 0) + (aliciVar === true ? aliciHizmetBedeliParsed ?? 0 : 0)
 
-  const anlasmaSelf = useMemo(
-    () => guncelAnlasmaOrani(anlasmalar, user.id, form.islemTarihi),
-    [anlasmalar, user.id, form.islemTarihi],
-  )
-  const anlasmaPartner = useMemo(
-    () => (partnerId ? guncelAnlasmaOrani(anlasmalar, partnerId, form.islemTarihi) : null),
-    [anlasmalar, partnerId, form.islemTarihi],
-  )
-  const rtOranSelf = useMemo(
-    () => guncelRtPayOrani(anlasmalar, user.id, form.islemTarihi),
-    [anlasmalar, user.id, form.islemTarihi],
-  )
-  const rtOranPartner = useMemo(
-    () => (partnerId ? guncelRtPayOrani(anlasmalar, partnerId, form.islemTarihi) : null),
-    [anlasmalar, partnerId, form.islemTarihi],
+  // Broker, 2026-10-16: "iki tane gayrimenkul danışmanı ... paylaşım
+  // oranı ... bir hata yaptığımızı fark ettim ... alıcıyı/satıcıyı başka
+  // bir danışman temsil ediyorsa orada o danışmanı seçsin ... otomatik
+  // hesaplayalım, bir müşteriden farklı bir müşteriden farklı hizmet
+  // bedeli de alabiliriz". Eskiden pay oranı elle yazılıyordu ("ortak
+  // çalıştığım danışman" + serbest %) — satıcıdan/alıcıdan GERÇEKTE
+  // alınan hizmet bedeliyle hiç bağlı değildi, bu yüzden taraflar eşit
+  // olmayan tutar aldığında biri "bir tık eksik" çıkıyordu. Artık pay
+  // oranı ELLE YAZILMIYOR — satıcı tarafını getiren danışman satıcıdan
+  // alınanı, alıcı tarafını getiren danışman alıcıdan alınanı otomatik
+  // alır. İkisi aynı kişiyse (çoğu işlem) değişen bir şey yok, hâlâ %100
+  // tek kişide.
+  const saticiPayTutari = saticiVar === true ? saticiHizmetBedeliHaric ?? 0 : 0
+  const aliciPayTutari = aliciVar === true ? aliciHizmetBedeliHaric ?? 0 : 0
+
+  const katilimciPaylari = useMemo(() => {
+    if (!saticiDanismanId || !aliciDanismanId) return []
+    if (saticiDanismanId === aliciDanismanId) {
+      return [{ danismanId: saticiDanismanId, payOrani: 100 }]
+    }
+    const toplam = saticiPayTutari + aliciPayTutari
+    if (toplam <= 0) return []
+    // Yuvarlama DB'deki "toplam %100'ü geçemez" kısıtını (bkz. migration
+    // 20261008120000 ciro_raporu_pay_orani_kontrol) float hatasıyla
+    // ihlal etmesin diye: ikinci taraf 100 - birinci olarak (ikisi de 2
+    // ondalığa yuvarlanmış) hesaplanıyor, ayrı ayrı bölünmüyor.
+    const saticiOrani = Math.round((saticiPayTutari / toplam) * 10000) / 100
+    const aliciOrani = Math.round((100 - saticiOrani) * 100) / 100
+    const liste = []
+    if (saticiPayTutari > 0) liste.push({ danismanId: saticiDanismanId, payOrani: saticiOrani })
+    if (aliciPayTutari > 0) liste.push({ danismanId: aliciDanismanId, payOrani: aliciOrani })
+    return liste
+  }, [saticiDanismanId, aliciDanismanId, saticiPayTutari, aliciPayTutari])
+
+  const katilimcilarHazir = useMemo(
+    () =>
+      katilimciPaylari.map((k) => {
+        const anlasmaOrani = guncelAnlasmaOrani(anlasmalar, k.danismanId, form.islemTarihi)
+        const rtOrani = guncelRtPayOrani(anlasmalar, k.danismanId, form.islemTarihi)
+        const gdCirosuDeger = gdCirosu(toplamHizmetBedeliDeger, k.payOrani)
+        return {
+          ...k,
+          anlasmaOrani,
+          rtOrani,
+          gdCirosu: gdCirosuDeger,
+          komisyonTutariOnerisi: komisyonTutariOnerisi(toplamHizmetBedeliDeger, k.payOrani, anlasmaOrani),
+          rtPayiTutari: rtPayiOnerisi(gdCirosuDeger, rtOrani),
+        }
+      }),
+    [katilimciPaylari, anlasmalar, form.islemTarihi, toplamHizmetBedeliDeger],
   )
 
-  // Canlı "kesmen gereken fatura" tahmini — broker, 2026-10-11: "danışman
-  // tutar girdiği anda anlık görsün". Mevcut önerilen-fatura formülüyle
-  // (katılımcı satırındaki "Önerilen fatura" rozetiyle) AYNI hesap: taban
-  // toplam hizmet bedeli (satış tutarı değil — RE/MAX Türkiye'nin resmi
-  // ciro modeli), kendi payı ve o anki anlaşma oranı üzerinden.
-  const payOraniSelfEffective = ortakVar ? Number(payOraniSelf || 0) : 100
-  const tahminiFatura = useMemo(
-    () => komisyonTutariOnerisi(toplamHizmetBedeliDeger, payOraniSelfEffective, anlasmaSelf),
-    [toplamHizmetBedeliDeger, payOraniSelfEffective, anlasmaSelf],
-  )
+  function temsilciAdi(danismanId) {
+    if (danismanId === user.id) return 'Sen'
+    return danismanOptions.find((u) => u.id === danismanId)?.name ?? '—'
+  }
 
   const canSubmit =
     disBeyanKodu.trim().length > 0 &&
@@ -224,38 +256,23 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       (aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0 && aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) &&
     saticiDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
     aliciDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
-    // DB'deki ciro_raporu_katilimcilari_pay_orani_check (pay_orani > 0 AND
-    // <= 100) her İKİ tarafı da ayrı ayrı kapsıyor — sadece toplamın 100
-    // olması yetmez, kendi payını %100 yapıp ortağınkini %0'a düşürmek de
-    // bu kısıtı ihlal eder ve kayıt yarı yolda (katılımcısız bir taslak
-    // olarak) kalır. Bu yüzden Number(payOraniSelf) < 100 şartı da eklendi
-    // (2026-10-11, üretimde yaşanan "hata veriyor ama taslaklara
-    // kaydoluyor" olayının kök nedeni).
-    (!ortakVar || (partnerId && toplamPay > 0 && toplamPay <= 100 && Number(payOraniSelf || 0) < 100 && payOraniPartner > 0))
-
-  function katilimciSatiri(danismanId, payOrani, anlasmaOrani, rtOrani) {
-    const gdCirosuDeger = gdCirosu(toplamHizmetBedeliDeger, payOrani)
-    return {
-      danismanId,
-      payOrani,
-      anlasmaOraniSnapshot: anlasmaOrani,
-      komisyonTutariOnerisi: komisyonTutariOnerisi(toplamHizmetBedeliDeger, payOrani, anlasmaOrani),
-      gdCirosu: gdCirosuDeger,
-      rtPayOraniSnapshot: rtOrani,
-      rtPayiTutari: rtPayiOnerisi(gdCirosuDeger, rtOrani),
-      ofisPayiTutari: null,
-    }
-  }
+    !!saticiDanismanId &&
+    !!aliciDanismanId &&
+    katilimcilarHazir.length > 0
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    const katilimcilar = ortakVar
-      ? [
-          katilimciSatiri(user.id, Number(payOraniSelf), anlasmaSelf, rtOranSelf),
-          katilimciSatiri(partnerId, payOraniPartner, anlasmaPartner, rtOranPartner),
-        ]
-      : [katilimciSatiri(user.id, 100, anlasmaSelf, rtOranSelf)]
+    const katilimcilar = katilimcilarHazir.map((k) => ({
+      danismanId: k.danismanId,
+      payOrani: k.payOrani,
+      anlasmaOraniSnapshot: k.anlasmaOrani,
+      komisyonTutariOnerisi: k.komisyonTutariOnerisi,
+      gdCirosu: k.gdCirosu,
+      rtPayOraniSnapshot: k.rtOrani,
+      rtPayiTutari: k.rtPayiTutari,
+      ofisPayiTutari: null,
+    }))
     onSubmit({
       opportunityId: null,
       islemTipi: form.islemTipi,
@@ -444,6 +461,22 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             />
           </div>
 
+          <div className="mt-2">
+            <label className="mb-1 block text-[11px] text-ink-500">Satıcıyı temsil eden danışman</label>
+            <select
+              value={saticiDanismanId}
+              onChange={(e) => setSaticiDanismanId(e.target.value)}
+              className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+            >
+              <option value={user.id}>Ben</option>
+              {danismanOptions.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {saticiDiger.map((k, i) => (
             <div key={i} className="mt-2 grid grid-cols-2 gap-2 border-t border-ink-200 pt-2">
               <input
@@ -568,6 +601,22 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             />
           </div>
 
+          <div className="mt-2">
+            <label className="mb-1 block text-[11px] text-ink-500">Alıcıyı/Kiracıyı temsil eden danışman</label>
+            <select
+              value={aliciDanismanId}
+              onChange={(e) => setAliciDanismanId(e.target.value)}
+              className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+            >
+              <option value={user.id}>Ben</option>
+              {danismanOptions.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {aliciDiger.map((k, i) => (
             <div key={i} className="mt-2 grid grid-cols-2 gap-2 border-t border-ink-200 pt-2">
               <input
@@ -666,55 +715,28 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           )}
         </div>
 
-        <div className="rounded-lg bg-ink-50 p-3">
-          <label className="flex items-center gap-2 text-xs text-ink-700">
-            <input type="checkbox" checked={ortakVar} onChange={(e) => setOrtakVar(e.target.checked)} />
-            Bu işlemde ortak çalıştığım bir danışman var
-          </label>
-          {ortakVar && (
-            <div className="mt-2 space-y-2">
-              <select
-                required
-                value={partnerId}
-                onChange={(e) => setPartnerId(e.target.value)}
-                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800"
-              >
-                <option value="">Ortak danışman seç *</option>
-                {danismanOptions.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex items-center gap-2 text-xs text-ink-600">
-                <span>Benim payım</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.5"
-                  value={payOraniSelf}
-                  onChange={(e) => setPayOraniSelf(e.target.value)}
-                  className="w-20 rounded-lg border border-ink-200 bg-white px-2 py-1 text-xs text-ink-800"
-                />
-                <span>% — ortağımın payı otomatik %{payOraniPartner}</span>
-              </div>
-              {toplamPay > 100 && <p className="text-xs text-red-600">Toplam pay %100'ü geçemez.</p>}
-              {payOraniPartner <= 0 && (
-                <p className="text-xs text-red-600">Ortağının payı %0 olamaz — kendi payını düşür.</p>
-              )}
-            </div>
-          )}
-        </div>
-
+        {/* Pay oranı artık elle yazılmıyor — satıcıyı/alıcıyı temsil eden
+            danışman yukarıdaki iki seçimle belirleniyor, pay otomatik
+            olarak o tarafın hizmet bedelinden hesaplanıyor (broker,
+            2026-10-16). */}
         {toplamHizmetBedeliDeger > 0 && (
-          <div className="rounded-lg bg-brand-50 p-3 text-xs text-brand-800">
-            {tahminiFatura != null ? (
-              <>
-                Kesmen gereken tahmini fatura: <span className="font-semibold">{tl(tahminiFatura)}</span> (%{anlasmaSelf} anlaşma oranın üzerinden)
-              </>
+          <div className="space-y-1.5 rounded-lg bg-brand-50 p-3 text-xs text-brand-800">
+            {katilimcilarHazir.length === 0 ? (
+              'Pay hesaplanamadı — satıcı/alıcıdan alınan hizmet bedelini kontrol et.'
             ) : (
-              'Anlaşma oranın tanımlı değil — broker/owner ile kontrol et.'
+              katilimcilarHazir.map((k) => (
+                <p key={k.danismanId}>
+                  <span className="font-medium">{temsilciAdi(k.danismanId)}</span> — pay %{k.payOrani}
+                  {k.anlasmaOrani != null ? (
+                    <>
+                      {' '}
+                      · kesmesi gereken fatura: <span className="font-semibold">{tl(k.komisyonTutariOnerisi)}</span> (%{k.anlasmaOrani} anlaşma oranı)
+                    </>
+                  ) : (
+                    ' · anlaşma oranı tanımlı değil, broker/owner ile kontrol et'
+                  )}
+                </p>
+              ))
             )}
           </div>
         )}
