@@ -31,10 +31,14 @@ Deno.serve(async (req) => {
     .select('endpoint, p256dh, auth')
     .eq('user_id', record.assigned_to)
 
-  // Kilit ekranında görünebileceği için müşteri adı/telefonu YOK, sadece
-  // genel bir bilgilendirme — detay uygulama açılınca görülür.
-  const title = 'Yeni Atama'
-  const body = 'Sana yeni bir çağrı/portföy atandı — Fırsatlar > Operasyon\'dan bakabilirsin.'
+  // Kilit ekranında görünebileceği için müşteri adı/telefonu YOK (broker
+  // kararı, bkz. dosya başı) — ama diğer bildirimlerle (notify-new-opportunity,
+  // notify-opportunity-assigned, notify-event-invite) aynı seviyede, kişisel
+  // olmayan bir detay (kaynak: Reklam/Web Sitesi/Santral/Diğer) eklendi —
+  // broker, 2026-10-16: "neyden atama yapıldığını ekranda yazsa".
+  const title = 'Yeni Çağrı Atandı'
+  const kaynak = record.kaynak as string | undefined
+  const body = kaynak ? `${kaynak} çağrısı atandı — Fırsatlar > Operasyon'dan bakabilirsin.` : 'Sana yeni bir çağrı/portföy atandı — Fırsatlar > Operasyon\'dan bakabilirsin.'
   const notificationPayload = JSON.stringify({ title, body, url: '/panel/#/firsatlar' })
 
   const results = await Promise.allSettled(
