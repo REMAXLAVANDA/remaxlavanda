@@ -30,6 +30,13 @@ jobs:
     env:
       VITE_SUPABASE_URL: https://vfqkmluqjaihpgxhqlqt.supabase.co
       VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcWttbHVxamFpaHBneGhxbHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NTE4ODMsImV4cCI6MjA5ODMyNzg4M30.6jsmD-om_q2ac9zbrHORO8FU9TUjvqAsBh9ux1xhiD8
+      # Web Push (VAPID) public key — gizli değil, zaten derlenen JS'e gömülüp
+      # tarayıcıya açık gidiyor (bkz. src/lib/push.js). Bu değişken burada
+      # eksikti; bu yüzden otomatik yayın hattı bildirim özelliğini sessizce
+      # kapatıyordu (isPushSupported() hep false dönüyordu — TÜM roller için,
+      # sadece danışmanlar için değil). Değer, bildirimin son çalıştığı bilinen
+      # üretim derlemesinden (0696b28, 2026-09-03) geri çıkarıldı.
+      VITE_VAPID_PUBLIC_KEY: BDxX_2CBodL8mjBWMOMMVMB_J9aN8SiR8-b4RyP-IfEeRr9zs2Pcgkl8StLUpbpaO-vEfye7F4igJwSy1fBn03k
     steps:
       - name: Depoyu çek
         uses: actions/checkout@v7
