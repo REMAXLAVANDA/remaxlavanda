@@ -11,6 +11,7 @@ import { MOCK_LEADS } from '../../data/mockLeads'
 import { MOCK_RECRUITING_CANDIDATES, MOCK_RECRUITING_NOTES } from '../../data/mockRecruiting'
 import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_COACHING_NOTES } from '../../data/mockCoachingNotes'
+import { MOCK_KARARLAR } from '../../data/mockKararlar'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
 import {
@@ -1932,5 +1933,42 @@ export const coachingNotes = {
     if ('durum' in patch) note.durum = patch.durum
     if ('gorusmeTuru' in patch) note.gorusmeTuru = patch.gorusmeTuru
     return delay({ ...note })
+  },
+}
+
+export const kararlar = {
+  async list() {
+    return delay([...MOCK_KARARLAR].sort((a, b) => (b.tarih > a.tarih ? 1 : b.tarih < a.tarih ? -1 : 0)))
+  },
+  async create(form, olusturanId) {
+    const row = {
+      id: `karar-${Date.now()}`,
+      baslik: form.baslik,
+      icerik: form.icerik,
+      kategoriKey: form.kategoriKey || null,
+      tarih: form.tarih || new Date().toISOString().slice(0, 10),
+      kararAlanId: form.kararAlanId || olusturanId,
+      createdBy: olusturanId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    MOCK_KARARLAR.unshift(row)
+    return delay({ ...row })
+  },
+  async update(id, patch) {
+    const row = MOCK_KARARLAR.find((k) => k.id === id)
+    if (!row) throw new Error('Karar bulunamadı.')
+    if ('baslik' in patch) row.baslik = patch.baslik
+    if ('icerik' in patch) row.icerik = patch.icerik
+    if ('kategoriKey' in patch) row.kategoriKey = patch.kategoriKey || null
+    if ('tarih' in patch) row.tarih = patch.tarih
+    if ('kararAlanId' in patch) row.kararAlanId = patch.kararAlanId
+    row.updatedAt = new Date().toISOString()
+    return delay({ ...row })
+  },
+  async remove(id) {
+    const idx = MOCK_KARARLAR.findIndex((k) => k.id === id)
+    if (idx !== -1) MOCK_KARARLAR.splice(idx, 1)
+    return delay({ id })
   },
 }

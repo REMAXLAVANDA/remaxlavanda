@@ -2506,3 +2506,63 @@ export const coachingNotes = {
     return mapCoachingNote(row)
   },
 }
+
+// --- Kararlar (broker/owner yönetim kararları defteri, bkz. migration
+// 20261017210000_kararlar.sql) ---------------------------------------------
+function mapKarar(row) {
+  return {
+    id: row.id,
+    baslik: row.baslik,
+    icerik: row.icerik,
+    kategoriKey: row.kategori_key,
+    tarih: row.tarih,
+    kararAlanId: row.karar_alan_id,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+export const kararlar = {
+  async list() {
+    const data = await run(client().from('kararlar').select('*').order('tarih', { ascending: false }).order('created_at', { ascending: false }))
+    return data.map(mapKarar)
+  },
+  async create({ baslik, icerik, kategoriKey, tarih, kararAlanId }, olusturanId) {
+    const data = await run(
+      client()
+        .from('kararlar')
+        .insert({
+          baslik,
+          icerik,
+          kategori_key: kategoriKey || null,
+          tarih: tarih || new Date().toISOString().slice(0, 10),
+          karar_alan_id: kararAlanId || olusturanId,
+          created_by: olusturanId,
+        })
+        .select()
+        .single(),
+    )
+    return mapKarar(data)
+  },
+  async update(id, { baslik, icerik, kategoriKey, tarih, kararAlanId }) {
+    const data = await run(
+      client()
+        .from('kararlar')
+        .update({
+          baslik,
+          icerik,
+          kategori_key: kategoriKey || null,
+          tarih,
+          karar_alan_id: kararAlanId,
+        })
+        .eq('id', id)
+        .select()
+        .single(),
+    )
+    return mapKarar(data)
+  },
+  async remove(id) {
+    await run(client().from('kararlar').delete().eq('id', id))
+  },
+}

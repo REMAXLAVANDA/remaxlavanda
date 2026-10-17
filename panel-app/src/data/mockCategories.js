@@ -36,4 +36,13 @@ export const MOCK_CATEGORIES = [
   { id: 'cat-masraf-meta', module: 'masraflar', key: 'meta_reklam', label: 'Meta Reklam', sortOrder: 7, isActive: true, visibility: 'yonetim', parentId: null },
   { id: 'cat-masraf-eft', module: 'masraflar', key: 'eft_ucreti', label: 'EFT Ücreti', sortOrder: 8, isActive: true, visibility: 'yonetim', parentId: null },
   { id: 'cat-masraf-diger', module: 'masraflar', key: 'diger', label: 'Diğer', sortOrder: 9, isActive: true, visibility: 'yonetim', parentId: null },
+  // Kararlar kategorileri (2026-10-17 broker: "yönetim olarak aldığımız
+  // kararların toplandığı bir alan istiyorum") — bkz. migration
+  // 20261017210000_kararlar.sql.
+  { id: 'cat-karar-genel', module: 'kararlar', key: 'genel', label: 'Genel', sortOrder: 1, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-karar-recruiting', module: 'kararlar', key: 'recruiting', label: 'Recruiting', sortOrder: 2, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-karar-finans', module: 'kararlar', key: 'finans', label: 'Finans', sortOrder: 3, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-karar-lig', module: 'kararlar', key: 'lig', label: 'Lig', sortOrder: 4, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-karar-portfoy', module: 'kararlar', key: 'portfoy', label: 'Portföy', sortOrder: 5, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-karar-operasyon', module: 'kararlar', key: 'operasyon', label: 'Operasyon', sortOrder: 6, isActive: true, visibility: 'yonetim', parentId: null },
 ]

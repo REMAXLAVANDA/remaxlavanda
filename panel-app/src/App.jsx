@@ -20,6 +20,7 @@ const Recruiting = lazy(() => import('./pages/Recruiting'))
 const Takip = lazy(() => import('./pages/Takip'))
 const Lig = lazy(() => import('./pages/Lig'))
 const Finans = lazy(() => import('./pages/Finans'))
+const Kararlar = lazy(() => import('./pages/Kararlar'))
 const Rehber = lazy(() => import('./pages/Rehber'))
 const Ayarlar = lazy(() => import('./pages/Ayarlar'))
 const Login = lazy(() => import('./pages/Login'))
@@ -77,6 +78,7 @@ export default function App() {
                     <Route path="/gorevler" element={<Takvim />} />
                     <Route path="/operasyon" element={<Firsatlar />} />
                     <Route path="/leads" element={<Leads />} />
+                    <Route path="/kararlar" element={<Kararlar />} />
                     <Route path="/recruiting" element={<Recruiting />} />
                     <Route path="/takip" element={<Takip />} />
                     <Route path="/egitim" element={<Takip />} />

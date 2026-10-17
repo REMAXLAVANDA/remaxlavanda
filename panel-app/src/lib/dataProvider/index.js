@@ -31,6 +31,7 @@ export const danismanAnlasmalari = provider.danismanAnlasmalari
 export const bankaHareketleri = provider.bankaHareketleri
 export const cariHareketler = provider.cariHareketler
 export const islemMasraflari = provider.islemMasraflari
+export const kararlar = provider.kararlar
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).

@@ -12,6 +12,7 @@ import {
   Inbox,
   UserSearch,
   Wallet,
+  Gavel,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -89,6 +90,19 @@ export const MODULES = [
     icon: Inbox,
     // Sadece broker/owner — ofis/danışman ne menüde görür ne route'a
     // girebilir (bkz. lib/roles.js canManageLeads, pages/Leads.jsx guard).
+    roles: LEADS_ROLES,
+    group: 'operasyon',
+  },
+  {
+    key: 'kararlar',
+    path: '/kararlar',
+    label: 'Kararlar',
+    description: 'Yönetim olarak alınan kararların kaydı',
+    icon: Gavel,
+    // Lead Havuzu'yla AYNI görünürlük sınırı: sadece broker/owner (broker,
+    // 2026-10-17: "portalda yönetim olarak aldığımız kararların toplandığı
+    // bir alan istiyorum" — "sadece broker/owner" kararı). Bkz.
+    // lib/kararlar.js canManageKararlar, pages/Kararlar.jsx guard.
     roles: LEADS_ROLES,
     group: 'operasyon',
   },
