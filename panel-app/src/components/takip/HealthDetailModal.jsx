@@ -21,6 +21,8 @@ export default function HealthDetailModal({
   onToggleCoachingDurum,
   addingCoachingNote,
   resolveCoachName,
+  cariBakiye,
+  yonlendirmeDurumuLabel,
 }) {
   const opps = useMemo(
     () => (canSeeOpportunities ? (opportunities ?? []).filter((o) => o.ownerId === user.id || o.claimerId === user.id) : []),
@@ -68,6 +70,9 @@ export default function HealthDetailModal({
           onToggleDurum={onToggleCoachingDurum}
           submitting={addingCoachingNote}
           resolveName={resolveCoachName}
+          leadDonusOrani={metrics.leadResponse}
+          cariBakiye={cariBakiye}
+          yonlendirmeDurumuLabel={yonlendirmeDurumuLabel}
         />
       )}
 

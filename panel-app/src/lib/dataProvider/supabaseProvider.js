@@ -2440,6 +2440,9 @@ function mapCoachingNote(row) {
     konu: row.konu,
     portfoyHedefi: row.portfoy_hedefi,
     portfoySayisiOAn: row.portfoy_sayisi_o_an,
+    leadDonusOrani: row.lead_donus_orani,
+    cariBakiye: row.cari_bakiye == null ? null : Number(row.cari_bakiye),
+    yonlendirmeDurumu: row.yonlendirme_durumu,
     sonuc: row.sonuc,
     takipTarihi: row.takip_tarihi,
     durum: row.durum,
@@ -2486,6 +2489,9 @@ export const coachingNotes = {
           konu: form.konu,
           portfoy_hedefi: form.portfoyHedefi ?? null,
           portfoy_sayisi_o_an: form.portfoySayisiOAn ?? null,
+          lead_donus_orani: form.leadDonusOrani ?? null,
+          cari_bakiye: form.cariBakiye ?? null,
+          yonlendirme_durumu: form.yonlendirmeDurumu ?? null,
           takip_tarihi: form.takipTarihi || null,
         })
         .select()

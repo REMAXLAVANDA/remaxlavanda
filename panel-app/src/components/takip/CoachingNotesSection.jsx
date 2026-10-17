@@ -22,7 +22,24 @@ function emptyForm() {
 // Panel'i bu alanı hiç çekmiyor bile (ayrı, dar bir görünümden geliyor).
 // Yapılandırma (2026-10-07, broker onayı): serbest "Hedef/Aksiyon" yerine
 // raporlanabilir Konu + Portföy Hedefi/O an sayısı + kapanışta zorunlu Sonuç.
-export default function CoachingNotesSection({ notes, opportunities, danismanId, onAdd, onToggleDurum, submitting, resolveName }) {
+export default function CoachingNotesSection({
+  notes,
+  opportunities,
+  danismanId,
+  onAdd,
+  onToggleDurum,
+  submitting,
+  resolveName,
+  // Her notta otomatik kaydedilen metrikler (broker, 2026-10-17: "her
+  // seferinde doldurulması gereken konuları doldursun — portföy sayısı,
+  // lead geri dönüş oranı, cari borcu, yönlendirme durumu gibi"). Broker
+  // elle girmiyor, çağıran taraf (TakipTab) zaten hesaplanmış değeri
+  // geçiriyor — portfoySayisiOAn ile AYNI desen, bkz. migration
+  // 20261017220000_kocluk_notlari_otomatik_metrikler.
+  leadDonusOrani,
+  cariBakiye,
+  yonlendirmeDurumuLabel,
+}) {
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [completingId, setCompletingId] = useState(null)
@@ -63,6 +80,9 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
               // doldursun, mesela mevcut portföy sayısı") — eskiden sadece
               // bir hedef girilmişse kaydediliyordu.
               portfoySayisiOAn: guncelPortfoySayisi,
+              leadDonusOrani: leadDonusOrani ?? null,
+              cariBakiye: cariBakiye ?? null,
+              yonlendirmeDurumu: yonlendirmeDurumuLabel ?? null,
             })
             setForm(emptyForm())
             setFormOpen(false)
@@ -147,6 +167,9 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
               className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800"
             />
           </div>
+          <p className="text-xs text-ink-400">
+            Portföy sayısı, lead dönüş oranı, cari bakiye ve yönlendirme durumu bu notla birlikte otomatik kaydedilir.
+          </p>
           <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
@@ -191,11 +214,30 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
                 </span>
               </div>
               <p className="text-ink-700">{n.konusulanlar}</p>
-              {n.portfoySayisiOAn != null && (
-                <p className="mt-1.5 rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs text-brand-700">
-                  <span className="font-medium">Mevcut Portföy:</span> {n.portfoySayisiOAn}
-                  {n.portfoyHedefi != null && <span className="ml-1 text-brand-600">(hedef: {n.portfoyHedefi})</span>}
-                </p>
+              {(n.portfoySayisiOAn != null || n.leadDonusOrani != null || n.cariBakiye != null || n.yonlendirmeDurumu) && (
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {n.portfoySayisiOAn != null && (
+                    <span className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs text-brand-700">
+                      <span className="font-medium">Portföy:</span> {n.portfoySayisiOAn}
+                      {n.portfoyHedefi != null && <span className="ml-1 text-brand-600">(hedef: {n.portfoyHedefi})</span>}
+                    </span>
+                  )}
+                  {n.leadDonusOrani != null && (
+                    <span className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs text-brand-700">
+                      <span className="font-medium">Lead Dönüş:</span> %{n.leadDonusOrani}
+                    </span>
+                  )}
+                  {n.cariBakiye != null && (
+                    <span className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs text-brand-700">
+                      <span className="font-medium">Cari Bakiye:</span> {n.cariBakiye.toLocaleString('tr-TR')} TL
+                    </span>
+                  )}
+                  {n.yonlendirmeDurumu && (
+                    <span className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs text-brand-700">
+                      <span className="font-medium">Yönlendirme:</span> {n.yonlendirmeDurumu}
+                    </span>
+                  )}
+                </div>
               )}
               {n.sonuc && (
                 <p className="mt-1.5">

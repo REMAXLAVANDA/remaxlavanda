@@ -13,12 +13,14 @@ import {
   coachingNotes as coachingNotesProvider,
   education as educationProvider,
   mentorPrimi as mentorPrimiProvider,
+  cariHareketler as cariHareketlerProvider,
 } from '../../lib/dataProvider'
 import { computeHealthScore } from '../../lib/takip'
 import { checklistProgress } from '../../lib/education'
 import { isInactiveAgent } from '../../lib/attention'
 import { canManageCoachingNotes } from '../../lib/roles'
-import { buildYonlendirmeMap } from '../../lib/yonlendirme'
+import { buildYonlendirmeMap, YONLENDIRME_DURUM_LABELS } from '../../lib/yonlendirme'
+import { netBakiye } from '../../lib/cariHesap'
 import HealthScoreTable from '../../components/takip/HealthScoreTable'
 import HealthDetailModal from '../../components/takip/HealthDetailModal'
 import YonlendirmeDurumuSection from '../../components/takip/YonlendirmeDurumuSection'
@@ -62,6 +64,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     checklistItems,
     checklistStatus,
     baslangicList,
+    cariHareketler,
   ] = await Promise.all([
     calendarProvider.list(),
     calendarProvider.listAttendance(),
@@ -81,6 +84,10 @@ async function loadAll(includeOpportunities, includeCoaching) {
     // gerçek işe başlama tarihi için bunu kullanıyor (bkz. lib/takip.js
     // gercekBaslangicTarihi notu), ofis/danışman için created_at'e düşülür.
     includeOpportunities ? mentorPrimiProvider.listBaslangicTarihleri() : Promise.resolve([]),
+    // Koçluk notuna her seferinde kaydedilen "Cari Bakiye" metriği için
+    // (broker, 2026-10-17) — sadece coaching yetkisi olanlarla aynı kapıdan
+    // (canManageCariHesap de broker/owner, bkz. lib/cariHesap.js).
+    includeCoaching ? cariHareketlerProvider.list() : Promise.resolve([]),
   ])
   return {
     events,
@@ -97,6 +104,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     checklistItems,
     checklistStatus,
     baslangicList,
+    cariHareketler,
   }
 }
 
@@ -146,6 +154,11 @@ export default function TakipTab() {
   const yonlendirmeMap = useMemo(() => (data ? buildYonlendirmeMap(people.map((p) => p.user), data) : {}), [data, people])
 
   const selected = people.find((p) => p.user.id === selectedId)
+  const selectedCariBakiye = useMemo(
+    () => (selected ? netBakiye((data?.cariHareketler ?? []).filter((h) => h.danismanId === selected.user.id)) : null),
+    [data, selected],
+  )
+  const selectedYonlendirmeDurumuLabel = selected ? YONLENDIRME_DURUM_LABELS[yonlendirmeMap[selected.user.id]?.durum] : null
   const selectedCoachingNotes = useMemo(
     () => (selected ? (data?.coaching ?? []).filter((n) => n.danismanId === selected.user.id) : []),
     [data, selected],
@@ -211,6 +224,8 @@ export default function TakipTab() {
           onToggleCoachingDurum={handleToggleCoachingDurum}
           addingCoachingNote={addingCoachingNote}
           resolveCoachName={(id) => knownUsers[id]?.name ?? '—'}
+          cariBakiye={selectedCariBakiye}
+          yonlendirmeDurumuLabel={selectedYonlendirmeDurumuLabel}
         />
       )}
     </div>
