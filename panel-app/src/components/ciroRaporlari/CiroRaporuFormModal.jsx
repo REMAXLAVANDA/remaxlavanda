@@ -108,7 +108,16 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   // yazılıyor (ciro_raporu_id ile bu beyana bağlı), broker/ofis
   // GERÇEK banka ekstresiyle eşleştirme/teyit adımını SONRA ayrıca yapar
   // (bkz. migration 20261011150000, FaturaKontrolPanel teyit akışı).
-  const [paraHareketleri, setParaHareketleri] = useState([])
+  // Artık en az bir hareket zorunlu (broker, 2026-10-17) — zorunlu bir
+  // alanı "+ ekle"ye tıklanana kadar gizlememek için yeni raporda baştan
+  // bir boş satırla açılıyor. Düzenlemede zaten kaydedilmiş hareketler
+  // (existingParaHareketleri) varsa şart karşılanmış demektir, boş satır
+  // zorlanmaz.
+  const [paraHareketleri, setParaHareketleri] = useState(() =>
+    !editing && !existingParaHareketleri?.length
+      ? [{ tip: 'giris', tutar: '', tarih: today(), dekontTarihi: today(), gonderenAdi: '', referansNo: '' }]
+      : [],
+  )
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
   function addParaHareketi() {
@@ -235,6 +244,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     return danismanOptions.find((u) => u.id === danismanId)?.name ?? '—'
   }
 
+  // handleSubmit'teki paraHareketleri filtresiyle AYNI şart (tutar>0, tarihli).
+  const paraHareketleriGecerliSayisi = paraHareketleri.filter(
+    (h) => parseThousands(h.tutar) !== null && parseThousands(h.tutar) > 0 && h.tarih,
+  ).length
+
   const canSubmit =
     disBeyanKodu.trim().length > 0 &&
     islemTutariToplam > 0 &&
@@ -258,7 +272,13 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     aliciDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
     !!saticiDanismanId &&
     !!aliciDanismanId &&
-    katilimcilarHazir.length > 0
+    katilimcilarHazir.length > 0 &&
+    // Broker, 2026-10-17: "para hareketleri opsiyonel yazmış, bağlanma
+    // parası giriş/çıkışları, hizmet bedeli — tüm hareketleri buraya
+    // girmeli" — en az bir geçerli (tutar>0, tarihli) para hareketi
+    // zorunlu. Düzenlemede daha önce kaydedilmiş hareketler (existingPara-
+    // Hareketleri, artık değiştirilemez) varsa bu şartı zaten karşılar.
+    (paraHareketleriGecerliSayisi > 0 || (existingParaHareketleri?.length ?? 0) > 0)
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -769,9 +789,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
         </div>
 
         <div className="rounded-lg bg-ink-50 p-3">
-          <p className="mb-2 text-xs font-medium text-ink-700">Para Hareketleri (opsiyonel)</p>
+          <p className="mb-2 text-xs font-medium text-ink-700">Para Hareketleri *</p>
           <p className="mb-2 text-[11px] text-ink-500">
-            Bu işleme ait banka giriş/çıkışlarını buraya ekle — broker/ofis bunları sonra gerçek banka ekstresiyle eşleştirecek.
+            Bu işleme ait TÜM banka giriş/çıkışlarını (bağlanma parası, hizmet bedeli — her hareketi ayrı satır olarak) buraya ekle —
+            broker/ofis bunları gerçek banka ekstresiyle eşleştirecek. En az bir hareket girilmesi zorunlu.
           </p>
           {existingParaHareketleri?.length > 0 && (
             <div className="mb-2 space-y-1 rounded-lg bg-white p-2 text-[11px] text-ink-600">
