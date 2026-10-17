@@ -18,6 +18,7 @@ import {
   canApproveCiroRaporu,
   beklenenHizmetBedeli,
   hizmetBedeliStandartDisiMi,
+  faturaTutarsizMi,
 } from '../../lib/ciroRaporlari'
 
 // Standart hizmet bedeli oranından (satışta %2+KDV, kiralamada 1 kira+KDV)
@@ -31,6 +32,18 @@ function hizmetBedeliUyarisiVar(r) {
     (r.saticiHizmetBedeliAlindi && hizmetBedeliStandartDisiMi(r.saticiHizmetBedeli, beklenen)) ||
     (r.aliciHizmetBedeliAlindi && hizmetBedeliStandartDisiMi(r.aliciHizmetBedeli, beklenen))
   )
+}
+
+// /kurul denetimi (2026-10-17, kod-güvenlik-denetçi): Onayla butonu sabit
+// bir mesaj gösteriyordu, katılımcı satırlarındaki kırmızı "tutarsız
+// fatura" uyarısını veya "Oran Uyarısı" rozetini tekrar etmiyordu — ekran
+// kalabalıklaştıkça broker scroll ederken bu uyarıyı atlayıp yine de
+// onaylayabilir. Onay diyaloğu artık bu uyarıyı kendisi de gösteriyor.
+function raporOnayUyarisi(r) {
+  if (hizmetBedeliUyarisiVar(r)) return 'Hizmet bedeli standart orandan farklı görünüyor.'
+  const tutarsizKatilimci = (r?.katilimcilar ?? []).find((k) => faturaTutarsizMi(k.faturaTutari, k.komisyonTutariOnerisi))
+  if (tutarsizKatilimci) return 'Bir katılımcının fatura tutarı önerilenden farklı — onaylamadan önce kontrol et.'
+  return null
 }
 import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
 import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
@@ -67,6 +80,12 @@ export default function CiroRaporlariPanel() {
   const [rejectTarget, setRejectTarget] = useState(null)
   // Fatura Kontrol'den (Finans > Raporlar) taşındı — broker, 2026-10-17.
   const [ofisForms, setOfisForms] = useState({})
+  // /kurul denetimi (2026-10-17, kullanılabilirlik+görsel): Ofis/Muhasebe
+  // bloğu rapor genişletilir genişletilmez her zaman açık duruyordu —
+  // broker'ın raporu onaylarken asıl bakması gereken (müşteri bilgisi,
+  // katılımcı payları) ile muhasebenin sonradan dolduracağı alanlar aynı
+  // görsel ağırlıktaydı. Artık varsayılan kapalı, kendi başlığına tıklanınca açılıyor.
+  const [ofisMuhasebeAcikId, setOfisMuhasebeAcikId] = useState(null)
 
   const isDanisman = canSubmitCiroRaporu(role)
   const isApprover = canApproveCiroRaporu(role)
@@ -474,32 +493,46 @@ export default function CiroRaporlariPanel() {
                 anlamlı (taslak/reddedildi'de henüz muhasebe işi yok). */}
             {isApprover && (r.durum === 'onay_bekliyor' || r.durum === 'onaylandi') && (
               <div className="rounded-lg bg-surface-sunken p-3">
-                <p className="mb-2 text-xs font-medium text-text-primary">Ofis / Muhasebe</p>
-                <div className="space-y-2">
-                  {r.saticiHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'satici', 'Satıcı')}
-                  {r.aliciHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'alici', 'Alıcı')}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <label className="ml-auto flex items-center gap-1.5 text-xs text-text-secondary">
-                    <input
-                      type="checkbox"
-                      checked={!!r.myremaxGirildi}
-                      onChange={(e) => handleMyremax(r.id, e.target.checked)}
-                      disabled={submitting}
-                    />
-                    MyRemax'a girildi
-                  </label>
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => handleTamamlandi(r.id, !r.muhasebeTamamlandi)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
-                      r.muhasebeTamamlandi ? 'bg-ink-100 text-ink-600' : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                    }`}
-                  >
-                    {r.muhasebeTamamlandi ? 'Tamamlandı İşaretini Kaldır' : 'İşlem Tamamlandı'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setOfisMuhasebeAcikId(ofisMuhasebeAcikId === r.id ? null : r.id)}
+                  className="flex w-full items-center justify-between gap-2 text-left"
+                >
+                  <span className="text-xs font-medium text-text-primary">
+                    Ofis / Muhasebe
+                    {r.muhasebeTamamlandi && <span className="ml-1.5 font-normal text-emerald-700">· Tamamlandı</span>}
+                  </span>
+                  {ofisMuhasebeAcikId === r.id ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
+                </button>
+                {ofisMuhasebeAcikId === r.id && (
+                  <div className="mt-2">
+                    <div className="space-y-2">
+                      {r.saticiHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'satici', 'Satıcı')}
+                      {r.aliciHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'alici', 'Alıcı')}
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <label className="ml-auto flex items-center gap-1.5 text-xs text-text-secondary">
+                        <input
+                          type="checkbox"
+                          checked={!!r.myremaxGirildi}
+                          onChange={(e) => handleMyremax(r.id, e.target.checked)}
+                          disabled={submitting}
+                        />
+                        MyRemax'a girildi
+                      </label>
+                      <button
+                        type="button"
+                        disabled={submitting}
+                        onClick={() => handleTamamlandi(r.id, !r.muhasebeTamamlandi)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                          r.muhasebeTamamlandi ? 'bg-ink-100 text-ink-600' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                        }`}
+                      >
+                        {r.muhasebeTamamlandi ? 'Tamamlandı İşaretini Kaldır' : 'İşlem Tamamlandı'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -659,7 +692,11 @@ export default function CiroRaporlariPanel() {
       {approveTarget && (
         <ConfirmDialog
           title="Raporu onayla"
-          message="Onaylanınca Lig ve Mentor Primi otomatik güncellenir — bu işlem geri alınamaz."
+          message={(() => {
+            const uyari = raporOnayUyarisi((data?.raporlar ?? []).find((r) => r.id === approveTarget))
+            const temel = 'Onaylanınca Lig ve Mentor Primi otomatik güncellenir — bu işlem geri alınamaz.'
+            return uyari ? `${uyari} ${temel}` : temel
+          })()}
           confirmLabel="Evet, onayla"
           onConfirm={() => handleApprove(approveTarget)}
           onCancel={() => setApproveTarget(null)}

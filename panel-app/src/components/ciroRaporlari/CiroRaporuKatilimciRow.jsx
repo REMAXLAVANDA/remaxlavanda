@@ -20,17 +20,23 @@ function formatSize(bytes) {
 // odemeDurumu farklı: ofise paranın gelip gelmediğini broker/owner işaretler,
 // danışman değil — bu yüzden onToggleOdeme sadece canToggleOdeme true'yken verilir.
 //
-// GD Cirosu / Çalışan Payı (fatura tutarı) / RT Payı / Ofis Payı üçlemesi
-// 2026-10-09'da eklendi (RE/MAX Türkiye'nin resmi ciro ekranı referans
-// alındı) — Ofis Payı HER ZAMAN kalan, elle girilmez (bkz.
-// lib/ciroRaporlari.js ofisPayiTutari, dataProvider'daki senkron). Bu
-// döküm SADECE broker/owner'a (canToggleOdeme ile aynı yetki) gösterilir
-// — danışmanın RT Payı'nı görmesine gerek yok, kendi kesmesi gereken
-// fatura rakamını ("Hakediş" rozeti, 2026-10-17'de "Önerilen fatura"dan
-// yeniden adlandırıldı) görmesi yeterli (2026-10-09 broker kararı).
-// Aynı sebeple RT Payı artık danışmanın kendi fatura
-// formunda hiç düzenlenmiyor — tamamen profildeki tier'dan (Rap/Max)
-// otomatik geliyor.
+// RT Payı/Ofis Payı 2026-10-11'de kaldırıldı (bkz. aşağıdaki not) — RT
+// Payı artık danışmanın kendi fatura formunda hiç düzenlenmiyor, tamamen
+// profildeki tier'dan (Rap/Max) otomatik geliyor.
+//
+// 2026-10-17 /kurul denetimi (görsel+veri-zinciri): bu kart aynı parayı
+// 3 farklı rozette tekrar ediyordu — "Hakediş" (her zaman komisyon
+// önerisi), "Çalışan Payı" (fatura girilene kadar Hakediş'le birebir
+// aynı), "GD Cirosu" (bu danışmanın payı her zaman üstteki taraf
+// bloğundaki "Hizmet bedeli alındı" ile birebir aynı çıkıyor — model
+// satıcı/alıcıyı TEK danışman temsil ettiği için). Üstelik GD Cirosu'nun
+// ekrana çevrilmesi sabit ×1,2 (KDV %20 varsayımı) kullanıyordu, oysa
+// gerçek KDV oranı değişebiliyor (bkz. CiroRaporuFormModal kdvOrani) —
+// gerçek değerden sapabilen bir rakamdı. Üçü TEK rozete indirildi: fatura
+// girilmemişse "Hakediş (öneri)", girilmişse "Kesilen Fatura" (gerçek
+// tutar) — sapma varsa zaten aşağıdaki kırmızı uyarı devreye giriyor.
+// gd_cirosu veritabanı kolonu SİLİNMEDİ (Kârlılık sekmesinin tabanı,
+// KarlilikPanel.jsx) — sadece bu karttaki tekrarlı gösterimi kaldırıldı.
 export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, eslesenTutar, onSaveFatura, onToggleOdeme, onTeyitEt, submitting }) {
   const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
@@ -104,7 +110,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-text-muted">
-            Hakediş: {tl(k.komisyonTutariOnerisi)}
+            {k.faturaTutari != null ? `Kesilen Fatura: ${tl(k.faturaTutari)}` : `Hakediş (öneri): ${tl(k.komisyonTutariOnerisi)}`}
           </span>
           {canToggleOdeme && (
             <button
@@ -132,23 +138,6 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
           )}
         </div>
       </div>
-
-      {/* RT Payı/Ofis Payı 2026-10-11'de kaldırıldı — broker: "RT Payı: —
-          Ofis Payı: — bunları kaldır" (anlaşma oranı tanımlı olmayan
-          danışmanlarda hep "—" çıkıyordu, kafa karıştırıyordu). GD
-          Cirosu/Çalışan Payı anlamlı oldukları için kalıyor.
-          Ekranda gösterilen GD Cirosu artık KDV DAHİL (broker, 2026-10-17:
-          "gd cirosu hala kdv hariç" — Çalışan Payı'nın yanında net bir
-          rakam durması kafa karıştırıyordu). Veritabanındaki gd_cirosu
-          değeri (Kârlılık sekmesinin tabanı, KarlilikPanel.jsx) bilerek
-          NET kalıyor — KDV şirketin kârı değil, sadece burada ×1,2 ile
-          ekrana çevriliyor. */}
-      {canToggleOdeme && k.gdCirosu != null && (
-        <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
-          <span>GD Cirosu: <span className="font-medium text-text-primary">{tl(Number(k.gdCirosu) * 1.2)}</span></span>
-          <span>Çalışan Payı: {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}</span>
-        </div>
-      )}
 
       {/* Parçalı ödeme göstergesi — birden fazla banka hareketi aynı
           katılımcıya eşleşmiş olabilir (bkz. lib/bankaHareketleri.js
