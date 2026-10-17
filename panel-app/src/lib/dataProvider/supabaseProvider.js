@@ -1644,52 +1644,31 @@ export const ciroRaporlari = {
       )
     }
   },
-  // Onaylanınca her katılımcının payına düşen SATIŞ tutarı (komisyon değil
-  // — bkz. lib/ciroRaporlari.js notu), mevcut league.addScore() üzerinden
-  // ciro_girisleri'ne yazılır. Böylece Lig'in dönem eşleştirmesi/toplam
-  // yeniden hesabı (resolvePeriodByDate, recomputeCiroTotal) HİÇ
-  // değişmeden, sadece kaynağı değişerek çalışmaya devam ediyor.
-  async approve(id, approverId) {
-    const [rapor, katilimcilar] = await Promise.all([
-      run(client().from('ciro_raporlari').select('islem_tutari, islem_tarihi').eq('id', id).single()),
-      run(
-        client()
-          .from('ciro_raporu_katilimcilari')
-          .select('id, danisman_id, pay_orani, komisyon_tutari_onerisi, fatura_tutari')
-          .eq('ciro_raporu_id', id),
-      ),
-    ])
-    for (const k of katilimcilar) {
-      const value = Number(rapor.islem_tutari) * (Number(k.pay_orani) / 100)
-      await league.addScore({ userId: k.danisman_id, type: 'ciro', value, tarih: rapor.islem_tarihi }, approverId)
-    }
-    await run(
+  // 2026-10-17 /kurul düzeltmesi: onay artık TEK bir veritabanı
+  // fonksiyonunda (approve_ciro_raporu, SECURITY DEFINER) atomik ve
+  // idempotent çalışıyor — çift tıklama/ağ hatası sonrası tekrar
+  // deneme veya iki yöneticinin aynı anda onaylaması durumunda Lig/cari
+  // hesaba ikinci kez yazılmıyor. Katılımcının hakediş tutarı da artık
+  // sunucu tarafında, gerçek (RLS'siz) anlaşma oranından hesaplanıyor —
+  // bkz. docs/kurul/raporlar/2026-10-17-finans-modulu.md.
+  async approve(id) {
+    await run(client().rpc('approve_ciro_raporu', { p_rapor_id: id }))
+  },
+  // Durum şartı eklendi — rapor zaten onaylanmış/reddedilmişse (ör. iki
+  // yönetici eşzamanlı işlem yaptıysa) 0 satır güncellenir, kullanıcıya
+  // anlaşılır bir hata gösterilir (bkz. approve() ile aynı sebep).
+  async reject(id, redSebebi) {
+    const updated = await run(
       client()
         .from('ciro_raporlari')
-        .update({ durum: 'onaylandi', onaylayan_id: approverId, onay_tarihi: new Date().toISOString() })
-        .eq('id', id),
+        .update({ durum: 'reddedildi', red_sebebi: redSebebi })
+        .eq('id', id)
+        .eq('durum', 'onay_bekliyor')
+        .select('id'),
     )
-    // Cari Hesap: her katılımcı için hak ediş kadar "alacak" satırı —
-    // tutar fatura girilmişse fatura tutarı, girilmemişse önerilen komisyon
-    // (sonradan fatura girilince updateKatilimciFatura senkronize eder).
-    const cariRows = katilimcilar
-      .filter((k) => Number(k.fatura_tutari ?? k.komisyon_tutari_onerisi) > 0)
-      .map((k) => ({
-        danisman_id: k.danisman_id,
-        tarih: rapor.islem_tarihi,
-        tur: 'alacak',
-        tutar: k.fatura_tutari ?? k.komisyon_tutari_onerisi,
-        kategori: 'hizmet_bedeli',
-        kaynak_tip: 'ciro_raporu_katilimcisi',
-        kaynak_id: k.id,
-        created_by: approverId,
-      }))
-    if (cariRows.length > 0) {
-      await run(client().from('cari_hareketler').insert(cariRows))
+    if (updated.length === 0) {
+      throw new Error('Bu rapor artık onay bekleyen durumda değil — sayfayı yenile.')
     }
-  },
-  async reject(id, redSebebi) {
-    await run(client().from('ciro_raporlari').update({ durum: 'reddedildi', red_sebebi: redSebebi }).eq('id', id))
   },
   // Finans > Raporlar > Fatura Kontrol — broker/owner'ın danışmanın kestiği
   // faturayı teyit etmesi. RLS zaten is_manager() ile sınırlı

@@ -61,6 +61,7 @@ export default function CiroRaporlariPanel() {
   const [showFormModal, setShowFormModal] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [approveTarget, setApproveTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [rejectTarget, setRejectTarget] = useState(null)
@@ -178,10 +179,13 @@ export default function CiroRaporlariPanel() {
     }
   }
 
+  // 2026-10-17 /kurul düzeltmesi: geri alınamaz bir işlem artık tek tıkla
+  // kesinleşmiyor — "Sil" ile aynı ConfirmDialog deseni (approveTarget).
   async function handleApprove(id) {
     setSubmitting(true)
     try {
       await ciroRaporlariProvider.approve(id, user.id)
+      setApproveTarget(null)
       showToast('Rapor onaylandı — Lig ve Mentor Primi güncellendi.', 'success')
       reload()
     } catch (err) {
@@ -383,7 +387,7 @@ export default function CiroRaporlariPanel() {
                     <XIcon size={13} /> Reddet
                   </button>
                   <button
-                    onClick={() => handleApprove(r.id)}
+                    onClick={() => setApproveTarget(r.id)}
                     disabled={submitting}
                     className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                   >
@@ -490,6 +494,17 @@ export default function CiroRaporlariPanel() {
 
       {rejectTarget && (
         <RejectCiroRaporuModal onClose={() => setRejectTarget(null)} onSubmit={handleReject} submitting={submitting} />
+      )}
+
+      {approveTarget && (
+        <ConfirmDialog
+          title="Raporu onayla"
+          message="Onaylanınca Lig ve Mentor Primi otomatik güncellenir — bu işlem geri alınamaz."
+          confirmLabel="Evet, onayla"
+          onConfirm={() => handleApprove(approveTarget)}
+          onCancel={() => setApproveTarget(null)}
+          confirming={submitting}
+        />
       )}
     </div>
   )
