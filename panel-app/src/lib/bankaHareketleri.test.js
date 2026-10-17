@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ROLES } from './roles'
-import { canManageBankaHareketleri, canSubmitBankaHareketi, eslesmeAdaylari, kalanTutar, toplamEslesenTutar } from './bankaHareketleri'
+import { canManageBankaHareketleri, canSubmitBankaHareketi, eslesmeAdaylari, kalanTutar, musteriCarisi, toplamEslesenTutar } from './bankaHareketleri'
 
 describe('canManageBankaHareketleri', () => {
   it('sadece broker yönetebilir (owner Finans\'ta sadece ciro/cari görür)', () => {
@@ -66,5 +66,39 @@ describe('kalanTutar', () => {
 
   it('mahsup girilmemişse tüm tutar kalan sayılır', () => {
     expect(kalanTutar(100000, '')).toBe(100000)
+  })
+})
+
+describe('musteriCarisi', () => {
+  it('bloke girişlerini gönderen adına göre gruplar, blokedeki açık toplamı hesaplar', () => {
+    const hareketler = [
+      { id: 'g1', tip: 'giris', tur: 'baglanma_parasi', gonderenAdi: 'Ahmet', durum: 'blokede', tutar: 50000, tarih: '2026-10-01' },
+      { id: 'g2', tip: 'giris', tur: 'diger', gonderenAdi: 'Ahmet', durum: 'eslesti', tutar: 10000, tarih: '2026-10-02' },
+    ]
+    const sonuc = musteriCarisi(hareketler)
+    expect(sonuc).toHaveLength(1)
+    expect(sonuc[0].gonderenAdi).toBe('Ahmet')
+    expect(sonuc[0].acikBlokede).toBe(50000)
+    expect(sonuc[0].girisHareketleri).toHaveLength(1)
+  })
+
+  it('Ahmetten gelip Mehmete yönlendirilen bloke için çözüm detayını girişe gömer', () => {
+    const hareketler = [
+      { id: 'g1', tip: 'giris', tur: 'baglanma_parasi', gonderenAdi: 'Ahmet', durum: 'cozuldu', tutar: 50000, tarih: '2026-10-01', mahsupTutari: null },
+      { id: 'c1', tip: 'cikis', tur: 'diger', gonderenAdi: 'Mehmet', ustHareketId: 'g1', durum: 'eslesti', tutar: 50000, tarih: '2026-10-05' },
+    ]
+    const sonuc = musteriCarisi(hareketler)
+    expect(sonuc[0].girisHareketleri[0].cikis.gonderenAdi).toBe('Mehmet')
+    expect(sonuc[0].acikBlokede).toBe(0)
+  })
+
+  it('gönderen adı boşsa "Belirtilmemiş" altında gruplanır', () => {
+    const hareketler = [{ id: 'g1', tip: 'giris', tur: 'baglanma_parasi', gonderenAdi: null, durum: 'blokede', tutar: 1000, tarih: '2026-10-01' }]
+    expect(musteriCarisi(hareketler)[0].gonderenAdi).toBe('Belirtilmemiş')
+  })
+
+  it('boş/undefined listede boş dizi döner', () => {
+    expect(musteriCarisi([])).toEqual([])
+    expect(musteriCarisi(undefined)).toEqual([])
   })
 })

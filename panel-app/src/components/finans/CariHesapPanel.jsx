@@ -3,8 +3,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { cariHareketler as cariHareketlerProvider } from '../../lib/dataProvider'
+import { cariHareketler as cariHareketlerProvider, bankaHareketleri as bankaHareketleriProvider } from '../../lib/dataProvider'
 import { CARI_KATEGORI_LABELS, CARI_TUR_LABELS, canManageCariHesap, cariOzetiByDanisman } from '../../lib/cariHesap'
+import { musteriCarisi } from '../../lib/bankaHareketleri'
 import { formatDateOnly } from '../../lib/format'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 
@@ -13,8 +14,8 @@ function tl(n) {
 }
 
 async function loadAll() {
-  const hareketler = await cariHareketlerProvider.list()
-  return { hareketler }
+  const [hareketler, bankaHareketleri] = await Promise.all([cariHareketlerProvider.list(), bankaHareketleriProvider.list()])
+  return { hareketler, bankaHareketleri }
 }
 
 function HareketTable({ hareketler }) {
@@ -57,6 +58,7 @@ export default function CariHesapPanel() {
   const { knownUsers } = useKnownUsers()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
   const [expandedId, setExpandedId] = useState(null)
+  const [expandedMusteriAdi, setExpandedMusteriAdi] = useState(null)
   const isYonetim = canManageCariHesap(role)
 
   // Danışman sadece kendi hareketlerini görür — gerçek projede RLS
@@ -77,6 +79,11 @@ export default function CariHesapPanel() {
       .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
   }, [data, isYonetim, knownUsers])
 
+  // Müşteri Carisi — bloke/bağlanma parası alınan müşterilerin defteri,
+  // sadece Banka Hareketleri'ni (dolayısıyla broker'a özel) gören isYonetim
+  // için (bkz. lib/bankaHareketleri.js musteriCarisi notu).
+  const musteriler = useMemo(() => (isYonetim ? musteriCarisi(data?.bankaHareketleri) : []), [data, isYonetim])
+
   return (
     <div>
       <p className="mb-5 text-sm text-text-muted">
@@ -89,7 +96,8 @@ export default function CariHesapPanel() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && isYonetim && (
-        <div className="space-y-2">
+        <div className="mb-8 space-y-2">
+          <h3 className="mb-1 text-sm font-semibold text-text-primary">Danışman Carisi</h3>
           {ozet.length === 0 && <p className="text-sm text-text-muted">Henüz cari hareket yok.</p>}
           {ozet.map((d) => {
             const isExpanded = expandedId === d.danismanId
@@ -108,6 +116,60 @@ export default function CariHesapPanel() {
                 {isExpanded && (
                   <div className="mt-3 border-t border-border-subtle pt-3">
                     <HareketTable hareketler={d.hareketler} />
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {!loading && !error && isYonetim && (
+        <div className="space-y-2">
+          <h3 className="mb-1 text-sm font-semibold text-text-primary">Müşteri Carisi</h3>
+          <p className="mb-2 text-xs text-text-muted">
+            Bağlanma parası (bloke) alınan müşteriler — bkz. Banka Hareketleri'ndeki bloke girişleri ve çözümleri.
+          </p>
+          {musteriler.length === 0 && <p className="text-sm text-text-muted">Henüz bloke/bağlanma parası yok.</p>}
+          {musteriler.map((m) => {
+            const isExpanded = expandedMusteriAdi === m.gonderenAdi
+            return (
+              <div key={m.gonderenAdi} className="rounded-2xl border border-border-default bg-surface-raised p-4">
+                <button
+                  onClick={() => setExpandedMusteriAdi(isExpanded ? null : m.gonderenAdi)}
+                  className="flex w-full items-center justify-between gap-3 text-left"
+                >
+                  <span className="text-sm font-medium text-text-primary">{m.gonderenAdi}</span>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className={`font-semibold ${m.acikBlokede > 0 ? 'text-sky-700' : 'text-text-muted'}`}>
+                      Açık Blokede: {tl(m.acikBlokede)}
+                    </span>
+                    {isExpanded ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="mt-3 space-y-2 border-t border-border-subtle pt-3">
+                    {m.girisHareketleri.map((h) => (
+                      <div key={h.id} className="rounded-xl border border-border-subtle p-3 text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-text-primary">{tl(h.tutar)} alındı</span>
+                          <span className="text-text-muted">{formatDateOnly(h.tarih)}</span>
+                        </div>
+                        {h.durum === 'blokede' ? (
+                          <p className="mt-1 text-sky-700">Blokede, henüz çözülmedi.</p>
+                        ) : h.cikis ? (
+                          <p className="mt-1 text-text-secondary">
+                            {h.mahsupTutari ? `${tl(h.mahsupTutari)} hizmet bedeline mahsup edildi, kalan ` : ''}
+                            {tl(h.cikis.tutar)} {h.cikis.gonderenAdi ? `${h.cikis.gonderenAdi}'a` : ''} gönderildi
+                            {' · '}
+                            {formatDateOnly(h.cikis.tarih)}
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-text-secondary">Tamamı hizmet bedeline mahsup edildi.</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

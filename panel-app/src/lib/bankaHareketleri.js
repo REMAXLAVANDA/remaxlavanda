@@ -91,3 +91,34 @@ export function kalanTutar(blokeTutari, mahsupTutari) {
   const kalan = Number(blokeTutari) - Number(mahsupTutari || 0)
   return kalan < 0 ? 0 : Math.round(kalan * 100) / 100
 }
+
+// Müşteri Carisi (Finans > Raporlar > Cari Hesap) — broker, 2026-10-17:
+// "biz müşterilerden bağlanma yani bloke para alıyoruz, müşterilerle de
+// cari alışveriş yapmalıyız", ve çözümde "bazen Ahmet'ten geliyor
+// Mehmet'e iletiyoruz, onu da sağlayabilelim". Ayrı bir "müşteri" kaydı
+// YOK — kimlik banka hareketindeki "gönderen adı" alanından geliyor
+// (broker kararı: fırsatın lead_ad'ı değil, parayı fiilen gönderen/alan
+// kişinin adı — serbest metin olsa da gerçek hayattaki kişiyle daha
+// tutarlı). Migration gerekmiyor — tamamen mevcut banka_hareketleri
+// verisinden türetiliyor (ust_hareket_id ile bloke→çözüm çıkışı zaten
+// bağlı, bkz. blokeyiCozumle). Her girişin çözüm detayı (varsa bağlı
+// çıkış hareketi) kendi satırına gömülü dönüyor ki "kimden geldi, kime
+// gitti" tek bakışta okunabilsin.
+export function musteriCarisi(hareketler) {
+  const list = hareketler ?? []
+  const blokeGirisleri = list.filter((h) => h.tip !== 'cikis' && h.tur === 'baglanma_parasi')
+  const map = {}
+  for (const h of blokeGirisleri) {
+    const ad = h.gonderenAdi?.trim() || 'Belirtilmemiş'
+    if (!map[ad]) map[ad] = []
+    const cikis = list.find((x) => x.ustHareketId === h.id)
+    map[ad].push({ ...h, cikis })
+  }
+  return Object.entries(map)
+    .map(([gonderenAdi, girisHareketleri]) => ({
+      gonderenAdi,
+      girisHareketleri: girisHareketleri.sort((a, b) => new Date(b.tarih) - new Date(a.tarih)),
+      acikBlokede: girisHareketleri.filter((h) => h.durum === 'blokede').reduce((s, h) => s + Number(h.tutar), 0),
+    }))
+    .sort((a, b) => a.gonderenAdi.localeCompare(b.gonderenAdi, 'tr'))
+}
