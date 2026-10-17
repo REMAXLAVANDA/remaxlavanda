@@ -58,7 +58,11 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
               konu: form.konu,
               takipTarihi: form.takipTarihi,
               portfoyHedefi,
-              portfoySayisiOAn: portfoyHedefi == null ? null : guncelPortfoySayisi,
+              // Mevcut portföy sayısı artık HER notta kaydediliyor (broker,
+              // 2026-10-17: "her seferinde doldurulması gereken konuları
+              // doldursun, mesela mevcut portföy sayısı") — eskiden sadece
+              // bir hedef girilmişse kaydediliyordu.
+              portfoySayisiOAn: guncelPortfoySayisi,
             })
             setForm(emptyForm())
             setFormOpen(false)
@@ -116,9 +120,9 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="cn-portfoy-hedef">
-              Portföy Hedefi
+              Portföy Hedefi <span className="font-normal text-ink-400">(opsiyonel)</span>
               <span className="ml-1 font-normal text-ink-400">
-                — opsiyonel, şu an {guncelPortfoySayisi} portföyü var
+                — şu an {guncelPortfoySayisi} portföyü var, bu sayı notla birlikte otomatik kaydedilir
               </span>
             </label>
             <input
@@ -187,10 +191,10 @@ export default function CoachingNotesSection({ notes, opportunities, danismanId,
                 </span>
               </div>
               <p className="text-ink-700">{n.konusulanlar}</p>
-              {n.portfoyHedefi != null && (
+              {n.portfoySayisiOAn != null && (
                 <p className="mt-1.5 rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs text-brand-700">
-                  <span className="font-medium">Portföy Hedefi:</span> {n.portfoyHedefi}
-                  <span className="ml-1 text-brand-600">(o an: {n.portfoySayisiOAn ?? 0})</span>
+                  <span className="font-medium">Mevcut Portföy:</span> {n.portfoySayisiOAn}
+                  {n.portfoyHedefi != null && <span className="ml-1 text-brand-600">(hedef: {n.portfoyHedefi})</span>}
                 </p>
               )}
               {n.sonuc && (
