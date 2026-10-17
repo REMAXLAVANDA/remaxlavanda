@@ -26,8 +26,9 @@ function formatSize(bytes) {
 // lib/ciroRaporlari.js ofisPayiTutari, dataProvider'daki senkron). Bu
 // döküm SADECE broker/owner'a (canToggleOdeme ile aynı yetki) gösterilir
 // — danışmanın RT Payı'nı görmesine gerek yok, kendi kesmesi gereken
-// fatura rakamını ("Önerilen fatura" rozeti) görmesi yeterli (2026-10-09
-// broker kararı). Aynı sebeple RT Payı artık danışmanın kendi fatura
+// fatura rakamını ("Hakediş" rozeti, 2026-10-17'de "Önerilen fatura"dan
+// yeniden adlandırıldı) görmesi yeterli (2026-10-09 broker kararı).
+// Aynı sebeple RT Payı artık danışmanın kendi fatura
 // formunda hiç düzenlenmiyor — tamamen profildeki tier'dan (Rap/Max)
 // otomatik geliyor.
 export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, eslesenTutar, onSaveFatura, onToggleOdeme, submitting }) {
@@ -103,7 +104,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-text-muted">
-            Önerilen fatura: {tl(k.komisyonTutariOnerisi)}
+            Hakediş: {tl(k.komisyonTutariOnerisi)}
           </span>
           {canToggleOdeme && (
             <button

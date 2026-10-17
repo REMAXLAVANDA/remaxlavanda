@@ -730,7 +730,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                   {k.anlasmaOrani != null ? (
                     <>
                       {' '}
-                      · kesmesi gereken fatura: <span className="font-semibold">{tl(k.komisyonTutariOnerisi)}</span> (%{k.anlasmaOrani} anlaşma oranı)
+                      · hakediş: <span className="font-semibold">{tl(k.komisyonTutariOnerisi)}</span> (%{k.anlasmaOrani} anlaşma oranı)
                     </>
                   ) : (
                     ' · anlaşma oranı tanımlı değil, broker/owner ile kontrol et'

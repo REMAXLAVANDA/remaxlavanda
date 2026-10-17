@@ -167,7 +167,7 @@ export default function FaturaKontrolPanel() {
                               {k.faturaTarihi && ` · ${formatDateOnly(k.faturaTarihi)}`}
                             </>
                           ) : (
-                            <span className="text-amber-700"> — henüz fatura kesilmedi (önerilen {tl(k.komisyonTutariOnerisi)})</span>
+                            <span className="text-amber-700"> — henüz fatura kesilmedi (hakediş {tl(k.komisyonTutariOnerisi)})</span>
                           )}
                         </div>
                         {k.faturaNo && (
