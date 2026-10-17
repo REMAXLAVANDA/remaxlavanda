@@ -17,11 +17,15 @@ import FaturaKontrolPanel from './FaturaKontrolPanel'
 // eklendi) ofis payı gibi hassas iç veriyi topluyor — CiroRaporuKatilimciRow'daki
 // AYNI yetki sınırı (canApproveCiroRaporu/broker+owner), danışman
 // başkasının/ofisin kârlılığını görmemeli.
+// Fatura Kontrol 2026-10-17'de Ciro Raporları ekranının içine taşındı
+// (broker: "fatura kontrolü de ciro ekranına al içine yerleştir") —
+// burada sadece banka dekontlarının teyidi kaldığı için sekme adı
+// "Dekont Kontrol" oldu (bkz. FaturaKontrolPanel.jsx notu).
 const TABS = [
   { key: 'cari', label: 'Cari Hesap' },
   { key: 'masraflar', label: 'Masraflar' },
   { key: 'karlilik', label: 'Kârlılık' },
-  { key: 'fatura_kontrol', label: 'Fatura Kontrol' },
+  { key: 'fatura_kontrol', label: 'Dekont Kontrol' },
 ]
 
 export default function RaporlarPanel() {

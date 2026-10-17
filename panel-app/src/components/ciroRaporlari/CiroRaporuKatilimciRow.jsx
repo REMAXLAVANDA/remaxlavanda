@@ -31,7 +31,7 @@ function formatSize(bytes) {
 // Aynı sebeple RT Payı artık danışmanın kendi fatura
 // formunda hiç düzenlenmiyor — tamamen profildeki tier'dan (Rap/Max)
 // otomatik geliyor.
-export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, eslesenTutar, onSaveFatura, onToggleOdeme, submitting }) {
+export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, eslesenTutar, onSaveFatura, onToggleOdeme, onTeyitEt, submitting }) {
   const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -114,6 +114,20 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
               }`}
             >
               {k.odemeDurumu === 'alindi' ? 'Ödeme alındı' : 'Ödeme bekliyor'}
+            </button>
+          )}
+          {/* Fatura Kontrol'den (Finans > Raporlar) taşındı — broker,
+              2026-10-17: "fatura kontrolü de ciro ekranına al içine
+              yerleştir", ayrı sekmeye gitmeden burada teyit edilsin. */}
+          {canToggleOdeme && k.faturaNo && (
+            <button
+              disabled={submitting}
+              onClick={() => onTeyitEt(k.id, !k.teyitEdildi)}
+              className={`rounded-full px-2 py-0.5 font-medium disabled:opacity-50 ${
+                k.teyitEdildi ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+              }`}
+            >
+              {k.teyitEdildi ? 'Fatura Teyit Edildi' : 'Fatura Teyit Et'}
             </button>
           )}
         </div>

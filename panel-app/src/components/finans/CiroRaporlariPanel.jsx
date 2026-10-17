@@ -33,7 +33,7 @@ function hizmetBedeliUyarisiVar(r) {
   )
 }
 import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
-import { formatDateOnly } from '../../lib/format'
+import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
 import CiroRaporuKatilimciRow from '../ciroRaporlari/CiroRaporuKatilimciRow'
@@ -65,6 +65,8 @@ export default function CiroRaporlariPanel() {
   const [submitting, setSubmitting] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [rejectTarget, setRejectTarget] = useState(null)
+  // Fatura Kontrol'den (Finans > Raporlar) taşındı — broker, 2026-10-17.
+  const [ofisForms, setOfisForms] = useState({})
 
   const isDanisman = canSubmitCiroRaporu(role)
   const isApprover = canApproveCiroRaporu(role)
@@ -243,6 +245,73 @@ export default function CiroRaporlariPanel() {
     }
   }
 
+  // --- Fatura Kontrol'den (Finans > Raporlar) taşındı — broker, 2026-10-17:
+  // "fatura kontrolü de ciro ekranına al içine yerleştir". ---
+  function ofisForm(raporId, rapor) {
+    return (
+      ofisForms[raporId] ?? {
+        no: rapor.ofisFaturaNo ?? '',
+        tarih: rapor.ofisFaturaTarihi ?? '',
+        tutar: rapor.ofisFaturaTutari != null ? formatThousands(String(rapor.ofisFaturaTutari)) : '',
+      }
+    )
+  }
+  function setOfisFormPatch(raporId, patch) {
+    setOfisForms((f) => ({ ...f, [raporId]: { ...ofisForm(raporId, { ofisFaturaNo: '', ofisFaturaTarihi: '', ofisFaturaTutari: null }), ...patch } }))
+  }
+  async function handleTeyit(katilimciId, deger) {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.katilimciTeyitEt(katilimciId, user.id, deger)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  async function handleOfisFaturasiKaydet(raporId) {
+    const form = ofisForm(raporId, { ofisFaturaNo: '', ofisFaturaTarihi: '', ofisFaturaTutari: null })
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.ofisFaturasiKaydet(raporId, {
+        no: form.no.trim(),
+        tarih: form.tarih || null,
+        tutar: parseThousands(form.tutar),
+      })
+      showToast('Ofis faturası kaydedildi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  async function handleMyremax(raporId, deger) {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.setMyremaxGirildi(raporId, deger)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  async function handleTamamlandi(raporId, deger) {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.setMuhasebeTamamlandi(raporId, deger, user.id)
+      showToast(deger ? 'İşlem tamamlandı olarak işaretlendi.' : 'İşlem tamamlandı işareti kaldırıldı.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  // --- /Fatura Kontrol'den taşındı ---
+
   async function handleToggleOdeme(katilimciId, odemeDurumu) {
     try {
       await ciroRaporlariProvider.updateKatilimciFatura(katilimciId, { odemeDurumu })
@@ -270,6 +339,11 @@ export default function CiroRaporlariPanel() {
                   className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
                 >
                   Oran Uyarısı
+                </span>
+              )}
+              {r.muhasebeTamamlandi && (
+                <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  İşlem Tamamlandı
                 </span>
               )}
             </div>
@@ -342,9 +416,69 @@ export default function CiroRaporlariPanel() {
                 eslesenTutar={toplamEslesenTutar(k.id, data?.hareketler)}
                 onSaveFatura={handleSaveFatura}
                 onToggleOdeme={handleToggleOdeme}
+                onTeyitEt={handleTeyit}
                 submitting={submitting}
               />
             ))}
+
+            {/* Fatura Kontrol'den (Finans > Raporlar) taşındı — broker,
+                2026-10-17: "fatura kontrolü de ciro ekranına al içine
+                yerleştir". Sadece onaya gönderilmiş/onaylanmış raporlarda
+                anlamlı (taslak/reddedildi'de henüz muhasebe işi yok). */}
+            {isApprover && (r.durum === 'onay_bekliyor' || r.durum === 'onaylandi') && (
+              <div className="rounded-lg bg-surface-sunken p-3">
+                <p className="mb-2 text-xs font-medium text-text-primary">Ofis / Muhasebe</p>
+                <div className="flex flex-wrap items-end gap-2">
+                  <input
+                    value={ofisForm(r.id, r).no}
+                    onChange={(e) => setOfisFormPatch(r.id, { no: e.target.value })}
+                    placeholder="Ofis fatura no"
+                    className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
+                  />
+                  <input
+                    type="date"
+                    value={ofisForm(r.id, r).tarih}
+                    onChange={(e) => setOfisFormPatch(r.id, { tarih: e.target.value })}
+                    className="rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary"
+                  />
+                  <input
+                    inputMode="numeric"
+                    value={ofisForm(r.id, r).tutar}
+                    onChange={(e) => setOfisFormPatch(r.id, { tutar: formatThousands(e.target.value) })}
+                    placeholder="Ofis fatura tutarı"
+                    className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
+                  />
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => handleOfisFaturasiKaydet(r.id)}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                  >
+                    Ofis Faturasını Kaydet
+                  </button>
+                  <label className="ml-auto flex items-center gap-1.5 text-xs text-text-secondary">
+                    <input
+                      type="checkbox"
+                      checked={!!r.myremaxGirildi}
+                      onChange={(e) => handleMyremax(r.id, e.target.checked)}
+                      disabled={submitting}
+                    />
+                    MyRemax'a girildi
+                  </label>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => handleTamamlandi(r.id, !r.muhasebeTamamlandi)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                      r.muhasebeTamamlandi ? 'bg-ink-100 text-ink-600' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    }`}
+                  >
+                    {r.muhasebeTamamlandi ? 'Tamamlandı İşaretini Kaldır' : 'İşlem Tamamlandı'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
               {isDanisman && isOwner && (r.durum === 'taslak' || r.durum === 'reddedildi') && (
                 <>
