@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { canManageMasraflar } from '../../lib/islemMasraflari'
-import { canApproveCiroRaporu, canControlFaturaKontrol } from '../../lib/ciroRaporlari'
+import { canApproveCiroRaporu } from '../../lib/ciroRaporlari'
 import CariHesapPanel from './CariHesapPanel'
 import MasraflarPanel from './MasraflarPanel'
 import KarlilikPanel from './KarlilikPanel'
-import FaturaKontrolPanel from './FaturaKontrolPanel'
 
 // Finans > Raporlar — Cari Hesap ve Masraflar burada toplandı (2026-10-09
 // broker: "rapor demiştim ama sen masraflar menüsüne eklemişsin, rapor
@@ -17,15 +16,14 @@ import FaturaKontrolPanel from './FaturaKontrolPanel'
 // eklendi) ofis payı gibi hassas iç veriyi topluyor — CiroRaporuKatilimciRow'daki
 // AYNI yetki sınırı (canApproveCiroRaporu/broker+owner), danışman
 // başkasının/ofisin kârlılığını görmemeli.
-// Fatura Kontrol 2026-10-17'de Ciro Raporları ekranının içine taşındı
-// (broker: "fatura kontrolü de ciro ekranına al içine yerleştir") —
-// burada sadece banka dekontlarının teyidi kaldığı için sekme adı
-// "Dekont Kontrol" oldu (bkz. FaturaKontrolPanel.jsx notu).
+// Fatura Kontrol 2026-10-17'de Ciro Raporları ekranının içine taşındı,
+// Dekont Kontrol de aynı gün Banka Hareketleri ekranının içine taşındı
+// (broker: "dekont kontrolünü de banka hareketlerine taşıyalım") — bu
+// sekme artık yok, bkz. BankaHareketleriPanel.jsx.
 const TABS = [
   { key: 'cari', label: 'Cari Hesap' },
   { key: 'masraflar', label: 'Masraflar' },
   { key: 'karlilik', label: 'Kârlılık' },
-  { key: 'fatura_kontrol', label: 'Dekont Kontrol' },
 ]
 
 export default function RaporlarPanel() {
@@ -33,10 +31,7 @@ export default function RaporlarPanel() {
   const [tab, setTab] = useState('cari')
   const showMasraflar = canManageMasraflar(role)
   const showKarlilik = canApproveCiroRaporu(role)
-  const showFaturaKontrol = canControlFaturaKontrol(role)
-  const visibleTabs = TABS.filter((t) =>
-    t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : t.key === 'fatura_kontrol' ? showFaturaKontrol : true,
-  )
+  const visibleTabs = TABS.filter((t) => (t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : true))
 
   return (
     <div>
@@ -59,7 +54,6 @@ export default function RaporlarPanel() {
       {tab === 'cari' && <CariHesapPanel />}
       {showMasraflar && tab === 'masraflar' && <MasraflarPanel />}
       {showKarlilik && tab === 'karlilik' && <KarlilikPanel />}
-      {showFaturaKontrol && tab === 'fatura_kontrol' && <FaturaKontrolPanel />}
     </div>
   )
 }

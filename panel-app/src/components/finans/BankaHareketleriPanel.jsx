@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Link2, Undo2, Unlock, Receipt } from 'lucide-react'
+import { Plus, Link2, Undo2, Unlock, Receipt, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -210,6 +210,18 @@ export default function BankaHareketleriPanel() {
     }
   }
 
+  // Finans > Raporlar > Dekont Kontrol 2026-10-17'de buraya taşındı
+  // (broker: "dekont kontrolünü de banka hareketlerine taşıyalım") — artık
+  // aynı tabloda, eşleştirme/bloke/masraf aksiyonlarının yanında.
+  async function handleDekontTeyit(hareketId, deger) {
+    try {
+      await bankaHareketleriProvider.teyitEt(hareketId, user.id, deger)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    }
+  }
+
   async function handleKategoriEkle(label) {
     const maxOrder = (data?.kategoriler ?? []).reduce((max, k) => Math.max(max, k.sortOrder), 0)
     const created = await categoriesProvider.create({
@@ -232,8 +244,8 @@ export default function BankaHareketleriPanel() {
   return (
     <div>
       <p className="mb-5 text-sm text-text-muted">
-        Banka API'si bağlanana kadar ekstreyi buraya elle gir — bir ödeme bekleyen kayıtla eşleştir, ya da masraf olarak
-        işaretle.
+        Banka API'si bağlanana kadar ekstreyi buraya elle gir — bir ödeme bekleyen kayıtla eşleştir, masraf olarak
+        işaretle ya da dekontu teyit et.
       </p>
 
       <form onSubmit={handleCreate} className="mb-6 space-y-2 rounded-2xl border border-border-default bg-surface-raised p-4">
@@ -341,13 +353,14 @@ export default function BankaHareketleriPanel() {
                 <th className="px-4 py-2.5 font-medium">Tutar</th>
                 <th className="px-4 py-2.5 font-medium">Gönderen</th>
                 <th className="px-4 py-2.5 font-medium">Durum</th>
+                <th className="px-4 py-2.5 font-medium">Dekont</th>
                 <th className="px-4 py-2.5 font-medium" />
               </tr>
             </thead>
             <tbody>
               {hareketler.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-text-muted">
+                  <td colSpan={7} className="px-4 py-6 text-center text-text-muted">
                     Henüz hareket yok.
                   </td>
                 </tr>
@@ -372,6 +385,16 @@ export default function BankaHareketleriPanel() {
                       {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
                       {h.durum === 'eslesti' && h.eslesenKatilimciId ? ` — ${userName(bekleyenKatilimcilar.find((a) => a.katilimciId === h.eslesenKatilimciId)?.danismanId) ?? ''}` : ''}
                     </span>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <button
+                      onClick={() => handleDekontTeyit(h.id, !h.teyitEdildi)}
+                      className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                        h.teyitEdildi ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                      }`}
+                    >
+                      <CheckCircle2 size={13} /> {h.teyitEdildi ? 'Teyit Edildi' : 'Teyit Et'}
+                    </button>
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     {h.durum === 'eslesmedi' && (

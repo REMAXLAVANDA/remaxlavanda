@@ -59,17 +59,6 @@ export function canApproveCiroRaporu(role) {
   return canManageCiroScores(role)
 }
 
-// Finans > Raporlar > Fatura Kontrol ekranı — broker, 2026-10-11:
-// "muhasebeye bir kullanıcı açalım ... broker ve owner bu görevi yapsın".
-// AYRI bir "muhasebe" rolü/RLS'i YOK — bu görevi gerçekte yapacak kişiye
-// (muhasebeci) owner hesabı açılır, owner tanımı zaten "yönetir/denetler,
-// veri girmez"e uyuyor. Yetki canApproveCiroRaporu ile AYNI (is_manager()
-// RLS'iyle hizalı, bkz. migration 20261011140000) — ayrı bir fonksiyon
-// olarak tutuluyor ki ekranın anlamı koddan okunabilsin.
-export function canControlFaturaKontrol(role) {
-  return canApproveCiroRaporu(role)
-}
-
 // Bir danışmanın verilen tarihteki geçerli komisyon paylaşım oranı —
 // gecerlilik_bitis boşsa hâlâ geçerli demektir. Birden fazla uygunsa (veri
 // hatası) en yeni başlangıçlı olan kazanır.
