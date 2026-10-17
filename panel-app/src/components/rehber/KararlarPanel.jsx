@@ -1,29 +1,29 @@
 import { useMemo, useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { useKnownUsers } from '../context/UsersContext'
-import { useAsyncList } from '../hooks/useAsyncList'
-import { kararlar as kararlarProvider, categories as categoriesProvider } from '../lib/dataProvider'
-import { canManageKararlar } from '../lib/kararlar'
-import { ROLES } from '../lib/roles'
-import { slugify } from '../lib/categories'
-import { formatDateOnly } from '../lib/format'
-import { LoadingState, ErrorState, RestrictedAccess } from '../components/common/AsyncState'
-import KararFormModal from '../components/kararlar/KararFormModal'
-import ConfirmDialog from '../components/common/ConfirmDialog'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { useKnownUsers } from '../../context/UsersContext'
+import { useAsyncList } from '../../hooks/useAsyncList'
+import { kararlar as kararlarProvider, categories as categoriesProvider } from '../../lib/dataProvider'
+import { canManageKararlar } from '../../lib/kararlar'
+import { ROLES } from '../../lib/roles'
+import { slugify } from '../../lib/categories'
+import { formatDateOnly } from '../../lib/format'
+import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
+import KararFormModal from '../kararlar/KararFormModal'
+import ConfirmDialog from '../common/ConfirmDialog'
 
 async function loadAll() {
   const [liste, kategoriler] = await Promise.all([kararlarProvider.list(), categoriesProvider.list('kararlar')])
   return { liste, kategoriler }
 }
 
-// Broker, 2026-10-17: "portalda yönetim olarak aldığımız kararların
-// toplandığı bir alan istiyorum" — Lead Havuzu'yla AYNI görünürlük
-// sınırı (sadece broker/owner, bkz. lib/kararlar.js canManageKararlar).
-// Kategori yönetimi Masraflar/Rehber ile AYNI genel desen (categories
-// tablosu, module='kararlar') — broker serbestçe yeni kategori ekler.
-export default function Kararlar() {
+// Rehber > Kararlar — broker, 2026-10-17: önce ayrı menü maddesiydi,
+// sonra "Kararlar'ı Rehber'in içine al" dedi, Rehber'in bir sekmesi
+// oldu (bkz. pages/Rehber.jsx). Sadece broker/owner görür (bkz.
+// lib/kararlar.js canManageKararlar) — Rehber'in kendisi herkese açık
+// olduğu için bu kontrol burada iç koruma olarak duruyor.
+export default function KararlarPanel() {
   const { role, user } = useAuth()
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()

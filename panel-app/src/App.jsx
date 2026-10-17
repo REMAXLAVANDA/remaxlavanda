@@ -20,7 +20,6 @@ const Recruiting = lazy(() => import('./pages/Recruiting'))
 const Takip = lazy(() => import('./pages/Takip'))
 const Lig = lazy(() => import('./pages/Lig'))
 const Finans = lazy(() => import('./pages/Finans'))
-const Kararlar = lazy(() => import('./pages/Kararlar'))
 const Rehber = lazy(() => import('./pages/Rehber'))
 const Ayarlar = lazy(() => import('./pages/Ayarlar'))
 const Login = lazy(() => import('./pages/Login'))
@@ -78,7 +77,8 @@ export default function App() {
                     <Route path="/gorevler" element={<Takvim />} />
                     <Route path="/operasyon" element={<Firsatlar />} />
                     <Route path="/leads" element={<Leads />} />
-                    <Route path="/kararlar" element={<Kararlar />} />
+                    {/* Kararlar artık Rehber'in bir sekmesi (2026-10-17) — eski link kırılmasın. */}
+                    <Route path="/kararlar" element={<Navigate to="/rehber" replace />} />
                     <Route path="/recruiting" element={<Recruiting />} />
                     <Route path="/takip" element={<Takip />} />
                     <Route path="/egitim" element={<Takip />} />

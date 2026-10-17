@@ -7,6 +7,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { docs as docsProvider, categories as categoriesProvider } from '../lib/dataProvider'
 import { canManageDocs, currentVersion, versionsForDoc } from '../lib/docs'
 import { canViewManagerCategories } from '../lib/roles'
+import { canManageKararlar } from '../lib/kararlar'
 import { slugify } from '../lib/categories'
 import { uploadDocFile, deleteDocFile } from '../lib/storage'
 import FolderList from '../components/rehber/FolderList'
@@ -14,6 +15,7 @@ import DocCard from '../components/rehber/DocCard'
 import FaqAccordionItem from '../components/rehber/FaqAccordionItem'
 import PreviewModal from '../components/rehber/PreviewModal'
 import UploadDocModal from '../components/rehber/UploadDocModal'
+import KararlarPanel from '../components/rehber/KararlarPanel'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -38,6 +40,11 @@ export default function Rehber() {
   const { showToast } = useToast()
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
+  // Kararlar önce ayrı menüydü, broker "Rehber'in içine al" dedi — artık
+  // Rehber'in bir sekmesi (sadece broker/owner görür, bkz.
+  // components/rehber/KararlarPanel.jsx).
+  const [tab, setTab] = useState('dokumanlar')
+  const showKararlar = canManageKararlar(role)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [previewVersion, setPreviewVersion] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
@@ -245,26 +252,49 @@ export default function Rehber() {
 
   return (
     <div>
-      {canManage && (
-        <div className="mb-5 flex justify-end">
-          <button
-            onClick={() => setShowUpload(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
-            <Plus size={16} /> Ekle
-          </button>
+      {showKararlar && (
+        <div className="mb-5 flex gap-1 border-b border-border-default">
+          {[
+            { key: 'dokumanlar', label: 'Dokümanlar' },
+            { key: 'kararlar', label: 'Kararlar' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-text-muted hover:text-text-primary'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       )}
 
-      {loading && <LoadingState />}
-      {!loading && error && <ErrorState error={error} onRetry={reload} />}
+      {tab === 'kararlar' ? (
+        <KararlarPanel />
+      ) : (
+        <>
+          {canManage && (
+            <div className="mb-5 flex justify-end">
+              <button
+                onClick={() => setShowUpload(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              >
+                <Plus size={16} /> Ekle
+              </button>
+            </div>
+          )}
 
-      {!loading && !error && (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-[200px_1fr]">
-          <FolderList categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
+          {loading && <LoadingState />}
+          {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-          <div className="space-y-3">
-            {!selectedCategory ? (
+          {!loading && !error && (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-[200px_1fr]">
+              <FolderList categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} countFor={countFor} />
+
+              <div className="space-y-3">
+                {!selectedCategory ? (
               <div className="rounded-2xl border border-dashed border-border-default bg-surface-raised py-16 text-center text-sm text-text-muted">
                 Soldan bir klasör seç.
               </div>
@@ -311,6 +341,8 @@ export default function Rehber() {
             )}
           </div>
         </div>
+          )}
+        </>
       )}
 
       {previewVersion && <PreviewModal version={previewVersion} onClose={() => setPreviewVersion(null)} />}

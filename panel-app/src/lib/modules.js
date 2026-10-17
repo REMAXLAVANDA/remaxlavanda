@@ -12,7 +12,6 @@ import {
   Inbox,
   UserSearch,
   Wallet,
-  Gavel,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -93,19 +92,9 @@ export const MODULES = [
     roles: LEADS_ROLES,
     group: 'operasyon',
   },
-  {
-    key: 'kararlar',
-    path: '/kararlar',
-    label: 'Kararlar',
-    description: 'Yönetim olarak alınan kararların kaydı',
-    icon: Gavel,
-    // Lead Havuzu'yla AYNI görünürlük sınırı: sadece broker/owner (broker,
-    // 2026-10-17: "portalda yönetim olarak aldığımız kararların toplandığı
-    // bir alan istiyorum" — "sadece broker/owner" kararı). Bkz.
-    // lib/kararlar.js canManageKararlar, pages/Kararlar.jsx guard.
-    roles: LEADS_ROLES,
-    group: 'operasyon',
-  },
+  // Kararlar önce ayrı menüydü (broker, 2026-10-17), sonra "Rehber'in
+  // içine al" dedi — artık Rehber'in bir sekmesi (bkz.
+  // components/rehber/KararlarPanel.jsx), ayrı menü maddesi yok.
   {
     key: 'recruiting',
     path: '/recruiting',
