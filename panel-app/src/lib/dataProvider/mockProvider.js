@@ -954,9 +954,12 @@ export const ciroRaporlari = {
       raporKategori: raporKategori ?? null,
       krediDurumu: krediDurumu ?? null,
       krediBankasi: krediDurumu === 'kredi' ? krediBankasi || null : null,
-      ofisFaturaNo: null,
-      ofisFaturaTarihi: null,
-      ofisFaturaTutari: null,
+      ofisFaturaSaticiNo: null,
+      ofisFaturaSaticiTarihi: null,
+      ofisFaturaSaticiTutari: null,
+      ofisFaturaAliciNo: null,
+      ofisFaturaAliciTarihi: null,
+      ofisFaturaAliciTutari: null,
       myremaxGirildi: false,
       muhasebeTamamlandi: false,
       muhasebeTamamlanmaTarihi: null,
@@ -1249,12 +1252,13 @@ export const ciroRaporlari = {
     row.teyitTarihi = deger ? new Date().toISOString() : null
     return delay({ ...row })
   },
-  async ofisFaturasiKaydet(id, { no, tarih, tutar }) {
+  async ofisFaturasiKaydet(id, taraf, { no, tarih, tutar }) {
     const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
     if (!rapor) throw new Error('Rapor bulunamadı.')
-    rapor.ofisFaturaNo = no || null
-    rapor.ofisFaturaTarihi = tarih || null
-    rapor.ofisFaturaTutari = tutar ?? null
+    const onEki = taraf === 'satici' ? 'ofisFaturaSatici' : 'ofisFaturaAlici'
+    rapor[`${onEki}No`] = no || null
+    rapor[`${onEki}Tarihi`] = tarih || null
+    rapor[`${onEki}Tutari`] = tutar ?? null
     return delay({ id })
   },
   async setMyremaxGirildi(id, deger) {

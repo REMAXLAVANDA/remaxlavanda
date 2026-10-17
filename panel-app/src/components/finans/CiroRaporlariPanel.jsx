@@ -246,18 +246,25 @@ export default function CiroRaporlariPanel() {
   }
 
   // --- Fatura Kontrol'den (Finans > Raporlar) taşındı — broker, 2026-10-17:
-  // "fatura kontrolü de ciro ekranına al içine yerleştir". ---
-  function ofisForm(raporId, rapor) {
+  // "fatura kontrolü de ciro ekranına al içine yerleştir". Ofis faturası
+  // 2026-10-17'den beri satıcı/alıcı için AYRI (broker: "alıcı yeri ayrı
+  // satıcı yeri ayrı fatura bilgileri girmek gerekmez mi") — satıcı ve
+  // alıcıdan bağımsız olarak hizmet bedeli alınabildiği için tek alan
+  // ikisini birden tutamıyordu, bkz. migration
+  // 20261017160000_ofis_faturasi_satici_alici_ayrimi. ---
+  function ofisForm(raporId, taraf, rapor) {
+    const onEki = taraf === 'satici' ? 'ofisFaturaSatici' : 'ofisFaturaAlici'
     return (
-      ofisForms[raporId] ?? {
-        no: rapor.ofisFaturaNo ?? '',
-        tarih: rapor.ofisFaturaTarihi ?? '',
-        tutar: rapor.ofisFaturaTutari != null ? formatThousands(String(rapor.ofisFaturaTutari)) : '',
+      ofisForms[`${raporId}:${taraf}`] ?? {
+        no: rapor[`${onEki}No`] ?? '',
+        tarih: rapor[`${onEki}Tarihi`] ?? '',
+        tutar: rapor[`${onEki}Tutari`] != null ? formatThousands(String(rapor[`${onEki}Tutari`])) : '',
       }
     )
   }
-  function setOfisFormPatch(raporId, patch) {
-    setOfisForms((f) => ({ ...f, [raporId]: { ...ofisForm(raporId, { ofisFaturaNo: '', ofisFaturaTarihi: '', ofisFaturaTutari: null }), ...patch } }))
+  function setOfisFormPatch(raporId, taraf, rapor, patch) {
+    const key = `${raporId}:${taraf}`
+    setOfisForms((f) => ({ ...f, [key]: { ...ofisForm(raporId, taraf, rapor), ...patch } }))
   }
   async function handleTeyit(katilimciId, deger) {
     setSubmitting(true)
@@ -270,11 +277,11 @@ export default function CiroRaporlariPanel() {
       setSubmitting(false)
     }
   }
-  async function handleOfisFaturasiKaydet(raporId) {
-    const form = ofisForm(raporId, { ofisFaturaNo: '', ofisFaturaTarihi: '', ofisFaturaTutari: null })
+  async function handleOfisFaturasiKaydet(raporId, taraf, rapor) {
+    const form = ofisForm(raporId, taraf, rapor)
     setSubmitting(true)
     try {
-      await ciroRaporlariProvider.ofisFaturasiKaydet(raporId, {
+      await ciroRaporlariProvider.ofisFaturasiKaydet(raporId, taraf, {
         no: form.no.trim(),
         tarih: form.tarih || null,
         tutar: parseThousands(form.tutar),
@@ -287,6 +294,46 @@ export default function CiroRaporlariPanel() {
       setSubmitting(false)
     }
   }
+  // Düz fonksiyon olarak çağrılıyor (JSX component'i DEĞİL) — component
+  // olarak tanımlansaydı her render'da yeni bir tip sayılır, input'lar her
+  // tuşta focus kaybederdi (parent her setOfisFormPatch'te yeniden render
+  // oluyor).
+  function renderOfisFaturaSatiri(rapor, taraf, label) {
+    const form = ofisForm(rapor.id, taraf, rapor)
+    return (
+      <div className="flex flex-wrap items-end gap-2">
+        <span className="w-14 shrink-0 text-xs text-text-muted">{label}</span>
+        <input
+          value={form.no}
+          onChange={(e) => setOfisFormPatch(rapor.id, taraf, rapor, { no: e.target.value })}
+          placeholder="Ofis fatura no"
+          className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
+        />
+        <input
+          type="date"
+          value={form.tarih}
+          onChange={(e) => setOfisFormPatch(rapor.id, taraf, rapor, { tarih: e.target.value })}
+          className="rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary"
+        />
+        <input
+          inputMode="numeric"
+          value={form.tutar}
+          onChange={(e) => setOfisFormPatch(rapor.id, taraf, rapor, { tutar: formatThousands(e.target.value) })}
+          placeholder="Ofis fatura tutarı"
+          className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
+        />
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={() => handleOfisFaturasiKaydet(rapor.id, taraf, rapor)}
+          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+        >
+          Kaydet
+        </button>
+      </div>
+    )
+  }
+
   async function handleMyremax(raporId, deger) {
     setSubmitting(true)
     try {
@@ -428,34 +475,11 @@ export default function CiroRaporlariPanel() {
             {isApprover && (r.durum === 'onay_bekliyor' || r.durum === 'onaylandi') && (
               <div className="rounded-lg bg-surface-sunken p-3">
                 <p className="mb-2 text-xs font-medium text-text-primary">Ofis / Muhasebe</p>
-                <div className="flex flex-wrap items-end gap-2">
-                  <input
-                    value={ofisForm(r.id, r).no}
-                    onChange={(e) => setOfisFormPatch(r.id, { no: e.target.value })}
-                    placeholder="Ofis fatura no"
-                    className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
-                  />
-                  <input
-                    type="date"
-                    value={ofisForm(r.id, r).tarih}
-                    onChange={(e) => setOfisFormPatch(r.id, { tarih: e.target.value })}
-                    className="rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary"
-                  />
-                  <input
-                    inputMode="numeric"
-                    value={ofisForm(r.id, r).tutar}
-                    onChange={(e) => setOfisFormPatch(r.id, { tutar: formatThousands(e.target.value) })}
-                    placeholder="Ofis fatura tutarı"
-                    className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
-                  />
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => handleOfisFaturasiKaydet(r.id)}
-                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-                  >
-                    Ofis Faturasını Kaydet
-                  </button>
+                <div className="space-y-2">
+                  {r.saticiHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'satici', 'Satıcı')}
+                  {r.aliciHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'alici', 'Alıcı')}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <label className="ml-auto flex items-center gap-1.5 text-xs text-text-secondary">
                     <input
                       type="checkbox"
