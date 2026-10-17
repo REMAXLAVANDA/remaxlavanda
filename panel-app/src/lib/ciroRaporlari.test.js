@@ -53,9 +53,10 @@ describe('katilimciSatisPayi / komisyonTutariOnerisi', () => {
     expect(katilimciSatisPayi(1000000, 60)).toBe(600000)
   })
 
-  it('komisyon önerisini pay + anlaşma oranını zincirleyerek hesaplar', () => {
-    // 1.000.000 TL'nin %60'ı = 600.000 (satış payı), bunun %48'i = 288.000 (komisyon)
-    expect(komisyonTutariOnerisi(1000000, 60, 48)).toBe(288000)
+  it('komisyon önerisini pay + anlaşma oranını zincirleyerek hesaplar (KDV dahil)', () => {
+    // 1.000.000 TL'nin %60'ı = 600.000 (satış payı), bunun %48'i = 288.000
+    // (KDV hariç komisyon), %20 KDV eklenince 345.600 (hakediş, KDV dahil)
+    expect(komisyonTutariOnerisi(1000000, 60, 48)).toBe(345600)
   })
 
   it('anlaşma oranı yoksa (atanmamış danışman) null döner', () => {

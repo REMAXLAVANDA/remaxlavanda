@@ -93,11 +93,19 @@ export function katilimciSatisPayi(islemTutari, payOrani) {
   return Number(islemTutari) * (Number(payOrani) / 100)
 }
 
-// Danışmana önerilen fatura tutarı — kendi payına düşen satıştan, o anki
-// anlaşma oranına göre kesmesi gereken komisyon.
+// Danışmanın kesmesi gereken fatura tutarı ("Hakediş") — kendi payına
+// düşen satıştan, o anki anlaşma oranına göre hesaplanan komisyon, KDV
+// DAHİL (broker, 2026-10-17: "hakedişşeri kdv dahil yap benim kafam
+// karışıyor portalda" — danışmanın gerçek faturası zaten KDV dahil
+// kesiliyor ve ofisin ona ödeyeceği gerçek tutar da KDV dahil olduğu
+// için, ekranda da hep KDV dahil gösterilmesi gerekiyordu). Standart %20
+// oranı kullanılıyor (beklenenHizmetBedeli ile AYNI varsayım) — danışman
+// kendi faturasını girince gerçek KDV oranıyla karşılaştırılır
+// (faturaTutarsizMi), bu da artık iki tarafı da KDV dahil kıyaslıyor.
 export function komisyonTutariOnerisi(islemTutari, payOrani, anlasmaOrani) {
   if (anlasmaOrani == null) return null
-  return katilimciSatisPayi(islemTutari, payOrani) * (Number(anlasmaOrani) / 100)
+  const kdvHaric = katilimciSatisPayi(islemTutari, payOrani) * (Number(anlasmaOrani) / 100)
+  return kdvHaric * 1.2
 }
 
 // Katılımcıların girdiği gerçek fatura tutarı, önerilen tutardan (küçük

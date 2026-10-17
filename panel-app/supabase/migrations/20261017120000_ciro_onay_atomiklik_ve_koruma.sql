@@ -132,8 +132,12 @@ begin
         and (gecerlilik_bitis is null or gecerlilik_bitis >= v_rapor.islem_tarihi)
       order by gecerlilik_baslangic desc limit 1;
 
+    -- Hakediş KDV DAHİL hesaplanır (broker, 2026-10-17: "hakedişşeri kdv
+    -- dahil yap") — lib/ciroRaporlari.js komisyonTutariOnerisi ile AYNI
+    -- formül (%20 standart oranı). GD Cirosu (Kârlılık raporunun tabanı)
+    -- ise bilerek NET kalıyor, değiştirilmedi.
     v_gd_cirosu := v_toplam_hizmet_bedeli * v_k.pay_orani / 100;
-    v_komisyon := case when v_anlasma_orani is null then null else v_gd_cirosu * v_anlasma_orani / 100 end;
+    v_komisyon := case when v_anlasma_orani is null then null else v_gd_cirosu * v_anlasma_orani / 100 * 1.2 end;
 
     update public.ciro_raporu_katilimcilari set
       gd_cirosu = v_gd_cirosu,
