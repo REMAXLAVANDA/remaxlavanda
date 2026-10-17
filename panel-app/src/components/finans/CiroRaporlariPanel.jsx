@@ -287,7 +287,9 @@ export default function CiroRaporlariPanel() {
                 <p className="mb-0.5 font-medium text-text-primary">Satıcı</p>
                 <p>{r.saticiAdSoyad} · {r.saticiTelefon} · {r.saticiKimlikNo}</p>
                 <p className="mt-0.5 text-text-muted">
-                  {r.saticiHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.saticiHizmetBedeli)}` : 'Hizmet bedeli alınmadı'}
+                  {r.saticiHizmetBedeliAlindi
+                    ? `Hizmet bedeli alındı: ${tl(r.saticiHizmetBedeli)} (KDV dahil) — pay hesabının tabanı: ${tl(r.saticiHizmetBedeliHaric)} (KDV hariç)`
+                    : 'Hizmet bedeli alınmadı'}
                 </p>
                 {r.saticiDigerKisiler?.map((k, i) => (
                   <p key={i} className="mt-0.5 text-text-muted">+ {k.adSoyad} · {k.telefon} · {k.kimlikNo}</p>
@@ -297,7 +299,9 @@ export default function CiroRaporlariPanel() {
                 <p className="mb-0.5 font-medium text-text-primary">Alıcı/Kiracı</p>
                 <p>{r.aliciAdSoyad} · {r.aliciTelefon} · {r.aliciKimlikNo}</p>
                 <p className="mt-0.5 text-text-muted">
-                  {r.aliciHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.aliciHizmetBedeli)}` : 'Hizmet bedeli alınmadı'}
+                  {r.aliciHizmetBedeliAlindi
+                    ? `Hizmet bedeli alındı: ${tl(r.aliciHizmetBedeli)} (KDV dahil) — pay hesabının tabanı: ${tl(r.aliciHizmetBedeliHaric)} (KDV hariç)`
+                    : 'Hizmet bedeli alınmadı'}
                 </p>
                 {r.aliciDigerKisiler?.map((k, i) => (
                   <p key={i} className="mt-0.5 text-text-muted">+ {k.adSoyad} · {k.telefon} · {k.kimlikNo}</p>
