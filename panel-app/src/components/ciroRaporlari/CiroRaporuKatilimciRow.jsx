@@ -122,10 +122,16 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
       {/* RT Payı/Ofis Payı 2026-10-11'de kaldırıldı — broker: "RT Payı: —
           Ofis Payı: — bunları kaldır" (anlaşma oranı tanımlı olmayan
           danışmanlarda hep "—" çıkıyordu, kafa karıştırıyordu). GD
-          Cirosu/Çalışan Payı anlamlı oldukları için kalıyor. */}
+          Cirosu/Çalışan Payı anlamlı oldukları için kalıyor.
+          Ekranda gösterilen GD Cirosu artık KDV DAHİL (broker, 2026-10-17:
+          "gd cirosu hala kdv hariç" — Çalışan Payı'nın yanında net bir
+          rakam durması kafa karıştırıyordu). Veritabanındaki gd_cirosu
+          değeri (Kârlılık sekmesinin tabanı, KarlilikPanel.jsx) bilerek
+          NET kalıyor — KDV şirketin kârı değil, sadece burada ×1,2 ile
+          ekrana çevriliyor. */}
       {canToggleOdeme && k.gdCirosu != null && (
         <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
-          <span>GD Cirosu: <span className="font-medium text-text-primary">{tl(k.gdCirosu)}</span></span>
+          <span>GD Cirosu: <span className="font-medium text-text-primary">{tl(Number(k.gdCirosu) * 1.2)}</span></span>
           <span>Çalışan Payı: {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}</span>
         </div>
       )}
