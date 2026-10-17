@@ -278,6 +278,45 @@ export default function CiroRaporlariPanel() {
 
         {isExpanded && (
           <div className="mt-3 space-y-2 border-t border-border-subtle pt-3">
+            {/* Müşteri bilgileri + beyan — form doldurulurken kaydediliyor
+                ama bu ekranda hiç gösterilmiyordu (broker, 2026-10-17:
+                "dün girilen ciro ile ilgili müşteri bilgileri ve beyan
+                kısmı bende yok"). */}
+            <div className="grid grid-cols-1 gap-2 rounded-lg bg-surface-sunken p-3 text-xs text-text-secondary sm:grid-cols-2">
+              <div>
+                <p className="mb-0.5 font-medium text-text-primary">Satıcı</p>
+                <p>{r.saticiAdSoyad} · {r.saticiTelefon} · {r.saticiKimlikNo}</p>
+                <p className="mt-0.5 text-text-muted">
+                  {r.saticiHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.saticiHizmetBedeli)}` : 'Hizmet bedeli alınmadı'}
+                </p>
+                {r.saticiDigerKisiler?.map((k, i) => (
+                  <p key={i} className="mt-0.5 text-text-muted">+ {k.adSoyad} · {k.telefon} · {k.kimlikNo}</p>
+                ))}
+              </div>
+              <div>
+                <p className="mb-0.5 font-medium text-text-primary">Alıcı/Kiracı</p>
+                <p>{r.aliciAdSoyad} · {r.aliciTelefon} · {r.aliciKimlikNo}</p>
+                <p className="mt-0.5 text-text-muted">
+                  {r.aliciHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.aliciHizmetBedeli)}` : 'Hizmet bedeli alınmadı'}
+                </p>
+                {r.aliciDigerKisiler?.map((k, i) => (
+                  <p key={i} className="mt-0.5 text-text-muted">+ {k.adSoyad} · {k.telefon} · {k.kimlikNo}</p>
+                ))}
+              </div>
+              {r.mulkBedeli != null && (
+                <p className="sm:col-span-2">
+                  <span className="font-medium text-text-primary">Anlaşılan Bedel:</span> {tl(r.mulkBedeli)}
+                  {r.islemTipi === 'kiralama' ? ' / ay' : ''}
+                </p>
+              )}
+              {r.tapuBilgileri && (
+                <p className="sm:col-span-2"><span className="font-medium text-text-primary">Tapu Bilgileri:</span> {r.tapuBilgileri}</p>
+              )}
+              <p className="sm:col-span-2">
+                <span className="font-medium text-text-primary">Ödeme:</span>{' '}
+                {r.krediDurumu === 'kredi' ? `Kredi (${r.krediBankasi || '—'})` : 'Nakit'}
+              </p>
+            </div>
             {r.notlar && <p className="text-xs text-text-muted">Not: {r.notlar}</p>}
             {r.durum === 'reddedildi' && r.redSebebi && (
               <p className="rounded-lg bg-red-50 p-2 text-xs text-red-700">Red sebebi: {r.redSebebi}</p>
