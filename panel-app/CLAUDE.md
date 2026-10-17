@@ -59,6 +59,13 @@ değil** — broker 2026-07-31'de açıkça "fazlar aynı kalsın, mimariyi
 değiştirmek istemiyorum" dedi. Değişen şey sadece geliştirme
 metodolojisi: her modül için önce derin analiz + öneri + onay, sonra kod.
 
+## Broker'a talimat kuralları (2026-10-17)
+
+1. Bir değişiklik büyük/uzun sürecekse (çok token/iş gerektiriyorsa), başlamadan önce uyar.
+2. Menü/ekran değişikliğinde hiçbir şey sessizce kaybolmasın — bir şey kaldırılıyorsa bunu açıkça söyle.
+3. Broker'a söylenecek her şey kısa olsun, uzun yazma.
+4. Teknik terim kullanma, en basit dille anlat.
+
 ## Diğer kalıcı kurallar (önceki oturumlardan)
 
 - Asla onay almadan commit/push/deploy yapma.
