@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { candidateInviteMessage } from './recruiting'
 
 describe('candidateInviteMessage', () => {
-  it('isim, adres, yol tarifi ve sosyal hesapları içerir', () => {
+  it('isim, adres, yol tarifi, sosyal hesapları ve girişimci burcu linkini içerir', () => {
     const msg = candidateInviteMessage({ adSoyad: 'Ayşe Yılmaz' })
     expect(msg).toContain('Merhaba Ayşe Yılmaz')
     expect(msg).toContain('Ofis adresimiz:')
     expect(msg).toContain('Yol tarifi:')
     expect(msg).toContain('Instagram:')
     expect(msg).toContain('LinkedIn:')
+    expect(msg).toContain('https://aday.remax.com.tr/qr?ref_office=3L3fXu')
   })
 
   it('randevu tarihi/saati doluysa GG.AA.YYYY formatında ekler', () => {

@@ -5,11 +5,18 @@ export { canManageRecruiting } from './roles'
 
 import { OFIS_ADRESI, OFIS_MAPS_URL, OFIS_INSTAGRAM_URL, OFIS_LINKEDIN_URL } from './kartvizit'
 
+// RE/MAX'ın aday tanışma/başvuru sayfası, ofis referans koduyla (broker,
+// 2026-10-17: "girişimci burcunu bizimle tanışmadan önce öğrenmesini
+// isteyelim") — ref_office sayesinde bu linkten gelen başvuru RE/MAX
+// tarafında RE/MAX Lavanda'ya bağlanıyor.
+export const ADAY_GIRISIMCI_BURCU_URL = 'https://aday.remax.com.tr/qr?ref_office=3L3fXu'
+
 // WhatsApp'ta aç butonuna tıklanınca ön dolu açılan davet mesajı (broker
 // onayı, 2026-09-30: "biz herkese konum atıyoruz, gelmeden önce araştırma
 // fırsatı olsa") — adres/yol tarifi + adayın gelmeden önce ofisi tanıyabileceği
-// iki hesap (bkz. lib/kartvizit.js'teki not). Randevu tarihi/saati doluysa
-// (gorusmeTarih + gorusmeSaat) mesaja eklenir — no-show azaltma amaçlı da
+// iki hesap (bkz. lib/kartvizit.js'teki not) + girişimci burcu linki
+// (2026-10-17 eklendi). Randevu tarihi/saati doluysa (gorusmeTarih +
+// gorusmeSaat) mesaja eklenir — no-show azaltma amaçlı da
 // (RECRUITING_OLUMSUZ_SEBEPLERI'nde "randevuya_gelmedi" zaten gerçek bir
 // sebep). Otomatik GÖNDERİLMİYOR, sadece mesaj kutusunu dolduruyor —
 // personel göndermeden önce düzenleyebilir/silebilir.
@@ -22,6 +29,7 @@ export function candidateInviteMessage({ adSoyad, gorusmeTarih, gorusmeSaat } = 
   }
   lines.push('', `Ofis adresimiz: ${OFIS_ADRESI}`, `Yol tarifi: ${OFIS_MAPS_URL}`)
   lines.push('', 'Bizi tanımak isterseniz:', `Instagram: ${OFIS_INSTAGRAM_URL}`, `LinkedIn: ${OFIS_LINKEDIN_URL}`)
+  lines.push('', 'Bizimle tanışmadan önce girişimci burcunuzu öğrenmek ister misiniz?', ADAY_GIRISIMCI_BURCU_URL)
   lines.push('', 'Görüşmek üzere!')
   return lines.join('\n')
 }
