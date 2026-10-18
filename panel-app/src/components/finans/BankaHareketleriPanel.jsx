@@ -390,7 +390,7 @@ export default function BankaHareketleriPanel() {
                     <button
                       onClick={() => handleDekontTeyit(h.id, !h.teyitEdildi)}
                       className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                        h.teyitEdildi ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        h.teyitEdildi ? 'bg-tint-green text-tint-green-text' : 'bg-tint-amber text-tint-amber-text'
                       }`}
                     >
                       <CheckCircle2 size={13} /> {h.teyitEdildi ? 'Teyit Edildi' : 'Teyit Et'}
@@ -407,7 +407,7 @@ export default function BankaHareketleriPanel() {
                         </button>
                         <button
                           onClick={() => setMasrafTarget(h)}
-                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-tint-red"
                         >
                           <Receipt size={13} /> Masraf
                         </button>
@@ -416,7 +416,7 @@ export default function BankaHareketleriPanel() {
                     {h.durum === 'blokede' && (
                       <button
                         onClick={() => setBlokeTarget(h)}
-                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-sky-700 hover:bg-sky-50"
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-remax-blue hover:bg-tint-blue"
                       >
                         <Unlock size={13} /> Çözümle
                       </button>

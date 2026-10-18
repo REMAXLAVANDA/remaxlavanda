@@ -196,10 +196,12 @@ export const STATUS_LABELS = { good: 'İyi', warn: 'Dikkat', critical: 'Kritik' 
 // denetim bulgusu: eski değer (red-50/red-600) hem Panel'deki marka
 // kırmızısından (brand-700) farklıydı hem de WCAG 1.4.3 kontrast
 // eşiğinin (4.5:1) az altındaydı (~4.41:1). brand-700/tint-red daha
-// yüksek kontrast verir.
+// yüksek kontrast verir. good/warn de 2026-10-18'de aynı gerekçeyle
+// sistemin tint-green/tint-amber token'larına taşındı (stok Tailwind
+// yeşili sistemde hiç tanımlı değildi).
 export const STATUS_STYLES = {
-  good: 'bg-emerald-50 text-emerald-700',
-  warn: 'bg-amber-50 text-amber-700',
+  good: 'bg-tint-green text-tint-green-text',
+  warn: 'bg-tint-amber text-tint-amber-text',
   critical: 'bg-tint-red text-brand-700',
 }
 export const METRIC_LABELS = {
@@ -227,7 +229,7 @@ export const METRIC_SHORT_LABELS = {
 // Metrik hücrelerinde çubuk yerine sadece renkli % — aynı eşikler
 // STATUS_STYLES'ta skor için kullanılanla tutarlı (bkz. computeHealthScore).
 export function metricValueStyle(value) {
-  if (value >= 80) return 'text-emerald-700'
-  if (value >= 60) return 'text-amber-700'
-  return 'text-red-600'
+  if (value >= 80) return 'text-tint-green-text'
+  if (value >= 60) return 'text-tint-amber-text'
+  return 'text-brand-700'
 }

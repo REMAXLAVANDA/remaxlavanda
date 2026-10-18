@@ -402,13 +402,13 @@ export default function CiroRaporlariPanel() {
               {hizmetBedeliUyarisiVar(r) && (
                 <span
                   title="Hizmet bedeli standart orandan (satışta %2+KDV, kiralamada 1 kira+KDV) farklı"
-                  className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
+                  className="shrink-0 rounded-full bg-tint-amber px-2 py-0.5 text-xs font-medium text-tint-amber-text"
                 >
                   Oran Uyarısı
                 </span>
               )}
               {r.muhasebeTamamlandi && (
-                <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                <span className="shrink-0 rounded-full bg-tint-green px-2 py-0.5 text-xs font-medium text-tint-green-text">
                   İşlem Tamamlandı
                 </span>
               )}
@@ -465,10 +465,10 @@ export default function CiroRaporlariPanel() {
             </div>
             {r.notlar && <p className="text-xs text-text-muted">Not: {r.notlar}</p>}
             {r.durum === 'reddedildi' && r.redSebebi && (
-              <p className="rounded-lg bg-red-50 p-2 text-xs text-red-700">Red sebebi: {r.redSebebi}</p>
+              <p className="rounded-lg bg-tint-red p-2 text-xs text-brand-700">Red sebebi: {r.redSebebi}</p>
             )}
             {isDanisman && isOwner && r.durum === 'taslak' && !ownFaturaNoVar(r) && (
-              <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-700">
+              <p className="rounded-lg bg-tint-amber p-2 text-xs text-tint-amber-text">
                 Onaya göndermeden önce aşağıdan kendi fatura no'nu gir.
               </p>
             )}
@@ -500,7 +500,7 @@ export default function CiroRaporlariPanel() {
                 >
                   <span className="text-xs font-medium text-text-primary">
                     Ofis / Muhasebe
-                    {r.muhasebeTamamlandi && <span className="ml-1.5 font-normal text-emerald-700">· Tamamlandı</span>}
+                    {r.muhasebeTamamlandi && <span className="ml-1.5 font-normal text-tint-green-text">· Tamamlandı</span>}
                   </span>
                   {ofisMuhasebeAcikId === r.id ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
                 </button>
@@ -525,7 +525,7 @@ export default function CiroRaporlariPanel() {
                         disabled={submitting}
                         onClick={() => handleTamamlandi(r.id, !r.muhasebeTamamlandi)}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
-                          r.muhasebeTamamlandi ? 'bg-ink-100 text-ink-600' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          r.muhasebeTamamlandi ? 'bg-surface-sunken text-text-secondary' : 'bg-tint-green-text text-white hover:bg-tint-green-text/90'
                         }`}
                       >
                         {r.muhasebeTamamlandi ? 'Tamamlandı İşaretini Kaldır' : 'İşlem Tamamlandı'}
@@ -541,7 +541,7 @@ export default function CiroRaporlariPanel() {
                 <>
                   <button
                     onClick={() => setDeleteTarget(r.id)}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-tint-red"
                   >
                     <Trash2 size={13} /> Sil
                   </button>
@@ -575,14 +575,14 @@ export default function CiroRaporlariPanel() {
                 <>
                   <button
                     onClick={() => setRejectTarget(r.id)}
-                    className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                    className="flex items-center gap-1.5 rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-tint-red"
                   >
                     <XIcon size={13} /> Reddet
                   </button>
                   <button
                     onClick={() => setApproveTarget(r.id)}
                     disabled={submitting}
-                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-lg bg-tint-green-text px-3 py-1.5 text-xs font-medium text-white hover:bg-tint-green-text/90 disabled:opacity-50"
                   >
                     <Check size={13} /> Onayla
                   </button>

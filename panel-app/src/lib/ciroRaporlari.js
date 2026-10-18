@@ -14,11 +14,14 @@ export const CIRO_RAPORU_DURUM_LABELS = {
   reddedildi: 'Reddedildi',
 }
 
+// Renkler tasarım sistemi token'larına bağlı (bkz. docs/marka-kimligi.md
+// benzeri referans, 2026-10-18 görsel tutarlılık düzeltmesi) — bekleyen
+// amber, tamamlanan/onaylanan yeşil, reddedilen kırmızı, nötr gri.
 export const CIRO_RAPORU_DURUM_STYLES = {
-  taslak: 'bg-ink-100 text-ink-600',
-  onay_bekliyor: 'bg-amber-50 text-amber-700',
-  onaylandi: 'bg-emerald-50 text-emerald-700',
-  reddedildi: 'bg-red-50 text-red-600',
+  taslak: 'bg-surface-sunken text-text-secondary',
+  onay_bekliyor: 'bg-tint-amber text-tint-amber-text',
+  onaylandi: 'bg-tint-green text-tint-green-text',
+  reddedildi: 'bg-tint-red text-brand-700',
 }
 
 // Lig/Mentor Primi puanlaması bundan ETKİLENMİYOR, islem_tutari her tip

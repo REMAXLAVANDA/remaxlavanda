@@ -116,7 +116,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
             <button
               onClick={() => onToggleOdeme(k.id, k.odemeDurumu === 'alindi' ? 'bekliyor' : 'alindi')}
               className={`rounded-full px-2 py-0.5 font-medium ${
-                k.odemeDurumu === 'alindi' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                k.odemeDurumu === 'alindi' ? 'bg-tint-green text-tint-green-text' : 'bg-tint-amber text-tint-amber-text'
               }`}
             >
               {k.odemeDurumu === 'alindi' ? 'Ödeme alındı' : 'Ödeme bekliyor'}
@@ -130,7 +130,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
               disabled={submitting}
               onClick={() => onTeyitEt(k.id, !k.teyitEdildi)}
               className={`rounded-full px-2 py-0.5 font-medium disabled:opacity-50 ${
-                k.teyitEdildi ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                k.teyitEdildi ? 'bg-tint-green text-tint-green-text' : 'bg-tint-amber text-tint-amber-text'
               }`}
             >
               {k.teyitEdildi ? 'Fatura Teyit Edildi' : 'Fatura Teyit Et'}
@@ -152,7 +152,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
       )}
 
       {tutarsiz && (
-        <p className="mt-2 text-xs font-medium text-red-600">
+        <p className="mt-2 text-xs font-medium text-brand-700">
           Girilen fatura tutarı ({tl(k.faturaTutari)}) önerilenden farklı — onaylamadan önce kontrol et.
         </p>
       )}
@@ -222,7 +222,7 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
                 </span>
                 <input type="file" onChange={handleFileChange} className="hidden" />
               </label>
-              {fileError && <p className="mt-1 text-red-600">{fileError}</p>}
+              {fileError && <p className="mt-1 text-brand-700">{fileError}</p>}
             </div>
           </div>
           <div className="flex justify-end gap-2">

@@ -28,7 +28,7 @@ export default function Firsatlar() {
           "portföy havuzu diye de başlık koyalım büyük yine") — eskiden bu
           bölümün hiç başlığı yoktu, hemen altındaki "Operasyon" kartının
           yanında kimliksiz/önemsiz kalıyordu. */}
-      <section className="rounded-2xl border border-t-4 border-border-default border-t-brand-600 bg-surface-raised p-5">
+      <section className="rounded-2xl border border-t-4 border-border-default border-t-remax-navy bg-surface-raised p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Target size={16} className="text-brand-600" /> Portföy Havuzu
         </h2>

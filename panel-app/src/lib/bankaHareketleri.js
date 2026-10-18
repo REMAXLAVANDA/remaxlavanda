@@ -16,12 +16,17 @@ export const BANKA_HAREKETI_DURUM_LABELS = {
   cozuldu: 'Çözüldü',
   masraf: 'Masraf',
 }
+// Renkler tasarım sistemi token'larına bağlı (2026-10-18 görsel tutarlılık
+// düzeltmesi) — bekleyen amber, tamamlanan/eşleşen yeşil, masraf (olumsuz
+// kapanış) kırmızı. Blokede BİLİNÇLİ olarak ayrı mavi — "bekliyor"dan
+// (eşleşmedi) kategorik olarak farklı bir durum (bağlanma parası, çözüm
+// bekliyor), aynı renge indirgenirse ayrım kaybolur.
 export const BANKA_HAREKETI_DURUM_STYLES = {
-  eslesmedi: 'bg-amber-50 text-amber-700',
-  eslesti: 'bg-emerald-50 text-emerald-700',
-  blokede: 'bg-sky-50 text-sky-700',
-  cozuldu: 'bg-emerald-50 text-emerald-700',
-  masraf: 'bg-red-50 text-red-600',
+  eslesmedi: 'bg-tint-amber text-tint-amber-text',
+  eslesti: 'bg-tint-green text-tint-green-text',
+  blokede: 'bg-tint-blue text-remax-blue',
+  cozuldu: 'bg-tint-green text-tint-green-text',
+  masraf: 'bg-tint-red text-brand-700',
 }
 
 export const BLOKE_AKSIYON_LABELS = {

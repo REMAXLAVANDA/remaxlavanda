@@ -3,6 +3,7 @@ const VARIANT_CLASSES = {
   red: 'bg-tint-red text-brand-700',
   blue: 'bg-tint-blue text-remax-blue',
   amber: 'bg-tint-amber text-tint-amber-text',
+  green: 'bg-tint-green text-tint-green-text',
 }
 
 export default function Badge({ variant = 'neutral', children, className = '' }) {
