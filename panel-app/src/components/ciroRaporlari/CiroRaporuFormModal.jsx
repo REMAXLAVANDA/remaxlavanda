@@ -347,6 +347,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   return (
     <Modal title={editing ? 'Ciro Raporunu Düzenle' : 'Yeni Ciro Raporu'} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Bu formdaki TÜM tek seçimli buton grupları (Portföy Tipi, İşlem
+            Tipi, Kategori, Aldım/Almadım, Kredi Durumu, Giriş/Çıkış) aynı
+            seçili/seçili-değil desenini kullanıyor — 2026-10-18 görsel
+            tutarlılık düzeltmesi: seçili artık ince kenarlık farkıyla değil,
+            dolu brand-600 zemin + beyaz metinle göze çarpıyor. */}
         <div className="flex gap-2">
           {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
             <button
@@ -359,7 +364,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 }
               }}
               className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                portfoyTipi === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+                portfoyTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
               }`}
             >
               {label}
@@ -399,7 +404,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 type="button"
                 onClick={() => set({ islemTipi: key })}
                 className={`rounded-lg border px-3 py-2 text-xs font-medium ${
-                  form.islemTipi === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+                  form.islemTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
                 {label}
@@ -433,7 +438,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 type="button"
                 onClick={() => setRaporKategori(key)}
                 className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  raporKategori === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+                  raporKategori === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
                 {label}
@@ -547,8 +552,8 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               onClick={() => setSaticiVar(true)}
               className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
                 saticiVar === true
-                  ? 'border-brand-500 bg-brand-50 text-brand-700'
-                  : 'border-ink-200 bg-white text-ink-600'
+                  ? 'border-brand-600 bg-brand-600 text-white'
+                  : 'border-border-default bg-surface-sunken text-text-secondary'
               }`}
             >
               Aldım
@@ -558,8 +563,8 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               onClick={() => setSaticiVar(false)}
               className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
                 saticiVar === false
-                  ? 'border-brand-500 bg-brand-50 text-brand-700'
-                  : 'border-ink-200 bg-white text-ink-600'
+                  ? 'border-brand-600 bg-brand-600 text-white'
+                  : 'border-border-default bg-surface-sunken text-text-secondary'
               }`}
             >
               Almadım
@@ -687,8 +692,8 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               onClick={() => setAliciVar(true)}
               className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
                 aliciVar === true
-                  ? 'border-brand-500 bg-brand-50 text-brand-700'
-                  : 'border-ink-200 bg-white text-ink-600'
+                  ? 'border-brand-600 bg-brand-600 text-white'
+                  : 'border-border-default bg-surface-sunken text-text-secondary'
               }`}
             >
               Aldım
@@ -698,8 +703,8 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               onClick={() => setAliciVar(false)}
               className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
                 aliciVar === false
-                  ? 'border-brand-500 bg-brand-50 text-brand-700'
-                  : 'border-ink-200 bg-white text-ink-600'
+                  ? 'border-brand-600 bg-brand-600 text-white'
+                  : 'border-border-default bg-surface-sunken text-text-secondary'
               }`}
             >
               Almadım
@@ -770,7 +775,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 type="button"
                 onClick={() => setKrediDurumu(key)}
                 className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium ${
-                  krediDurumu === key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 bg-white text-ink-500'
+                  krediDurumu === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
                 {label}
@@ -816,7 +821,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                     type="button"
                     onClick={() => updateParaHareketi(i, { tip: t.key })}
                     className={`rounded-lg border px-2 py-1 text-xs font-medium ${
-                      h.tip === t.key ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-500'
+                      h.tip === t.key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                     }`}
                   >
                     {t.label}

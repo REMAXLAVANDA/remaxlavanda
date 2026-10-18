@@ -130,12 +130,19 @@ const STATUS_VARIANTS = {
   no: { icon: X, iconProps: { size: 12, strokeWidth: 3 } },
 }
 
+// pending BİLEREK kenarlıksız/nötr (sadece bilgi amaçlı/tıklanamaz
+// bağlamlarda kullanılır — bkz. StatusPill). Tıklanabilir pending görünümü
+// (StatusPickerPill içinde, canEdit=true iken) AYRI bir stil —
+// CLICKABLE_PENDING_PILL — 2026-10-18 görsel tutarlılık düzeltmesi: eskiden
+// ikisi de aynı kesik çizgili kenarlığı paylaşıyordu, tıklanabilir olan da
+// "devre dışı" gibi görünüyordu.
 const PILL_VARIANTS = {
-  pending: 'border border-dashed border-ink-300 bg-white text-ink-500',
+  pending: 'bg-surface-sunken text-text-secondary',
   warn: 'border border-amber-300 bg-amber-50 text-amber-700',
   yes: 'border border-emerald-300 bg-emerald-50 text-emerald-700',
   no: 'border border-red-300 bg-red-50 text-red-700',
 }
+const CLICKABLE_PENDING_PILL = 'border border-border-default bg-surface-raised text-text-secondary'
 
 // Mobilde hover/tooltip çalışmadığı için ikon tek başına yetmiyordu
 // ("süreci takip edemiyoruz" geri bildirimi) — durumun adı da yazıyla
@@ -221,7 +228,9 @@ function StatusPickerPill({ variant, label, title, options, currentValue, descri
         type="button"
         onClick={() => setOpen((v) => !v)}
         title={title}
-        className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${PILL_VARIANTS[variant]}`}
+        className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${
+          variant === 'pending' ? CLICKABLE_PENDING_PILL : PILL_VARIANTS[variant]
+        }`}
       >
         <Icon {...iconProps} />
         {label}
@@ -276,7 +285,7 @@ function CallProgressSteps({ call, canEdit, onToggle }) {
     return (
       <span
         title="Bu çağrı bilgi amaçlı aktarıldı — işlem yapman gerekmiyor"
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-ink-200 px-2.5 py-1 text-xs text-ink-400"
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-sunken px-2.5 py-1 text-xs text-text-muted"
       >
         <Info size={12} /> Bilgi amaçlı
       </span>
