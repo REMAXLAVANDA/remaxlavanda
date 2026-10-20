@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Plus, ChevronDown, ChevronUp, Check, X as XIcon, RotateCcw, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -57,6 +57,13 @@ function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
 }
 
+// Boş/null parçaları atlayıp "·" ile birleştirir — madde 5-6'daki tekrar
+// eden tek-satır deseni (placeholder tire/boş alan gösterilmesin kuralıyla
+// aynı mantık).
+function satirBirlestir(parcalar) {
+  return (parcalar ?? []).filter(Boolean).join(' · ')
+}
+
 async function loadAll() {
   const [raporlar, anlasmalar, hareketler] = await Promise.all([
     ciroRaporlariProvider.list(),
@@ -91,6 +98,9 @@ export default function CiroRaporlariPanel() {
   // katılımcı payları) ile muhasebenin sonradan dolduracağı alanlar aynı
   // görsel ağırlıktaydı. Artık varsayılan kapalı, kendi başlığına tıklanınca açılıyor.
   const [ofisMuhasebeAcikId, setOfisMuhasebeAcikId] = useState(null)
+  // Broker, 2026-10-20: "Para Hareketleri de Ofis/Muhasebe gibi varsayılan
+  // kapalı gelsin" — aynı desen, aynı sebep (madde 6).
+  const [paraHareketleriAcikId, setParaHareketleriAcikId] = useState(null)
 
   const isDanisman = canSubmitCiroRaporu(role)
   const isApprover = canApproveCiroRaporu(role)
@@ -467,37 +477,51 @@ export default function CiroRaporlariPanel() {
     )
   }
 
+  // Broker, 2026-10-20: "Para Hareketleri de Ofis/Muhasebe gibi varsayılan
+  // kapalı gelsin" — aynı desen (madde 6).
   function renderParaHareketleri(r) {
     const hareketler = (data?.hareketler ?? []).filter((h) => h.ciroRaporuId === r.id)
     if (hareketler.length === 0) return null
+    const acik = paraHareketleriAcikId === r.id
     return (
-      <div className="space-y-2 rounded-lg bg-surface-sunken p-3">
-        <p className="text-xs font-medium text-text-primary">Para Hareketleri</p>
-        {PARA_HAREKETI_GRUP_SIRASI.map(({ tur, baslik }) => {
-          const grup = hareketler.filter((h) => h.tur === tur)
-          if (grup.length === 0) return null
-          return (
-            <div key={tur}>
-              <p className="mb-1 text-[11px] font-medium text-text-muted">{baslik}</p>
-              <div className="space-y-1">
-                {grup.map((h) => (
-                  <label key={h.id} className="flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-xs text-text-secondary">
-                    <input
-                      type="checkbox"
-                      checked={!!h.teyitEdildi}
-                      disabled={!isApprover}
-                      onChange={(e) => handleHareketTeyit(h.id, e.target.checked)}
-                      className="h-3.5 w-3.5 shrink-0 rounded border-border-default"
-                    />
-                    <span className="min-w-0 flex-1 truncate">
-                      {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {tl(h.tutar)} · {h.gonderenAdi || '—'} · {formatDateOnly(h.tarih)}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )
-        })}
+      <div className="rounded-lg bg-surface-sunken p-3">
+        <button
+          type="button"
+          onClick={() => setParaHareketleriAcikId(acik ? null : r.id)}
+          className="flex w-full items-center justify-between gap-2 text-left"
+        >
+          <span className="text-xs font-medium text-text-primary">Para Hareketleri</span>
+          {acik ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
+        </button>
+        {acik && (
+          <div className="mt-2 space-y-2">
+            {PARA_HAREKETI_GRUP_SIRASI.map(({ tur, baslik }) => {
+              const grup = hareketler.filter((h) => h.tur === tur)
+              if (grup.length === 0) return null
+              return (
+                <div key={tur}>
+                  <p className="mb-1 text-[11px] font-medium text-text-muted">{baslik}</p>
+                  <div className="space-y-1">
+                    {grup.map((h) => (
+                      <label key={h.id} className="flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-xs text-text-secondary">
+                        <input
+                          type="checkbox"
+                          checked={!!h.teyitEdildi}
+                          disabled={!isApprover}
+                          onChange={(e) => handleHareketTeyit(h.id, e.target.checked)}
+                          className="h-3.5 w-3.5 shrink-0 rounded border-border-default"
+                        />
+                        <span className="min-w-0 flex-1 truncate">
+                          {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {tl(h.tutar)} · {h.gonderenAdi || '—'} · {formatDateOnly(h.tarih)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     )
   }
@@ -511,101 +535,55 @@ export default function CiroRaporlariPanel() {
     }
   }
 
-  function renderReportRow(r) {
-    const isExpanded = expandedId === r.id
+  // Broker, 2026-10-20 (madde 7): liste görünümü MyRemax'taki gibi yoğun
+  // bir tabloya çevrildi — eskiden her rapor dikey bir kart olarak çok yer
+  // kaplıyordu. Satıra tıklayınca altına aynı eski detay içeriği açılıyor,
+  // içerik kaybolmadı (bkz. renderReportDetail).
+  function renderReportDetail(r) {
     const isOwner = r.olusturanId === user.id
     return (
-      <div key={r.id} className="rounded-2xl border border-border-default bg-surface-raised p-4">
-        <button onClick={() => setExpandedId(isExpanded ? null : r.id)} className="flex w-full items-center justify-between gap-3 text-left">
-          <div className="min-w-0 flex-1">
-            {/* Broker, 2026-10-20: "danışman ve beyan tarihi yer alsın,
-                bir de ciro bir de portföy no" + "alt üst yapman lazım,
-                alttakini üste üsttekini alta" — detaylar üstte, alt alta;
-                portföy tipi/beyan kodu + durum rozetleri altta. */}
-            {/* Broker, 2026-10-20: "kart başlığı dikeyde boşa yer
-                kaplıyor... tek satıra, nokta ayraçla yan yana diz" —
-                sistemdeki AYNI "·" ayracı deseni (bkz. Fırsatlar kartları).
-                flex-wrap sayesinde geniş ekranda tek satır, dar ekranda
-                (mobil) otomatik alt alta dönüyor, ayrı bir breakpoint
-                kodu gerekmiyor. */}
-            <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
-              {[
-                ISLEM_TIPI_LABELS[r.islemTipi],
-                (r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—',
-                formatDateOnly(r.createdAt),
-                tl(r.islemTutari),
-                r.disBeyanKodu ?? '—',
-              ].map((deger, i) => (
-                <span key={i} className="flex items-center gap-1.5">
-                  {i > 0 && <span className="text-text-disabled">·</span>}
-                  <span className={i === 0 ? '' : 'font-medium text-text-primary'}>{deger}</span>
-                </span>
-              ))}
-            </div>
-            <div className="mt-1.5 flex items-center gap-2">
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
-                {CIRO_RAPORU_DURUM_LABELS[r.durum]}
-              </span>
-              {hizmetBedeliUyarisiVar(r) && (
-                <span
-                  title="Hizmet bedeli standart orandan (satışta %2+KDV, kiralamada 1 kira+KDV) farklı"
-                  className="shrink-0 rounded-full bg-tint-amber px-2 py-0.5 text-xs font-medium text-tint-amber-text"
-                >
-                  Oran Uyarısı
-                </span>
-              )}
-            </div>
-            {/* Broker, 2026-10-20: elle işaretlenen "İşlem Tamamlandı"
-                rozeti buradan kaldırıldı — aşağıdaki 4 aşama rozetiyle
-                çakışıp tutarsız görünüyordu. Elle işaretleme düğmesi
-                (Ofis/Muhasebe içinde) hâlâ çalışıyor, sadece burada ayrı
-                bir rozet olarak tekrar edilmiyor. */}
-            {renderMuhasebeDurumSatiri(r)}
-          </div>
-          {isExpanded ? <ChevronUp size={16} className="shrink-0 text-text-muted" /> : <ChevronDown size={16} className="shrink-0 text-text-muted" />}
-        </button>
-
-        {isExpanded && (
-          <div className="mt-3 space-y-2 border-t border-border-subtle pt-3">
-            {/* Müşteri bilgileri + beyan — form doldurulurken kaydediliyor
-                ama bu ekranda hiç gösterilmiyordu (broker, 2026-10-17:
-                "dün girilen ciro ile ilgili müşteri bilgileri ve beyan
-                kısmı bende yok"). Tutarlar KDV DAHİL gösteriliyor —
-                Hakediş de artık KDV dahil (bkz. lib/ciroRaporlari.js
-                komisyonTutariOnerisi notu), ekranda tek format. */}
+      <div className="space-y-2 bg-surface-sunken/40 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {hizmetBedeliUyarisiVar(r) && (
+            <span
+              title="Hizmet bedeli standart orandan (satışta %2+KDV, kiralamada 1 kira+KDV) farklı"
+              className="shrink-0 rounded-full bg-tint-amber px-2 py-0.5 text-xs font-medium text-tint-amber-text"
+            >
+              Oran Uyarısı
+            </span>
+          )}
+        </div>
+        {renderMuhasebeDurumSatiri(r)}
+        {/* Müşteri bilgileri + beyan — form doldurulurken kaydediliyor
+            ama bu ekranda hiç gösterilmiyordu (broker, 2026-10-17:
+            "dün girilen ciro ile ilgili müşteri bilgileri ve beyan
+            kısmı bende yok"). Tutarlar KDV DAHİL gösteriliyor —
+            Hakediş de artık KDV dahil (bkz. lib/ciroRaporlari.js
+            komisyonTutariOnerisi notu), ekranda tek format. */}
+        {/* Broker, 2026-10-20 (madde 6): ad/telefon/kimlik + hizmet
+                bedeli artık ayrı satırlar değil, tek satırda "·" ile
+                birleşik — madde 5'teki özet satırla AYNI desen. */}
             <div className="grid grid-cols-1 gap-2 rounded-lg bg-surface-sunken p-3 text-xs text-text-secondary sm:grid-cols-2">
               <div>
                 <p className="mb-0.5 font-medium text-text-primary">Satıcı</p>
-                <p>{r.saticiAdSoyad} · {r.saticiTelefon} · {r.saticiKimlikNo}</p>
-                <p className="mt-0.5 text-text-muted">
-                  {r.saticiHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.saticiHizmetBedeli)}` : 'Hizmet bedeli alınmadı'}
-                </p>
+                <p>{satirBirlestir([r.saticiAdSoyad, r.saticiTelefon, r.saticiKimlikNo, r.saticiHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.saticiHizmetBedeli)}` : 'Hizmet bedeli alınmadı'])}</p>
                 {r.saticiDigerKisiler?.map((k, i) => (
-                  <p key={i} className="mt-0.5 text-text-muted">+ {k.adSoyad} · {k.telefon} · {k.kimlikNo}</p>
+                  <p key={i} className="mt-0.5 text-text-muted">+ {satirBirlestir([k.adSoyad, k.telefon, k.kimlikNo])}</p>
                 ))}
               </div>
               <div>
                 <p className="mb-0.5 font-medium text-text-primary">Alıcı/Kiracı</p>
-                <p>{r.aliciAdSoyad} · {r.aliciTelefon} · {r.aliciKimlikNo}</p>
-                <p className="mt-0.5 text-text-muted">
-                  {r.aliciHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.aliciHizmetBedeli)}` : 'Hizmet bedeli alınmadı'}
-                </p>
+                <p>{satirBirlestir([r.aliciAdSoyad, r.aliciTelefon, r.aliciKimlikNo, r.aliciHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.aliciHizmetBedeli)}` : 'Hizmet bedeli alınmadı'])}</p>
                 {r.aliciDigerKisiler?.map((k, i) => (
-                  <p key={i} className="mt-0.5 text-text-muted">+ {k.adSoyad} · {k.telefon} · {k.kimlikNo}</p>
+                  <p key={i} className="mt-0.5 text-text-muted">+ {satirBirlestir([k.adSoyad, k.telefon, k.kimlikNo])}</p>
                 ))}
               </div>
-              {r.mulkBedeli != null && (
-                <p className="sm:col-span-2">
-                  <span className="font-medium text-text-primary">Anlaşılan Bedel:</span> {tl(r.mulkBedeli)}
-                  {r.islemTipi === 'kiralama' ? ' / ay' : ''}
-                </p>
-              )}
-              {r.tapuBilgileri && (
-                <p className="sm:col-span-2"><span className="font-medium text-text-primary">Tapu Bilgileri:</span> {r.tapuBilgileri}</p>
-              )}
               <p className="sm:col-span-2">
-                <span className="font-medium text-text-primary">Ödeme:</span>{' '}
-                {r.krediDurumu === 'kredi' ? `Kredi (${r.krediBankasi || '—'})` : 'Nakit'}
+                {satirBirlestir([
+                  r.mulkBedeli != null ? `Anlaşılan Bedel: ${tl(r.mulkBedeli)}${r.islemTipi === 'kiralama' ? ' / ay' : ''}` : null,
+                  r.tapuBilgileri ? `Tapu Bilgileri: ${r.tapuBilgileri}` : null,
+                  `Ödeme: ${r.krediDurumu === 'kredi' ? `Kredi (${r.krediBankasi || '—'})` : 'Nakit'}`,
+                ])}
               </p>
             </div>
             {r.notlar && <p className="text-xs text-text-muted">Not: {r.notlar}</p>}
@@ -793,8 +771,67 @@ export default function CiroRaporlariPanel() {
                 </>
               )}
             </div>
-          </div>
-        )}
+      </div>
+    )
+  }
+
+  // Broker, 2026-10-20 (madde 7): "liste (kapalı) görünümünü MyRemax'taki
+  // gibi yoğun bir tablo satırına çevir: Portföy No, Danışman, Durum,
+  // Tutar, İşlem Tipi, Tarih tek satırda; tıklanınca altta detay açılsın."
+  function renderReportTable(list) {
+    return (
+      <div className="overflow-x-auto rounded-2xl border border-border-default bg-surface-raised">
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border-default bg-surface-sunken text-xs font-medium uppercase tracking-wide text-text-muted">
+              <th className="px-4 py-2.5">Portföy No</th>
+              <th className="px-4 py-2.5">Danışman</th>
+              <th className="px-4 py-2.5">Durum</th>
+              <th className="px-4 py-2.5">Tutar</th>
+              <th className="px-4 py-2.5">İşlem Tipi</th>
+              <th className="px-4 py-2.5">Tarih</th>
+              <th className="w-8 px-4 py-2.5" />
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((r) => {
+              const isExpanded = expandedId === r.id
+              return (
+                <Fragment key={r.id}>
+                  <tr
+                    onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                    className="cursor-pointer border-b border-border-subtle last:border-b-0 hover:bg-surface-sunken"
+                  >
+                    {/* Broker, 2026-10-20: "a dan z ye hepsini göster" —
+                        kısaltma/truncate yok, tam metin görünsün. */}
+                    <td className="px-4 py-2.5 font-medium text-text-primary">{r.disBeyanKodu ?? '—'}</td>
+                    <td className="px-4 py-2.5">
+                      {(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
+                        {CIRO_RAPORU_DURUM_LABELS[r.durum]}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2.5 font-medium text-text-primary">{tl(r.islemTutari)}</td>
+                    <td className="whitespace-nowrap px-4 py-2.5">{ISLEM_TIPI_LABELS[r.islemTipi]}</td>
+                    <td className="whitespace-nowrap px-4 py-2.5">{formatDateOnly(r.createdAt)}</td>
+                    <td className="px-4 py-2.5 text-text-muted">
+                      {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={7} className="border-b border-border-subtle p-0 last:border-b-0">
+                        {renderReportDetail(r)}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     )
   }
@@ -826,7 +863,7 @@ export default function CiroRaporlariPanel() {
               {taslakReports.length === 0 ? (
                 <p className="text-sm text-text-muted">Taslak rapor yok.</p>
               ) : (
-                <div className="space-y-2">{taslakReports.map(renderReportRow)}</div>
+                renderReportTable(taslakReports)
               )}
             </div>
           )}
@@ -837,7 +874,7 @@ export default function CiroRaporlariPanel() {
               {pendingReports.length === 0 ? (
                 <p className="text-sm text-text-muted">Onay bekleyen rapor yok.</p>
               ) : (
-                <div className="space-y-2">{pendingReports.map(renderReportRow)}</div>
+                renderReportTable(pendingReports)
               )}
             </div>
           )}
@@ -847,7 +884,7 @@ export default function CiroRaporlariPanel() {
             {(isApprover ? otherReports : danismanRaporlarim).length === 0 ? (
               <p className="text-sm text-text-muted">Henüz rapor yok.</p>
             ) : (
-              <div className="space-y-2">{(isApprover ? otherReports : danismanRaporlarim).map(renderReportRow)}</div>
+              renderReportTable(isApprover ? otherReports : danismanRaporlarim)
             )}
           </div>
         </div>
