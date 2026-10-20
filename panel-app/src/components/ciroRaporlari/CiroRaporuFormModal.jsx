@@ -252,6 +252,8 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
 
   const canSubmit =
     disBeyanKodu.trim().length > 0 &&
+    // Broker, 2026-10-20: "tapu bilgileri mecbur opsiyonel değil".
+    tapuBilgileri.trim().length > 0 &&
     islemTutariToplam > 0 &&
     (!mulkBedeliGerekli || (mulkBedeliParsed !== null && mulkBedeliParsed > 0)) &&
     form.islemTarihi &&
@@ -353,6 +355,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           : 'Yeni Ciro Raporu'
       }
       onClose={onClose}
+      maxWidth="max-w-3xl"
     >
       <form onSubmit={handleSubmit} className="space-y-3">
         {/* Bu formdaki TÜM tek seçimli buton grupları (Portföy Tipi, İşlem
@@ -360,112 +363,121 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             seçili/seçili-değil desenini kullanıyor — 2026-10-18 görsel
             tutarlılık düzeltmesi: seçili artık ince kenarlık farkıyla değil,
             dolu brand-600 zemin + beyaz metinle göze çarpıyor. */}
-        <div className="flex gap-2">
-          {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setPortfoyTipi(key)
-                if (key === 'dis_portfoy' && !disBeyanKodu.trim()) {
-                  setDisBeyanKodu(generateDisBeyanKodu())
-                }
-              }}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                portfoyTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs text-ink-500">
-            {portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu'} *
-          </label>
-          <input
-            required
-            value={disBeyanKodu}
-            onChange={(e) => setDisBeyanKodu(e.target.value)}
-            placeholder={portfoyTipi === 'portfoyum' ? 'Portföy kodu' : 'Dış beyan kodu'}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs text-ink-500">Tapu Bilgileri (kısaca, opsiyonel)</label>
-          <input
-            value={tapuBilgileri}
-            onChange={(e) => setTapuBilgileri(e.target.value)}
-            placeholder="Ör. Ada 123 Parsel 45, Blok A Daire 6"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-xs text-ink-500">İşlem Tipi</label>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => set({ islemTipi: key })}
-                className={`rounded-lg border px-3 py-2 text-xs font-medium ${
-                  form.islemTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+        {/* Broker, 2026-10-20 (madde 7): "Temel Bilgiler alanlarını 2-3
+            sütunlu ızgarada göster" (MyRemax referansı) — dar ekranda tek
+            sütuna döner. */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">Portföy Tipi</label>
+            <div className="flex gap-2">
+              {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    setPortfoyTipi(key)
+                    if (key === 'dis_portfoy' && !disBeyanKodu.trim()) {
+                      setDisBeyanKodu(generateDisBeyanKodu())
+                    }
+                  }}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    portfoyTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {mulkBedeliGerekli && (
           <div>
             <label className="mb-1 block text-xs text-ink-500">
-              Anlaşılan Bedel (₺) {form.islemTipi === 'kiralama' ? '— aylık' : ''} *
+              {portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu'} *
             </label>
             <input
               required
-              inputMode="numeric"
-              value={mulkBedeli}
-              onChange={(e) => setMulkBedeli(formatThousands(e.target.value))}
-              placeholder={form.islemTipi === 'satis' ? 'Mülkün satış bedeli' : 'Aylık kira bedeli'}
+              value={disBeyanKodu}
+              onChange={(e) => setDisBeyanKodu(e.target.value)}
+              placeholder={portfoyTipi === 'portfoyum' ? 'Portföy kodu' : 'Dış beyan kodu'}
               className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
             />
           </div>
-        )}
 
-        <div>
-          <label className="mb-1 block text-xs text-ink-500">Kategori *</label>
-          <div className="flex gap-2">
-            {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setRaporKategori(key)}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  raporKategori === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">Tapu Bilgileri *</label>
+            <input
+              required
+              value={tapuBilgileri}
+              onChange={(e) => setTapuBilgileri(e.target.value)}
+              placeholder="Ör. Ada 123 Parsel 45, Blok A Daire 6"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
           </div>
-        </div>
 
-        <div>
-          <label className="mb-1 block text-xs text-ink-500">
-            İşlem tarihi * (sözleşme/devir tarihi — raporu ne zaman doldurduğun değil)
-          </label>
-          <input
-            required
-            type="date"
-            value={form.islemTarihi}
-            onChange={(e) => set({ islemTarihi: e.target.value })}
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-          />
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">İşlem Tipi</label>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => set({ islemTipi: key })}
+                  className={`rounded-lg border px-3 py-2 text-xs font-medium ${
+                    form.islemTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {mulkBedeliGerekli && (
+            <div>
+              <label className="mb-1 block text-xs text-ink-500">
+                Anlaşılan Bedel (₺) {form.islemTipi === 'kiralama' ? '— aylık' : ''} *
+              </label>
+              <input
+                required
+                inputMode="numeric"
+                value={mulkBedeli}
+                onChange={(e) => setMulkBedeli(formatThousands(e.target.value))}
+                placeholder={form.islemTipi === 'satis' ? 'Mülkün satış bedeli' : 'Aylık kira bedeli'}
+                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">Kategori *</label>
+            <div className="flex gap-2">
+              {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setRaporKategori(key)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    raporKategori === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">
+              İşlem tarihi * (sözleşme/devir tarihi — raporu ne zaman doldurduğun değil)
+            </label>
+            <input
+              required
+              type="date"
+              value={form.islemTarihi}
+              onChange={(e) => set({ islemTarihi: e.target.value })}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+            />
+          </div>
         </div>
 
         <div className="rounded-lg bg-ink-50 p-3">
