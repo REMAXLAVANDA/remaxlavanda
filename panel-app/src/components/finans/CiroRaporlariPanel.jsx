@@ -142,8 +142,10 @@ export default function CiroRaporlariPanel() {
   // gerçek bir Fırsat'a bağlama kaldırıldı, artık her iki portföy tipi de
   // (Portföylerim/Dış Portföy) sadece elle yazılan bir kodla tanımlanıyor
   // (bkz. CiroRaporuFormModal.jsx, migration 20261011120000).
+  // Broker, 2026-10-20: "iki kere portföy no var" — kod artık sadece
+  // detay bloğundaki "Portföy No:" satırında, burada tekrar edilmiyor.
   function opportunityLabel(r) {
-    return `${PORTFOY_TIPI_LABELS[r.portfoyTipi] ?? 'Portföy'} · ${r.disBeyanKodu ?? '—'}`
+    return PORTFOY_TIPI_LABELS[r.portfoyTipi] ?? 'Portföy'
   }
 
   async function handleCreate(form) {
