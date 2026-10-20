@@ -13,7 +13,6 @@ import {
   CIRO_RAPORU_DURUM_LABELS,
   CIRO_RAPORU_DURUM_STYLES,
   ISLEM_TIPI_LABELS,
-  PORTFOY_TIPI_LABELS,
   canSubmitCiroRaporu,
   canApproveCiroRaporu,
   beklenenHizmetBedeli,
@@ -136,16 +135,6 @@ export default function CiroRaporlariPanel() {
   // kendi faturası ayrı, bu kontrolü etkilemiyor.
   function ownFaturaNoVar(r) {
     return !!r.katilimcilar?.find((k) => k.danismanId === r.olusturanId)?.faturaNo
-  }
-
-  // Broker, 2026-10-11: "biz bir portföy takibi yapmadığımız için" —
-  // gerçek bir Fırsat'a bağlama kaldırıldı, artık her iki portföy tipi de
-  // (Portföylerim/Dış Portföy) sadece elle yazılan bir kodla tanımlanıyor
-  // (bkz. CiroRaporuFormModal.jsx, migration 20261011120000).
-  // Broker, 2026-10-20: "iki kere portföy no var" — kod artık sadece
-  // detay bloğundaki "Portföy No:" satırında, burada tekrar edilmiyor.
-  function opportunityLabel(r) {
-    return PORTFOY_TIPI_LABELS[r.portfoyTipi] ?? 'Portföy'
   }
 
   async function handleCreate(form) {
@@ -431,6 +420,54 @@ export default function CiroRaporlariPanel() {
     }
   }
 
+  // Broker, 2026-10-20: "banka kontrol / müşteri fatura / danışman
+  // fatura / myremax — bu başlıklar tikler olsun, içinde işlem yapınca
+  // tiklensin. hepsi tamamsa tek bir tik olsun, eksik varsa görünsün."
+  // Dördü de mevcut verilerden otomatik hesaplanıyor, elle işaretlenen
+  // bir alan değil.
+  function muhasebeDurumu(r) {
+    const hareketler = (data?.hareketler ?? []).filter((h) => h.ciroRaporuId === r.id)
+    const katilimcilar = r.katilimcilar ?? []
+    return {
+      bankaKontrol: hareketler.length > 0 && hareketler.every((h) => h.teyitEdildi),
+      musteriFatura: (!r.saticiHizmetBedeliAlindi || !!r.ofisFaturaSaticiDosyaUrl) && (!r.aliciHizmetBedeliAlindi || !!r.ofisFaturaAliciDosyaUrl),
+      danismanFatura: katilimcilar.length > 0 && katilimcilar.every((k) => k.faturaDosyaUrl),
+      myremax: !!r.myremaxGirildi,
+    }
+  }
+
+  function renderMuhasebeDurumSatiri(r) {
+    const durum = muhasebeDurumu(r)
+    const kalemler = [
+      { key: 'bankaKontrol', label: 'Banka Kontrol' },
+      { key: 'musteriFatura', label: 'Müşteri Fatura' },
+      { key: 'danismanFatura', label: 'Danışman Fatura' },
+      { key: 'myremax', label: 'MyRemax' },
+    ]
+    const hepsiTamam = kalemler.every((k) => durum[k.key])
+    if (hepsiTamam) {
+      return (
+        <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-tint-green-text">
+          <Check size={13} /> Muhasebe Tamam
+        </div>
+      )
+    }
+    return (
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+        {kalemler.map((k) => (
+          <span
+            key={k.key}
+            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+              durum[k.key] ? 'bg-tint-green text-tint-green-text' : 'bg-tint-amber text-tint-amber-text'
+            }`}
+          >
+            {durum[k.key] ? <Check size={11} /> : null} {k.label}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
   function renderParaHareketleri(r) {
     const hareketler = (data?.hareketler ?? []).filter((h) => h.ciroRaporuId === r.id)
     if (hareketler.length === 0) return null
@@ -502,7 +539,6 @@ export default function CiroRaporlariPanel() {
               </p>
             </div>
             <div className="mt-1.5 flex items-center gap-2">
-              <span className="truncate text-sm font-medium text-text-primary">{opportunityLabel(r)}</span>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
                 {CIRO_RAPORU_DURUM_LABELS[r.durum]}
               </span>
@@ -520,6 +556,7 @@ export default function CiroRaporlariPanel() {
                 </span>
               )}
             </div>
+            {renderMuhasebeDurumSatiri(r)}
           </div>
           {isExpanded ? <ChevronUp size={16} className="shrink-0 text-text-muted" /> : <ChevronDown size={16} className="shrink-0 text-text-muted" />}
         </button>
