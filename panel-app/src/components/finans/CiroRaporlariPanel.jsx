@@ -522,20 +522,25 @@ export default function CiroRaporlariPanel() {
                 bir de ciro bir de portföy no" + "alt üst yapman lazım,
                 alttakini üste üsttekini alta" — detaylar üstte, alt alta;
                 portföy tipi/beyan kodu + durum rozetleri altta. */}
-            <div className="space-y-0.5 text-xs text-text-muted">
-              <p>{ISLEM_TIPI_LABELS[r.islemTipi]}</p>
-              <p>
-                Danışman: <span className="font-medium text-text-primary">{(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'}</span>
-              </p>
-              <p>
-                Beyan: <span className="font-medium text-text-primary">{formatDateOnly(r.createdAt)}</span>
-              </p>
-              <p>
-                Ciro: <span className="font-medium text-text-primary">{tl(r.islemTutari)}</span>
-              </p>
-              <p>
-                Portföy No: <span className="font-medium text-text-primary">{r.disBeyanKodu ?? '—'}</span>
-              </p>
+            {/* Broker, 2026-10-20: "kart başlığı dikeyde boşa yer
+                kaplıyor... tek satıra, nokta ayraçla yan yana diz" —
+                sistemdeki AYNI "·" ayracı deseni (bkz. Fırsatlar kartları).
+                flex-wrap sayesinde geniş ekranda tek satır, dar ekranda
+                (mobil) otomatik alt alta dönüyor, ayrı bir breakpoint
+                kodu gerekmiyor. */}
+            <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
+              {[
+                ISLEM_TIPI_LABELS[r.islemTipi],
+                (r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—',
+                formatDateOnly(r.createdAt),
+                tl(r.islemTutari),
+                r.disBeyanKodu ?? '—',
+              ].map((deger, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-text-disabled">·</span>}
+                  <span className={i === 0 ? '' : 'font-medium text-text-primary'}>{deger}</span>
+                </span>
+              ))}
             </div>
             <div className="mt-1.5 flex items-center gap-2">
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
