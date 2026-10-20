@@ -346,7 +346,14 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   }
 
   return (
-    <Modal title={editing ? 'Ciro Raporunu Düzenle' : 'Yeni Ciro Raporu'} onClose={onClose}>
+    <Modal
+      title={
+        editing
+          ? `Ciro Raporunu Düzenle — ${editing.disBeyanKodu ?? '—'} · ${tl(editing.islemTutari)}`
+          : 'Yeni Ciro Raporu'
+      }
+      onClose={onClose}
+    >
       <form onSubmit={handleSubmit} className="space-y-3">
         {/* Bu formdaki TÜM tek seçimli buton grupları (Portföy Tipi, İşlem
             Tipi, Kategori, Aldım/Almadım, Kredi Durumu, Giriş/Çıkış) aynı
@@ -796,6 +803,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
 
         <div className="rounded-lg bg-ink-50 p-3">
           <p className="mb-2 text-xs font-medium text-ink-700">Para Hareketleri *</p>
+          {editing && (
+            <p className="mb-2 rounded-lg bg-tint-amber px-2 py-1.5 text-[11px] font-medium text-tint-amber-text">
+              Bunu girdiğin işlem: {editing.disBeyanKodu ?? '—'} · {tl(editing.islemTutari)} — başka bir sekmede açık
+              işlemle karıştırmadığından emin ol.
+            </p>
+          )}
           <p className="mb-2 text-[11px] text-ink-500">
             Bu işleme ait TÜM banka giriş/çıkışlarını (bağlanma parası, hizmet bedeli — her hareketi ayrı satır olarak) buraya ekle —
             broker/ofis bunları gerçek banka ekstresiyle eşleştirecek. En az bir hareket girilmesi zorunlu.
