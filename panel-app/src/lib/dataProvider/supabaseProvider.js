@@ -1323,9 +1323,11 @@ function mapCiroRaporu(r) {
     ofisFaturaSaticiNo: r.ofis_fatura_satici_no,
     ofisFaturaSaticiTarihi: r.ofis_fatura_satici_tarihi,
     ofisFaturaSaticiTutari: r.ofis_fatura_satici_tutari == null ? null : Number(r.ofis_fatura_satici_tutari),
+    ofisFaturaSaticiDosyaUrl: r.ofis_fatura_satici_dosya_url,
     ofisFaturaAliciNo: r.ofis_fatura_alici_no,
     ofisFaturaAliciTarihi: r.ofis_fatura_alici_tarihi,
     ofisFaturaAliciTutari: r.ofis_fatura_alici_tutari == null ? null : Number(r.ofis_fatura_alici_tutari),
+    ofisFaturaAliciDosyaUrl: r.ofis_fatura_alici_dosya_url,
     myremaxGirildi: r.myremax_girildi,
     muhasebeTamamlandi: r.muhasebe_tamamlandi,
     muhasebeTamamlanmaTarihi: r.muhasebe_tamamlanma_tarihi,
@@ -1694,12 +1696,19 @@ export const ciroRaporlari = {
   // satici_hizmet_bedeli_alindi/alici_hizmet_bedeli_alindi) 2026-10-17'den
   // beri taraf bazında İKİ ayrı fatura (bkz. migration
   // 20261017160000_ofis_faturasi_satici_alici_ayrimi).
-  async ofisFaturasiKaydet(id, taraf, { no, tarih, tutar }) {
+  async ofisFaturasiKaydet(id, taraf, { no, tarih, tutar, dosyaUrl }) {
     const kolonOnEki = taraf === 'satici' ? 'ofis_fatura_satici' : 'ofis_fatura_alici'
     await run(
       client()
         .from('ciro_raporlari')
-        .update({ [`${kolonOnEki}_no`]: no || null, [`${kolonOnEki}_tarihi`]: tarih || null, [`${kolonOnEki}_tutari`]: tutar ?? null })
+        .update({
+          [`${kolonOnEki}_no`]: no || null,
+          [`${kolonOnEki}_tarihi`]: tarih || null,
+          [`${kolonOnEki}_tutari`]: tutar ?? null,
+          // Sadece yeni bir dosya yüklendiyse gönderilir (CiroRaporuKatilimciRow'daki
+          // AYNI desen) — yoksa var olan dosya URL'inin üzerine boş yazılmasın.
+          ...(dosyaUrl !== undefined ? { [`${kolonOnEki}_dosya_url`]: dosyaUrl || null } : {}),
+        })
         .eq('id', id),
     )
   },

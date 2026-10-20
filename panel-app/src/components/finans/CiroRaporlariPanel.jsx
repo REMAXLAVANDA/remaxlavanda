@@ -47,6 +47,7 @@ function raporOnayUyarisi(r) {
 }
 import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
 import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
 import CiroRaporuKatilimciRow from '../ciroRaporlari/CiroRaporuKatilimciRow'
@@ -80,6 +81,13 @@ export default function CiroRaporlariPanel() {
   const [rejectTarget, setRejectTarget] = useState(null)
   // Fatura Kontrol'den (Finans > Raporlar) taşındı — broker, 2026-10-17.
   const [ofisForms, setOfisForms] = useState({})
+  // Broker, 2026-10-20: "muhasebe de müşteriye kesilen faturayı sisteme
+  // yüklemeli" — CiroRaporuKatilimciRow'daki AYNI dosya yükleme deseni
+  // (danışmanın kendi faturası), burada satıcı/alıcı ofis faturası için.
+  const [ofisFiles, setOfisFiles] = useState({})
+  const [ofisFileErrors, setOfisFileErrors] = useState({})
+  const [ofisUploadingKey, setOfisUploadingKey] = useState(null)
+  const [ofisViewingKey, setOfisViewingKey] = useState(null)
   // /kurul denetimi (2026-10-17, kullanılabilirlik+görsel): Ofis/Muhasebe
   // bloğu rapor genişletilir genişletilmez her zaman açık duruyordu —
   // broker'ın raporu onaylarken asıl bakması gereken (müşteri bilgisi,
@@ -296,21 +304,64 @@ export default function CiroRaporlariPanel() {
       setSubmitting(false)
     }
   }
-  async function handleOfisFaturasiKaydet(raporId, taraf, rapor) {
-    const form = ofisForm(raporId, taraf, rapor)
-    setSubmitting(true)
+  function formatSize(bytes) {
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+  function handleOfisFaturaFileChange(raporId, taraf, e) {
+    const key = `${raporId}:${taraf}`
+    const selected = e.target.files?.[0] ?? null
+    if (!selected) {
+      setOfisFiles((f) => ({ ...f, [key]: null }))
+      setOfisFileErrors((f) => ({ ...f, [key]: null }))
+      return
+    }
+    const check = validateFinansFile(selected)
+    if (!check.ok) {
+      setOfisFiles((f) => ({ ...f, [key]: null }))
+      setOfisFileErrors((f) => ({ ...f, [key]: check.reason }))
+      return
+    }
+    setOfisFiles((f) => ({ ...f, [key]: selected }))
+    setOfisFileErrors((f) => ({ ...f, [key]: null }))
+  }
+  // Fatura dosyası private bucket'ta — CiroRaporuKatilimciRow'daki AYNI
+  // desen, her açışta imzalı URL istenir.
+  async function handleOfisFaturaGoruntule(dosyaUrl, raporId, taraf) {
+    const key = `${raporId}:${taraf}`
+    setOfisViewingKey(key)
     try {
+      const url = await getSignedFinansUrl(dosyaUrl)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      showToast('Dosya açılamadı, tekrar dene.', 'error')
+    } finally {
+      setOfisViewingKey(null)
+    }
+  }
+  async function handleOfisFaturasiKaydet(raporId, taraf, rapor) {
+    const key = `${raporId}:${taraf}`
+    if (ofisFileErrors[key]) return
+    const form = ofisForm(raporId, taraf, rapor)
+    const file = ofisFiles[key]
+    setSubmitting(true)
+    setOfisUploadingKey(key)
+    try {
+      const dosyaUrl = file ? await uploadFinansFile(file, user.id) : undefined
       await ciroRaporlariProvider.ofisFaturasiKaydet(raporId, taraf, {
         no: form.no.trim(),
         tarih: form.tarih || null,
         tutar: parseThousands(form.tutar),
+        ...(dosyaUrl !== undefined ? { dosyaUrl } : {}),
       })
+      setOfisFiles((f) => ({ ...f, [key]: null }))
       showToast('Ofis faturası kaydedildi.', 'success')
       reload()
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
+      setOfisUploadingKey(null)
     }
   }
   // Düz fonksiyon olarak çağrılıyor (JSX component'i DEĞİL) — component
@@ -319,6 +370,11 @@ export default function CiroRaporlariPanel() {
   // oluyor).
   function renderOfisFaturaSatiri(rapor, taraf, label) {
     const form = ofisForm(rapor.id, taraf, rapor)
+    const key = `${rapor.id}:${taraf}`
+    const onEki = taraf === 'satici' ? 'ofisFaturaSatici' : 'ofisFaturaAlici'
+    const dosyaUrl = rapor[`${onEki}DosyaUrl`]
+    const file = ofisFiles[key]
+    const fileError = ofisFileErrors[key]
     return (
       <div className="flex flex-wrap items-end gap-2">
         <span className="w-14 shrink-0 text-xs text-text-muted">{label}</span>
@@ -341,14 +397,29 @@ export default function CiroRaporlariPanel() {
           placeholder="Ofis fatura tutarı"
           className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
         />
+        <label className="flex max-w-[11rem] cursor-pointer items-center gap-1 rounded-lg border border-dashed border-border-default bg-white px-2 py-1.5 text-xs text-text-secondary hover:bg-surface-sunken">
+          <span className="truncate">{file ? `${file.name} (${formatSize(file.size)})` : dosyaUrl ? 'Dosyayı değiştir' : 'Fatura PDF ekle'}</span>
+          <input type="file" onChange={(e) => handleOfisFaturaFileChange(rapor.id, taraf, e)} className="hidden" />
+        </label>
+        {dosyaUrl && (
+          <button
+            type="button"
+            disabled={ofisViewingKey === key}
+            onClick={() => handleOfisFaturaGoruntule(dosyaUrl, rapor.id, taraf)}
+            className="rounded-lg px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-tint-red disabled:opacity-50"
+          >
+            Faturayı görüntüle
+          </button>
+        )}
         <button
           type="button"
-          disabled={submitting}
+          disabled={submitting || !!fileError}
           onClick={() => handleOfisFaturasiKaydet(rapor.id, taraf, rapor)}
           className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          Kaydet
+          {ofisUploadingKey === key ? 'Kaydediliyor...' : 'Kaydet'}
         </button>
+        {fileError && <p className="w-full text-xs text-brand-700">{fileError}</p>}
       </div>
     )
   }
