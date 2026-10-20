@@ -109,11 +109,6 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
           <span className="text-text-muted"> — pay %{k.payOrani}</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-text-muted">
-            {k.faturaTutari != null
-              ? `Kesilen Fatura: ${tl(k.faturaTutari)}`
-              : `Kesmesi gereken fatura (öneri): ${tl(k.komisyonTutariOnerisi)}${k.anlasmaOraniSnapshot != null ? ` (%${k.anlasmaOraniSnapshot} paylaşım oranı)` : ''}`}
-          </span>
           {tutarsiz && (
             <span className="rounded-full bg-tint-amber px-2 py-0.5 font-medium text-tint-amber-text" title="Girilen fatura tutarı önerilen tutardan farklı">
               Oran Uyarısı
@@ -146,25 +141,43 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
       </div>
 
-      {/* Parçalı ödeme göstergesi — birden fazla banka hareketi aynı
-          katılımcıya eşleşmiş olabilir (bkz. lib/bankaHareketleri.js
-          toplamEslesenTutar). "Ödeme alındı" son onayını hâlâ broker
-          yukarıdaki düğmeyle elle veriyor, bu SADECE bilgi amaçlı.
-          2026-10-20 broker düzeltmesi: "beklenen" artık gdCirosu'yla
-          (aynı birim — danışmanın brüt hizmet bedeli payı) kıyaslanıyor,
-          komisyonTutariOnerisi (ofise kesilecek NET fatura) ile DEĞİL —
-          ikisi farklı aşamayı ölçtüğü için eskiden yanlış eşleştiriliyordu. */}
-      {canToggleOdeme && eslesenTutar != null && (
-        <p className="mt-1.5 text-xs text-text-muted">
-          Bankadan tahsil edilen (bu danışmanın payı): <span className="font-medium text-text-primary">{tl(eslesenTutar)}</span>
-          {' / '}
-          beklenen: <span className="font-medium text-text-primary">{tl(k.gdCirosu)}</span>
-        </p>
-      )}
+      {/* 2026-10-20 broker düzeltmesi: eskiden "bankadan eşleşen" (brüt
+          hizmet bedeli payı) üstteki rozetteki "kesmesi gereken fatura"
+          (net, ofis payı düşülmüş) ile aynı satırda "beklenen" diye tekrar
+          karşılaştırılıyordu — ikisi farklı aşama/birim, yan yana koymak
+          sanki eşleşiyormuş hissi veriyordu. Artık TEK satırda, ikisi de
+          kendi adıyla, tekrarsız: bankadan tahsil edilen (gdCirosu'yla
+          kıyaslı, broker'a özel) + kesilen/kesmesi gereken fatura (herkese
+          görünür). "Ödeme alındı" son onayını hâlâ broker yukarıdaki
+          düğmeyle elle veriyor, bu satır SADECE bilgi amaçlı. */}
+      <p className="mt-1.5 text-xs text-text-muted">
+        {canToggleOdeme && eslesenTutar != null && (
+          <>
+            Bankadan tahsil edilen: <span className="font-medium text-text-primary">{tl(eslesenTutar)}</span>
+            {' — '}
+          </>
+        )}
+        {k.faturaTutari != null ? (
+          <>
+            Kesilen Fatura: <span className="font-medium text-text-primary">{tl(k.faturaTutari)}</span>
+          </>
+        ) : (
+          <>
+            Kesmesi gereken fatura (öneri): <span className="font-medium text-text-primary">{tl(k.komisyonTutariOnerisi)}</span>
+            {k.anlasmaOraniSnapshot != null && ` (%${k.anlasmaOraniSnapshot} paylaşım oranı)`}
+          </>
+        )}
+      </p>
 
       {!editing && (k.faturaNo || k.faturaTutari) && (
         <div className="mt-2 text-xs text-text-muted">
-          Fatura {k.faturaNo || '—'} · {k.faturaTarihi ? formatDateOnly(k.faturaTarihi) : '—'} · {tl(k.faturaTutari)}
+          {/* Broker, 2026-10-20: "boş tireler neyin eksik olduğunu
+              göstermiyor" — eksik alan hiç gösterilmiyor, placeholder tire
+              konmuyor. */}
+          Fatura{' '}
+          {[k.faturaNo, k.faturaTarihi ? formatDateOnly(k.faturaTarihi) : null, k.faturaTutari != null ? tl(k.faturaTutari) : null]
+            .filter(Boolean)
+            .join(' · ')}
           {k.kdvOrani != null && ` · KDV %${k.kdvOrani}`}
           {k.faturaDosyaUrl && (
             <button onClick={handleViewFile} disabled={viewingFile} className="ml-1.5 font-medium text-brand-700 hover:underline disabled:opacity-50">

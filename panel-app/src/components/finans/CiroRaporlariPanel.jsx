@@ -447,14 +447,10 @@ export default function CiroRaporlariPanel() {
       { key: 'bankaKontrol', label: 'Banka Kontrol' },
       { key: 'myremax', label: 'MyRemax' },
     ]
-    const hepsiTamam = kalemler.every((k) => durum[k.key])
-    if (hepsiTamam) {
-      return (
-        <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-tint-green-text">
-          <Check size={13} /> Muhasebe Tamam
-        </div>
-      )
-    }
+    // Broker, 2026-10-20: "tek bir sabit rozet seti kullan, her raporda
+    // aynı 4 aşama görünsün" — hepsi tamamsa tek rozete indirgeme
+    // kaldırıldı (önceki hâli, Onay Bekleyenler'de 4 rozet, tamamlanmış
+    // bir raporda bambaşka 3 etiket göstererek tutarsızlık yaratıyordu).
     return (
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         {kalemler.map((k) => (
@@ -553,12 +549,12 @@ export default function CiroRaporlariPanel() {
                   Oran Uyarısı
                 </span>
               )}
-              {r.muhasebeTamamlandi && (
-                <span className="shrink-0 rounded-full bg-tint-green px-2 py-0.5 text-xs font-medium text-tint-green-text">
-                  İşlem Tamamlandı
-                </span>
-              )}
             </div>
+            {/* Broker, 2026-10-20: elle işaretlenen "İşlem Tamamlandı"
+                rozeti buradan kaldırıldı — aşağıdaki 4 aşama rozetiyle
+                çakışıp tutarsız görünüyordu. Elle işaretleme düğmesi
+                (Ofis/Muhasebe içinde) hâlâ çalışıyor, sadece burada ayrı
+                bir rozet olarak tekrar edilmiyor. */}
             {renderMuhasebeDurumSatiri(r)}
           </div>
           {isExpanded ? <ChevronUp size={16} className="shrink-0 text-text-muted" /> : <ChevronDown size={16} className="shrink-0 text-text-muted" />}
