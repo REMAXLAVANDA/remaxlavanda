@@ -499,8 +499,14 @@ export default function CiroRaporlariPanel() {
                 </span>
               )}
             </div>
+            {/* Broker, 2026-10-20: "danışman ve beyan tarihi yer alsın,
+                bir de ciro bir de portföy no" — Onay Bekleyenler listesi
+                açılmadan bu bilgiler görünsün istendi, etiketli hale
+                getirildi (ciro Raporu'na kaç TL girildiği ve kimin
+                beyanı olduğu tek bakışta görünsün diye). */}
             <p className="mt-0.5 text-xs text-text-muted">
-              {ISLEM_TIPI_LABELS[r.islemTipi]} · {tl(r.islemTutari)} · {formatDateOnly(r.islemTarihi)}
+              {ISLEM_TIPI_LABELS[r.islemTipi]} · Danışman: {(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'} ·
+              Beyan: {formatDateOnly(r.createdAt)} · Ciro: {tl(r.islemTutari)} · Portföy No: {r.disBeyanKodu ?? '—'}
             </p>
           </div>
           {isExpanded ? <ChevronUp size={16} className="shrink-0 text-text-muted" /> : <ChevronDown size={16} className="shrink-0 text-text-muted" />}
