@@ -575,6 +575,37 @@ export default function CiroRaporlariPanel() {
 
             {renderParaHareketleri(r)}
 
+            {/* Broker, 2026-10-20: "danışman müşterisine kesilen faturayı
+                görebilsin" — isApprover olmayan (danışman) kendi
+                raporundaki ofis faturasını salt okunur görür, yükleme/
+                değiştirme yetkisi hâlâ sadece yönetimde (aşağıdaki
+                Ofis/Muhasebe bloğu). Storage erişimi finans_bucket_
+                select_musteri_faturasi RLS'iyle sağlanıyor (migration
+                20261020120000). */}
+            {!isApprover && (r.ofisFaturaSaticiDosyaUrl || r.ofisFaturaAliciDosyaUrl) && (
+              <div className="space-y-1 rounded-lg bg-surface-sunken p-3">
+                <p className="text-xs font-medium text-text-primary">Müşteriye Kesilen Fatura</p>
+                {r.ofisFaturaSaticiDosyaUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleOfisFaturaGoruntule(r.ofisFaturaSaticiDosyaUrl, r.id, 'satici')}
+                    className="block text-xs font-medium text-brand-700 hover:underline"
+                  >
+                    Satıcı faturasını görüntüle
+                  </button>
+                )}
+                {r.ofisFaturaAliciDosyaUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleOfisFaturaGoruntule(r.ofisFaturaAliciDosyaUrl, r.id, 'alici')}
+                    className="block text-xs font-medium text-brand-700 hover:underline"
+                  >
+                    Alıcı faturasını görüntüle
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Fatura Kontrol'den (Finans > Raporlar) taşındı — broker,
                 2026-10-17: "fatura kontrolü de ciro ekranına al içine
                 yerleştir". Sadece onaya gönderilmiş/onaylanmış raporlarda
