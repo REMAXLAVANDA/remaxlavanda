@@ -1933,7 +1933,15 @@ export const bankaHareketleri = {
   // CiroRaporuKatilimciRow'daki mevcut "Ödeme alındı" düğmesiyle (zaten var
   // olan updateKatilimciFatura odemeDurumu akışı, cari hareketi de o zaten
   // kapatıyor) son onayı veriyor.
+  // ciro_raporu_id de burada set edilir — paylaşımlı işlemde ikinci
+  // danışman kendi hareketini (ciro formuna değil) Banka Hareketleri'nden
+  // ayrı girip broker'a eşleştirtiyor; bu hareket de artık Ciro onay
+  // ekranındaki sıralı listede (renderParaHareketleri) görünsün diye
+  // (broker, 2026-10-20: "diğer danışman nasıl girecek?").
   async eslestir(hareketId, katilimciId, eslestirenId) {
+    const katilimci = await run(
+      client().from('ciro_raporu_katilimcilari').select('ciro_raporu_id').eq('id', katilimciId).single(),
+    )
     await run(
       client()
         .from('banka_hareketleri')
@@ -1942,6 +1950,7 @@ export const bankaHareketleri = {
           eslesen_katilimci_id: katilimciId,
           eslestiren_id: eslestirenId,
           eslesme_tarihi: new Date().toISOString(),
+          ciro_raporu_id: katilimci.ciro_raporu_id,
         })
         .eq('id', hareketId),
     )

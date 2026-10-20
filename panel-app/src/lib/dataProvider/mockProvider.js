@@ -1461,10 +1461,12 @@ export const bankaHareketleri = {
   async eslestir(hareketId, katilimciId, eslestirenId) {
     const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
     if (!hareket) throw new Error('Hareket bulunamadı.')
+    const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
     hareket.durum = 'eslesti'
     hareket.eslesenKatilimciId = katilimciId
     hareket.eslestirenId = eslestirenId
     hareket.eslesmeTarihi = new Date().toISOString()
+    hareket.ciroRaporuId = katilimci?.ciroRaporuId ?? hareket.ciroRaporuId
     return delay({ id: hareketId })
   },
   async eslesmeyiKaldir(hareketId) {
