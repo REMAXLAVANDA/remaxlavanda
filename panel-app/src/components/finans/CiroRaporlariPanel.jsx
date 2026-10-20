@@ -438,10 +438,13 @@ export default function CiroRaporlariPanel() {
 
   function renderMuhasebeDurumSatiri(r) {
     const durum = muhasebeDurumu(r)
+    // Broker, 2026-10-20: "sıra işin gerçek akışına göre olsun" — danışman
+    // önce kendi faturasını keser, sonra müşteriye ofis faturası kesilir,
+    // sonra banka tahsilatı kontrol edilir, en son MyRemax'a girilir.
     const kalemler = [
-      { key: 'bankaKontrol', label: 'Banka Kontrol' },
-      { key: 'musteriFatura', label: 'Müşteri Fatura' },
       { key: 'danismanFatura', label: 'Danışman Fatura' },
+      { key: 'musteriFatura', label: 'Müşteri Fatura' },
+      { key: 'bankaKontrol', label: 'Banka Kontrol' },
       { key: 'myremax', label: 'MyRemax' },
     ]
     const hepsiTamam = kalemler.every((k) => durum[k.key])

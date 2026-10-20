@@ -110,8 +110,15 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-text-muted">
-            {k.faturaTutari != null ? `Kesilen Fatura: ${tl(k.faturaTutari)}` : `Hakediş (öneri): ${tl(k.komisyonTutariOnerisi)}`}
+            {k.faturaTutari != null
+              ? `Kesilen Fatura: ${tl(k.faturaTutari)}`
+              : `Kesmesi gereken fatura (öneri): ${tl(k.komisyonTutariOnerisi)}${k.anlasmaOraniSnapshot != null ? ` (%${k.anlasmaOraniSnapshot} paylaşım oranı)` : ''}`}
           </span>
+          {tutarsiz && (
+            <span className="rounded-full bg-tint-amber px-2 py-0.5 font-medium text-tint-amber-text" title="Girilen fatura tutarı önerilen tutardan farklı">
+              Oran Uyarısı
+            </span>
+          )}
           {canToggleOdeme && (
             <button
               onClick={() => onToggleOdeme(k.id, k.odemeDurumu === 'alindi' ? 'bekliyor' : 'alindi')}
@@ -142,18 +149,16 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
       {/* Parçalı ödeme göstergesi — birden fazla banka hareketi aynı
           katılımcıya eşleşmiş olabilir (bkz. lib/bankaHareketleri.js
           toplamEslesenTutar). "Ödeme alındı" son onayını hâlâ broker
-          yukarıdaki düğmeyle elle veriyor, bu SADECE bilgi amaçlı. */}
+          yukarıdaki düğmeyle elle veriyor, bu SADECE bilgi amaçlı.
+          2026-10-20 broker düzeltmesi: "beklenen" artık gdCirosu'yla
+          (aynı birim — danışmanın brüt hizmet bedeli payı) kıyaslanıyor,
+          komisyonTutariOnerisi (ofise kesilecek NET fatura) ile DEĞİL —
+          ikisi farklı aşamayı ölçtüğü için eskiden yanlış eşleştiriliyordu. */}
       {canToggleOdeme && eslesenTutar != null && (
         <p className="mt-1.5 text-xs text-text-muted">
-          Bankadan eşleşen: <span className="font-medium text-text-primary">{tl(eslesenTutar)}</span>
+          Bankadan tahsil edilen (bu danışmanın payı): <span className="font-medium text-text-primary">{tl(eslesenTutar)}</span>
           {' / '}
-          beklenen {tl(k.faturaTutari ?? k.komisyonTutariOnerisi)}
-        </p>
-      )}
-
-      {tutarsiz && (
-        <p className="mt-2 text-xs font-medium text-brand-700">
-          Girilen fatura tutarı ({tl(k.faturaTutari)}) önerilenden farklı — onaylamadan önce kontrol et.
+          beklenen: <span className="font-medium text-text-primary">{tl(k.gdCirosu)}</span>
         </p>
       )}
 
