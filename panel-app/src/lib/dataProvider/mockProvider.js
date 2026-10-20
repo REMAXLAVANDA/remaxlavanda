@@ -1255,14 +1255,11 @@ export const ciroRaporlari = {
     row.teyitTarihi = deger ? new Date().toISOString() : null
     return delay({ ...row })
   },
-  async ofisFaturasiKaydet(id, taraf, { no, tarih, tutar, dosyaUrl }) {
+  async ofisFaturasiKaydet(id, taraf, { dosyaUrl }) {
     const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
     if (!rapor) throw new Error('Rapor bulunamadı.')
     const onEki = taraf === 'satici' ? 'ofisFaturaSatici' : 'ofisFaturaAlici'
-    rapor[`${onEki}No`] = no || null
-    rapor[`${onEki}Tarihi`] = tarih || null
-    rapor[`${onEki}Tutari`] = tutar ?? null
-    if (dosyaUrl !== undefined) rapor[`${onEki}DosyaUrl`] = dosyaUrl || null
+    rapor[`${onEki}DosyaUrl`] = dosyaUrl || null
     return delay({ id })
   },
   async setMyremaxGirildi(id, deger) {

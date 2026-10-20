@@ -46,7 +46,7 @@ function raporOnayUyarisi(r) {
   return null
 }
 import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
-import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { formatDateOnly } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
@@ -79,8 +79,6 @@ export default function CiroRaporlariPanel() {
   const [submitting, setSubmitting] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [rejectTarget, setRejectTarget] = useState(null)
-  // Fatura Kontrol'den (Finans > Raporlar) taşındı — broker, 2026-10-17.
-  const [ofisForms, setOfisForms] = useState({})
   // Broker, 2026-10-20: "muhasebe de müşteriye kesilen faturayı sisteme
   // yüklemeli" — CiroRaporuKatilimciRow'daki AYNI dosya yükleme deseni
   // (danışmanın kendi faturası), burada satıcı/alıcı ofis faturası için.
@@ -279,20 +277,6 @@ export default function CiroRaporlariPanel() {
   // alıcıdan bağımsız olarak hizmet bedeli alınabildiği için tek alan
   // ikisini birden tutamıyordu, bkz. migration
   // 20261017160000_ofis_faturasi_satici_alici_ayrimi. ---
-  function ofisForm(raporId, taraf, rapor) {
-    const onEki = taraf === 'satici' ? 'ofisFaturaSatici' : 'ofisFaturaAlici'
-    return (
-      ofisForms[`${raporId}:${taraf}`] ?? {
-        no: rapor[`${onEki}No`] ?? '',
-        tarih: rapor[`${onEki}Tarihi`] ?? '',
-        tutar: rapor[`${onEki}Tutari`] != null ? formatThousands(String(rapor[`${onEki}Tutari`])) : '',
-      }
-    )
-  }
-  function setOfisFormPatch(raporId, taraf, rapor, patch) {
-    const key = `${raporId}:${taraf}`
-    setOfisForms((f) => ({ ...f, [key]: { ...ofisForm(raporId, taraf, rapor), ...patch } }))
-  }
   async function handleTeyit(katilimciId, deger) {
     setSubmitting(true)
     try {
@@ -339,65 +323,40 @@ export default function CiroRaporlariPanel() {
       setOfisViewingKey(null)
     }
   }
-  async function handleOfisFaturasiKaydet(raporId, taraf, rapor) {
+  async function handleOfisFaturasiKaydet(raporId, taraf) {
     const key = `${raporId}:${taraf}`
     if (ofisFileErrors[key]) return
-    const form = ofisForm(raporId, taraf, rapor)
     const file = ofisFiles[key]
+    if (!file) return
     setSubmitting(true)
     setOfisUploadingKey(key)
     try {
-      const dosyaUrl = file ? await uploadFinansFile(file, user.id) : undefined
-      await ciroRaporlariProvider.ofisFaturasiKaydet(raporId, taraf, {
-        no: form.no.trim(),
-        tarih: form.tarih || null,
-        tutar: parseThousands(form.tutar),
-        ...(dosyaUrl !== undefined ? { dosyaUrl } : {}),
-      })
+      const dosyaUrl = await uploadFinansFile(file, user.id)
+      await ciroRaporlariProvider.ofisFaturasiKaydet(raporId, taraf, { dosyaUrl })
       setOfisFiles((f) => ({ ...f, [key]: null }))
-      showToast('Ofis faturası kaydedildi.', 'success')
+      showToast('Fatura yüklendi.', 'success')
       reload()
     } catch (err) {
-      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+      showToast(err.message ?? 'Yüklenemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
       setOfisUploadingKey(null)
     }
   }
-  // Düz fonksiyon olarak çağrılıyor (JSX component'i DEĞİL) — component
-  // olarak tanımlansaydı her render'da yeni bir tip sayılır, input'lar her
-  // tuşta focus kaybederdi (parent her setOfisFormPatch'te yeniden render
-  // oluyor).
+  // Broker, 2026-10-20: "fatura bilgilerini değil direk faturaları
+  // yükleyelim" — no/tarih/tutar yazma alanları kaldırıldı, sadece
+  // gerçek fatura PDF'i yükleniyor (ofis_fatura_*_no/tarihi/tutari
+  // kolonları DB'de duruyor ama artık hiçbir ekranda kullanılmıyor).
   function renderOfisFaturaSatiri(rapor, taraf, label) {
-    const form = ofisForm(rapor.id, taraf, rapor)
     const key = `${rapor.id}:${taraf}`
     const onEki = taraf === 'satici' ? 'ofisFaturaSatici' : 'ofisFaturaAlici'
     const dosyaUrl = rapor[`${onEki}DosyaUrl`]
     const file = ofisFiles[key]
     const fileError = ofisFileErrors[key]
     return (
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="w-14 shrink-0 text-xs text-text-muted">{label}</span>
-        <input
-          value={form.no}
-          onChange={(e) => setOfisFormPatch(rapor.id, taraf, rapor, { no: e.target.value })}
-          placeholder="Ofis fatura no"
-          className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
-        />
-        <input
-          type="date"
-          value={form.tarih}
-          onChange={(e) => setOfisFormPatch(rapor.id, taraf, rapor, { tarih: e.target.value })}
-          className="rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary"
-        />
-        <input
-          inputMode="numeric"
-          value={form.tutar}
-          onChange={(e) => setOfisFormPatch(rapor.id, taraf, rapor, { tutar: formatThousands(e.target.value) })}
-          placeholder="Ofis fatura tutarı"
-          className="w-32 rounded-lg border border-border-default bg-white px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
-        />
-        <label className="flex max-w-[11rem] cursor-pointer items-center gap-1 rounded-lg border border-dashed border-border-default bg-white px-2 py-1.5 text-xs text-text-secondary hover:bg-surface-sunken">
+        <label className="flex max-w-[14rem] cursor-pointer items-center gap-1 rounded-lg border border-dashed border-border-default bg-white px-2 py-1.5 text-xs text-text-secondary hover:bg-surface-sunken">
           <span className="truncate">{file ? `${file.name} (${formatSize(file.size)})` : dosyaUrl ? 'Dosyayı değiştir' : 'Fatura PDF ekle'}</span>
           <input type="file" onChange={(e) => handleOfisFaturaFileChange(rapor.id, taraf, e)} className="hidden" />
         </label>
@@ -413,11 +372,11 @@ export default function CiroRaporlariPanel() {
         )}
         <button
           type="button"
-          disabled={submitting || !!fileError}
-          onClick={() => handleOfisFaturasiKaydet(rapor.id, taraf, rapor)}
+          disabled={submitting || !file || !!fileError}
+          onClick={() => handleOfisFaturasiKaydet(rapor.id, taraf)}
           className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {ofisUploadingKey === key ? 'Kaydediliyor...' : 'Kaydet'}
+          {ofisUploadingKey === key ? 'Yükleniyor...' : 'Yükle'}
         </button>
         {fileError && <p className="w-full text-xs text-brand-700">{fileError}</p>}
       </div>
@@ -635,6 +594,32 @@ export default function CiroRaporlariPanel() {
                 </button>
                 {ofisMuhasebeAcikId === r.id && (
                   <div className="mt-2">
+                    {/* Broker, 2026-10-20: "GD de bize kestiği faturayı
+                        burada görelim" — danışmanın kendi faturası
+                        (CiroRaporuKatilimciRow'da zaten var) muhasebenin
+                        işini tek ekranda toplamak için burada da salt
+                        okunur gösteriliyor. */}
+                    {(r.katilimcilar ?? []).some((k) => k.faturaDosyaUrl) && (
+                      <div className="mb-2 space-y-1">
+                        <p className="text-[11px] font-medium text-text-muted">GD Faturaları</p>
+                        {(r.katilimcilar ?? [])
+                          .filter((k) => k.faturaDosyaUrl)
+                          .map((k) => (
+                            <div key={k.id} className="flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-xs text-text-secondary">
+                              <span className="min-w-0 flex-1 truncate">
+                                {userName(k.danismanId)} · {k.faturaNo || 'Fatura no yok'} {k.faturaTutari != null && `· ${tl(k.faturaTutari)}`}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleOfisFaturaGoruntule(k.faturaDosyaUrl, r.id, `gd-${k.id}`)}
+                                className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-tint-red"
+                              >
+                                Görüntüle
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                     <div className="space-y-2">
                       {r.saticiHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'satici', 'Satıcı')}
                       {r.aliciHizmetBedeliAlindi && renderOfisFaturaSatiri(r, 'alici', 'Alıcı')}

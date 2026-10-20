@@ -1696,19 +1696,16 @@ export const ciroRaporlari = {
   // satici_hizmet_bedeli_alindi/alici_hizmet_bedeli_alindi) 2026-10-17'den
   // beri taraf bazında İKİ ayrı fatura (bkz. migration
   // 20261017160000_ofis_faturasi_satici_alici_ayrimi).
-  async ofisFaturasiKaydet(id, taraf, { no, tarih, tutar, dosyaUrl }) {
+  // Broker, 2026-10-20: "fatura bilgilerini değil direk faturaları
+  // yükleyelim" — no/tarih/tutar artık elle girilmiyor, sadece gerçek
+  // fatura dosyası yükleniyor (ofis_fatura_*_no/tarihi/tutari kolonları
+  // DB'de duruyor, kullanılmıyor — DROP edilmedi, geri alınabilir kalsın).
+  async ofisFaturasiKaydet(id, taraf, { dosyaUrl }) {
     const kolonOnEki = taraf === 'satici' ? 'ofis_fatura_satici' : 'ofis_fatura_alici'
     await run(
       client()
         .from('ciro_raporlari')
-        .update({
-          [`${kolonOnEki}_no`]: no || null,
-          [`${kolonOnEki}_tarihi`]: tarih || null,
-          [`${kolonOnEki}_tutari`]: tutar ?? null,
-          // Sadece yeni bir dosya yüklendiyse gönderilir (CiroRaporuKatilimciRow'daki
-          // AYNI desen) — yoksa var olan dosya URL'inin üzerine boş yazılmasın.
-          ...(dosyaUrl !== undefined ? { [`${kolonOnEki}_dosya_url`]: dosyaUrl || null } : {}),
-        })
+        .update({ [`${kolonOnEki}_dosya_url`]: dosyaUrl || null })
         .eq('id', id),
     )
   },
