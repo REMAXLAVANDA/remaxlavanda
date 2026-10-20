@@ -480,7 +480,26 @@ export default function CiroRaporlariPanel() {
       <div key={r.id} className="rounded-2xl border border-border-default bg-surface-raised p-4">
         <button onClick={() => setExpandedId(isExpanded ? null : r.id)} className="flex w-full items-center justify-between gap-3 text-left">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+            {/* Broker, 2026-10-20: "danışman ve beyan tarihi yer alsın,
+                bir de ciro bir de portföy no" + "alt üst yapman lazım,
+                alttakini üste üsttekini alta" — detaylar üstte, alt alta;
+                portföy tipi/beyan kodu + durum rozetleri altta. */}
+            <div className="space-y-0.5 text-xs text-text-muted">
+              <p>{ISLEM_TIPI_LABELS[r.islemTipi]}</p>
+              <p>
+                Danışman: <span className="font-medium text-text-primary">{(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'}</span>
+              </p>
+              <p>
+                Beyan: <span className="font-medium text-text-primary">{formatDateOnly(r.createdAt)}</span>
+              </p>
+              <p>
+                Ciro: <span className="font-medium text-text-primary">{tl(r.islemTutari)}</span>
+              </p>
+              <p>
+                Portföy No: <span className="font-medium text-text-primary">{r.disBeyanKodu ?? '—'}</span>
+              </p>
+            </div>
+            <div className="mt-1.5 flex items-center gap-2">
               <span className="truncate text-sm font-medium text-text-primary">{opportunityLabel(r)}</span>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
                 {CIRO_RAPORU_DURUM_LABELS[r.durum]}
@@ -499,15 +518,6 @@ export default function CiroRaporlariPanel() {
                 </span>
               )}
             </div>
-            {/* Broker, 2026-10-20: "danışman ve beyan tarihi yer alsın,
-                bir de ciro bir de portföy no" — Onay Bekleyenler listesi
-                açılmadan bu bilgiler görünsün istendi, etiketli hale
-                getirildi (ciro Raporu'na kaç TL girildiği ve kimin
-                beyanı olduğu tek bakışta görünsün diye). */}
-            <p className="mt-0.5 text-xs text-text-muted">
-              {ISLEM_TIPI_LABELS[r.islemTipi]} · Danışman: {(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'} ·
-              Beyan: {formatDateOnly(r.createdAt)} · Ciro: {tl(r.islemTutari)} · Portföy No: {r.disBeyanKodu ?? '—'}
-            </p>
           </div>
           {isExpanded ? <ChevronUp size={16} className="shrink-0 text-text-muted" /> : <ChevronDown size={16} className="shrink-0 text-text-muted" />}
         </button>
