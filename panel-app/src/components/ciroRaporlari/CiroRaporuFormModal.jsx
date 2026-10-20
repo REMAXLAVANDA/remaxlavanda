@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import Modal from '../common/Modal'
-import { formatThousands, parseThousands } from '../../lib/format'
+import { formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
 import {
   ISLEM_TIPI_LABELS,
   PORTFOY_TIPI_LABELS,
@@ -305,26 +305,26 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       tapuBilgileri: tapuBilgileri.trim() || null,
       mulkBedeli: mulkBedeliGerekli ? mulkBedeliParsed : null,
       saticiHizmetBedeliAlindi: saticiVar,
-      saticiAdSoyad: satici.adSoyad.trim(),
+      saticiAdSoyad: capitalizeWords(satici.adSoyad.trim()),
       saticiTelefon: satici.telefon.trim(),
       saticiKimlikNo: satici.kimlikNo.trim(),
       saticiHizmetBedeli: saticiHizmetBedeliParsed,
       saticiKdvOrani: saticiVar === true ? saticiKdvOraniParsed : null,
       saticiHizmetBedeliHaric: saticiVar === true ? saticiHizmetBedeliHaric : null,
       saticiDigerKisiler: saticiDiger.map((k) => ({
-        adSoyad: k.adSoyad.trim(),
+        adSoyad: capitalizeWords(k.adSoyad.trim()),
         telefon: k.telefon.trim(),
         kimlikNo: k.kimlikNo.trim(),
       })),
       aliciHizmetBedeliAlindi: aliciVar,
-      aliciAdSoyad: alici.adSoyad.trim(),
+      aliciAdSoyad: capitalizeWords(alici.adSoyad.trim()),
       aliciTelefon: alici.telefon.trim(),
       aliciKimlikNo: alici.kimlikNo.trim(),
       aliciHizmetBedeli: aliciHizmetBedeliParsed,
       aliciKdvOrani: aliciVar === true ? aliciKdvOraniParsed : null,
       aliciHizmetBedeliHaric: aliciVar === true ? aliciHizmetBedeliHaric : null,
       aliciDigerKisiler: aliciDiger.map((k) => ({
-        adSoyad: k.adSoyad.trim(),
+        adSoyad: capitalizeWords(k.adSoyad.trim()),
         telefon: k.telefon.trim(),
         kimlikNo: k.kimlikNo.trim(),
       })),
