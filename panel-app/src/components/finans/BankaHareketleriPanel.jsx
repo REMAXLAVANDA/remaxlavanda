@@ -19,7 +19,7 @@ import {
   eslesmeAdaylari,
 } from '../../lib/bankaHareketleri'
 import { slugify } from '../../lib/categories'
-import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { formatDateOnly, formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
 import { getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 import BlokeCozumleModal from './BlokeCozumleModal'
@@ -121,7 +121,7 @@ export default function BankaHareketleriPanel() {
           tutar: parsedTutar,
           tarih: form.tarih,
           dekontTarihi: form.dekontTarihi,
-          gonderenAdi: form.gonderenAdi.trim(),
+          gonderenAdi: capitalizeWords(form.gonderenAdi.trim()),
           aciklama: form.aciklama.trim(),
           referansNo: form.referansNo.trim(),
           opportunityId: !cikis && form.bloke ? form.opportunityId : null,

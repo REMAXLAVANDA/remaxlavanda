@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { bankaHareketleri as bankaHareketleriProvider } from '../../lib/dataProvider'
 import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, BANKA_HAREKETI_TUR_LABELS } from '../../lib/bankaHareketleri'
-import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { formatDateOnly, formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import ConfirmDialog from '../common/ConfirmDialog'
@@ -115,7 +115,7 @@ export default function BankaHareketiDanismanPanel() {
           tutar: parsedTutar,
           tarih: form.tarih,
           dekontTarihi: form.dekontTarihi,
-          gonderenAdi: form.gonderenAdi.trim(),
+          gonderenAdi: capitalizeWords(form.gonderenAdi.trim()),
           referansNo: form.referansNo.trim(),
           aciklama: form.aciklama.trim(),
           tur: form.tur,

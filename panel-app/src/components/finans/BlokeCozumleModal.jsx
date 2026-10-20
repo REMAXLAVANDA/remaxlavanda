@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Modal from '../common/Modal'
 import { BLOKE_AKSIYON_LABELS, kalanTutar } from '../../lib/bankaHareketleri'
-import { formatDateOnly } from '../../lib/format'
+import { formatDateOnly, capitalizeWords } from '../../lib/format'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -28,7 +28,7 @@ export default function BlokeCozumleModal({ bloke, adaylar, userName, onClose, o
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    onSubmit(aksiyon, { katilimciId: mahsupVar ? katilimciId : null, mahsupTutari: aksiyon === 'kismi_mahsup' ? Number(mahsupTutari) : null, aliciAdi: aliciAdi.trim() })
+    onSubmit(aksiyon, { katilimciId: mahsupVar ? katilimciId : null, mahsupTutari: aksiyon === 'kismi_mahsup' ? Number(mahsupTutari) : null, aliciAdi: capitalizeWords(aliciAdi.trim()) })
   }
 
   return (
