@@ -15,6 +15,7 @@ import {
   beklenenHizmetBedeli,
   hizmetBedeliStandartDisiMi,
 } from '../../lib/ciroRaporlari'
+import { BANKA_HAREKETI_TUR_LABELS } from '../../lib/bankaHareketleri'
 
 function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
@@ -115,7 +116,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   // zorlanmaz.
   const [paraHareketleri, setParaHareketleri] = useState(() =>
     !editing && !existingParaHareketleri?.length
-      ? [{ tip: 'giris', tutar: '', tarih: today(), dekontTarihi: today(), gonderenAdi: '', referansNo: '' }]
+      ? [{ tip: 'giris', tur: 'hizmet_bedeli', tutar: '', tarih: today(), dekontTarihi: today(), gonderenAdi: '', referansNo: '' }]
       : [],
   )
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
@@ -123,7 +124,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   function addParaHareketi() {
     setParaHareketleri((list) => [
       ...list,
-      { tip: 'giris', tutar: '', tarih: today(), dekontTarihi: today(), gonderenAdi: '', referansNo: '' },
+      { tip: 'giris', tur: 'hizmet_bedeli', tutar: '', tarih: today(), dekontTarihi: today(), gonderenAdi: '', referansNo: '' },
     ])
   }
   function updateParaHareketi(index, patch) {
@@ -804,7 +805,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               <p className="font-medium text-ink-700">Daha önce eklenmiş (düzenlenemez):</p>
               {existingParaHareketleri.map((h) => (
                 <p key={h.id}>
-                  {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {tl(h.tutar)} · {h.gonderenAdi || '—'}
+                  {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {BANKA_HAREKETI_TUR_LABELS[h.tur] ?? 'Diğer'} · {tl(h.tutar)} · {h.gonderenAdi || '—'}
                 </p>
               ))}
             </div>
@@ -835,6 +836,24 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 >
                   ×
                 </button>
+              </div>
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {Object.entries(BANKA_HAREKETI_TUR_LABELS)
+                  .filter(([key]) => key !== 'baglanma_parasi')
+                  .map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => updateParaHareketi(i, { tur: key })}
+                      className={`rounded-lg border px-2 py-1 text-xs font-medium ${
+                        (h.tur ?? 'hizmet_bedeli') === key
+                          ? 'border-brand-600 bg-brand-600 text-white'
+                          : 'border-border-default bg-surface-sunken text-text-secondary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input

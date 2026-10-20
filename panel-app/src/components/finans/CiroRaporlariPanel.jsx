@@ -378,6 +378,62 @@ export default function CiroRaporlariPanel() {
   }
   // --- /Fatura Kontrol'den taşındı ---
 
+  // Broker, 2026-10-20: "para alışverişleri, hizmet bedelleri, iadeler
+  // sırayla alt alta olsun, biz tikleyeceğiz kontrol ederek" — bu raporun
+  // Para Hareketleri satırları (CiroRaporuFormModal'da girilenler) artık
+  // onay ekranında bu sabit sırayla grupla gösteriliyor. Buradaki tik,
+  // Banka Hareketleri'ndeki AYNI teyitEt alanını kullanıyor — iki ekran
+  // senkron.
+  const PARA_HAREKETI_GRUP_SIRASI = [
+    { tur: 'diger', baslik: 'Para Alışverişleri' },
+    { tur: 'hizmet_bedeli', baslik: 'Hizmet Bedelleri' },
+    { tur: 'iade', baslik: 'İadeler' },
+  ]
+
+  async function handleHareketTeyit(hareketId, deger) {
+    try {
+      await bankaHareketleriProvider.teyitEt(hareketId, user.id, deger)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    }
+  }
+
+  function renderParaHareketleri(r) {
+    const hareketler = (data?.hareketler ?? []).filter((h) => h.ciroRaporuId === r.id)
+    if (hareketler.length === 0) return null
+    return (
+      <div className="space-y-2 rounded-lg bg-surface-sunken p-3">
+        <p className="text-xs font-medium text-text-primary">Para Hareketleri</p>
+        {PARA_HAREKETI_GRUP_SIRASI.map(({ tur, baslik }) => {
+          const grup = hareketler.filter((h) => h.tur === tur)
+          if (grup.length === 0) return null
+          return (
+            <div key={tur}>
+              <p className="mb-1 text-[11px] font-medium text-text-muted">{baslik}</p>
+              <div className="space-y-1">
+                {grup.map((h) => (
+                  <label key={h.id} className="flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-xs text-text-secondary">
+                    <input
+                      type="checkbox"
+                      checked={!!h.teyitEdildi}
+                      disabled={!isApprover}
+                      onChange={(e) => handleHareketTeyit(h.id, e.target.checked)}
+                      className="h-3.5 w-3.5 shrink-0 rounded border-border-default"
+                    />
+                    <span className="min-w-0 flex-1 truncate">
+                      {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {tl(h.tutar)} · {h.gonderenAdi || '—'} · {formatDateOnly(h.tarih)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   async function handleToggleOdeme(katilimciId, odemeDurumu) {
     try {
       await ciroRaporlariProvider.updateKatilimciFatura(katilimciId, { odemeDurumu })
@@ -486,6 +542,8 @@ export default function CiroRaporlariPanel() {
                 submitting={submitting}
               />
             ))}
+
+            {renderParaHareketleri(r)}
 
             {/* Fatura Kontrol'den (Finans > Raporlar) taşındı — broker,
                 2026-10-17: "fatura kontrolü de ciro ekranına al içine
