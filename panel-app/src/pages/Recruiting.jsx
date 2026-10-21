@@ -61,7 +61,16 @@ export default function Recruiting() {
   const [submitting, setSubmitting] = useState(false)
   const [noteSubmitting, setNoteSubmitting] = useState(false)
 
-  const resolveName = (id) => knownUsers[id]?.name ?? '—'
+  // Paylaşılan "Ofis Hesabı" ile girilen notlarda GERÇEKTE kim yazdıysa
+  // onun adı gösterilir (broker kararı, 2026-10-21: "Selen ise Selen, ofis
+  // ise de ofis") — not.yazanAdi doluysa o, değilse yazan 'ofis' rolündeyse
+  // genel "Ofis" etiketi, broker/owner için her zaman kendi gerçek adı.
+  const resolveNoteAuthor = (note) => {
+    if (note.yazanAdi) return note.yazanAdi
+    const author = knownUsers[note.createdBy]
+    if (author?.role === 'ofis') return 'Ofis'
+    return author?.name ?? '—'
+  }
   // Kart rozetindeki "kaç görüşme yapıldı" sayısı — notes tek seferde
   // yüklenen TAM listeden türetiliyor (bkz. loadAll notu), candidateId'ye
   // göre gruplanıyor.
@@ -164,7 +173,7 @@ export default function Recruiting() {
         // not arıyor, bu yüzden not ÖNCE eklenir, durum sonra güncellenir.
         if (form.statusChangeNote) {
           const createdNote = await recruitingProvider.addNote(
-            { candidateId: editingCandidate.id, notMetni: form.statusChangeNote },
+            { candidateId: editingCandidate.id, notMetni: form.statusChangeNote, yazanAdi: form.yazanAdi },
             user.id,
           )
           setData((prev) => ({ ...prev, notes: [createdNote, ...prev.notes] }))
@@ -256,11 +265,11 @@ export default function Recruiting() {
   // kaç görüşme yapıldı görülmeli"). Kaydet/submitting'ten AYRI bir
   // noteSubmitting kullanılıyor ki not eklerken ana "Kaydet" butonu
   // gereksiz yere pasifleşmesin.
-  async function handleAddNote(notMetni) {
+  async function handleAddNote(notMetni, yazanAdi) {
     if (!editingCandidate) return
     setNoteSubmitting(true)
     try {
-      const created = await recruitingProvider.addNote({ candidateId: editingCandidate.id, notMetni }, user.id)
+      const created = await recruitingProvider.addNote({ candidateId: editingCandidate.id, notMetni, yazanAdi }, user.id)
       setData((prev) => ({ ...prev, notes: [created, ...prev.notes] }))
     } catch (err) {
       showToast(err.message ?? 'Not eklenemedi, tekrar dene.', 'error')
@@ -322,12 +331,13 @@ export default function Recruiting() {
           onConvertToDanisman={handleConvertToDanisman}
           submitting={submitting}
           notes={editingCandidateNotes}
-          resolveName={resolveName}
+          resolveNoteAuthor={resolveNoteAuthor}
           onAddNote={handleAddNote}
           onDeleteNote={handleDeleteNote}
           noteSubmitting={noteSubmitting}
           canDeleteNotes={canDeleteNotes}
           sorumluOptions={sorumluOptions}
+          role={role}
         />
       )}
 

@@ -589,8 +589,8 @@ export const recruiting = {
   async listNotes() {
     return delay([...MOCK_RECRUITING_NOTES].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
   },
-  async addNote({ candidateId, notMetni }, createdBy) {
-    const row = { id: Date.now(), candidateId, notMetni, createdBy, createdAt: new Date().toISOString() }
+  async addNote({ candidateId, notMetni, yazanAdi }, createdBy) {
+    const row = { id: Date.now(), candidateId, notMetni, createdBy, createdAt: new Date().toISOString(), yazanAdi: yazanAdi || null }
     MOCK_RECRUITING_NOTES.unshift(row)
     return delay(row)
   },

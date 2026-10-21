@@ -70,16 +70,24 @@ export default function RecruitingDetailModal({
   onConvertToDanisman,
   submitting,
   notes = [],
-  resolveName,
+  resolveNoteAuthor,
   onAddNote,
   onDeleteNote,
   noteSubmitting,
   canDeleteNotes,
   sorumluOptions = [],
+  role,
 }) {
   const interviewParts = toDateTimeParts(interviewEvent?.startAt)
   const [newNote, setNewNote] = useState('')
   const [statusChangeNote, setStatusChangeNote] = useState('')
+  // Paylaşılan "Ofis Hesabı" ile not girildiğinde GERÇEKTE kim yazdıysa
+  // onun adı (broker kararı, 2026-10-21) — SADECE ofis rolünde sorulur,
+  // broker/owner zaten kendi bireysel hesabıyla giriyor. Tek bir alan,
+  // hem Görüşme Notları'ndaki "Ekle" ile eklenen notlarda hem durum
+  // değişikliği notunda kullanılıyor (aynı oturumda aynı kişi yazıyor).
+  const [yazanAdi, setYazanAdi] = useState('')
+  const yazanAdiSorulsun = role === 'ofis'
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
     sorumluId: candidate?.sorumluId ?? '',
@@ -149,6 +157,7 @@ export default function RecruitingDetailModal({
       // (veritabanındaki kural bunu arıyor), bu yüzden kendisi değil, metni
       // taşınıyor; Recruiting.jsx handleSave sırayı kuruyor.
       statusChangeNote: durumChanged ? capitalizeFirst(statusChangeNote.trim()) : null,
+      yazanAdi: yazanAdiSorulsun && yazanAdi.trim() ? capitalizeWords(yazanAdi.trim()) : null,
     })
   }
 
@@ -437,6 +446,14 @@ export default function RecruitingDetailModal({
               <MessageSquare size={13} /> Görüşme Notları
               <span className="font-normal text-text-muted">({notes.length + (form.aciklama.trim() ? 1 : 0)})</span>
             </p>
+            {yazanAdiSorulsun && (
+              <input
+                value={yazanAdi}
+                onChange={(e) => setYazanAdi(e.target.value)}
+                placeholder="Bu notu kim giriyor? (Elif, Selen... — boş bırakırsan 'Ofis' yazar)"
+                className="mb-2 w-full rounded-lg border border-border-default px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
+              />
+            )}
             <div className="flex gap-2">
               <textarea
                 value={newNote}
@@ -449,7 +466,7 @@ export default function RecruitingDetailModal({
                 type="button"
                 disabled={!newNote.trim() || noteSubmitting}
                 onClick={() => {
-                  onAddNote(capitalizeFirst(newNote.trim()))
+                  onAddNote(capitalizeFirst(newNote.trim()), yazanAdiSorulsun && yazanAdi.trim() ? capitalizeWords(yazanAdi.trim()) : null)
                   setNewNote('')
                 }}
                 className="shrink-0 self-start rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-border-subtle disabled:opacity-50"
@@ -462,7 +479,7 @@ export default function RecruitingDetailModal({
                 {notes.map((n) => (
                   <div key={n.id} className="rounded-lg bg-surface-sunken p-2 text-xs">
                     <div className="mb-1 flex items-center justify-between gap-2 text-text-muted">
-                      <span className="font-medium text-text-secondary">{resolveName?.(n.createdBy) ?? '—'}</span>
+                      <span className="font-medium text-text-secondary">{resolveNoteAuthor?.(n) ?? '—'}</span>
                       <span className="flex shrink-0 items-center gap-1.5">
                         {formatDateTime(n.createdAt)}
                         {canDeleteNotes && (

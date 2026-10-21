@@ -815,17 +815,29 @@ export const recruiting = {
       notMetni: n.not_metni,
       createdBy: n.created_by,
       createdAt: n.created_at,
+      yazanAdi: n.yazan_adi,
     }))
   },
-  async addNote({ candidateId, notMetni }, createdBy) {
+  // yazanAdi: paylaşılan "Ofis Hesabı" ile girilen notlarda GERÇEKTE kim
+  // yazdıysa onun adı (broker kararı, 2026-10-21) — opsiyonel, boşsa
+  // notMetni'nin yazarı sadece created_by/ofis rolüne göre gösterilir
+  // (bkz. Recruiting.jsx resolveNoteAuthor).
+  async addNote({ candidateId, notMetni, yazanAdi }, createdBy) {
     const data = await run(
       client()
         .from('recruiting_candidate_notes')
-        .insert({ candidate_id: candidateId, not_metni: notMetni, created_by: createdBy })
+        .insert({ candidate_id: candidateId, not_metni: notMetni, created_by: createdBy, yazan_adi: yazanAdi || null })
         .select()
         .single(),
     )
-    return { id: data.id, candidateId: data.candidate_id, notMetni: data.not_metni, createdBy: data.created_by, createdAt: data.created_at }
+    return {
+      id: data.id,
+      candidateId: data.candidate_id,
+      notMetni: data.not_metni,
+      createdBy: data.created_by,
+      createdAt: data.created_at,
+      yazanAdi: data.yazan_adi,
+    }
   },
   async deleteNote(id) {
     await run(client().from('recruiting_candidate_notes').delete().eq('id', id))
