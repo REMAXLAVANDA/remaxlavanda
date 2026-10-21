@@ -713,6 +713,8 @@ function mapCandidate(row) {
     atananDanismanId: row.atanan_danisman_id,
     durum: row.durum,
     olumsuzSebebi: row.olumsuz_sebebi,
+    olumsuzSebebiAciklama: row.olumsuz_sebebi_aciklama,
+    tekrarAramaTarihi: row.tekrar_arama_tarihi,
     kayitTipi: row.kayit_tipi,
     yenidenAktifAt: row.yeniden_aktif_at,
     aciklama: row.aciklama,
@@ -765,6 +767,8 @@ export const recruiting = {
           atanan_danisman_id: form.atananDanismanId || null,
           durum: form.durum,
           olumsuz_sebebi: form.olumsuzSebebi || null,
+          olumsuz_sebebi_aciklama: form.olumsuzSebebiAciklama || null,
+          tekrar_arama_tarihi: form.tekrarAramaTarihi || null,
           kayit_tipi: form.kaynakLeadId ? 'lead' : 'manuel',
           aciklama: form.aciklama || null,
           reklam_adi: reklamAdi,
@@ -785,6 +789,8 @@ export const recruiting = {
     if ('atananDanismanId' in patch) dbPatch.atanan_danisman_id = patch.atananDanismanId || null
     if ('durum' in patch) dbPatch.durum = patch.durum
     if ('olumsuzSebebi' in patch) dbPatch.olumsuz_sebebi = patch.olumsuzSebebi || null
+    if ('olumsuzSebebiAciklama' in patch) dbPatch.olumsuz_sebebi_aciklama = patch.olumsuzSebebiAciklama || null
+    if ('tekrarAramaTarihi' in patch) dbPatch.tekrar_arama_tarihi = patch.tekrarAramaTarihi || null
     if ('kayitTipi' in patch) dbPatch.kayit_tipi = patch.kayitTipi
     if ('yenidenAktifAt' in patch) dbPatch.yeniden_aktif_at = patch.yenidenAktifAt
     if ('aciklama' in patch) dbPatch.aciklama = patch.aciklama || null

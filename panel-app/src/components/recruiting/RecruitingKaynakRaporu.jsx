@@ -40,8 +40,9 @@ export default function RecruitingKaynakRaporu({ candidates, sorumluOptions }) {
       gorusme: acc.gorusme + r.gorusme,
       danismanOldu: acc.danismanOldu + r.danismanOldu,
       olumsuz: acc.olumsuz + r.olumsuz,
+      beklemede: acc.beklemede + r.beklemede,
     }),
-    { basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0 },
+    { basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, beklemede: 0 },
   )
 
   function shiftMonth(delta) {
@@ -110,6 +111,7 @@ export default function RecruitingKaynakRaporu({ candidates, sorumluOptions }) {
                   <Th align="right">Görüşmeye Kalan</Th>
                   <Th align="right">Danışman Oldu</Th>
                   <Th align="right">Olumsuz</Th>
+                  <Th align="right">Beklemede</Th>
                   <Th>En Sık Olumsuz Sebebi</Th>
                 </Tr>
               </Thead>
@@ -123,6 +125,7 @@ export default function RecruitingKaynakRaporu({ candidates, sorumluOptions }) {
                       {r.danismanOldu}
                     </Td>
                     <Td align="right">{r.olumsuz}</Td>
+                    <Td align="right">{r.beklemede}</Td>
                     <Td className="text-text-muted">
                       {r.enSikOlumsuzSebebi ? (RECRUITING_OLUMSUZ_SEBEP_LABELS[r.enSikOlumsuzSebebi] ?? r.enSikOlumsuzSebebi) : '—'}
                     </Td>
@@ -136,6 +139,7 @@ export default function RecruitingKaynakRaporu({ candidates, sorumluOptions }) {
                     {totals.danismanOldu}
                   </Td>
                   <Td align="right">{totals.olumsuz}</Td>
+                  <Td align="right">{totals.beklemede}</Td>
                   <Td />
                 </Tr>
               </Tbody>

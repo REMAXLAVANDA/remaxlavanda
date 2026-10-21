@@ -32,7 +32,7 @@ import {
   auditLog as auditLogProvider,
 } from '../lib/dataProvider'
 import { canManageCalls, callNeedsTracking, computeReklamKoduConversion, maskPhone } from '../lib/callLogs'
-import { matchesKayitTipiFilter, computeRecruitingReklamConversion } from '../lib/recruiting'
+import { matchesKayitTipiFilter, computeRecruitingReklamConversion, isRecruitingBeklemedeReminderDue } from '../lib/recruiting'
 import { ROLES } from '../lib/roles'
 import {
   canViewEvent,
@@ -728,6 +728,21 @@ export default function Panel() {
         severity: 'uyari',
         to: '/takip',
         text: `${myDueReminders.length} koçluk notunda takip tarihin geldi`,
+      })
+    }
+
+    // Recruiting "Beklemede" — tekrar arama tarihi gelen adaylar, SADECE
+    // o adayın sorumlusunun kendi Panel'inde çıkar (broker kararı,
+    // 2026-10-21, koçluk notu hatırlatmasıyla AYNI desen).
+    const myBeklemedeReminders = (data.recruitingCandidates ?? []).filter(
+      (c) => c.sorumluId === user.id && isRecruitingBeklemedeReminderDue(c, now),
+    )
+    if (myBeklemedeReminders.length > 0) {
+      items.push({
+        id: 'recruiting-beklemede-reminders',
+        severity: 'uyari',
+        to: '/recruiting',
+        text: `${myBeklemedeReminders.length} beklemedeki adayı tekrar arama zamanı geldi`,
       })
     }
 

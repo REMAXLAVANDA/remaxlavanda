@@ -5,6 +5,12 @@ export { canManageRecruiting } from './roles'
 
 import { OFIS_ADRESI, OFIS_MAPS_URL, OFIS_INSTAGRAM_URL, OFIS_LINKEDIN_URL } from './kartvizit'
 
+// Durum değişikliğinde zorunlu notun minimum uzunluğu — hem formdaki
+// karakter sayacı hem de "Diğer" sebep açıklaması bu sabiti kullanıyor.
+// Veritabanındaki trigger/constraint'lerle (bkz. migration
+// 20261021120000) AYNI sayı — biri değişirse diğeri de güncellenmeli.
+export const RECRUITING_NOT_MIN_UZUNLUK = 30
+
 // RE/MAX'ın aday tanışma/başvuru sayfası, ofis referans koduyla (broker,
 // 2026-10-17: "girişimci burcunu bizimle tanışmadan önce öğrenmesini
 // isteyelim") — ref_office sayesinde bu linkten gelen başvuru RE/MAX
@@ -60,13 +66,20 @@ export function candidateInviteMessage({ adSoyad, gorusmeTarih, gorusmeSaat } = 
 // hiç geçerli olmayan başvurular en arkada. Bu sıra hem kanban panosunun
 // hem üst filtrenin kolon/seçenek sırasını belirliyor (RECRUITING_DURUM_
 // SECILEBILIR üzerinden, bkz. RecruitingBoard/RecruitingFilters).
-export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'olumsuz', 'yanlis_basvuru']
+// "Beklemede" (2026-10-21 broker kararı) BİLEREK 'olumsuz'dan hemen önce —
+// akış hâlâ aktif bölümde (Yeni Başvuru -> Randevu -> Karar Bekliyor ->
+// Beklemede), terminal/kapanmış durumlardan (Olumsuz/Yanlış Başvuru) önce
+// geliyor. NEGATIF_DURUMLAR'a (RecruitingBoard.jsx) BİLEREK eklenmedi —
+// "beklemede" kapanmış değil, varsayılan pano görünümünde kendi sütunuyla
+// görünür, "Olumsuz/Yanlış Başvuruyu Göster" düğmesinin arkasına gizlenmez.
+export const RECRUITING_DURUMLARI = ['yeni_basvuru', 'ilk_gorusme', 'ikinci_gorusme', 'olumlu', 'beklemede', 'olumsuz', 'yanlis_basvuru']
 export const RECRUITING_DURUM_LABELS = {
   yeni_basvuru: 'Yeni Başvuru',
   yanlis_basvuru: 'Yanlış Başvuru',
   ilk_gorusme: 'Randevu',
   ikinci_gorusme: 'Karar Bekliyor',
   olumlu: 'Olumlu',
+  beklemede: 'Beklemede',
   olumsuz: 'Olumsuz',
 }
 // RE/MAX marka paletinden (kırmızı + mavi tonları) — mor/amber/sky/emerald
@@ -79,12 +92,16 @@ export const RECRUITING_DURUM_LABELS = {
 // Karar Bekliyor = koyu lacivert (ciddi, "karar eşiği" hissi) — aradaki
 // kontrast blue-mid/blue'dan çok daha belirgin, aynı zamanda akışın
 // ilerledikçe "koyulaşması" anlamlı bir sıra da taşıyor.
+// Beklemede = orta mavi (remax-blue-mid) — Randevu'nun açık gök mavisi ile
+// Karar Bekliyor'un koyu lacivertinden görsel olarak ayırt edilebilir, ama
+// hâlâ marka mavi ailesinde (bkz. yukarıdaki palet notu).
 export const RECRUITING_DURUM_STYLES = {
   yeni_basvuru: 'bg-ink-100 text-ink-600',
   yanlis_basvuru: 'bg-ink-200 text-ink-500',
   ilk_gorusme: 'bg-remax-blue-light/60 text-remax-blue-dark2',
   ikinci_gorusme: 'bg-remax-navy/20 text-remax-navy',
   olumlu: 'bg-remax-navy/10 text-remax-navy',
+  beklemede: 'bg-remax-blue-mid/15 text-remax-blue-mid',
   olumsuz: 'bg-remax-red-dark/10 text-remax-red-dark',
 }
 
@@ -112,12 +129,17 @@ export const RECRUITING_DURUM_SECILEBILIR = RECRUITING_DURUMLARI.filter((d) => d
 // Eski "baska_teklif"/"deneyim_yetersiz"/"iletisime_gecilemedi" değerleri
 // DB'de (CHECK constraint'te) hâlâ geçerli — geçmiş kayıtlar bozulmasın
 // diye, sadece BURADAN yeni seçim olarak sunulmuyorlar.
+// 3 yeni sebep eklendi (2026-10-21 broker isteği) — mevcutlar aynen
+// kalıyor, bkz. migration 20261021120000.
 export const RECRUITING_OLUMSUZ_SEBEPLERI = [
   'maas_beklentisi',
   'profile_uygun_degil',
   'baska_emlak_ofisi',
   'farkli_sektor_teklifi',
   'randevuya_gelmedi',
+  'ulasilamadi',
+  'baslangic_masrafi_karsilamadi',
+  'yari_zamanli_istiyor',
   'kendi_istegiyle',
   'diger',
 ]
@@ -127,6 +149,9 @@ export const RECRUITING_OLUMSUZ_SEBEP_LABELS = {
   baska_emlak_ofisi: 'Başka bir emlak ofisiyle anlaştı',
   farkli_sektor_teklifi: 'Farklı bir sektörden iş teklifi kabul etti',
   randevuya_gelmedi: 'Randevuya gelmedi',
+  ulasilamadi: 'Ulaşılamadı, telefonu açmıyor',
+  baslangic_masrafi_karsilamadi: 'Başlangıç masrafını karşılamak istemedi',
+  yari_zamanli_istiyor: 'Yarı zamanlı ya da yan iş olarak istiyor',
   kendi_istegiyle: 'Kendi isteğiyle vazgeçti',
   diger: 'Diğer',
   // Artık seçilemiyor ama eski kayıtlarda görünebilir (bkz. yukarı not) —
@@ -236,12 +261,19 @@ export function computeRecruitingKaynakRaporu(candidates, { year, month, sorumlu
   const rows = sorumluId ? candidates.filter((c) => c.sorumluId === sorumluId) : candidates
   const byKaynak = {}
   for (const key of RECRUITING_KAYNAKLARI) {
-    byKaynak[key] = { kaynak: key, basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, olumsuzSebepleri: {} }
+    byKaynak[key] = { kaynak: key, basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, beklemede: 0, olumsuzSebepleri: {} }
   }
   for (const c of rows) {
-    const bucket = byKaynak[c.kaynak] ?? (byKaynak[c.kaynak] = { kaynak: c.kaynak, basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, olumsuzSebepleri: {} })
+    const bucket =
+      byKaynak[c.kaynak] ?? (byKaynak[c.kaynak] = { kaynak: c.kaynak, basvuru: 0, gorusme: 0, danismanOldu: 0, olumsuz: 0, beklemede: 0, olumsuzSebepleri: {} })
     if (isInMonth(c.createdAt, year, month)) bucket.basvuru += 1
     if (isInMonth(c.ilkGorusmeTarihi, year, month)) bucket.gorusme += 1
+    // Beklemede ayrı bir DURUM (olumsuz sebebi değil) olduğu için zaten
+    // aşağıdaki olumsuz sayacına karışmıyor — broker isteği (2026-10-21):
+    // ayrıca GÖRÜNÜR de olsun. Ay filtresine bağlı değil, an itibarıyla
+    // beklemede olan adayların GÜNCEL sayısı (board'daki sütun sayısıyla
+    // aynı mantık).
+    if (c.durum === 'beklemede') bucket.beklemede += 1
     if (c.durum === 'olumlu' && isInMonth(c.sonucTarihi, year, month)) bucket.danismanOldu += 1
     if (c.durum === 'olumsuz' && isInMonth(c.sonucTarihi, year, month)) {
       bucket.olumsuz += 1
@@ -255,7 +287,7 @@ export function computeRecruitingKaynakRaporu(candidates, { year, month, sorumlu
       const enSikSebep = sebepEntries.length > 0 ? sebepEntries.sort((a, b2) => b2[1] - a[1])[0][0] : null
       return { ...b, enSikOlumsuzSebebi: enSikSebep }
     })
-    .filter((b) => b.basvuru > 0 || b.gorusme > 0 || b.danismanOldu > 0 || b.olumsuz > 0)
+    .filter((b) => b.basvuru > 0 || b.gorusme > 0 || b.danismanOldu > 0 || b.olumsuz > 0 || b.beklemede > 0)
     .sort((a, b) => b.basvuru - a.basvuru)
 }
 
@@ -269,4 +301,16 @@ export function candidateKaynakOzeti(candidate) {
   if (candidate.reklamAdi) parts.push(candidate.reklamAdi)
   else if (candidate.kampanyaKodu) parts.push(candidate.kampanyaKodu)
   return `Recruiting: ${parts.join(' — ')}`
+}
+
+// Panel'deki "Dikkat Gerekiyor" kutusu için — lib/coachingNotes.js
+// isReminderDue ile AYNI desen (broker kararı, 2026-10-21: "tarihi gelen
+// adaylar, aday kime atanmışsa onun Panel'inde hatırlatma olarak çıksın").
+// "Kime atanmış" burada sorumluId (adayla fiilen ilgilenen recruiter) —
+// atananDanismanId DEĞİL, o mentor amaçlı ve artık formdan hiç seçilmiyor
+// (bkz. dosyanın başındaki RecruitingDetailModal notu).
+export function isRecruitingBeklemedeReminderDue(candidate, now = Date.now()) {
+  return Boolean(
+    candidate.durum === 'beklemede' && candidate.tekrarAramaTarihi && new Date(candidate.tekrarAramaTarihi).getTime() <= now,
+  )
 }

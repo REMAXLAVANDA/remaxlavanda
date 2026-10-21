@@ -159,6 +159,16 @@ export default function Recruiting() {
     try {
       let saved
       if (editingCandidate) {
+        // Durum değişikliğinde zorunlu not — veritabanındaki kural
+        // (migration 20261021120000) güncellemeden HEMEN ÖNCE eklenmiş bir
+        // not arıyor, bu yüzden not ÖNCE eklenir, durum sonra güncellenir.
+        if (form.statusChangeNote) {
+          const createdNote = await recruitingProvider.addNote(
+            { candidateId: editingCandidate.id, notMetni: form.statusChangeNote },
+            user.id,
+          )
+          setData((prev) => ({ ...prev, notes: [createdNote, ...prev.notes] }))
+        }
         saved = await recruitingProvider.update(editingCandidate.id, form)
         setData((prev) => ({ ...prev, candidates: prev.candidates.map((c) => (c.id === saved.id ? saved : c)) }))
       } else {
@@ -187,7 +197,17 @@ export default function Recruiting() {
         kayitTipi: 'manuel',
         yenidenAktifAt: new Date().toISOString(),
       }
-      if (candidate.durum === 'olumsuz') patch.durum = 'yeni_basvuru'
+      if (candidate.durum === 'olumsuz') {
+        patch.durum = 'yeni_basvuru'
+        // Durum değişiyor — veritabanındaki not zorunluluğu burada da
+        // geçerli (bkz. migration 20261021120000), bu buton kullanıcıya
+        // ek not sormuyor, sistem kendi notunu otomatik ekliyor.
+        const createdNote = await recruitingProvider.addNote(
+          { candidateId: candidate.id, notMetni: 'Sistem: Aday arşivden/olumsuzdan yeniden aktifleştirildi, süreç baştan başlıyor.' },
+          user.id,
+        )
+        setData((prev) => ({ ...prev, notes: [createdNote, ...prev.notes] }))
+      }
       const updated = await recruitingProvider.update(candidate.id, patch)
       setData((prev) => ({ ...prev, candidates: prev.candidates.map((c) => (c.id === candidate.id ? updated : c)) }))
       setEditingCandidate(null)
@@ -212,6 +232,14 @@ export default function Recruiting() {
     setSubmitting(true)
     try {
       const created = await usersProvider.createUser({ ...form, kaynak: candidateKaynakOzeti(convertingCandidate) })
+      // Durum 'olumlu'ya değişiyor — not zorunluluğu burada da geçerli
+      // (bkz. migration 20261021120000), sistem kendi notunu otomatik
+      // ekliyor, broker/owner'a ek soru sormuyor.
+      const createdNote = await recruitingProvider.addNote(
+        { candidateId: convertingCandidate.id, notMetni: `Sistem: ${created.name} adıyla danışman hesabı oluşturuldu, aday olumluya geçirildi.` },
+        user.id,
+      )
+      setData((prev) => ({ ...prev, notes: [createdNote, ...prev.notes] }))
       const updated = await recruitingProvider.update(convertingCandidate.id, { durum: 'olumlu', olumsuzSebebi: null })
       setData((prev) => ({ ...prev, candidates: prev.candidates.map((c) => (c.id === updated.id ? updated : c)) }))
       setConvertingCandidate(null)

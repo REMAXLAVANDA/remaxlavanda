@@ -538,6 +538,8 @@ export const recruiting = {
       atananDanismanId: form.atananDanismanId || null,
       durum: form.durum,
       olumsuzSebebi: form.olumsuzSebebi ?? null,
+      olumsuzSebebiAciklama: form.olumsuzSebebiAciklama || null,
+      tekrarAramaTarihi: form.tekrarAramaTarihi || null,
       kayitTipi: form.kaynakLeadId ? 'lead' : 'manuel',
       yenidenAktifAt: null,
       aciklama: form.aciklama || null,
@@ -553,6 +555,17 @@ export const recruiting = {
   async update(id, patch) {
     const row = MOCK_RECRUITING_CANDIDATES.find((c) => c.id === id)
     if (!row) throw new Error('Aday bulunamadı.')
+    // Gerçek Supabase'teki require_recruiting_status_note trigger'ıyla AYNI
+    // mantık, burada elle — mock modda DB trigger'ı yok (bkz. migration
+    // 20261021120000 notu). Dev ortamında (Chrome testinde) da aynı kural
+    // çalışsın diye.
+    if ('durum' in patch && patch.durum !== row.durum) {
+      const fiveMinAgo = Date.now() - 5 * 60 * 1000
+      const hasQualifyingNote = MOCK_RECRUITING_NOTES.some(
+        (n) => n.candidateId === id && new Date(n.createdAt).getTime() > fiveMinAgo && n.notMetni.trim().length >= 30,
+      )
+      if (!hasQualifyingNote) throw new Error('Durum değiştirilirken en az 30 karakterlik bir not eklenmelidir.')
+    }
     // Gerçek Supabase'teki stamp_recruiting_milestone_dates trigger'ıyla
     // AYNI mantık, burada elle — mock modda DB trigger'ı yok (bkz.
     // migration 20261006100000 notu).

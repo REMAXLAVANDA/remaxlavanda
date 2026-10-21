@@ -60,20 +60,26 @@ alter table public.recruiting_candidates
   );
 
 -- "Diğer" seçilince sebep açıklaması zorunlu, en az 30 karakter.
+-- NOT VALID: mevcut "olumsuz/diger" kayıtlarında bu açıklama hiç
+-- istenmiyordu, geçmişte boş bırakılmış satırlar var — NOT VALID bu
+-- eski satırları kontrol etmeden constraint'i ekler, SADECE bundan
+-- sonraki INSERT/UPDATE'lerde zorunlu kılar (geçmiş veriye dokunmaz).
 alter table public.recruiting_candidates
   add constraint recruiting_candidates_olumsuz_sebebi_aciklama_check
   check (
     olumsuz_sebebi is distinct from 'diger'
     or length(trim(coalesce(olumsuz_sebebi_aciklama, ''))) >= 30
-  );
+  ) not valid;
 
--- "Beklemede" seçilince tekrar arama tarihi zorunlu.
+-- "Beklemede" seçilince tekrar arama tarihi zorunlu. NOT VALID — bu durum
+-- şimdiye kadar hiç yoktu ama ileride benzer bir sürpriz olmasın diye
+-- aynı güvenli desen (eski satırları kontrol etmeden ekler).
 alter table public.recruiting_candidates
   add constraint recruiting_candidates_tekrar_arama_tarihi_check
   check (
     durum is distinct from 'beklemede'
     or tekrar_arama_tarihi is not null
-  );
+  ) not valid;
 
 -- Durum değişikliğinde yakın zamanda eklenmiş, yeterince uzun bir not
 -- arıyor. SECURITY DEFINER değil — recruiting_candidate_notes'u SADECE

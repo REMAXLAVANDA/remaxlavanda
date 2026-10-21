@@ -11,8 +11,18 @@ import {
   RECRUITING_KAYNAK_LABELS,
   RECRUITING_OLUMSUZ_SEBEPLERI,
   RECRUITING_OLUMSUZ_SEBEP_LABELS,
+  RECRUITING_NOT_MIN_UZUNLUK,
   candidateInviteMessage,
 } from '../../lib/recruiting'
+
+// "En az 30 karakter yazın, şu an X karakter" uyarısı — durum değişikliği
+// notu ve "Diğer" sebep açıklaması İKİSİ de aynı kuralı paylaşıyor (broker
+// kararı, 2026-10-21).
+function minLengthHint(text) {
+  const len = text.trim().length
+  if (len >= RECRUITING_NOT_MIN_UZUNLUK) return null
+  return `En az ${RECRUITING_NOT_MIN_UZUNLUK} karakter yazın, şu an ${len} karakter.`
+}
 
 const onlyDigits = (v) => (v ?? '').replace(/\D/g, '')
 
@@ -69,6 +79,7 @@ export default function RecruitingDetailModal({
 }) {
   const interviewParts = toDateTimeParts(interviewEvent?.startAt)
   const [newNote, setNewNote] = useState('')
+  const [statusChangeNote, setStatusChangeNote] = useState('')
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
     sorumluId: candidate?.sorumluId ?? '',
@@ -77,12 +88,21 @@ export default function RecruitingDetailModal({
     email: candidate?.email ?? initialValues?.email ?? '',
     durum: candidate?.durum ?? 'yeni_basvuru',
     olumsuzSebebi: candidate?.olumsuzSebebi ?? '',
+    olumsuzSebebiAciklama: candidate?.olumsuzSebebiAciklama ?? '',
+    tekrarAramaTarihi: candidate?.tekrarAramaTarihi ?? '',
     aciklama: candidate?.aciklama ?? '',
     gorusmeTarih: interviewParts.date,
     gorusmeSaat: interviewParts.time,
     gorusmeSure: toDurationMinutes(interviewEvent),
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+  const isOlumlu = candidate?.durum === 'olumlu'
+  // Durum değiştiriliyor mu — sadece MEVCUT bir aday düzenlenirken anlamlı
+  // (yeni aday eklerken "değişiklik" kavramı yok). Değişiyorsa en az 30
+  // karakterlik bir not zorunlu (broker kararı, 2026-10-21) — hem burada
+  // hem veritabanında (bkz. migration 20261021120000).
+  const durumChanged = Boolean(candidate) && form.durum !== candidate.durum
+  const digerSebepSecili = form.durum === 'olumsuz' && form.olumsuzSebebi === 'diger'
   // Görüşme tarihi girilip saat boş bırakılırsa handleSubmit ikisini de ''
   // yapıp randevuyu sessizce siliyordu (broker: "randevu oluşturdum oluşmadı",
   // production loglarında recruiting_candidates PATCH gidiyor ama
@@ -90,8 +110,10 @@ export default function RecruitingDetailModal({
   const canSubmit =
     form.adSoyad.trim().length > 0 &&
     (form.durum !== 'olumsuz' || form.olumsuzSebebi.length > 0) &&
-    (!form.gorusmeTarih || form.gorusmeSaat)
-  const isOlumlu = candidate?.durum === 'olumlu'
+    (!form.gorusmeTarih || form.gorusmeSaat) &&
+    (!durumChanged || statusChangeNote.trim().length >= RECRUITING_NOT_MIN_UZUNLUK) &&
+    (form.durum !== 'beklemede' || form.tekrarAramaTarihi) &&
+    (!digerSebepSecili || form.olumsuzSebebiAciklama.trim().length >= RECRUITING_NOT_MIN_UZUNLUK)
 
   // Aynı numarayla daha önce aday girilmiş mi — sadece YENİ aday eklerken
   // anlamlı (düzenlerken kayıt kendi numarasıyla eşleşip yanlış uyarı
@@ -114,6 +136,8 @@ export default function RecruitingDetailModal({
       email: form.email.trim(),
       aciklama: capitalizeFirst(form.aciklama.trim()),
       olumsuzSebebi: form.durum === 'olumsuz' ? form.olumsuzSebebi : null,
+      olumsuzSebebiAciklama: digerSebepSecili ? capitalizeFirst(form.olumsuzSebebiAciklama.trim()) : null,
+      tekrarAramaTarihi: form.durum === 'beklemede' ? form.tekrarAramaTarihi : '',
       sorumluId: form.sorumluId || null,
       kaynakLeadId: candidate ? undefined : (initialValues?.kaynakLeadId ?? null),
       // Saat girilmeden tarih anlamsız — ikisi birlikte doluysa Takvim'e
@@ -121,6 +145,10 @@ export default function RecruitingDetailModal({
       // gönderilmiyor.
       gorusmeTarih: form.gorusmeTarih && form.gorusmeSaat ? form.gorusmeTarih : '',
       gorusmeSaat: form.gorusmeTarih && form.gorusmeSaat ? form.gorusmeSaat : '',
+      // Durum değişikliği notu — kaydedilmeden ÖNCE eklenmesi gerekiyor
+      // (veritabanındaki kural bunu arıyor), bu yüzden kendisi değil, metni
+      // taşınıyor; Recruiting.jsx handleSave sırayı kuruyor.
+      statusChangeNote: durumChanged ? capitalizeFirst(statusChangeNote.trim()) : null,
     })
   }
 
@@ -269,6 +297,70 @@ export default function RecruitingDetailModal({
                 <Info size={13} className="mt-0.5 shrink-0" />
                 Sebep seçilmeden kaydedilemez.
               </p>
+            )}
+
+            {/* "Diğer" sebebi seçilince ayrı, zorunlu bir açıklama —
+                genel durum değişikliği notundan AYRI alan (broker kararı,
+                2026-10-21: "ayrıca sebep açıklaması zorunlu olsun"). */}
+            {digerSebepSecili && (
+              <div className="mt-2">
+                <textarea
+                  required
+                  value={form.olumsuzSebebiAciklama}
+                  onChange={(e) => set({ olumsuzSebebiAciklama: e.target.value })}
+                  placeholder="Diğer sebebi kısaca açıkla (en az 30 karakter)..."
+                  rows={2}
+                  className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+                />
+                {minLengthHint(form.olumsuzSebebiAciklama) && (
+                  <p className="mt-1 flex items-start gap-1 text-xs text-amber-600">
+                    <Info size={13} className="mt-0.5 shrink-0" />
+                    {minLengthHint(form.olumsuzSebebiAciklama)}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Beklemede seçilince tekrar arama tarihi zorunlu (broker
+                kararı, 2026-10-21) — tarihi gelince ilgili sorumlunun
+                Panel'inde hatırlatma çıkar (bkz. Panel.jsx). */}
+            {form.durum === 'beklemede' && (
+              <div className="mt-2">
+                <label className="mb-1 block text-xs text-text-muted">Tekrar arama tarihi</label>
+                <input
+                  required
+                  type="date"
+                  value={form.tekrarAramaTarihi}
+                  onChange={(e) => set({ tekrarAramaTarihi: e.target.value })}
+                  className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+                />
+              </div>
+            )}
+
+            {/* Durum değişikliğinde zorunlu not (broker kararı, 2026-10-21:
+                "not yazılmadan kaydet butonu çalışmasın") — SADECE mevcut
+                bir adayın durumu gerçekten değişince görünür, hem burada
+                hem veritabanında zorunlu (bkz. migration 20261021120000). */}
+            {durumChanged && (
+              <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+                <label className="mb-1 block text-xs font-medium text-amber-800">
+                  Durum değişikliği notu * ({RECRUITING_DURUM_LABELS[candidate.durum]} → {RECRUITING_DURUM_LABELS[form.durum]})
+                </label>
+                <textarea
+                  required
+                  value={statusChangeNote}
+                  onChange={(e) => setStatusChangeNote(e.target.value)}
+                  placeholder="Bu değişikliğin sebebini kısaca yaz (en az 30 karakter)..."
+                  rows={2}
+                  className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+                />
+                {minLengthHint(statusChangeNote) && (
+                  <p className="mt-1 flex items-start gap-1 text-xs text-amber-700">
+                    <Info size={13} className="mt-0.5 shrink-0" />
+                    {minLengthHint(statusChangeNote)}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}
