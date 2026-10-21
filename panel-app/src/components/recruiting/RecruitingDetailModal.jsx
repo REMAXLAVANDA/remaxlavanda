@@ -252,7 +252,11 @@ export default function RecruitingDetailModal({
           onChange={(e) => set({ sorumluId: e.target.value })}
           className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
         >
-          <option value="">Sorumlu seç (opsiyonel)</option>
+          {/* "Sorumlu seç (opsiyonel)" metni artık yanıltıcıydı — alan zaten
+              girişi yapan kişiyle otomatik dolu geliyor (bkz. yukarıdaki
+              form state notu), bu seçenek sadece BİLEREK boşa çekmek
+              isteyen için kaldı (broker geri bildirimi, 2026-10-21). */}
+          <option value="">Atanmadı</option>
           {sorumluOptions.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
