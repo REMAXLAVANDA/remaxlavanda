@@ -77,6 +77,7 @@ export default function RecruitingDetailModal({
   canDeleteNotes,
   sorumluOptions = [],
   role,
+  currentUserId,
 }) {
   const interviewParts = toDateTimeParts(interviewEvent?.startAt)
   const [newNote, setNewNote] = useState('')
@@ -90,7 +91,12 @@ export default function RecruitingDetailModal({
   const yazanAdiSorulsun = role === 'ofis'
   const [form, setForm] = useState({
     kaynak: candidate?.kaynak ?? initialValues?.kaynak ?? 'diger',
-    sorumluId: candidate?.sorumluId ?? '',
+    // Yeni adayda sorumlu artık elle seçilmiyor, GİRİŞİ YAPAN kişi otomatik
+    // atanıyor (broker kararı, 2026-10-21: "sorumlu seç çok mantıklı değil,
+    // kim girişi yaptıysa o otomatik seçilsin") — listede hâlâ değiştirilip
+    // başka birine atanabiliyor, sadece varsayılan değişti. Mevcut bir
+    // adayı düzenlerken dokunulmuyor, kayıtlı sorumlusu aynen kalıyor.
+    sorumluId: candidate?.sorumluId ?? currentUserId ?? '',
     adSoyad: candidate?.adSoyad ?? initialValues?.adSoyad ?? '',
     telefon: candidate?.telefon ?? initialValues?.telefon ?? '',
     email: candidate?.email ?? initialValues?.email ?? '',

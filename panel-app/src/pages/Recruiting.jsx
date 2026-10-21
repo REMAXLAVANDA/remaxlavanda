@@ -338,6 +338,7 @@ export default function Recruiting() {
           canDeleteNotes={canDeleteNotes}
           sorumluOptions={sorumluOptions}
           role={role}
+          currentUserId={user.id}
         />
       )}
 
