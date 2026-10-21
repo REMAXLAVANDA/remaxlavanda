@@ -106,7 +106,6 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm text-text-primary">
           <span className="font-medium">{userName(k.danismanId)}</span>
-          <span className="text-text-muted"> — pay %{k.payOrani}</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           {tutarsiz && (

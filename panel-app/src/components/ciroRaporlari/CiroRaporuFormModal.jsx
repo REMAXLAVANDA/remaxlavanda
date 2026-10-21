@@ -763,7 +763,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
         {/* Pay oranı artık elle yazılmıyor — satıcıyı/alıcıyı temsil eden
             danışman yukarıdaki iki seçimle belirleniyor, pay otomatik
             olarak o tarafın hizmet bedelinden hesaplanıyor (broker,
-            2026-10-16). */}
+            2026-10-16). Ekranda da hiç gösterilmiyor (broker, 2026-10-21:
+            "oran yazmasına gerek yok, bizde alıcı satıcı ikiye ayrılır,
+            oranı karıştırma") — satıcı/alıcı iki ayrı taraf, bir ortaklık
+            yüzdesi değil; k.payOrani değeri hâlâ iç hesaplamada (gdCirosu,
+            komisyonTutariOnerisi) kullanılıyor, sadece kullanıcıya
+            gösterilmiyor. */}
         {toplamHizmetBedeliDeger > 0 && (
           <div className="space-y-1.5 rounded-lg bg-brand-50 p-3 text-xs text-brand-800">
             {katilimcilarHazir.length === 0 ? (
@@ -771,7 +776,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             ) : (
               katilimcilarHazir.map((k) => (
                 <p key={k.danismanId}>
-                  <span className="font-medium">{temsilciAdi(k.danismanId)}</span> — pay %{k.payOrani}
+                  <span className="font-medium">{temsilciAdi(k.danismanId)}</span>
                   {k.anlasmaOrani != null ? (
                     <>
                       {' '}
