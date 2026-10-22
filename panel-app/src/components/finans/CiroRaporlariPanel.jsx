@@ -129,8 +129,10 @@ export default function CiroRaporlariPanel() {
     [visibleReports, user.id],
   )
   const pendingReports = useMemo(() => visibleReports.filter((r) => r.durum === 'onay_bekliyor'), [visibleReports])
-  // Broker/owner: "Diğer Raporlar" sadece sonuçlanmışları gösterir (onay
-  // bekleyenler ayrı bölümde, taslaklar henüz gönderilmediği için ilgisiz).
+  // Broker/owner: "Geçmiş Raporlar" (eski adı "Diğer Raporlar" — broker,
+  // 2026-10-22: "Diğer" bir şey anlatmıyor) sadece sonuçlanmışları gösterir
+  // (onaylanan + reddedilen karışık, onay bekleyenler ayrı bölümde,
+  // taslaklar henüz gönderilmediği için ilgisiz).
   // Danışman: "Raporlarım" taslak HARİÇ her şeyi gösterir — kendi onay
   // bekleyeni de (ayrı bir "bekleyenler" bölümü danışman için yok) burada.
   const otherReports = useMemo(
@@ -880,7 +882,7 @@ export default function CiroRaporlariPanel() {
           )}
 
           <div>
-            <h2 className="mb-2 text-sm font-semibold text-text-primary">{isApprover ? 'Diğer Raporlar' : 'Raporlarım'}</h2>
+            <h2 className="mb-2 text-sm font-semibold text-text-primary">{isApprover ? 'Geçmiş Raporlar' : 'Raporlarım'}</h2>
             {(isApprover ? otherReports : danismanRaporlarim).length === 0 ? (
               <p className="text-sm text-text-muted">Henüz rapor yok.</p>
             ) : (
