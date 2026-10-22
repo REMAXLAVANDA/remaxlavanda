@@ -57,11 +57,17 @@ function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
 }
 
-// Boş/null parçaları atlayıp "·" ile birleştirir — madde 5-6'daki tekrar
-// eden tek-satır deseni (placeholder tire/boş alan gösterilmesin kuralıyla
-// aynı mantık).
-function satirBirlestir(parcalar) {
-  return (parcalar ?? []).filter(Boolean).join(' · ')
+// Küçük etiket + değer kutusu — açık detay bloklarında (madde 11, broker
+// 2026-10-22: "·" ile birleşik tek cümle TC ile telefonu birbirine
+// karıştırıyordu).
+function Alan({ etiket, deger }) {
+  if (deger == null || deger === '') return null
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted">{etiket}</p>
+      <p className="text-xs font-medium text-text-primary">{deger}</p>
+    </div>
+  )
 }
 
 async function loadAll() {
@@ -562,31 +568,47 @@ export default function CiroRaporlariPanel() {
             kısmı bende yok"). Tutarlar KDV DAHİL gösteriliyor —
             Hakediş de artık KDV dahil (bkz. lib/ciroRaporlari.js
             komisyonTutariOnerisi notu), ekranda tek format. */}
-        {/* Broker, 2026-10-20 (madde 6): ad/telefon/kimlik + hizmet
-                bedeli artık ayrı satırlar değil, tek satırda "·" ile
-                birleşik — madde 5'teki özet satırla AYNI desen. */}
-            <div className="grid grid-cols-1 gap-2 rounded-lg bg-surface-sunken p-3 text-xs text-text-secondary sm:grid-cols-2">
+        {/* Broker, 2026-10-22 (madde 11): etiketli alan+değer kutuları —
+            "·" ile birleşik tek cümle TC ile telefonu birbirine
+            karıştırıyordu. */}
+            <div className="grid grid-cols-1 gap-3 rounded-lg bg-surface-sunken p-3 sm:grid-cols-2">
               <div>
-                <p className="mb-0.5 font-medium text-text-primary">Satıcı</p>
-                <p>{satirBirlestir([r.saticiAdSoyad, r.saticiTelefon, r.saticiKimlikNo, r.saticiHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.saticiHizmetBedeli)}` : 'Hizmet bedeli alınmadı'])}</p>
+                <p className="mb-1.5 text-xs font-medium text-text-primary">Satıcı</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                  <Alan etiket="Ad Soyad" deger={r.saticiAdSoyad} />
+                  <Alan etiket="Telefon" deger={r.saticiTelefon} />
+                  <Alan etiket="TC / Vergi No" deger={r.saticiKimlikNo} />
+                  <Alan etiket="Hizmet Bedeli" deger={r.saticiHizmetBedeliAlindi ? tl(r.saticiHizmetBedeli) : 'Alınmadı'} />
+                </div>
                 {r.saticiDigerKisiler?.map((k, i) => (
-                  <p key={i} className="mt-0.5 text-text-muted">+ {satirBirlestir([k.adSoyad, k.telefon, k.kimlikNo])}</p>
+                  <div key={i} className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-border-subtle pt-1.5">
+                    <Alan etiket="Ek Satıcı" deger={k.adSoyad} />
+                    <Alan etiket="Telefon" deger={k.telefon} />
+                    <Alan etiket="TC" deger={k.kimlikNo} />
+                  </div>
                 ))}
               </div>
               <div>
-                <p className="mb-0.5 font-medium text-text-primary">Alıcı/Kiracı</p>
-                <p>{satirBirlestir([r.aliciAdSoyad, r.aliciTelefon, r.aliciKimlikNo, r.aliciHizmetBedeliAlindi ? `Hizmet bedeli alındı: ${tl(r.aliciHizmetBedeli)}` : 'Hizmet bedeli alınmadı'])}</p>
+                <p className="mb-1.5 text-xs font-medium text-text-primary">Alıcı/Kiracı</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                  <Alan etiket="Ad Soyad" deger={r.aliciAdSoyad} />
+                  <Alan etiket="Telefon" deger={r.aliciTelefon} />
+                  <Alan etiket="TC / Vergi No" deger={r.aliciKimlikNo} />
+                  <Alan etiket="Hizmet Bedeli" deger={r.aliciHizmetBedeliAlindi ? tl(r.aliciHizmetBedeli) : 'Alınmadı'} />
+                </div>
                 {r.aliciDigerKisiler?.map((k, i) => (
-                  <p key={i} className="mt-0.5 text-text-muted">+ {satirBirlestir([k.adSoyad, k.telefon, k.kimlikNo])}</p>
+                  <div key={i} className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-border-subtle pt-1.5">
+                    <Alan etiket="Ek Alıcı" deger={k.adSoyad} />
+                    <Alan etiket="Telefon" deger={k.telefon} />
+                    <Alan etiket="TC" deger={k.kimlikNo} />
+                  </div>
                 ))}
               </div>
-              <p className="sm:col-span-2">
-                {satirBirlestir([
-                  r.mulkBedeli != null ? `Anlaşılan Bedel: ${tl(r.mulkBedeli)}${r.islemTipi === 'kiralama' ? ' / ay' : ''}` : null,
-                  r.tapuBilgileri ? `Tapu Bilgileri: ${r.tapuBilgileri}` : null,
-                  `Ödeme: ${r.krediDurumu === 'kredi' ? `Kredi (${r.krediBankasi || '—'})` : 'Nakit'}`,
-                ])}
-              </p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-border-subtle pt-2 sm:col-span-2">
+                <Alan etiket="Anlaşılan Bedel" deger={r.mulkBedeli != null ? `${tl(r.mulkBedeli)}${r.islemTipi === 'kiralama' ? ' / ay' : ''}` : null} />
+                <Alan etiket="Tapu Bilgileri" deger={r.tapuBilgileri} />
+                <Alan etiket="Ödeme" deger={r.krediDurumu === 'kredi' ? `Kredi (${r.krediBankasi || '—'})` : 'Nakit'} />
+              </div>
             </div>
             {r.notlar && <p className="text-xs text-text-muted">Not: {r.notlar}</p>}
             {r.durum === 'reddedildi' && r.redSebebi && (

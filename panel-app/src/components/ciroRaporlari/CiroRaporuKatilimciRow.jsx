@@ -14,6 +14,19 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+// Küçük etiket + değer kutusu — CiroRaporlariPanel.jsx'teki Alan ile AYNI
+// desen (madde 11, broker 2026-10-22: tire ile birleşik cümle yerine
+// ayrı, açıkça etiketlenmiş alanlar).
+function Alan({ etiket, deger }) {
+  if (deger == null || deger === '') return null
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted">{etiket}</p>
+      <p className="text-xs font-medium text-text-primary">{deger}</p>
+    </div>
+  )
+}
+
 // Fatura alanları SADECE o katılımcının kendisi tarafından düzenlenir
 // (co-listing'de her danışman kendi vergi no'suyla ayrı fatura keser —
 // bkz. migration 20261008120000, ciro_raporu_katilimcilari_update RLS'i).
@@ -149,24 +162,19 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
           kıyaslı, broker'a özel) + kesilen/kesmesi gereken fatura (herkese
           görünür). "Ödeme alındı" son onayını hâlâ broker yukarıdaki
           düğmeyle elle veriyor, bu satır SADECE bilgi amaçlı. */}
-      <p className="mt-1.5 text-xs text-text-muted">
-        {canToggleOdeme && eslesenTutar != null && (
-          <>
-            Bankadan tahsil edilen: <span className="font-medium text-text-primary">{tl(eslesenTutar)}</span>
-            {' — '}
-          </>
-        )}
+      {/* Broker, 2026-10-22 (madde 11): tire ile birleşik cümle yerine
+          ayrı, açıkça etiketlenmiş iki alan. */}
+      <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
+        {canToggleOdeme && eslesenTutar != null && <Alan etiket="Bankadan Tahsil Edilen" deger={tl(eslesenTutar)} />}
         {k.faturaTutari != null ? (
-          <>
-            Kesilen Fatura: <span className="font-medium text-text-primary">{tl(k.faturaTutari)}</span>
-          </>
+          <Alan etiket="Kesilen Fatura" deger={tl(k.faturaTutari)} />
         ) : (
-          <>
-            Kesmesi gereken fatura (öneri): <span className="font-medium text-text-primary">{tl(k.komisyonTutariOnerisi)}</span>
-            {k.anlasmaOraniSnapshot != null && ` (%${k.anlasmaOraniSnapshot} paylaşım oranı)`}
-          </>
+          <Alan
+            etiket="Kesmesi Gereken Fatura (Öneri)"
+            deger={`${tl(k.komisyonTutariOnerisi)}${k.anlasmaOraniSnapshot != null ? ` (%${k.anlasmaOraniSnapshot} paylaşım oranı)` : ''}`}
+          />
         )}
-      </p>
+      </div>
 
       {!editing && (k.faturaNo || k.faturaTutari) && (
         <div className="mt-2 text-xs text-text-muted">
