@@ -1253,7 +1253,7 @@ export default function Panel() {
                 <div className="space-y-1.5">
                   {[
                     { key: 'bugun', label: 'Bugün giriş yapanlar', color: '#16a34a' },
-                    { key: 'son7gun', label: 'Son 7 gün içinde giriş yapanlar', color: 'var(--color-remax-blue)' },
+                    { key: 'son7gun', label: '1-7 gün önce giriş yapanlar', color: 'var(--color-remax-blue)' },
                     { key: 'uzunSuredir', label: '7 günden uzun süredir giriş yapmayanlar', color: 'var(--color-brand-600)' },
                   ].map((b) => {
                     const people = usageBuckets[b.key]
