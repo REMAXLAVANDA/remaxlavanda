@@ -6,11 +6,11 @@ import { RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recru
 
 const TC_NO_PATTERN = /^\d{11}$/
 
-// kaynak/okul/meslek/deneyimYili: CreateUserModal'da danışman eklerken
-// ZORUNLU (broker kararı, 2026-10-22) — burada OPSİYONEL, çünkü bu ekran
-// aynı zamanda bu alanlar eklenmeden önce kaydedilmiş eski danışmanları
-// sonradan doldurmak için de kullanılıyor (broker: "mevcut danışmanlar
-// için liste çıkar, ben dolduracağım").
+// Broker kararı (2026-10-22): "opsiyonel cümlesi hala duruyor" — Düzenle
+// ekranında da hiçbir alan opsiyonel kalmasın, hepsi zorunlu. Sonucu:
+// kaynak/okul/meslek/deneyim eksik olan mevcut danışmanlarda (bkz. 2026-10-22
+// listesi) bu alanlar doldurulmadan HİÇBİR değişiklik (ör. telefon düzeltmesi)
+// kaydedilemez — bilerek, broker'ın açık isteğiyle.
 export default function EditUserModal({
   user,
   privateInfo,
@@ -33,7 +33,7 @@ export default function EditUserModal({
     deneyimYili: privateInfo?.deneyimYili ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
+  const tcNoValid = TC_NO_PATTERN.test(form.tcNo.trim())
   const showMentorField = canSetMentorPrimi && user.role === 'danisman'
   const showProfileFields = user.role === 'danisman'
   // Paylaşım oranı (Rap/Max) hassas bir finansal ayar — yanlışlıkla
@@ -43,7 +43,13 @@ export default function EditUserModal({
   const showAnlasmaField = canSetAnlasma && user.role === 'danisman'
   const [anlasmaDegistir, setAnlasmaDegistir] = useState(false)
   const [tier, setTier] = useState(guncelTier ?? 'rap')
-  const canSubmit = form.ad.trim().length > 0 && tcNoValid && (!anlasmaDegistir || !!tier)
+  const canSubmit =
+    form.ad.trim().length > 0 &&
+    !!form.dogumTarihi &&
+    tcNoValid &&
+    (!anlasmaDegistir || !!tier) &&
+    (!showProfileFields || (!!form.kaynak && form.okul.trim() && form.meslek.trim() && form.deneyimYili !== '')) &&
+    (!showMentorField || !!form.mentorBaslangicTarihi)
 
   return (
     <Modal title="Kullanıcıyı Düzenle" onClose={onClose}>
@@ -53,14 +59,14 @@ export default function EditUserModal({
           if (!canSubmit) return
           onSubmit({
             ad: capitalizeWords(form.ad.trim()),
-            dogumTarihi: form.dogumTarihi || null,
-            tcNo: form.tcNo.trim() || null,
-            mentorBaslangicTarihi: showMentorField ? form.mentorBaslangicTarihi || null : undefined,
+            dogumTarihi: form.dogumTarihi,
+            tcNo: form.tcNo.trim(),
+            mentorBaslangicTarihi: showMentorField ? form.mentorBaslangicTarihi : undefined,
             tier: showAnlasmaField && anlasmaDegistir ? tier : undefined,
-            kaynak: showProfileFields ? form.kaynak || null : undefined,
-            okul: showProfileFields ? form.okul.trim() || null : null,
-            meslek: showProfileFields ? form.meslek.trim() || null : null,
-            deneyimYili: showProfileFields && form.deneyimYili !== '' ? Number(form.deneyimYili) : null,
+            kaynak: showProfileFields ? form.kaynak : undefined,
+            okul: showProfileFields ? form.okul.trim() : null,
+            meslek: showProfileFields ? form.meslek.trim() : null,
+            deneyimYili: showProfileFields ? Number(form.deneyimYili) : null,
           })
         }}
         className="space-y-3"
@@ -75,8 +81,9 @@ export default function EditUserModal({
         />
         <div className="flex gap-2">
           <div className="w-full">
-            <label className="mb-1 block text-xs text-text-secondary">Doğum tarihi (opsiyonel)</label>
+            <label className="mb-1 block text-xs text-text-secondary">Doğum tarihi</label>
             <input
+              required
               type="date"
               value={form.dogumTarihi}
               onChange={(e) => set({ dogumTarihi: e.target.value })}
@@ -84,8 +91,9 @@ export default function EditUserModal({
             />
           </div>
           <div className="w-full">
-            <label className="mb-1 block text-xs text-text-secondary">TC Kimlik No (opsiyonel)</label>
+            <label className="mb-1 block text-xs text-text-secondary">TC Kimlik No</label>
             <input
+              required
               inputMode="numeric"
               maxLength={11}
               value={form.tcNo}
@@ -100,13 +108,16 @@ export default function EditUserModal({
         {showProfileFields && (
           <>
             <div>
-              <label className="mb-1 block text-xs text-text-secondary">Nereden geldi? (opsiyonel)</label>
+              <label className="mb-1 block text-xs text-text-secondary">Nereden geldi?</label>
               <select
+                required
                 value={form.kaynak}
                 onChange={(e) => set({ kaynak: e.target.value })}
                 className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
               >
-                <option value="">Bilinmiyor</option>
+                <option value="" disabled>
+                  Seç...
+                </option>
                 {RECRUITING_KAYNAKLARI.map((k) => (
                   <option key={k} value={k}>
                     {RECRUITING_KAYNAK_LABELS[k]}
@@ -119,24 +130,27 @@ export default function EditUserModal({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-1 block text-xs text-text-secondary">Son mezun olduğu okul (opsiyonel)</label>
+                <label className="mb-1 block text-xs text-text-secondary">Son mezun olduğu okul</label>
                 <input
+                  required
                   value={form.okul}
                   onChange={(e) => set({ okul: e.target.value })}
                   className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-text-secondary">Mesleği (opsiyonel)</label>
+                <label className="mb-1 block text-xs text-text-secondary">Mesleği</label>
                 <input
+                  required
                   value={form.meslek}
                   onChange={(e) => set({ meslek: e.target.value })}
                   className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
                 />
               </div>
               <div className="col-span-2">
-                <label className="mb-1 block text-xs text-text-secondary">Çalışma hayatı yılı (opsiyonel)</label>
+                <label className="mb-1 block text-xs text-text-secondary">Çalışma hayatı yılı</label>
                 <input
+                  required
                   type="number"
                   min="0"
                   max="60"
@@ -156,9 +170,10 @@ export default function EditUserModal({
         {showMentorField && (
           <div>
             <label className="mb-1 block text-xs text-text-secondary">
-              Mentorluk Başlangıç Tarihi (opsiyonel) <span className="text-text-muted">— sadece sen görürsün</span>
+              Mentorluk Başlangıç Tarihi <span className="text-text-muted">— sadece sen görürsün</span>
             </label>
             <input
+              required
               type="date"
               value={form.mentorBaslangicTarihi}
               onChange={(e) => set({ mentorBaslangicTarihi: e.target.value })}
