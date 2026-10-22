@@ -71,17 +71,23 @@ export default function EditUserModal({
         }}
         className="space-y-3"
       >
-        <input
-          required
-          value={form.ad}
-          onChange={(e) => set({ ad: e.target.value })}
-          onBlur={(e) => set({ ad: capitalizeWords(e.target.value) })}
-          placeholder="Ad Soyad"
-          className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
-        />
+        <div>
+          <label className="mb-1 block text-xs text-text-secondary">
+            Ad Soyad <span className="text-red-600">*</span>
+          </label>
+          <input
+            required
+            value={form.ad}
+            onChange={(e) => set({ ad: e.target.value })}
+            onBlur={(e) => set({ ad: capitalizeWords(e.target.value) })}
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+        </div>
         <div className="flex gap-2">
           <div className="w-full">
-            <label className="mb-1 block text-xs text-text-secondary">Doğum tarihi</label>
+            <label className="mb-1 block text-xs text-text-secondary">
+              Doğum tarihi <span className="text-red-600">*</span>
+            </label>
             <input
               required
               type="date"
@@ -91,7 +97,9 @@ export default function EditUserModal({
             />
           </div>
           <div className="w-full">
-            <label className="mb-1 block text-xs text-text-secondary">TC Kimlik No</label>
+            <label className="mb-1 block text-xs text-text-secondary">
+              TC Kimlik No <span className="text-red-600">*</span>
+            </label>
             <input
               required
               inputMode="numeric"
@@ -108,7 +116,9 @@ export default function EditUserModal({
         {showProfileFields && (
           <>
             <div>
-              <label className="mb-1 block text-xs text-text-secondary">Nereden geldi?</label>
+              <label className="mb-1 block text-xs text-text-secondary">
+                Nereden geldi? <span className="text-red-600">*</span>
+              </label>
               <select
                 required
                 value={form.kaynak}
@@ -130,7 +140,9 @@ export default function EditUserModal({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="mb-1 block text-xs text-text-secondary">Son mezun olduğu okul</label>
+                <label className="mb-1 block text-xs text-text-secondary">
+                  Son mezun olduğu okul <span className="text-red-600">*</span>
+                </label>
                 <input
                   required
                   value={form.okul}
@@ -139,7 +151,9 @@ export default function EditUserModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-text-secondary">Mesleği</label>
+                <label className="mb-1 block text-xs text-text-secondary">
+                  Mesleği <span className="text-red-600">*</span>
+                </label>
                 <input
                   required
                   value={form.meslek}
@@ -148,7 +162,9 @@ export default function EditUserModal({
                 />
               </div>
               <div className="col-span-2">
-                <label className="mb-1 block text-xs text-text-secondary">Çalışma hayatı yılı</label>
+                <label className="mb-1 block text-xs text-text-secondary">
+                  Çalışma hayatı yılı <span className="text-red-600">*</span>
+                </label>
                 <input
                   required
                   type="number"
@@ -170,7 +186,8 @@ export default function EditUserModal({
         {showMentorField && (
           <div>
             <label className="mb-1 block text-xs text-text-secondary">
-              Mentorluk Başlangıç Tarihi <span className="text-text-muted">— sadece sen görürsün</span>
+              Mentorluk Başlangıç Tarihi <span className="text-red-600">*</span>{' '}
+              <span className="text-text-muted">— sadece sen görürsün</span>
             </label>
             <input
               required
