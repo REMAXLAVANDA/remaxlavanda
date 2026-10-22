@@ -68,13 +68,14 @@ export function leadResponsePercent(userId, calls) {
 }
 
 // Portal kullanımı gerçek son giriş zamanından (auth.users -> list_user_activity
-// RPC) hesaplanır. Bugün giriş 100, her geçen gün -10 puan, hiç giriş
-// yapmamışsa (ya da hiç aktivite kaydı yoksa) %0.
+// RPC) hesaplanır. Bugün giriş 100, her geçen gün -20 puan (broker kararı,
+// 2026-10-22: "daha acımasız olsun" — eskiden -10'du, 10 günde değil 5 günde
+// %0'a iniyor), hiç giriş yapmamışsa (ya da hiç aktivite kaydı yoksa) %0.
 export function portalUsagePercent(userId, activity) {
   const row = activity.find((a) => a.userId === userId)
   if (!row || !row.lastSignInAt) return 0
   const diffDays = Math.floor((Date.now() - new Date(row.lastSignInAt).getTime()) / (24 * 60 * 60 * 1000))
-  return Math.max(0, 100 - diffDays * 10)
+  return Math.max(0, 100 - diffDays * 20)
 }
 
 // Müşteri memnuniyeti artık Lig > Ciro'da zaten girilen ciro_musterileri
