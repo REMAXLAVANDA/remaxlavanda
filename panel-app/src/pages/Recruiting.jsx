@@ -349,6 +349,7 @@ export default function Recruiting() {
             telefon: convertingCandidate.telefon ?? '',
             email: convertingCandidate.email ?? '',
           }}
+          kaynakBelli
           onClose={() => setConvertingCandidate(null)}
           onSubmit={handleCreateDanisman}
           submitting={submitting}

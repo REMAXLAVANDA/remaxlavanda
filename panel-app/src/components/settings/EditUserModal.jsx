@@ -2,9 +2,15 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import { capitalizeWords } from '../../lib/format'
 import { DANISMAN_TIER_LABELS, DANISMAN_TIER_RATES } from '../../lib/danismanTier'
+import { RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
 const TC_NO_PATTERN = /^\d{11}$/
 
+// kaynak/okul/meslek/deneyimYili: CreateUserModal'da danışman eklerken
+// ZORUNLU (broker kararı, 2026-10-22) — burada OPSİYONEL, çünkü bu ekran
+// aynı zamanda bu alanlar eklenmeden önce kaydedilmiş eski danışmanları
+// sonradan doldurmak için de kullanılıyor (broker: "mevcut danışmanlar
+// için liste çıkar, ben dolduracağım").
 export default function EditUserModal({
   user,
   privateInfo,
@@ -21,10 +27,15 @@ export default function EditUserModal({
     dogumTarihi: privateInfo?.dogumTarihi ?? '',
     tcNo: privateInfo?.tcNo ?? '',
     mentorBaslangicTarihi: mentorBaslangicTarihi ?? '',
+    kaynak: user.kaynak ?? '',
+    okul: privateInfo?.okul ?? '',
+    meslek: privateInfo?.meslek ?? '',
+    deneyimYili: privateInfo?.deneyimYili ?? '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
   const showMentorField = canSetMentorPrimi && user.role === 'danisman'
+  const showProfileFields = user.role === 'danisman'
   // Paylaşım oranı (Rap/Max) hassas bir finansal ayar — yanlışlıkla
   // değişmesin diye varsayılan KAPALI, broker/owner bilerek tikler (2026-10-09
   // broker: "paylaşım oranını değiştir tiki olmalı"). Tiklenince mevcut
@@ -46,6 +57,10 @@ export default function EditUserModal({
             tcNo: form.tcNo.trim() || null,
             mentorBaslangicTarihi: showMentorField ? form.mentorBaslangicTarihi || null : undefined,
             tier: showAnlasmaField && anlasmaDegistir ? tier : undefined,
+            kaynak: showProfileFields ? form.kaynak || null : undefined,
+            okul: showProfileFields ? form.okul.trim() || null : null,
+            meslek: showProfileFields ? form.meslek.trim() || null : null,
+            deneyimYili: showProfileFields && form.deneyimYili !== '' ? Number(form.deneyimYili) : null,
           })
         }}
         className="space-y-3"
@@ -81,6 +96,58 @@ export default function EditUserModal({
             {!tcNoValid && <p className="mt-1 text-xs text-red-600">TC Kimlik No 11 haneli olmalı.</p>}
           </div>
         </div>
+
+        {showProfileFields && (
+          <>
+            <div>
+              <label className="mb-1 block text-xs text-text-secondary">Nereden geldi? (opsiyonel)</label>
+              <select
+                value={form.kaynak}
+                onChange={(e) => set({ kaynak: e.target.value })}
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+              >
+                <option value="">Bilinmiyor</option>
+                {RECRUITING_KAYNAKLARI.map((k) => (
+                  <option key={k} value={k}>
+                    {RECRUITING_KAYNAK_LABELS[k]}
+                  </option>
+                ))}
+                {form.kaynak && !RECRUITING_KAYNAKLARI.includes(form.kaynak) && (
+                  <option value={form.kaynak}>{form.kaynak}</option>
+                )}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-xs text-text-secondary">Son mezun olduğu okul (opsiyonel)</label>
+                <input
+                  value={form.okul}
+                  onChange={(e) => set({ okul: e.target.value })}
+                  className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-text-secondary">Mesleği (opsiyonel)</label>
+                <input
+                  value={form.meslek}
+                  onChange={(e) => set({ meslek: e.target.value })}
+                  className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="mb-1 block text-xs text-text-secondary">Çalışma hayatı yılı (opsiyonel)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="60"
+                  value={form.deneyimYili}
+                  onChange={(e) => set({ deneyimYili: e.target.value })}
+                  className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* bkz. CreateUserModal'daki aynı not — Mentor Primi başlangıç
             tarihi artık sadece "Kaydet"e basınca yazılıyor, satır içi

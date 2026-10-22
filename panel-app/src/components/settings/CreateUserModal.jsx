@@ -5,6 +5,7 @@ import { capitalizeWords } from '../../lib/format'
 import { generateSecurePassword } from '../../lib/password'
 import { formatPhoneInput } from '../../lib/phone'
 import { DANISMAN_TIER_LABELS, DANISMAN_TIER_RATES } from '../../lib/danismanTier'
+import { RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
 const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
 const TC_NO_PATTERN = /^\d{11}$/
@@ -12,7 +13,26 @@ const TC_NO_PATTERN = /^\d{11}$/
 // initialValues: Recruiting'de "Danışman Olarak Ekle" ile açıldığında
 // aday bilgilerini (ad/telefon/email) ön-doldurur (bkz. Recruiting.jsx
 // handleConvertToDanisman) — RecruitingDetailModal ile AYNI desen.
-export default function CreateUserModal({ onClose, onSubmit, submitting, initialValues, canSetMentorPrimi, canSetAnlasma }) {
+//
+// kaynakBelli: Recruiting dönüşümünde kaynak zaten biliniyor (aday hangi
+// kanaldan geldiyse, bkz. candidateKaynakOzeti) — bu modal o yüzden kaynak
+// SORMUYOR, Recruiting.jsx kendi onSubmit'inde ekliyor. Doğrudan "Kullanıcı
+// Ekle" ile (kaynakBelli=false) eklenirken danışman kaynağı hiç
+// bilinmiyordu (broker: "Ayla ... direk kaydetmiş, hangi kaynaktan
+// geldiği bilinmiyor", 2026-10-22) — bu yüzden o yolda zorunlu.
+//
+// okul/meslek/deneyimYili: broker kararı (2026-10-22), "ölçümleyebileceği-
+// miz şeyler" — SADECE danışman rolünde zorunlu, yoldan (direkt/Recruiting)
+// bağımsız, her iki yolda da sorulur.
+export default function CreateUserModal({
+  onClose,
+  onSubmit,
+  submitting,
+  initialValues,
+  canSetMentorPrimi,
+  canSetAnlasma,
+  kaynakBelli,
+}) {
   const [form, setForm] = useState({
     ad: initialValues?.ad ?? '',
     email: initialValues?.email ?? '',
@@ -23,12 +43,24 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
     tcNo: '',
     mentorBaslangicTarihi: '',
     tier: '',
+    kaynak: '',
+    okul: '',
+    meslek: '',
+    deneyimYili: '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
   const showAnlasmaField = canSetAnlasma && form.rol === ROLES.DANISMAN
+  const isDanisman = form.rol === ROLES.DANISMAN
+  const showKaynakField = isDanisman && !kaynakBelli
   const canSubmit =
-    form.ad.trim() && form.email.trim() && form.password.length >= 8 && tcNoValid && (!showAnlasmaField || !!form.tier)
+    form.ad.trim() &&
+    form.email.trim() &&
+    form.password.length >= 8 &&
+    tcNoValid &&
+    (!showAnlasmaField || !!form.tier) &&
+    (!showKaynakField || !!form.kaynak) &&
+    (!isDanisman || (form.okul.trim() && form.meslek.trim() && form.deneyimYili !== ''))
 
   return (
     <Modal title="Kullanıcı Ekle" onClose={onClose}>
@@ -36,7 +68,14 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
         onSubmit={(e) => {
           e.preventDefault()
           if (!canSubmit) return
-          onSubmit({ ...form, ad: capitalizeWords(form.ad.trim()), tcNo: form.tcNo.trim() })
+          onSubmit({
+            ...form,
+            ad: capitalizeWords(form.ad.trim()),
+            tcNo: form.tcNo.trim(),
+            okul: form.okul.trim(),
+            meslek: form.meslek.trim(),
+            deneyimYili: form.deneyimYili === '' ? null : Number(form.deneyimYili),
+          })
         }}
         className="space-y-3"
       >
@@ -99,6 +138,66 @@ export default function CreateUserModal({ onClose, onSubmit, submitting, initial
             </option>
           ))}
         </select>
+
+        {showKaynakField && (
+          <div>
+            <label className="mb-1 block text-xs text-text-secondary">Nereden geldi?</label>
+            <select
+              required
+              value={form.kaynak}
+              onChange={(e) => set({ kaynak: e.target.value })}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+            >
+              <option value="" disabled>
+                Seç...
+              </option>
+              {RECRUITING_KAYNAKLARI.map((k) => (
+                <option key={k} value={k}>
+                  {RECRUITING_KAYNAK_LABELS[k]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {isDanisman && (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-text-secondary">Son mezun olduğu okul</label>
+              <input
+                required
+                value={form.okul}
+                onChange={(e) => set({ okul: e.target.value })}
+                placeholder="Örn. Marmara Üniversitesi"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-text-secondary">Mesleği</label>
+              <input
+                required
+                value={form.meslek}
+                onChange={(e) => set({ meslek: e.target.value })}
+                placeholder="Önceki/mevcut meslek"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs text-text-secondary">Çalışma hayatı (yıl)</label>
+              <input
+                required
+                type="number"
+                min="0"
+                max="60"
+                value={form.deneyimYili}
+                onChange={(e) => set({ deneyimYili: e.target.value })}
+                placeholder="Örn. 5"
+                className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Mentor Primi başlangıç tarihi — SADECE broker görüyor (bkz.
             canSetMentorPrimi, Ayarlar.jsx canViewMentorPrimi) ve SADECE
             danışman rolünde anlamlı. Broker "bence bunu danışman

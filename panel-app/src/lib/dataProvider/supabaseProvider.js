@@ -2156,6 +2156,7 @@ export const users = {
     if ('role' in patch) dbPatch.rol = patch.role
     if ('durum' in patch) dbPatch.durum = patch.durum
     if ('testHesabi' in patch) dbPatch.test_hesabi = patch.testHesabi
+    if ('kaynak' in patch) dbPatch.kaynak = patch.kaynak
     await run(client().from('users').update(dbPatch).eq('id', id))
     return { id, ...patch }
   },
@@ -2185,15 +2186,25 @@ export const users = {
   async touchActivity() {
     await run(client().rpc('touch_activity'))
   },
-  // TC no / doğum tarihi — ayrı, kısıtlı-görünürlüklü tabloda tutuluyor
-  // (bkz. user_private_info_select RLS: sadece broker/owner/ofis + kişinin
-  // kendisi görebilir). user_private_info_write RLS'i is_manager() şartı
-  // koyduğu için sadece broker/owner çağırabilir.
-  async upsertPrivateInfo(userId, { dogumTarihi, tcNo }) {
+  // TC no / doğum tarihi / okul / meslek / deneyim yılı — ayrı, kısıtlı-
+  // görünürlüklü tabloda tutuluyor (bkz. user_private_info_select RLS:
+  // sadece broker/owner/ofis + kişinin kendisi görebilir). okul/meslek/
+  // deneyim_yili migration 20261022140000'de eklendi (broker: "ölçümleye-
+  // bileceğimiz şeyler" — danışman eklerken zorunlu, bkz. CreateUserModal).
+  // user_private_info_write RLS'i is_manager() şartı koyduğu için sadece
+  // broker/owner çağırabilir.
+  async upsertPrivateInfo(userId, { dogumTarihi, tcNo, okul, meslek, deneyimYili }) {
     await run(
       client()
         .from('user_private_info')
-        .upsert({ user_id: userId, dogum_tarihi: dogumTarihi ?? null, tc_no: tcNo ?? null }),
+        .upsert({
+          user_id: userId,
+          dogum_tarihi: dogumTarihi ?? null,
+          tc_no: tcNo ?? null,
+          okul: okul ?? null,
+          meslek: meslek ?? null,
+          deneyim_yili: deneyimYili ?? null,
+        }),
     )
   },
   // Ayarlar > Kullanıcılar'da Düzenle formunu mevcut değerlerle doldurmak
@@ -2201,7 +2212,14 @@ export const users = {
   // eşleştiriyoruz (aynı RLS: broker/owner/ofis herkesinkini görebilir).
   async listAllPrivateInfo() {
     const data = await run(client().from('user_private_info').select('*'))
-    return data.map((r) => ({ userId: r.user_id, dogumTarihi: r.dogum_tarihi, tcNo: r.tc_no }))
+    return data.map((r) => ({
+      userId: r.user_id,
+      dogumTarihi: r.dogum_tarihi,
+      tcNo: r.tc_no,
+      okul: r.okul,
+      meslek: r.meslek,
+      deneyimYili: r.deneyim_yili,
+    }))
   },
   // Gerçek auth hesabını silmek service_role gerektirir — delete-user Edge
   // Function'ı üzerinden gidiyor (create-user ile aynı kalıp). Fonksiyon

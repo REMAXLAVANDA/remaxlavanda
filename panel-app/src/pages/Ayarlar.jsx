@@ -415,11 +415,17 @@ export default function Ayarlar() {
       setAllUsers((prev) => [...prev, { ...created, durum: 'aktif' }])
       setShowCreateModal(false)
       showToast('Kullanıcı oluşturuldu.', 'success')
-      if (form.dogumTarihi || form.tcNo) {
+      if (form.dogumTarihi || form.tcNo || form.okul || form.meslek || form.deneyimYili != null) {
         try {
-          await usersProvider.upsertPrivateInfo(created.id, { dogumTarihi: form.dogumTarihi || null, tcNo: form.tcNo || null })
+          await usersProvider.upsertPrivateInfo(created.id, {
+            dogumTarihi: form.dogumTarihi || null,
+            tcNo: form.tcNo || null,
+            okul: form.okul || null,
+            meslek: form.meslek || null,
+            deneyimYili: form.deneyimYili ?? null,
+          })
         } catch {
-          showToast('Kullanıcı oluşturuldu ama doğum tarihi/TC no kaydedilemedi.', 'error')
+          showToast('Kullanıcı oluşturuldu ama profil bilgileri (doğum tarihi/TC no/okul/meslek/deneyim) kaydedilemedi.', 'error')
         }
       }
       if (form.dogumTarihi) {
@@ -465,12 +471,20 @@ export default function Ayarlar() {
     if (!editingUser) return
     setSubmitting(true)
     try {
-      await usersProvider.updateUser(editingUser.id, { name: patch.ad })
-      setAllUsers((prev) => prev.map((u) => (u.id === editingUser.id ? { ...u, name: patch.ad } : u)))
-      await usersProvider.upsertPrivateInfo(editingUser.id, { dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo })
+      const userUpdate = { name: patch.ad }
+      if (patch.kaynak !== undefined) userUpdate.kaynak = patch.kaynak
+      await usersProvider.updateUser(editingUser.id, userUpdate)
+      setAllUsers((prev) => prev.map((u) => (u.id === editingUser.id ? { ...u, name: patch.ad, ...(patch.kaynak !== undefined ? { kaynak: patch.kaynak } : {}) } : u)))
+      await usersProvider.upsertPrivateInfo(editingUser.id, {
+        dogumTarihi: patch.dogumTarihi,
+        tcNo: patch.tcNo,
+        okul: patch.okul,
+        meslek: patch.meslek,
+        deneyimYili: patch.deneyimYili,
+      })
       setPrivateInfoList((prev) => [
         ...(prev ?? []).filter((p) => p.userId !== editingUser.id),
-        { userId: editingUser.id, dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo },
+        { userId: editingUser.id, dogumTarihi: patch.dogumTarihi, tcNo: patch.tcNo, okul: patch.okul, meslek: patch.meslek, deneyimYili: patch.deneyimYili },
       ])
       await syncBirthdayEvent(editingUser.id, patch.ad, patch.dogumTarihi)
       if (patch.mentorBaslangicTarihi !== undefined) {

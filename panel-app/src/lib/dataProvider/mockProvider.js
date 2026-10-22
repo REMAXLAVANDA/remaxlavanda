@@ -1650,6 +1650,7 @@ export const users = {
       if ('role' in patch) target.role = patch.role
       if ('durum' in patch) target.durum = patch.durum
       if ('testHesabi' in patch) target.testHesabi = patch.testHesabi
+      if ('kaynak' in patch) target.kaynak = patch.kaynak
     }
     return delay({ id, ...patch })
   },
@@ -1677,8 +1678,14 @@ export const users = {
   async touchActivity() {
     return delay(null)
   },
-  async upsertPrivateInfo(userId, { dogumTarihi, tcNo }) {
-    MOCK_PRIVATE_INFO[userId] = { dogumTarihi: dogumTarihi ?? null, tcNo: tcNo ?? null }
+  async upsertPrivateInfo(userId, { dogumTarihi, tcNo, okul, meslek, deneyimYili }) {
+    MOCK_PRIVATE_INFO[userId] = {
+      dogumTarihi: dogumTarihi ?? null,
+      tcNo: tcNo ?? null,
+      okul: okul ?? null,
+      meslek: meslek ?? null,
+      deneyimYili: deneyimYili ?? null,
+    }
     return delay({ userId, ...MOCK_PRIVATE_INFO[userId] })
   },
   async listAllPrivateInfo() {
