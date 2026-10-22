@@ -49,18 +49,24 @@ export default function CreateUserModal({
     deneyimYili: '',
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
-  const tcNoValid = form.tcNo.trim().length === 0 || TC_NO_PATTERN.test(form.tcNo.trim())
+  // Broker kararı (2026-10-22): "girilen hiçbir bilgi opsiyonel olmasın" —
+  // TC no artık boş kabul edilmiyor, tam 11 hane zorunlu.
+  const tcNoValid = TC_NO_PATTERN.test(form.tcNo.trim())
   const showAnlasmaField = canSetAnlasma && form.rol === ROLES.DANISMAN
   const isDanisman = form.rol === ROLES.DANISMAN
   const showKaynakField = isDanisman && !kaynakBelli
+  const showMentorField = canSetMentorPrimi && isDanisman
   const canSubmit =
     form.ad.trim() &&
     form.email.trim() &&
+    form.telefon.trim() &&
+    form.dogumTarihi &&
     form.password.length >= 8 &&
     tcNoValid &&
     (!showAnlasmaField || !!form.tier) &&
     (!showKaynakField || !!form.kaynak) &&
-    (!isDanisman || (form.okul.trim() && form.meslek.trim() && form.deneyimYili !== ''))
+    (!isDanisman || (form.okul.trim() && form.meslek.trim() && form.deneyimYili !== '')) &&
+    (!showMentorField || !!form.mentorBaslangicTarihi)
 
   return (
     <Modal title="Kullanıcı Ekle" onClose={onClose}>
@@ -97,17 +103,19 @@ export default function CreateUserModal({
             className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
           <input
+            required
             type="tel"
             value={form.telefon}
             onChange={(e) => set({ telefon: formatPhoneInput(e.target.value) })}
-            placeholder="Telefon (opsiyonel)"
+            placeholder="Telefon"
             className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
         </div>
         <div className="flex gap-2">
           <div className="w-full">
-            <label className="mb-1 block text-xs text-text-secondary">Doğum tarihi (opsiyonel)</label>
+            <label className="mb-1 block text-xs text-text-secondary">Doğum tarihi</label>
             <input
+              required
               type="date"
               value={form.dogumTarihi}
               onChange={(e) => set({ dogumTarihi: e.target.value })}
@@ -115,8 +123,9 @@ export default function CreateUserModal({
             />
           </div>
           <div className="w-full">
-            <label className="mb-1 block text-xs text-text-secondary">TC Kimlik No (opsiyonel)</label>
+            <label className="mb-1 block text-xs text-text-secondary">TC Kimlik No</label>
             <input
+              required
               inputMode="numeric"
               maxLength={11}
               value={form.tcNo}
@@ -206,12 +215,13 @@ export default function CreateUserModal({
             tarih kutusuydu; kısmi/eksik bir tarih girişinde bile ağa istek
             atıyordu. Artık diğer alanlar gibi SADECE "Oluştur"a basınca
             kaydediliyor. */}
-        {canSetMentorPrimi && form.rol === ROLES.DANISMAN && (
+        {showMentorField && (
           <div>
             <label className="mb-1 block text-xs text-text-secondary">
-              Mentorluk Başlangıç Tarihi (opsiyonel) <span className="text-text-muted">— sadece sen görürsün</span>
+              Mentorluk Başlangıç Tarihi <span className="text-text-muted">— sadece sen görürsün</span>
             </label>
             <input
+              required
               type="date"
               value={form.mentorBaslangicTarihi}
               onChange={(e) => set({ mentorBaslangicTarihi: e.target.value })}
