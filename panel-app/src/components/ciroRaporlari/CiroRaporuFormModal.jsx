@@ -283,9 +283,51 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     // Hareketleri, artık değiştirilemez) varsa bu şartı zaten karşılar.
     (paraHareketleriGecerliSayisi > 0 || (existingParaHareketleri?.length ?? 0) > 0)
 
+  // Broker, 2026-10-22: "kaydet butonu gri oluyor, danışman neden
+  // kaydedemediğini anlamıyor — kaydet basılabilsin ama bastığında hangi
+  // bilgi eksik söylesin". Eskiden buton SESSİZCE disabled'tı (canSubmit
+  // false'ken hiçbir açıklama yoktu). Artık buton HER ZAMAN tıklanabilir
+  // (sadece ağ isteği sürerken disabled) — eksik varsa handleSubmit kaydı
+  // GÖNDERMEZ, bunun yerine bu liste formun üstünde kırmızı bir uyarı
+  // olarak gösterilir (bkz. attemptedSubmit/eksikAlanlar JSX'i).
+  const eksikAlanlar = []
+  if (disBeyanKodu.trim().length === 0) eksikAlanlar.push(portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu')
+  if (tapuBilgileri.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri')
+  if (mulkBedeliGerekli && !(mulkBedeliParsed !== null && mulkBedeliParsed > 0)) eksikAlanlar.push('Anlaşılan Bedel')
+  if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
+  if (!raporKategori) eksikAlanlar.push('Kategori')
+  if (krediDurumu === 'kredi' && krediBankasi.trim().length === 0) eksikAlanlar.push('Kredi bankası')
+  if (satici.adSoyad.trim().length === 0) eksikAlanlar.push('Satıcı — Ad Soyad')
+  if (satici.telefon.trim().length === 0) eksikAlanlar.push('Satıcı — Telefon')
+  if (satici.kimlikNo.trim().length === 0) eksikAlanlar.push('Satıcı — TC/Vergi No')
+  if (saticiVar === null) eksikAlanlar.push('Satıcıdan hizmet bedeli aldın mı? (Aldım/Almadım seç)')
+  if (saticiVar === true && !(saticiHizmetBedeliParsed !== null && saticiHizmetBedeliParsed > 0))
+    eksikAlanlar.push('Satıcı — Hizmet Bedeli')
+  if (saticiVar === true && !(saticiKdvOraniParsed !== null && saticiKdvOraniParsed >= 0)) eksikAlanlar.push('Satıcı — KDV %')
+  if (alici.adSoyad.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı — Ad Soyad')
+  if (alici.telefon.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı — Telefon')
+  if (alici.kimlikNo.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı — TC/Vergi No')
+  if (aliciVar === null) eksikAlanlar.push('Alıcıdan/Kiracıdan hizmet bedeli aldın mı? (Aldım/Almadım seç)')
+  if (aliciVar === true && !(aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0))
+    eksikAlanlar.push('Alıcı/Kiracı — Hizmet Bedeli')
+  if (aliciVar === true && !(aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) eksikAlanlar.push('Alıcı/Kiracı — KDV %')
+  if (saticiDiger.some((k) => !(k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0)))
+    eksikAlanlar.push('Eklediğin ek satıcı bilgileri (ad soyad/telefon/TC no) eksik')
+  if (aliciDiger.some((k) => !(k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0)))
+    eksikAlanlar.push('Eklediğin ek alıcı bilgileri (ad soyad/telefon/TC no) eksik')
+  if (islemTutariToplam <= 0) eksikAlanlar.push('Satıcı veya alıcıdan en az birinden hizmet bedeli girilmeli')
+  if (katilimcilarHazir.length === 0 && islemTutariToplam > 0) eksikAlanlar.push('Pay hesaplanamadı — hizmet bedellerini kontrol et')
+  if (paraHareketleriGecerliSayisi === 0 && (existingParaHareketleri?.length ?? 0) === 0)
+    eksikAlanlar.push('En az bir Para Hareketi (tutar + tarih)')
+
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
+
   function handleSubmit(e) {
     e.preventDefault()
-    if (!canSubmit) return
+    if (!canSubmit) {
+      setAttemptedSubmit(true)
+      return
+    }
     const katilimcilar = katilimcilarHazir.map((k) => ({
       danismanId: k.danismanId,
       payOrani: k.payOrani,
@@ -357,7 +399,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       onClose={onClose}
       maxWidth="max-w-3xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {/* noValidate: tarayıcının kendi "Please fill out this field" balonu
+          handleSubmit'in kendi (hangi alan eksik söyleyen) uyarısının önüne
+          geçip formu hiç submit ettirmiyordu — broker'ın istediği kendi
+          mesajımızın çalışması için native doğrulama kapatıldı. */}
+      <form onSubmit={handleSubmit} noValidate className="space-y-3">
         {/* Bu formdaki TÜM tek seçimli buton grupları (Portföy Tipi, İşlem
             Tipi, Kategori, Aldım/Almadım, Kredi Durumu, Giriş/Çıkış) aynı
             seçili/seçili-değil desenini kullanıyor — 2026-10-18 görsel
@@ -944,13 +990,24 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
 
+        {attemptedSubmit && eksikAlanlar.length > 0 && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+            <p className="mb-1 text-xs font-semibold text-red-700">Kaydetmeden önce şunları gir:</p>
+            <ul className="list-disc space-y-0.5 pl-4 text-xs text-red-700">
+              {eksikAlanlar.map((mesaj) => (
+                <li key={mesaj}>{mesaj}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50">
             Vazgeç
           </button>
           <button
             type="submit"
-            disabled={!canSubmit || submitting}
+            disabled={submitting}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {submitting ? 'Kaydediliyor...' : editing ? 'Güncelle' : 'Taslak Olarak Kaydet'}
