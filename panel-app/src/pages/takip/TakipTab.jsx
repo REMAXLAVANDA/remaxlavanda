@@ -133,11 +133,21 @@ export default function TakipTab() {
     // Test hesabı sağlık skoru listesine karışmasın diye hariç tutuluyor
     // (bkz. Panel.jsx'teki aynı filtre).
     const list = seeTeam ? Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi) : [user]
+    // knownUsers (UsersContext > listKnown()) created_at çekmiyor — sadece
+    // isim/rol çözümlemesi için var. Yönlendirme Durumu'ndaki "ilk 90 gün
+    // koruması" (bkz. lib/yonlendirme.js isIlk90Gunde) elle girilmiş bir
+    // başlangıç tarihi (mentor_primi_baslangic) yoksa hesabın ne zaman
+    // açıldığına (createdAt) düşüyor — bu olmadan koruma HİÇ devreye
+    // girmiyordu (broker: "daha sonra başlayan danışmana 90 gün koruması
+    // vermemiş", 2026-10-22). data.users (loadAll > listAll()) createdAt'i
+    // zaten çekiyor, buradan eşleştiriyoruz.
+    const createdAtById = {}
+    for (const u of data.users) createdAtById[u.id] = u.createdAt
     // İsim sırası yerine en yüksek sağlık skoru en üstte — broker/owner'ın
     // ilk bakışta kimin dikkat gerektirdiğini/öne çıktığını görmesi için.
     const rows = list
       .map((u) => ({
-        user: u,
+        user: { ...u, createdAt: createdAtById[u.id] },
         ...computeHealthScore(u.id, data),
         checklistPercent: checklistProgress(u.id, 'baslangic', data.checklistItems, data.checklistStatus).percent,
       }))
