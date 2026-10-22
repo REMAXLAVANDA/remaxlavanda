@@ -10,15 +10,30 @@ import { capitalizeFirst } from '../../lib/format'
 // zaten danışmanın kendine atanan satırın HER kolonunu güncellemesine izin
 // veriyor, burada sadece notlar'a daraltıyoruz ki danışman yanlışlıkla
 // kaynak/portföy no gibi ofis alanlarını değiştiremesin.
-export default function CallNoteModal({ call, onClose, onSubmit, submitting }) {
+//
+// requireDurum (broker kararı, 2026-10-22): lead dönüş oranı sadece
+// "Görüşüldü" (donusYapildiMi=true) işaretini sayıyor, notlar'a hiç
+// bakmıyor — danışman not yazıp durumu işaretlemeyi unutunca gerçekte
+// aranmış bir çağrı "dönüş yapılmadı" gibi görünüyordu. OperasyonTab.jsx
+// bu alanı SADECE çağrı takip edilmesi gereken türdense VE durum hiç
+// işaretlenmemişse true geçiyor (callSurecDurumu === 'gorusme_bekliyor') —
+// zaten işaretli bir çağrıda ya da Santral bilgi amaçlı çağrıda bu seçim
+// hiç çıkmıyor, not eskisi gibi serbestçe yazılabiliyor ("Bilgileri
+// Düzenle" formuna BİLİNÇLİ olarak bu kural uygulanmadı, oradaki not
+// henüz arama yapılmadan da yazılabilen bir talimat notu — bkz. o
+// dosyadaki not).
+export default function CallNoteModal({ call, requireDurum, onClose, onSubmit, submitting }) {
   const [notlar, setNotlar] = useState(call.notlar ?? '')
+  const [durum, setDurum] = useState(null)
+  const canSubmit = !requireDurum || durum != null
 
   return (
     <Modal title="Müşteri Notu" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          onSubmit(capitalizeFirst(notlar.trim()))
+          if (!canSubmit) return
+          onSubmit(capitalizeFirst(notlar.trim()), durum)
         }}
         className="space-y-3"
       >
@@ -31,6 +46,32 @@ export default function CallNoteModal({ call, onClose, onSubmit, submitting }) {
           rows={4}
           className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
         />
+        {requireDurum && (
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-ink-600">Görüşüldü mü?</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDurum(true)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                  durum === true ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-ink-200 text-ink-600 hover:bg-ink-50'
+                }`}
+              >
+                Görüşüldü
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurum(false)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                  durum === false ? 'border-red-300 bg-red-50 text-red-700' : 'border-ink-200 text-ink-600 hover:bg-ink-50'
+                }`}
+              >
+                Ulaşılamadı
+              </button>
+            </div>
+            {durum == null && <p className="mt-1 text-xs text-amber-600">Not kaydetmeden önce birini seç.</p>}
+          </div>
+        )}
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -41,7 +82,7 @@ export default function CallNoteModal({ call, onClose, onSubmit, submitting }) {
           </button>
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !canSubmit}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {submitting ? 'Kaydediliyor...' : 'Kaydet'}

@@ -230,12 +230,21 @@ export default function OperasyonTab() {
   // Danışman kendine atanan çağrıda müşteriyle ilgili not tutabilsin diye —
   // "Bilgileri Düzenle"nin (kaynak/portföy no gibi ofis alanları içerdiği
   // için sadece yönetime açık) dar bir versiyonu, SADECE notlar günceller
-  // (bkz. CallNoteModal notu).
-  async function handleEditNote(notlar) {
+  // (bkz. CallNoteModal notu). durum, requireDurum true'yken (bkz. aşağıda)
+  // CallNoteModal'ın zorunlu kıldığı Görüşüldü/Ulaşılamadı seçimi — null
+  // ise (zaten işaretliydi ya da bilgi amaçlı çağrı) dokunulmuyor, tek bir
+  // istekte notla BİRLİKTE kaydediliyor (broker kararı, 2026-10-22: "not
+  // yazılırken durum da aynı anda istensin").
+  async function handleEditNote(notlar, durum) {
     if (!notingCall) return
     setSubmitting(true)
     try {
-      const updated = await callLogsProvider.update(notingCall.id, { notlar })
+      const patch = { notlar }
+      if (durum != null) {
+        patch.donusYapildiMi = durum
+        patch.donusAt = durum === true ? new Date().toISOString() : null
+      }
+      const updated = await callLogsProvider.update(notingCall.id, patch)
       setCalls((prev) => prev.map((c) => (c.id === notingCall.id ? updated : c)))
       setNotingCall(null)
       showToast('Not kaydedildi.', 'success')
@@ -432,6 +441,7 @@ export default function OperasyonTab() {
       {notingCall && (
         <CallNoteModal
           call={notingCall}
+          requireDurum={callSurecDurumu(notingCall) === 'gorusme_bekliyor'}
           onClose={() => setNotingCall(null)}
           onSubmit={handleEditNote}
           submitting={submitting}
