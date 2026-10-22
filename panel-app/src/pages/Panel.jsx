@@ -86,6 +86,7 @@ const LOAD_ALL_KEYS = [
   'periods',
   'scores',
   'activity',
+  'todayHours',
   'ciroMusterileri',
   'users',
   'ciroGirisleri',
@@ -142,6 +143,9 @@ async function loadAll(userId, isBrokerOrOwner) {
     fetchWithRetry(() => leagueProvider.listPeriods()),
     fetchWithRetry(() => leagueProvider.listScores()),
     fetchWithRetry(() => usersProvider.listActivity()),
+    // Sağlık Skoru > Portal Kullanımı: bugün kaç farklı saatte aktifti
+    // (broker, 2026-10-22, bkz. lib/takip.js portalUsagePercent notu).
+    fetchWithRetry(() => usersProvider.listTodayActivityHours()),
     fetchWithRetry(() => leagueProvider.listCiroMusterileri()),
     fetchWithRetry(() => usersProvider.listAll()),
     fetchWithRetry(() => leagueProvider.listCiroGirisleri()),

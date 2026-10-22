@@ -68,13 +68,27 @@ export function leadResponsePercent(userId, calls) {
 }
 
 // Portal kullanımı gerçek son giriş zamanından (auth.users -> list_user_activity
-// RPC) hesaplanır. Bugün giriş 100, her geçen gün -20 puan (broker kararı,
-// 2026-10-22: "daha acımasız olsun" — eskiden -10'du, 10 günde değil 5 günde
-// %0'a iniyor), hiç giriş yapmamışsa (ya da hiç aktivite kaydı yoksa) %0.
-export function portalUsagePercent(userId, activity) {
+// RPC) hesaplanır. Her geçen gün -20 puan (broker kararı, 2026-10-22: "daha
+// acımasız olsun" — eskiden -10'du, 10 günde değil 5 günde %0'a iniyor),
+// hiç giriş yapmamışsa (ya da hiç aktivite kaydı yoksa) %0.
+//
+// BUGÜN için artık sabit 100 YOK (broker, 2026-10-22: "anlık giren ile uzun
+// uzun çalışan aynı sayılması adil mi" — 1 saniyeliğine açıp kapatanla
+// saatlerce çalışan ikisi de 100 alıyordu). Bunun yerine bugünün puanı,
+// bugün kaç FARKLI SAATTE aktif olduğuna göre ölçekleniyor (bkz. migration
+// 20261022150000 list_today_activity_hours) — 4 farklı saat = tam puan
+// (broker onayı), daha azı orantılı düşer. todayHours verilmezse (eski
+// çağrı yeri/test) eski davranışa (bugün = sabit 100) düşülür, geriye dönük
+// uyumluluk için.
+const TAM_PUAN_ICIN_FARKLI_SAAT = 4
+export function portalUsagePercent(userId, activity, todayHours) {
   const row = activity.find((a) => a.userId === userId)
   if (!row || !row.lastSignInAt) return 0
   const diffDays = Math.floor((Date.now() - new Date(row.lastSignInAt).getTime()) / (24 * 60 * 60 * 1000))
+  if (diffDays === 0 && todayHours) {
+    const saat = todayHours.find((h) => h.userId === userId)?.distinctHours ?? 0
+    return Math.min(100, Math.round((saat / TAM_PUAN_ICIN_FARKLI_SAAT) * 100))
+  }
   return Math.max(0, 100 - diffDays * 20)
 }
 
@@ -161,11 +175,11 @@ export function socialUsagePercent(userId, users, scores, periods) {
 
 export function computeHealthScore(
   userId,
-  { events, attendance, calls, activity, ciroMusterileri, users, ciroGirisleri, scores, periods, baslangicList },
+  { events, attendance, calls, activity, todayHours, ciroMusterileri, users, ciroGirisleri, scores, periods, baslangicList },
 ) {
   const meetingPercent = meetingAttendPercent(userId, events, attendance)
   const leadPercent = leadResponsePercent(userId, calls)
-  const portalPercent = portalUsagePercent(userId, activity)
+  const portalPercent = portalUsagePercent(userId, activity, todayHours)
   const reviewPercent = customerReviewPercent(userId, ciroMusterileri)
   const ciroPercent = ciroHedefPercent(userId, users ?? [], ciroGirisleri ?? [], new Date(), baslangicList)
   const socialPercent = socialUsagePercent(userId, users ?? [], scores ?? [], periods ?? [])

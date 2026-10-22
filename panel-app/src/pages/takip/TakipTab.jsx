@@ -54,6 +54,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     attendance,
     calls,
     activity,
+    todayHours,
     ciroMusterileri,
     users,
     ciroGirisleri,
@@ -70,6 +71,10 @@ async function loadAll(includeOpportunities, includeCoaching) {
     calendarProvider.listAttendance(),
     callLogsProvider.list(),
     usersProvider.listActivity(),
+    // Sağlık Skoru > Portal Kullanımı: bugün kaç farklı saatte aktifti
+    // (broker, 2026-10-22: "anlık giren ile uzun uzun çalışan aynı
+    // sayılması adil mi" — bkz. lib/takip.js portalUsagePercent notu).
+    usersProvider.listTodayActivityHours(),
     leagueProvider.listCiroMusterileri(),
     usersProvider.listAll(),
     leagueProvider.listCiroGirisleri(),
@@ -94,6 +99,7 @@ async function loadAll(includeOpportunities, includeCoaching) {
     attendance,
     calls,
     activity,
+    todayHours,
     ciroMusterileri,
     users,
     ciroGirisleri,

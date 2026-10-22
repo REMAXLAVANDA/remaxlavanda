@@ -46,10 +46,10 @@ export function isIlk90Gunde(user, now = new Date(), baslangicTarihi) {
 
 // Üç bileşenin düz ortalaması — Sağlık Skoru'nun ağırlıklı formülüyle
 // KARIŞTIRILMASIN (bkz. dosya başı not).
-export function computeYonlendirmePuani(userId, { events, attendance, calls, activity }) {
+export function computeYonlendirmePuani(userId, { events, attendance, calls, activity, todayHours }) {
   const meetingAttend = meetingAttendPercent(userId, events, attendance)
   const leadResponse = leadResponsePercent(userId, calls)
-  const portalUsage = portalUsagePercent(userId, activity)
+  const portalUsage = portalUsagePercent(userId, activity, todayHours)
   const puan = Math.round((meetingAttend + leadResponse + portalUsage) / 3)
   return { puan, metrics: { meetingAttend, leadResponse, portalUsage } }
 }

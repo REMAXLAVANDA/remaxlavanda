@@ -2179,6 +2179,14 @@ export const users = {
     const data = await run(client().rpc('list_user_activity'))
     return data.map((row) => ({ userId: row.user_id, lastSignInAt: row.last_sign_in_at }))
   },
+  // Sağlık Skoru'ndaki Portal Kullanımı bileşeni için — "bugün kaç farklı
+  // saatte aktifti" (bkz. migration 20261022150000, broker: "anlık giren ile
+  // uzun uzun çalışan aynı sayılması adil mi"). list_user_activity() ile
+  // AYNI yetki deseni, aynı sebeple ayrı rol kontrolü gerekmiyor.
+  async listTodayActivityHours() {
+    const data = await run(client().rpc('list_today_activity_hours'))
+    return data.map((row) => ({ userId: row.user_id, distinctHours: row.distinct_hours }))
+  },
   // Gerçek "portal kullanıyor" sinyali — auth.users.last_sign_in_at sadece
   // yeniden şifre/link girişinde güncelleniyor, oturum açık kaldığı sürece
   // donuk kalıyor (bkz. migration 20260902130000). AuthContext bunu şifre

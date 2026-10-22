@@ -21,12 +21,16 @@ import { useAuth } from '../context/AuthContext'
 // YOK, kasıtlı: bu ekranlar "önemli ama sık açılmayan" admin ekranları,
 // Panel gibi her gün onlarca kez açılan bir sayfa değil).
 async function loadYonlendirmeData(canReadBaslangic) {
-  const [events, attendance, calls, activity, users, ciroMusterileri, scores, periods, baslangicList] =
+  const [events, attendance, calls, activity, todayHours, users, ciroMusterileri, scores, periods, baslangicList] =
     await Promise.all([
       calendarProvider.list(),
       calendarProvider.listAttendance(),
       callLogsProvider.list(),
       usersProvider.listActivity(),
+      // Sağlık Skoru ile AYNI "bugün kaç farklı saat" sinyali — Yönlendirme
+      // Puanı'nın portalUsage bileşeni de aynı portalUsagePercent'i
+      // kullanıyor (bkz. lib/yonlendirme.js computeYonlendirmePuani).
+      usersProvider.listTodayActivityHours(),
       usersProvider.listAll(),
       leagueProvider.listCiroMusterileri(),
       leagueProvider.listScores(),
@@ -37,7 +41,7 @@ async function loadYonlendirmeData(canReadBaslangic) {
       // 20261013095500). Diğer roller için created_at'e düşülür.
       canReadBaslangic ? mentorPrimiProvider.listBaslangicTarihleri() : Promise.resolve([]),
     ])
-  return { events, attendance, calls, activity, users, ciroMusterileri, scores, periods, baslangicList }
+  return { events, attendance, calls, activity, todayHours, users, ciroMusterileri, scores, periods, baslangicList }
 }
 
 export function useYonlendirmePuanlari() {

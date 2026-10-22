@@ -1601,6 +1601,18 @@ const MOCK_USER_ACTIVITY = {
   'ext-danisman-3': null,
 }
 
+// list_today_activity_hours() RPC'sinin mock karşılığı — "bugün kaç farklı
+// saatte aktifti" (bkz. migration 20261022150000). ext-danisman-2 KASITLI
+// olarak düşük (1) — "az önce (0.5 saat önce) girdi ama sadece 1 saat
+// içinde aktif" senaryosunu (anlık giren) test etmek için; u-danisman bugün
+// hiç girmedi (30 saat önce), bu yüzden burada hiç yok (0 sayılır).
+const MOCK_TODAY_ACTIVITY_HOURS = {
+  'u-broker': 3,
+  'u-owner': 2,
+  'u-ofis': 1,
+  'ext-danisman-2': 1,
+}
+
 // Dijital kartvizit — telefon/avatar/sosyal medya/aktiflik, userId'ye göre
 // in-memory. u-broker ve u-danisman için örnek dolu veriyle başlıyor ki
 // mock modda kartvizit sayfası boş görünmesin.
@@ -1677,6 +1689,11 @@ export const users = {
   },
   async touchActivity() {
     return delay(null)
+  },
+  async listTodayActivityHours() {
+    return delay(
+      Object.entries(MOCK_TODAY_ACTIVITY_HOURS).map(([userId, distinctHours]) => ({ userId, distinctHours })),
+    )
   },
   async upsertPrivateInfo(userId, { dogumTarihi, tcNo, okul, meslek, deneyimYili }) {
     MOCK_PRIVATE_INFO[userId] = {
