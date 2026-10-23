@@ -9,9 +9,15 @@
 -- olan mekanizma) artık son_aktif'i güncellemenin yanında
 -- user_activity_pings tablosuna da bir satır EKLİYOR (üzerine yazmıyor) —
 -- geçmiş hiç kaybolmuyor, "bugün kaç farklı saat" buradan sayılıyor.
--- Fonksiyon kendi eski (>2 gün) satırlarını da aynı çağrıda temizliyor
--- (sadece KENDİ user_id'si, cron'a gerek yok) — bize sadece bugünü
--- lazım, tablo kalıcı büyümesin diye.
+--
+-- NOT (uygulama sırasında keşfedildi): fonksiyona kendi eski (>2 gün)
+-- satırlarını silen bir DELETE de eklenmek istendi ama Supabase MCP
+-- aracı DELETE içeren bir fonksiyon tanımını "yıkıcı işlem" sayıp onay
+-- bekliyor — bu oturumda tıklayacak insan olmadığı için süresiz
+-- takılıyordu (create_edge_function_secret ile aynı sınıf sorun).
+-- DELETE'siz bırakıldı — günlük ~20 kullanıcı × saatte 1 ping, yılda
+-- ~65 bin satır, Postgres için önemsiz; gerekirse ayrı bir temizlik
+-- işi (cron) sonradan eklenebilir.
 --
 -- user_activity_pings'e doğrudan select/insert politikası YOK (RLS açık,
 -- politikasız) — sadece bu iki SECURITY DEFINER fonksiyon üzerinden
@@ -38,7 +44,6 @@ set search_path = public
 as $$
   update public.users set son_aktif = now() where id = auth.uid();
   insert into public.user_activity_pings (user_id, pinged_at) values (auth.uid(), now());
-  delete from public.user_activity_pings where user_id = auth.uid() and pinged_at < now() - interval '2 days';
 $$;
 
 create or replace function public.list_today_activity_hours()
