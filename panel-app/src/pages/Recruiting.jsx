@@ -6,7 +6,7 @@ import { useAsyncList } from '../hooks/useAsyncList'
 import { recruiting as recruitingProvider, calendarEvents as calendarProvider, users as usersProvider } from '../lib/dataProvider'
 import { canManageRecruiting, candidateKaynakOzeti } from '../lib/recruiting'
 import { isWithinRange } from '../lib/dateRange'
-import { addMinutesToTimeString } from '../lib/calendar'
+import { addMinutesToTimeString, nextBirthdayDate } from '../lib/calendar'
 import { sortByName } from '../lib/format'
 import { ROLES } from '../lib/roles'
 import RecruitingBoard from '../components/recruiting/RecruitingBoard'
@@ -241,6 +241,42 @@ export default function Recruiting() {
     setSubmitting(true)
     try {
       const created = await usersProvider.createUser({ ...form, kaynak: candidateKaynakOzeti(convertingCandidate) })
+      // Bu formda da (Ayarlar > Kullanıcı Ekle ile AYNI CreateUserModal)
+      // doğum tarihi/TC/okul/meslek/deneyim ZORUNLU dolduruluyor ama
+      // createUser() bunları kaydetmiyor (sadece ad/email/telefon/rol/
+      // kaynak) — broker, 2026-11-05: "zorunlu olacaktı neden boş
+      // kalmış" — Ahmet Adıyaman (30 Ekim, bu yoldan eklendi) tam bu
+      // yüzden boştu. Ayarlar.jsx handleCreateUser'daki AYNI iki adım
+      // burada da uygulanıyor.
+      try {
+        await usersProvider.upsertPrivateInfo(created.id, {
+          dogumTarihi: form.dogumTarihi || null,
+          tcNo: form.tcNo || null,
+          okul: form.okul || null,
+          meslek: form.meslek || null,
+          deneyimYili: form.deneyimYili ?? null,
+        })
+      } catch {
+        showToast('Danışman eklendi ama profil bilgileri (doğum tarihi/TC no/okul/meslek/deneyim) kaydedilemedi.', 'error')
+      }
+      if (form.dogumTarihi) {
+        try {
+          await calendarProvider.create(
+            {
+              type: 'etkinlik',
+              title: `🎂 ${created.name} — Doğum Günü`,
+              date: nextBirthdayDate(form.dogumTarihi),
+              startTime: '09:00',
+              endTime: '',
+              katilimTipleri: { [created.id]: 'istege_bagli' },
+            },
+            user.id,
+          )
+        } catch {
+          // İkincil bir aksiyon — Ayarlar.jsx handleCreateUser'daki AYNI
+          // sessiz-vazgeç deseni.
+        }
+      }
       // Durum 'olumlu'ya değişiyor — not zorunluluğu burada da geçerli
       // (bkz. migration 20261021120000), sistem kendi notunu otomatik
       // ekliyor, broker/owner'a ek soru sormuyor.
