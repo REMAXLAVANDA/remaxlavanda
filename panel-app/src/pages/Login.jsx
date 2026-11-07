@@ -18,7 +18,10 @@ export default function Login() {
   const displayError = error ?? authError
 
   if (isAuthenticated) {
-    return <Navigate to={location.state?.from ?? '/panel'} replace />
+    // '/' → HomeRedirect (bkz. App.jsx) role'e göre doğru sayfaya
+    // yönlendiriyor (muhasebe → /finans, diğerleri → /panel) — burada rol
+    // ikiye bölünüp tekrarlanmasın diye tek karar noktası orada.
+    return <Navigate to={location.state?.from ?? '/'} replace />
   }
 
   async function handleSubmit(e) {
@@ -27,7 +30,7 @@ export default function Login() {
     setError(null)
     try {
       await signIn(email.trim(), password)
-      navigate(location.state?.from ?? '/panel', { replace: true })
+      navigate(location.state?.from ?? '/', { replace: true })
     } catch (err) {
       setError(err.message ?? 'Giriş yapılamadı, tekrar dene.')
     } finally {

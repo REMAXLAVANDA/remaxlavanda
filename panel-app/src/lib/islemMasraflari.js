@@ -17,6 +17,9 @@ import { ROLES } from './roles'
 
 // 2026-10-09 broker kararı: "owner sadece ciro ve cari kısmını görsün" —
 // bkz. lib/bankaHareketleri.js canManageBankaHareketleri'ndeki aynı not.
+// 2026-11-07 broker kararı: muhasebe de — Banka Hareketleri'ndeki "Masraf
+// Olarak İşaretle" akışının bir parçası, bkz. lib/bankaHareketleri.js
+// canManageBankaHareketleri notu.
 export function canManageMasraflar(role) {
-  return role === ROLES.BROKER
+  return role === ROLES.BROKER || role === ROLES.MUHASEBE
 }

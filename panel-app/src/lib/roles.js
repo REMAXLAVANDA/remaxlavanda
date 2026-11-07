@@ -15,16 +15,23 @@ export const ROLES = {
   OWNER: 'owner',
   OFIS: 'ofis',
   DANISMAN: 'danisman',
+  // 2026-11-07 broker kararı: "muhasebe de açalım faturaları kessin
+  // paraları kontrol etsin kesilen faturaları kontrol etsin" — kapsam
+  // BİLİNÇLİ olarak sadece Finans (bkz. lib/modules.js FINANS_ROLES).
+  // Ciro raporu onay/red yetkisi YOK (broker "kontrol etsin" dedi,
+  // "onaylasın" demedi) — bkz. canApproveCiroRaporu, hiç değiştirilmedi.
+  MUHASEBE: 'muhasebe',
 }
 
 export const ROLE_LABELS = {
   [ROLES.BROKER]: 'Broker (Admin)',
   [ROLES.OWNER]: 'Owner',
   [ROLES.OFIS]: 'Ofis (Personel)',
+  [ROLES.MUHASEBE]: 'Muhasebe',
   [ROLES.DANISMAN]: 'Danışman',
 }
 
-export const ROLE_ORDER = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.DANISMAN]
+export const ROLE_ORDER = [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS, ROLES.MUHASEBE, ROLES.DANISMAN]
 
 // users_update_self_or_broker / create-user Edge Function ile aynı kural:
 // kullanıcı ekleme/düzenleme sadece broker ve owner'a açık.
@@ -84,5 +91,7 @@ export const ROLE_RULES = {
   [ROLES.OFIS]: { canEnterData: true, canManage: false },
   [ROLES.OWNER]: { canEnterData: false, canManage: true, canAudit: true },
   [ROLES.BROKER]: { canEnterData: false, canManage: true, canAudit: true, isAdmin: true },
+  // Ofis gibi: sadece veri girer/kontrol eder (Finans'a özel), yönetmez.
+  [ROLES.MUHASEBE]: { canEnterData: true, canManage: false },
   [ROLES.DANISMAN]: { canEnterData: false, canManage: false },
 }

@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { ROLES } from './lib/roles'
 import { UsersProvider } from './context/UsersContext'
 import { ToastProvider } from './context/ToastContext'
 import AppLayout from './components/layout/AppLayout'
@@ -32,6 +33,14 @@ const Pano = lazy(() => import('./pages/Pano'))
 
 function PageLoading() {
   return <div className="py-16 text-center text-sm text-ink-400">Yükleniyor...</div>
+}
+
+// Muhasebe'nin menüsünde Panel yok (bkz. lib/modules.js FINANS_ROLES) —
+// girişte /panel'e düşerse boş/anlamsız bir ekran görür, bu yüzden
+// 2026-11-07'den beri doğrudan /finans'a yönlendiriliyor.
+function HomeRedirect() {
+  const { role } = useAuth()
+  return <Navigate to={role === ROLES.MUHASEBE ? '/finans' : '/panel'} replace />
 }
 
 // Uygulama açılışında TEK SEFERLİK kontrol: production'da (veya
@@ -70,7 +79,7 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/pano" element={<Pano />} />
                   <Route element={<AppLayout />}>
-                    <Route index element={<Navigate to="/panel" replace />} />
+                    <Route index element={<HomeRedirect />} />
                     <Route path="/panel" element={<Panel />} />
                     <Route path="/firsatlar" element={<Firsatlar />} />
                     <Route path="/takvim" element={<Takvim />} />

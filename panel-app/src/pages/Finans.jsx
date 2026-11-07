@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { canSubmitBankaHareketi } from '../lib/bankaHareketleri'
+import { canSubmitBankaHareketi, canManageBankaHareketleri } from '../lib/bankaHareketleri'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
 import RaporlarPanel from '../components/finans/RaporlarPanel'
@@ -29,7 +29,10 @@ const TABS = [
 export default function Finans() {
   const { role } = useAuth()
   const [tab, setTab] = useState('ciro')
-  const showBankaTab = canSubmitBankaHareketi(role)
+  // Muhasebe canSubmitBankaHareketi'nde yok (o "kendi dekontunu giren"
+  // dar yetki) ama canManageBankaHareketleri'nde var (tam yönetim,
+  // 2026-11-07) — ikisinden biri yeterli, sekme açılsın.
+  const showBankaTab = canSubmitBankaHareketi(role) || canManageBankaHareketleri(role)
   const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
 
   return (

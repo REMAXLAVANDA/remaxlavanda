@@ -4,7 +4,7 @@ import { ROLES, ROLE_LABELS } from '../../lib/roles'
 import { relativeTime } from '../../lib/format'
 import { hasKartvizit, kartvizitUrl } from '../../lib/kartvizit'
 
-const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
+const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.MUHASEBE, ROLES.OWNER, ROLES.BROKER]
 const SORT_OPTIONS = [
   { key: 'ad', label: 'İsme göre' },
   { key: 'rol', label: 'Role göre' },

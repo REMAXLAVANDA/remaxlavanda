@@ -31,6 +31,7 @@ export const MOCK_USERS = {
   [ROLES.BROKER]: { id: 'u-broker', name: 'Ahmet Erdemir', role: ROLES.BROKER },
   [ROLES.OWNER]: { id: 'u-owner', name: 'Ofis Sahibi (Owner)', role: ROLES.OWNER },
   [ROLES.OFIS]: { id: 'u-ofis', name: 'Ofis Personeli', role: ROLES.OFIS },
+  [ROLES.MUHASEBE]: { id: 'u-muhasebe', name: 'Muhasebe', role: ROLES.MUHASEBE },
   [ROLES.DANISMAN]: { id: 'u-danisman', name: 'Danışman', role: ROLES.DANISMAN },
 }
 

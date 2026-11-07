@@ -62,6 +62,15 @@ export function canApproveCiroRaporu(role) {
   return canManageCiroScores(role)
 }
 
+// 2026-11-07 broker kararı: muhasebe TÜM raporları görebilsin (fatura
+// bilgisi girecek/kontrol edecek), ama onay/red YETKİSİ yok — bu yüzden
+// canApproveCiroRaporu'ndan BİLİNÇLİ olarak ayrı bir fonksiyon. UI'da
+// "herkesi gör" (isApprover'ın eskiden tek başına yaptığı iş) artık bunu
+// kullanıyor, onay/red/ödeme-alındı butonları hâlâ canApproveCiroRaporu'nda.
+export function canViewAllCiroRaporlari(role) {
+  return canApproveCiroRaporu(role) || role === ROLES.MUHASEBE
+}
+
 // Bir danışmanın verilen tarihteki geçerli komisyon paylaşım oranı —
 // gecerlilik_bitis boşsa hâlâ geçerli demektir. Birden fazla uygunsa (veri
 // hatası) en yeni başlangıçlı olan kazanır.

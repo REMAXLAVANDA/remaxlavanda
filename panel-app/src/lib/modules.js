@@ -29,7 +29,10 @@ const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 // yetkisi yok, bu yüzden ofis listede hiç yok). Sekme bazlı asıl yetki
 // kontrolü pages/Finans.jsx'te (bkz. lib/bankaHareketleri.js
 // canManageBankaHareketleri) — danışman o sekmeleri hiç görmez.
-const FINANS_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN]
+// Muhasebe 2026-11-07'de eklendi — menüde SADECE Finans'ı görür (başka
+// hiçbir modülün roles listesinde MUHASEBE yok, bu yüzden otomatik olarak
+// tek madde kalıyor, bkz. getModulesForRole).
+const FINANS_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN, ROLES.MUHASEBE]
 
 // "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
 // menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi

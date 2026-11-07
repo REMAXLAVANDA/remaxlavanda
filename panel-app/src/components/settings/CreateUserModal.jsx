@@ -7,7 +7,7 @@ import { formatPhoneInput } from '../../lib/phone'
 import { DANISMAN_TIER_LABELS, DANISMAN_TIER_RATES } from '../../lib/danismanTier'
 import { RECRUITING_KAYNAKLARI, RECRUITING_KAYNAK_LABELS } from '../../lib/recruiting'
 
-const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.OWNER, ROLES.BROKER]
+const ASSIGNABLE_ROLES = [ROLES.DANISMAN, ROLES.OFIS, ROLES.MUHASEBE, ROLES.OWNER, ROLES.BROKER]
 const TC_NO_PATTERN = /^\d{11}$/
 
 // initialValues: Recruiting'de "Danışman Olarak Ekle" ile açıldığında

@@ -1718,29 +1718,18 @@ export const ciroRaporlari = {
   // yükleyelim" — no/tarih/tutar artık elle girilmiyor, sadece gerçek
   // fatura dosyası yükleniyor (ofis_fatura_*_no/tarihi/tutari kolonları
   // DB'de duruyor, kullanılmıyor — DROP edilmedi, geri alınabilir kalsın).
+  // 2026-11-07: raw .update() yerine RPC'ye geçti — muhasebe de bu 3
+  // alanı değiştirebilsin diye (bkz. migration 20261107080000), ama
+  // ciro_raporlari.durum (onay/red) hâlâ RLS'te SADECE broker/owner'a
+  // açık kalsın diye (RLS'i ALL olarak genişletmek durum'u da açardı).
   async ofisFaturasiKaydet(id, taraf, { dosyaUrl }) {
-    const kolonOnEki = taraf === 'satici' ? 'ofis_fatura_satici' : 'ofis_fatura_alici'
-    await run(
-      client()
-        .from('ciro_raporlari')
-        .update({ [`${kolonOnEki}_dosya_url`]: dosyaUrl || null })
-        .eq('id', id),
-    )
+    await run(client().rpc('set_ofis_faturasi', { p_ciro_raporu_id: id, p_taraf: taraf, p_dosya_url: dosyaUrl || null }))
   },
   async setMyremaxGirildi(id, deger) {
-    await run(client().from('ciro_raporlari').update({ myremax_girildi: deger }).eq('id', id))
+    await run(client().rpc('set_myremax_girildi', { p_ciro_raporu_id: id, p_deger: deger }))
   },
-  async setMuhasebeTamamlandi(id, deger, kullaniciId) {
-    await run(
-      client()
-        .from('ciro_raporlari')
-        .update({
-          muhasebe_tamamlandi: deger,
-          muhasebe_tamamlanma_tarihi: deger ? new Date().toISOString() : null,
-          muhasebe_tamamlayan_id: deger ? kullaniciId : null,
-        })
-        .eq('id', id),
-    )
+  async setMuhasebeTamamlandi(id, deger) {
+    await run(client().rpc('set_muhasebe_tamamlandi', { p_ciro_raporu_id: id, p_deger: deger }))
   },
 }
 

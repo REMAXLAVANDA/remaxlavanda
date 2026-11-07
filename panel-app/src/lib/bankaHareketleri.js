@@ -52,8 +52,11 @@ export const BANKA_HAREKETI_TUR_LABELS = {
 // yönetim yetkisini (tüm hareketleri görme, eşleştirme, bloke çözümleme)
 // kapsar — danışman/ofis'in kendi dekontunu eklemesi AYRI bir yetki,
 // bkz. canSubmitBankaHareketi.
+// 2026-11-07 broker kararı: muhasebe de tam yönetim yetkisine sahip
+// ("paraları kontrol etsin, eşleştirmeleri yapsın") — broker'la AYNI
+// seviye, bkz. migration 20261107080000 (is_finans_yetkili()).
 export function canManageBankaHareketleri(role) {
-  return role === ROLES.BROKER
+  return role === ROLES.BROKER || role === ROLES.MUHASEBE
 }
 
 // 2026-10-11 broker kararı: "danışman kendi dekontunu girsin, istediği

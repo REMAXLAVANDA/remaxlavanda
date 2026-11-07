@@ -15,6 +15,7 @@ import {
   ISLEM_TIPI_LABELS,
   canSubmitCiroRaporu,
   canApproveCiroRaporu,
+  canViewAllCiroRaporlari,
   beklenenHizmetBedeli,
   hizmetBedeliStandartDisiMi,
   faturaTutarsizMi,
@@ -111,6 +112,10 @@ export default function CiroRaporlariPanel() {
 
   const isDanisman = canSubmitCiroRaporu(role)
   const isApprover = canApproveCiroRaporu(role)
+  // Muhasebe: tüm raporları görür, fatura/ofis-fatura/"tamamlandı" girer —
+  // ama onay/red/ödeme-alındı YOK (isApprover'da değil, bkz.
+  // lib/ciroRaporlari.js canViewAllCiroRaporlari notu, 2026-11-07).
+  const isViewAll = canViewAllCiroRaporlari(role)
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
   const danismanOptions = useMemo(
@@ -119,12 +124,12 @@ export default function CiroRaporlariPanel() {
   )
 
   // Danışman: kendi oluşturduğu ya da ortak katılımcısı olduğu raporlar.
-  // Broker/owner: RLS zaten herkesinkini döndürüyor, filtre gereksiz.
+  // Broker/owner/muhasebe: RLS zaten herkesinkini döndürüyor, filtre gereksiz.
   const visibleReports = useMemo(() => {
     const all = data?.raporlar ?? []
-    if (isApprover) return all
+    if (isViewAll) return all
     return all.filter((r) => r.olusturanId === user.id || r.katilimcilar?.some((k) => k.danismanId === user.id))
-  }, [data, isApprover, user.id])
+  }, [data, isViewAll, user.id])
 
   // Taslaklarım: SADECE kendi oluşturduğun, henüz onaya göndermediğin
   // raporlar — fatura no'nu girip "Onaya Gönder"e basana kadar burada
@@ -407,7 +412,7 @@ export default function CiroRaporlariPanel() {
   async function handleTamamlandi(raporId, deger) {
     setSubmitting(true)
     try {
-      await ciroRaporlariProvider.setMuhasebeTamamlandi(raporId, deger, user.id)
+      await ciroRaporlariProvider.setMuhasebeTamamlandi(raporId, deger)
       showToast(deger ? 'İşlem tamamlandı olarak işaretlendi.' : 'İşlem tamamlandı işareti kaldırıldı.', 'success')
       reload()
     } catch (err) {
@@ -516,7 +521,7 @@ export default function CiroRaporlariPanel() {
                         <input
                           type="checkbox"
                           checked={!!h.teyitEdildi}
-                          disabled={!isApprover}
+                          disabled={!isViewAll}
                           onChange={(e) => handleHareketTeyit(h.id, e.target.checked)}
                           className="h-3.5 w-3.5 shrink-0 rounded border-border-default"
                         />
@@ -639,13 +644,13 @@ export default function CiroRaporlariPanel() {
             {renderParaHareketleri(r)}
 
             {/* Broker, 2026-10-20: "danışman müşterisine kesilen faturayı
-                görebilsin" — isApprover olmayan (danışman) kendi
+                görebilsin" — isViewAll olmayan (danışman) kendi
                 raporundaki ofis faturasını salt okunur görür, yükleme/
-                değiştirme yetkisi hâlâ sadece yönetimde (aşağıdaki
-                Ofis/Muhasebe bloğu). Storage erişimi finans_bucket_
-                select_musteri_faturasi RLS'iyle sağlanıyor (migration
-                20261020120000). */}
-            {!isApprover && (r.ofisFaturaSaticiDosyaUrl || r.ofisFaturaAliciDosyaUrl) && (
+                değiştirme yetkisi hâlâ sadece yönetimde/muhasebede (aşağıdaki
+                Ofis/Muhasebe bloğu, 2026-11-07'den beri isViewAll). Storage
+                erişimi finans_bucket_select_musteri_faturasi RLS'iyle
+                sağlanıyor (migration 20261020120000). */}
+            {!isViewAll && (r.ofisFaturaSaticiDosyaUrl || r.ofisFaturaAliciDosyaUrl) && (
               <div className="space-y-1 rounded-lg bg-surface-sunken p-3">
                 <p className="text-xs font-medium text-text-primary">Müşteriye Kesilen Fatura</p>
                 {r.ofisFaturaSaticiDosyaUrl && (
@@ -672,8 +677,11 @@ export default function CiroRaporlariPanel() {
             {/* Fatura Kontrol'den (Finans > Raporlar) taşındı — broker,
                 2026-10-17: "fatura kontrolü de ciro ekranına al içine
                 yerleştir". Sadece onaya gönderilmiş/onaylanmış raporlarda
-                anlamlı (taslak/reddedildi'de henüz muhasebe işi yok). */}
-            {isApprover && (r.durum === 'onay_bekliyor' || r.durum === 'onaylandi') && (
+                anlamlı (taslak/reddedildi'de henüz muhasebe işi yok).
+                2026-11-07: isApprover → isViewAll (muhasebe de bu bloğu
+                kullanacak — ofis faturası yükleme + "işlem tamamlandı"
+                beyanı, onay/red butonları AŞAĞIDA ayrı, hâlâ isApprover). */}
+            {isViewAll && (r.durum === 'onay_bekliyor' || r.durum === 'onaylandi') && (
               <div className="rounded-lg bg-surface-sunken p-3">
                 <button
                   type="button"
@@ -894,7 +902,7 @@ export default function CiroRaporlariPanel() {
             </div>
           )}
 
-          {isApprover && (
+          {isViewAll && (
             <div>
               <h2 className="mb-2 text-sm font-semibold text-text-primary">Onay Bekleyenler ({pendingReports.length})</h2>
               {pendingReports.length === 0 ? (
@@ -906,11 +914,11 @@ export default function CiroRaporlariPanel() {
           )}
 
           <div>
-            <h2 className="mb-2 text-sm font-semibold text-text-primary">{isApprover ? 'Geçmiş Raporlar' : 'Raporlarım'}</h2>
-            {(isApprover ? otherReports : danismanRaporlarim).length === 0 ? (
+            <h2 className="mb-2 text-sm font-semibold text-text-primary">{isViewAll ? 'Geçmiş Raporlar' : 'Raporlarım'}</h2>
+            {(isViewAll ? otherReports : danismanRaporlarim).length === 0 ? (
               <p className="text-sm text-text-muted">Henüz rapor yok.</p>
             ) : (
-              renderReportTable(isApprover ? otherReports : danismanRaporlarim)
+              renderReportTable(isViewAll ? otherReports : danismanRaporlarim)
             )}
           </div>
         </div>

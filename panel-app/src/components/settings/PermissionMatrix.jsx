@@ -19,6 +19,12 @@ const CAPABILITIES = [
   { label: 'Rehber Doküman Ekle/Sil', roles: [ROLES.BROKER] },
   { label: 'Ekip Verilerini Görüntüleme (Takip/Panel)', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.OFIS] },
   { label: 'Log Kayıtlarını Görüntüleme', roles: [ROLES.BROKER] },
+  // 2026-11-07: muhasebe rolü eklendi — sadece Finans (bkz. lib/modules.js
+  // FINANS_ROLES), ciro onay/red YOK (bkz. lib/ciroRaporlari.js
+  // canApproveCiroRaporu, değişmedi).
+  { label: 'Finans: Banka Hareketi/Masraf Yönetimi', roles: [ROLES.BROKER, ROLES.MUHASEBE] },
+  { label: 'Finans: Fatura Girişi / Kontrol Beyanı', roles: [ROLES.BROKER, ROLES.OWNER, ROLES.MUHASEBE] },
+  { label: 'Ciro Raporu Onay/Red', roles: [ROLES.BROKER, ROLES.OWNER] },
 ]
 
 export default function PermissionMatrix() {
