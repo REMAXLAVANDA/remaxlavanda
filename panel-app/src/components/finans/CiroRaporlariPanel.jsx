@@ -116,6 +116,12 @@ export default function CiroRaporlariPanel() {
   // ama onay/red/ödeme-alındı YOK (isApprover'da değil, bkz.
   // lib/ciroRaporlari.js canViewAllCiroRaporlari notu, 2026-11-07).
   const isViewAll = canViewAllCiroRaporlari(role)
+  // Bu ekranda isViewAll && !isApprover === sadece muhasebe (broker/owner
+  // ikisi de zaten isApprover). 2026-11-07 /kurul kullanılabilirlik
+  // denetimi: "Ofis/Muhasebe" ve "Para Hareketleri" blokları broker için
+  // ikincil olduğundan bilerek varsayılan kapalı (madde 6) — ama muhasebe
+  // için bu bloklar EKRANDAKİ TEK İŞİ, her raporda elle açmak gereksiz tık.
+  const isMuhasebeOnly = isViewAll && !isApprover
   const userName = (id) => knownUsers[id]?.name ?? '—'
 
   const danismanOptions = useMemo(
@@ -496,7 +502,7 @@ export default function CiroRaporlariPanel() {
   function renderParaHareketleri(r) {
     const hareketler = (data?.hareketler ?? []).filter((h) => h.ciroRaporuId === r.id)
     if (hareketler.length === 0) return null
-    const acik = paraHareketleriAcikId === r.id
+    const acik = isMuhasebeOnly || paraHareketleriAcikId === r.id
     return (
       <div className="rounded-lg bg-surface-sunken p-3">
         <button
@@ -632,6 +638,7 @@ export default function CiroRaporlariPanel() {
                 userName={userName}
                 isOwnRow={k.danismanId === user.id}
                 canToggleOdeme={isApprover}
+                canTeyitEt={isViewAll}
                 eslesenTutar={toplamEslesenTutar(k.id, data?.hareketler)}
                 emanetMahsupTutari={toplamEmanetMahsubu(k.id, data?.emanetMahsuplari)}
                 onSaveFatura={handleSaveFatura}
@@ -692,9 +699,9 @@ export default function CiroRaporlariPanel() {
                     Ofis / Muhasebe
                     {r.muhasebeTamamlandi && <span className="ml-1.5 font-normal text-tint-green-text">· Tamamlandı</span>}
                   </span>
-                  {ofisMuhasebeAcikId === r.id ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
+                  {!isMuhasebeOnly && (ofisMuhasebeAcikId === r.id ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />)}
                 </button>
-                {ofisMuhasebeAcikId === r.id && (
+                {(isMuhasebeOnly || ofisMuhasebeAcikId === r.id) && (
                   <div className="mt-2">
                     {/* Broker, 2026-10-20: "GD de bize kestiği faturayı
                         burada görelim" — danışmanın kendi faturası
@@ -874,7 +881,15 @@ export default function CiroRaporlariPanel() {
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-text-muted">
-          {isDanisman ? 'Kapattığın işlemleri raporla, broker onayladığında Lig ve Mentor Primi otomatik güncellenir.' : 'Danışmanların gönderdiği ciro raporlarını onayla/reddet.'}
+          {/* 2026-11-07 /kurul kullanılabilirlik denetimi: muhasebe
+              onay/red yapamadığı halde bu metin ona da "onayla/reddet"
+              diyordu — yanlış yönlendirme (muhasebe isApprover değil
+              ama isDanisman da değil, eski ikili metin onu kapsamıyordu). */}
+          {isDanisman
+            ? 'Kapattığın işlemleri raporla, broker onayladığında Lig ve Mentor Primi otomatik güncellenir.'
+            : isApprover
+              ? 'Danışmanların gönderdiği ciro raporlarını onayla/reddet.'
+              : 'Raporlardaki fatura ve ödeme bilgilerini kontrol et — onay broker/owner tarafından veriliyor.'}
         </p>
         {isDanisman && (
           <button

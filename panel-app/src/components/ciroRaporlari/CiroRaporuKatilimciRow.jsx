@@ -55,6 +55,7 @@ export default function CiroRaporuKatilimciRow({
   userName,
   isOwnRow,
   canToggleOdeme,
+  canTeyitEt,
   eslesenTutar,
   emanetMahsupTutari,
   onSaveFatura,
@@ -149,8 +150,13 @@ export default function CiroRaporuKatilimciRow({
           )}
           {/* Fatura Kontrol'den (Finans > Raporlar) taşındı — broker,
               2026-10-17: "fatura kontrolü de ciro ekranına al içine
-              yerleştir", ayrı sekmeye gitmeden burada teyit edilsin. */}
-          {canToggleOdeme && k.faturaNo && (
+              yerleştir", ayrı sekmeye gitmeden burada teyit edilsin.
+              2026-11-07 /kurul kullanılabilirlik denetimi: bu, muhasebenin
+              ASIL işi ("kontrol ettiğini beyan etsin") — canToggleOdeme
+              (sadece broker/owner) ile AYNI koşula bağlıydı, muhasebe bu
+              butonu hiç göremiyordu. Artık ayrı canTeyitEt (broker/owner/
+              muhasebe) kullanıyor. */}
+          {canTeyitEt && k.faturaNo && (
             <button
               disabled={submitting}
               onClick={() => onTeyitEt(k.id, !k.teyitEdildi)}
@@ -181,7 +187,7 @@ export default function CiroRaporuKatilimciRow({
             eklenir" — karşılaştırmada kullanılan tek rakam artık banka +
             emanet mahsubunun TOPLAMI, emanet payı ayrıca alt detay olarak
             görünüyor (şeffaflık için, ikinci kez SAYILMIYOR). */}
-        {canToggleOdeme && eslesenTutar != null && (
+        {canTeyitEt && eslesenTutar != null && (
           <Alan
             etiket="Toplam Tahsil Edilen"
             deger={`${tl(eslesenTutar + (emanetMahsupTutari ?? 0))}${
