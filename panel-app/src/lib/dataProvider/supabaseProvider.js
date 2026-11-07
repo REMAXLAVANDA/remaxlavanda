@@ -30,7 +30,7 @@ async function run(promise) {
 // --- Opportunities (Fırsatlar) ----------------------------------------------
 const OPPORTUNITY_COLUMNS =
   'id, type, category_id, konum, fiyat, ozet, status, owner_id, claimer_id, claimed_at, created_at, ' +
-  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, islem_tipi, onceki_sahip_id, devir_tarihi, categories(key)'
+  'm2, oda_sayisi, fiyat_min, fiyat_max, kaynak_lead_id, islem_tipi, onceki_sahip_id, devir_tarihi, site_adi, lat, lng, categories(key)'
 
 function mapOpportunity(row) {
   return {
@@ -58,6 +58,11 @@ function mapOpportunity(row) {
     // bilgilendirme amaçlı gösterilir.
     oncekiSahipId: row.onceki_sahip_id,
     devirTarihi: row.devir_tarihi,
+    // Harita (broker 2026-11-07) — sadece 'satici' tipinde doldurulur,
+    // 'alici' tarafının pinlenecek bir mülkü yok.
+    siteAdi: row.site_adi,
+    lat: row.lat == null ? null : Number(row.lat),
+    lng: row.lng == null ? null : Number(row.lng),
     // Bilinçli olarak leadAd/leadTelefon YOK — bkz. dosya başı not.
   }
 }
@@ -95,6 +100,9 @@ export const opportunities = {
       fiyat_max: isAlici ? (payload.fiyatMax ?? null) : null,
       kaynak_lead_id: payload.kaynakLeadId ?? null,
       islem_tipi: payload.islemTipi || 'satilik',
+      site_adi: payload.siteAdi || null,
+      lat: payload.lat ?? null,
+      lng: payload.lng ?? null,
       // Danışman kendi bulduğu müşteriyi eklerken (havuza atmadıysa) direkt
       // kendine atanmış olsun — açık havuza düşüp başka bir danışmana
       // kaptırılmasın (bkz. opportunities_insert RLS: danışman sadece
@@ -131,6 +139,9 @@ export const opportunities = {
     if ('m2' in patch) updateRow.m2 = patch.m2 ?? null
     if ('odaSayisi' in patch) updateRow.oda_sayisi = patch.odaSayisi || null
     if ('islemTipi' in patch) updateRow.islem_tipi = patch.islemTipi
+    if ('siteAdi' in patch) updateRow.site_adi = patch.siteAdi || null
+    if ('lat' in patch) updateRow.lat = patch.lat ?? null
+    if ('lng' in patch) updateRow.lng = patch.lng ?? null
     // bkz. create() — tip değişiyorsa (EditOpportunityModal her zaman
     // type+fiyat+fiyatMin+fiyatMax'i birlikte gönderir) ilgisiz fiyat
     // alanı burada da temizlenir.
@@ -1322,6 +1333,9 @@ function mapCiroRaporu(r) {
     disBeyanKodu: r.dis_beyan_kodu,
     tapuBilgileri: r.tapu_bilgileri,
     mulkBedeli: r.mulk_bedeli == null ? null : Number(r.mulk_bedeli),
+    siteAdi: r.site_adi,
+    lat: r.lat == null ? null : Number(r.lat),
+    lng: r.lng == null ? null : Number(r.lng),
     saticiHizmetBedeliAlindi: r.satici_hizmet_bedeli_alindi,
     saticiAdSoyad: r.satici_ad_soyad,
     saticiTelefon: r.satici_telefon,
@@ -1381,6 +1395,9 @@ export const ciroRaporlari = {
       disBeyanKodu,
       tapuBilgileri,
       mulkBedeli,
+      siteAdi,
+      lat,
+      lng,
       saticiHizmetBedeliAlindi,
       saticiAdSoyad,
       saticiTelefon,
@@ -1421,6 +1438,9 @@ export const ciroRaporlari = {
           dis_beyan_kodu: disBeyanKodu || null,
           tapu_bilgileri: tapuBilgileri || null,
           mulk_bedeli: mulkBedeli ?? null,
+          site_adi: siteAdi || null,
+          lat: lat ?? null,
+          lng: lng ?? null,
           // Taraf kimlik bilgileri (ad/telefon/TC) artık "hizmet bedeli
           // aldım" checkbox'ından BAĞIMSIZ her zaman zorunlu (broker,
           // 2026-10-11: "alıcı ve satıcı bilgilerini yazım zorunlu olsun...
@@ -1515,6 +1535,9 @@ export const ciroRaporlari = {
       disBeyanKodu,
       tapuBilgileri,
       mulkBedeli,
+      siteAdi,
+      lat,
+      lng,
       saticiHizmetBedeliAlindi,
       saticiAdSoyad,
       saticiTelefon,
@@ -1553,6 +1576,9 @@ export const ciroRaporlari = {
           dis_beyan_kodu: disBeyanKodu || null,
           tapu_bilgileri: tapuBilgileri || null,
           mulk_bedeli: mulkBedeli ?? null,
+          site_adi: siteAdi || null,
+          lat: lat ?? null,
+          lng: lng ?? null,
           satici_hizmet_bedeli_alindi: !!saticiHizmetBedeliAlindi,
           satici_ad_soyad: saticiAdSoyad || null,
           satici_telefon: saticiTelefon || null,
@@ -1620,6 +1646,19 @@ export const ciroRaporlari = {
   // danışmanın doğrudan 'onaylandi'ya atlamasını zaten engelliyor.
   async submit(id) {
     await run(client().from('ciro_raporlari').update({ durum: 'onay_bekliyor' }).eq('id', id))
+  },
+  // "Bu sitede önceki satışlar" — RPC RLS'i bilerek atlıyor (site_adi
+  // girilir girilmez formda gösterilsin diye HERKESE açık, bkz. migration
+  // 20261107100000 site_satis_gecmisi notu).
+  async siteSatisGecmisi(siteAdi) {
+    const data = await run(client().rpc('site_satis_gecmisi', { p_site_adi: siteAdi }))
+    return (data ?? []).map((r) => ({
+      id: r.ciro_raporu_id,
+      tarih: r.tarih,
+      tutar: Number(r.tutar),
+      danismanAdi: r.danisman_adi,
+      islemTipi: r.islem_tipi,
+    }))
   },
   async updateKatilimciFatura(id, patch) {
     const dbPatch = {}
@@ -2661,5 +2700,26 @@ export const belgeler = {
   // garanti ediyor, burada ayrı kontrol gerekmiyor.
   async removeInstance(id) {
     await run(client().from('document_instances').delete().eq('id', id))
+  },
+}
+
+// --- Harita (site/bina bazlı konum) — broker 2026-11-07 pasted spec:
+// onaylanmış ciro raporları + açık/üstlenilmiş satıcı portföyleri, HERKESE
+// açık (RPC RLS'i bilerek atlıyor, bkz. migration 20261107100000).
+export const harita = {
+  async listKayitlar() {
+    const data = await run(client().rpc('harita_kayitlari'))
+    return (data ?? []).map((r) => ({
+      kaynak: r.kaynak,
+      id: r.id,
+      siteAdi: r.site_adi,
+      lat: Number(r.lat),
+      lng: Number(r.lng),
+      tutar: r.tutar == null ? null : Number(r.tutar),
+      tarih: r.tarih,
+      danismanAdi: r.danisman_adi,
+      durum: r.durum,
+      islemTipi: r.islem_tipi,
+    }))
   },
 }

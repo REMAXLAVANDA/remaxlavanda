@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
+import SiteKonumSecici from '../common/SiteKonumSecici'
 import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS, tarafLabel } from '../../lib/opportunities'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
@@ -28,6 +29,10 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
     ozet: opp.ozet ?? '',
     m2: opp.m2 != null ? String(opp.m2) : '',
     odaSayisi: opp.odaSayisi ?? '',
+    // Harita (broker, 2026-11-07 pasted spec) — bkz. NewOpportunityModal.jsx.
+    siteAdi: opp.siteAdi ?? '',
+    lat: opp.lat ?? null,
+    lng: opp.lng ?? null,
   })
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const phoneRef = useRef(null)
@@ -74,6 +79,9 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
             ozet: capitalizeFirst(form.ozet.trim()),
             m2: form.m2,
             odaSayisi: form.odaSayisi,
+            siteAdi: form.siteAdi.trim(),
+            lat: form.lat,
+            lng: form.lng,
           })
         }}
         className="space-y-3"
@@ -184,6 +192,16 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
         </div>
+
+        {!isAlici && (
+          <SiteKonumSecici
+            siteAdi={form.siteAdi}
+            onSiteAdiChange={(deger) => set({ siteAdi: deger })}
+            lat={form.lat}
+            lng={form.lng}
+            onLocationChange={(yeniLat, yeniLng) => set({ lat: yeniLat, lng: yeniLng })}
+          />
+        )}
 
         {isAlici ? (
           <div>
