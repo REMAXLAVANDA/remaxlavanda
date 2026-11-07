@@ -3,12 +3,20 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useKnownUsers } from '../context/UsersContext'
 import { useAsyncList } from '../hooks/useAsyncList'
-import { recruiting as recruitingProvider, calendarEvents as calendarProvider, users as usersProvider } from '../lib/dataProvider'
+import {
+  recruiting as recruitingProvider,
+  calendarEvents as calendarProvider,
+  users as usersProvider,
+  mentorPrimi as mentorPrimiProvider,
+  danismanAnlasmalari as danismanAnlasmalariProvider,
+} from '../lib/dataProvider'
 import { canManageRecruiting, candidateKaynakOzeti } from '../lib/recruiting'
 import { isWithinRange } from '../lib/dateRange'
 import { addMinutesToTimeString, nextBirthdayDate } from '../lib/calendar'
 import { sortByName } from '../lib/format'
-import { ROLES } from '../lib/roles'
+import { ROLES, canViewMentorPrimi } from '../lib/roles'
+import { canApproveCiroRaporu } from '../lib/ciroRaporlari'
+import { DANISMAN_TIER_RATES } from '../lib/danismanTier'
 import RecruitingBoard from '../components/recruiting/RecruitingBoard'
 import RecruitingFilters from '../components/recruiting/RecruitingFilters'
 import RecruitingDetailModal from '../components/recruiting/RecruitingDetailModal'
@@ -49,6 +57,13 @@ async function loadAll() {
 export default function Recruiting() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
+  // "Danışman Olarak Ekle" (bu sayfa) ile Ayarlar > "Kullanıcı Ekle" AYNI
+  // CreateUserModal'ı kullanıyor ama bu sayfa canSetMentorPrimi/canSetAnlasma
+  // hiç GEÇMİYORDU — form hiç sormuyordu, kaydedilecek bir şey yoktu
+  // (broker, 2026-11-07: "Ahmet Adıyaman neden mentorlukte görünmüyor" —
+  // bu yüzden, bkz. Ayarlar.jsx'teki AYNI prop'lar).
+  const canSetMentorPrimi = canViewMentorPrimi(role)
+  const canSetAnlasma = canApproveCiroRaporu(role)
   const { knownUsers } = useKnownUsers()
   const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const candidates = data?.candidates ?? []
@@ -277,6 +292,29 @@ export default function Recruiting() {
           // sessiz-vazgeç deseni.
         }
       }
+      // YENİ (broker, 2026-11-07): Mentorluk Başlangıç Tarihi ve Paylaşım
+      // Oranı — Ayarlar.jsx persistMentorBaslangic/persistDanismanTier ile
+      // AYNI "kısmi değerle hiç çağrılma" deseni (form sadece bu alanlar
+      // gerçekten dolduysa gönderiyor, CreateUserModal zaten canSubmit'te
+      // zorunlu kılıyor).
+      if (form.mentorBaslangicTarihi) {
+        try {
+          await mentorPrimiProvider.upsertBaslangicTarihi(created.id, form.mentorBaslangicTarihi, user.id)
+        } catch {
+          showToast('Danışman eklendi ama Mentor Primi başlangıç tarihi kaydedilemedi.', 'error')
+        }
+      }
+      if (form.tier) {
+        try {
+          const rates = DANISMAN_TIER_RATES[form.tier]
+          await danismanAnlasmalariProvider.create(
+            { danismanId: created.id, paylasimOrani: rates.paylasimOrani, rtPayOrani: rates.rtPayOrani, gecerlilikBaslangic: new Date().toISOString().slice(0, 10) },
+            user.id,
+          )
+        } catch {
+          showToast('Danışman eklendi ama paylaşım oranı kaydedilemedi.', 'error')
+        }
+      }
       // Durum 'olumlu'ya değişiyor — not zorunluluğu burada da geçerli
       // (bkz. migration 20261021120000), sistem kendi notunu otomatik
       // ekliyor, broker/owner'a ek soru sormuyor.
@@ -386,6 +424,8 @@ export default function Recruiting() {
             email: convertingCandidate.email ?? '',
           }}
           kaynakBelli
+          canSetMentorPrimi={canSetMentorPrimi}
+          canSetAnlasma={canSetAnlasma}
           onClose={() => setConvertingCandidate(null)}
           onSubmit={handleCreateDanisman}
           submitting={submitting}
