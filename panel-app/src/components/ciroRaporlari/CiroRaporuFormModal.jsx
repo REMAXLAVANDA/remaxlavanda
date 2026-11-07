@@ -69,7 +69,18 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   })
   const [portfoyTipi, setPortfoyTipi] = useState(editing?.portfoyTipi ?? 'portfoyum')
   const [disBeyanKodu, setDisBeyanKodu] = useState(editing?.disBeyanKodu ?? '')
-  const [tapuBilgileri, setTapuBilgileri] = useState(editing?.tapuBilgileri ?? '')
+  // Broker, 2026-11-07: tek serbest metin "Tapu Bilgileri" yerine 6 ayrı
+  // zorunlu alan (il/ilçe/mahalle/ada/parsel/bağımsız bölüm) — eski tek
+  // metin hâlâ saklanıyor (bkz. handleSubmit'teki birleştirme), bu
+  // yüzden eski bir raporu düzenlerken 6 alan boş gelebilir, danışman
+  // yeniden girmek zorunda (bilerek — geçmiş metinden otomatik ayrıştırma
+  // güvenilir olmazdı).
+  const [il, setIl] = useState(editing?.il ?? '')
+  const [ilce, setIlce] = useState(editing?.ilce ?? '')
+  const [mahalle, setMahalle] = useState(editing?.mahalle ?? '')
+  const [ada, setAda] = useState(editing?.ada ?? '')
+  const [parsel, setParsel] = useState(editing?.parsel ?? '')
+  const [bagimsizBolum, setBagimsizBolum] = useState(editing?.bagimsizBolum ?? '')
   const [mulkBedeli, setMulkBedeli] = useState(editing?.mulkBedeli != null ? formatThousands(String(editing.mulkBedeli)) : '')
   const [raporKategori, setRaporKategori] = useState(editing?.raporKategori ?? '')
   const [krediDurumu, setKrediDurumu] = useState(editing?.krediDurumu ?? 'nakit')
@@ -252,8 +263,14 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
 
   const canSubmit =
     disBeyanKodu.trim().length > 0 &&
-    // Broker, 2026-10-20: "tapu bilgileri mecbur opsiyonel değil".
-    tapuBilgileri.trim().length > 0 &&
+    // Broker, 2026-10-20: "tapu bilgileri mecbur opsiyonel değil" — 2026-11-07:
+    // tek metin yerine 6 ayrı zorunlu alan.
+    il.trim().length > 0 &&
+    ilce.trim().length > 0 &&
+    mahalle.trim().length > 0 &&
+    ada.trim().length > 0 &&
+    parsel.trim().length > 0 &&
+    bagimsizBolum.trim().length > 0 &&
     islemTutariToplam > 0 &&
     (!mulkBedeliGerekli || (mulkBedeliParsed !== null && mulkBedeliParsed > 0)) &&
     form.islemTarihi &&
@@ -292,7 +309,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   // olarak gösterilir (bkz. attemptedSubmit/eksikAlanlar JSX'i).
   const eksikAlanlar = []
   if (disBeyanKodu.trim().length === 0) eksikAlanlar.push(portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu')
-  if (tapuBilgileri.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri')
+  if (il.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri — İl')
+  if (ilce.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri — İlçe')
+  if (mahalle.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri — Mahalle')
+  if (ada.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri — Ada')
+  if (parsel.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri — Parsel')
+  if (bagimsizBolum.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri — Bağımsız Bölüm')
   if (mulkBedeliGerekli && !(mulkBedeliParsed !== null && mulkBedeliParsed > 0)) eksikAlanlar.push('Anlaşılan Bedel')
   if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
   if (!raporKategori) eksikAlanlar.push('Kategori')
@@ -346,7 +368,16 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       notlar: form.notlar.trim() || null,
       portfoyTipi,
       disBeyanKodu: disBeyanKodu.trim() || null,
-      tapuBilgileri: tapuBilgileri.trim() || null,
+      // Birleşik metin geriye dönük uyumluluk için hâlâ üretiliyor
+      // (ör. CiroRaporlariPanel.jsx'teki "Tapu Bilgileri" rozeti) — asıl
+      // zorunlu/yapılandırılmış veri aşağıdaki 6 ayrı alan.
+      tapuBilgileri: `${il.trim()} / ${ilce.trim()} / ${mahalle.trim()}, Ada ${ada.trim()} Parsel ${parsel.trim()}, Bağımsız Bölüm ${bagimsizBolum.trim()}`,
+      il: il.trim(),
+      ilce: ilce.trim(),
+      mahalle: mahalle.trim(),
+      ada: ada.trim(),
+      parsel: parsel.trim(),
+      bagimsizBolum: bagimsizBolum.trim(),
       mulkBedeli: mulkBedeliGerekli ? mulkBedeliParsed : null,
       saticiHizmetBedeliAlindi: saticiVar,
       saticiAdSoyad: capitalizeWords(satici.adSoyad.trim()),
@@ -450,14 +481,75 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           </div>
 
           <div>
-            <label className="mb-1 block text-xs text-ink-500">Tapu Bilgileri *</label>
-            <input
-              required
-              value={tapuBilgileri}
-              onChange={(e) => setTapuBilgileri(e.target.value)}
-              placeholder="Ör. Ada 123 Parsel 45, Blok A Daire 6"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
+            <label className="mb-1 block text-xs text-ink-500">Tapu Bilgileri</label>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  İl <span className="text-red-600">* zorunlu</span>
+                </label>
+                <input
+                  required
+                  value={il}
+                  onChange={(e) => setIl(e.target.value)}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  İlçe <span className="text-red-600">* zorunlu</span>
+                </label>
+                <input
+                  required
+                  value={ilce}
+                  onChange={(e) => setIlce(e.target.value)}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  Mahalle <span className="text-red-600">* zorunlu</span>
+                </label>
+                <input
+                  required
+                  value={mahalle}
+                  onChange={(e) => setMahalle(e.target.value)}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  Ada <span className="text-red-600">* zorunlu</span>
+                </label>
+                <input
+                  required
+                  value={ada}
+                  onChange={(e) => setAda(e.target.value)}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  Parsel <span className="text-red-600">* zorunlu</span>
+                </label>
+                <input
+                  required
+                  value={parsel}
+                  onChange={(e) => setParsel(e.target.value)}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  Bağımsız Bölüm <span className="text-red-600">* zorunlu</span>
+                </label>
+                <input
+                  required
+                  value={bagimsizBolum}
+                  onChange={(e) => setBagimsizBolum(e.target.value)}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
