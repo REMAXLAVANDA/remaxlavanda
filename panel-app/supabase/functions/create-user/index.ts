@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
   // 3) Girdi doğrulama.
   const body = await req.json().catch(() => ({}))
   const { ad, email, password, rol, telefon, kaynak } = body
-  const VALID_ROLES = ['broker', 'owner', 'ofis', 'danisman']
+  const VALID_ROLES = ['broker', 'owner', 'ofis', 'muhasebe', 'danisman']
   if (!ad || !email || !password || !VALID_ROLES.includes(rol)) {
     return Response.json({ ok: false, error: 'Eksik veya geçersiz bilgi (isim/email/şifre/rol).' }, { status: 400, headers: CORS })
   }
