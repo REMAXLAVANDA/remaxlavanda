@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ViewAsProvider } from './context/ViewAsContext'
 import { ROLES } from './lib/roles'
 import { UsersProvider } from './context/UsersContext'
 import { ToastProvider } from './context/ToastContext'
@@ -69,47 +70,49 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <UsersProvider>
-        <ToastProvider>
-          <HashRouter>
-            <Suspense fallback={<PageLoading />}>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/k/:userId" element={<KartvizitPublic />} />
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/pano" element={<Pano />} />
-                  <Route element={<AppLayout />}>
-                    <Route index element={<HomeRedirect />} />
-                    <Route path="/panel" element={<Panel />} />
-                    <Route path="/firsatlar" element={<Firsatlar />} />
-                    <Route path="/takvim" element={<Takvim />} />
-                    <Route path="/gorevler" element={<Takvim />} />
-                    <Route path="/operasyon" element={<Firsatlar />} />
-                    <Route path="/leads" element={<Leads />} />
-                    {/* Kararlar artık Rehber'in bir sekmesi (2026-10-17) — eski link kırılmasın. */}
-                    <Route path="/kararlar" element={<Navigate to="/rehber" replace />} />
-                    <Route path="/recruiting" element={<Recruiting />} />
-                    <Route path="/takip" element={<Takip />} />
-                    <Route path="/egitim" element={<Takip />} />
-                    <Route path="/lig" element={<Lig />} />
-                    <Route path="/finans" element={<Finans />} />
-                    {/* Eski ayrı sayfa linkleri/bookmarklar kırılmasın diye tek
-                        Finans sekmeli sayfasına yönlendiriliyor (2026-10-09). */}
-                    <Route path="/ciro-raporlari" element={<Navigate to="/finans" replace />} />
-                    <Route path="/banka-hareketleri" element={<Navigate to="/finans" replace />} />
-                    <Route path="/masraflar" element={<Navigate to="/finans" replace />} />
-                    <Route path="/cari-hesap" element={<Navigate to="/finans" replace />} />
-                    <Route path="/rehber" element={<Rehber />} />
-                    <Route path="/kartvizitim" element={<Kartvizitim />} />
-                    <Route path="/ayarlar" element={<Ayarlar />} />
-                    <Route path="*" element={<Navigate to="/panel" replace />} />
+      <ViewAsProvider>
+        <UsersProvider>
+          <ToastProvider>
+            <HashRouter>
+              <Suspense fallback={<PageLoading />}>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/k/:userId" element={<KartvizitPublic />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/pano" element={<Pano />} />
+                    <Route element={<AppLayout />}>
+                      <Route index element={<HomeRedirect />} />
+                      <Route path="/panel" element={<Panel />} />
+                      <Route path="/firsatlar" element={<Firsatlar />} />
+                      <Route path="/takvim" element={<Takvim />} />
+                      <Route path="/gorevler" element={<Takvim />} />
+                      <Route path="/operasyon" element={<Firsatlar />} />
+                      <Route path="/leads" element={<Leads />} />
+                      {/* Kararlar artık Rehber'in bir sekmesi (2026-10-17) — eski link kırılmasın. */}
+                      <Route path="/kararlar" element={<Navigate to="/rehber" replace />} />
+                      <Route path="/recruiting" element={<Recruiting />} />
+                      <Route path="/takip" element={<Takip />} />
+                      <Route path="/egitim" element={<Takip />} />
+                      <Route path="/lig" element={<Lig />} />
+                      <Route path="/finans" element={<Finans />} />
+                      {/* Eski ayrı sayfa linkleri/bookmarklar kırılmasın diye tek
+                          Finans sekmeli sayfasına yönlendiriliyor (2026-10-09). */}
+                      <Route path="/ciro-raporlari" element={<Navigate to="/finans" replace />} />
+                      <Route path="/banka-hareketleri" element={<Navigate to="/finans" replace />} />
+                      <Route path="/masraflar" element={<Navigate to="/finans" replace />} />
+                      <Route path="/cari-hesap" element={<Navigate to="/finans" replace />} />
+                      <Route path="/rehber" element={<Rehber />} />
+                      <Route path="/kartvizitim" element={<Kartvizitim />} />
+                      <Route path="/ayarlar" element={<Ayarlar />} />
+                      <Route path="*" element={<Navigate to="/panel" replace />} />
+                    </Route>
                   </Route>
-                </Route>
-              </Routes>
-            </Suspense>
-          </HashRouter>
-        </ToastProvider>
-      </UsersProvider>
+                </Routes>
+              </Suspense>
+            </HashRouter>
+          </ToastProvider>
+        </UsersProvider>
+      </ViewAsProvider>
     </AuthProvider>
   )
 }

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, cleanup, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider, useAuth } from '../context/AuthContext'
+import { ViewAsProvider } from '../context/ViewAsContext'
 import { ToastProvider } from '../context/ToastContext'
 import { UsersProvider } from '../context/UsersContext'
 import Takvim from './Takvim'
@@ -44,13 +45,15 @@ async function renderTakvim(role) {
   const result = render(
     <MemoryRouter>
       <AuthProvider>
-        <UsersProvider>
-          <ToastProvider>
-            <AsRole role={role}>
-              <Takvim />
-            </AsRole>
-          </ToastProvider>
-        </UsersProvider>
+        <ViewAsProvider>
+          <UsersProvider>
+            <ToastProvider>
+              <AsRole role={role}>
+                <Takvim />
+              </AsRole>
+            </ToastProvider>
+          </UsersProvider>
+        </ViewAsProvider>
       </AuthProvider>
     </MemoryRouter>,
   )

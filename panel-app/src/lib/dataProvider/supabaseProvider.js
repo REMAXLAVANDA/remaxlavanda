@@ -11,9 +11,14 @@
 
 import { getSupabaseClient } from '../supabaseClient'
 import { mapSupabaseError } from '../errors'
+import { guardSupabaseClient } from '../viewAsGuard'
 
+// guardSupabaseClient: "Birini Olarak Görüntüle" modu aktifken .from()
+// (.insert/.update/.upsert/.delete) ve .rpc() (okuma amaçlı birkaçı hariç)
+// çağrılarını engeller — bkz. lib/viewAsGuard.js. .auth/.storage
+// etkilenmez (storage kendi dosyasında ayrıca korunuyor).
 function client() {
-  return getSupabaseClient()
+  return guardSupabaseClient(getSupabaseClient())
 }
 
 async function run(promise) {

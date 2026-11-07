@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings, LogOut, ChevronDown, ChevronUp, Check, CreditCard, Bell, BellOff, BellRing } from 'lucide-react'
+import { Settings, LogOut, ChevronDown, ChevronUp, Check, CreditCard, Bell, BellOff, BellRing, Eye, Undo2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useViewAs } from '../../context/ViewAsContext'
+import { useKnownUsers } from '../../context/UsersContext'
 import { useToast } from '../../context/ToastContext'
 import { users as usersProvider } from '../../lib/dataProvider'
 import { isPushSupported, getNotificationPermission, subscribeToPush } from '../../lib/push'
-import { ROLE_LABELS, ROLE_ORDER, canManageUsers } from '../../lib/roles'
+import { ROLE_LABELS, ROLE_ORDER, ROLES, canManageUsers } from '../../lib/roles'
 import { hasKartvizit } from '../../lib/kartvizit'
 import Avatar from '../common/Avatar'
 
@@ -22,9 +24,75 @@ function ProfileMenuBody({
   navigate,
   handleLogout,
   signingOut,
+  canViewAs,
+  isViewingAs,
+  realUser,
+  viewableUsers,
+  viewAsPickerOpen,
+  setViewAsPickerOpen,
+  handleStartViewAs,
+  handleStopViewAs,
 }) {
   return (
     <>
+      {/* 2026-11-07 broker: "kullanıcılar arası geçiş yapabilir miyim ...
+          onların ekranını görebilir miyim" — broker/owner kendi oturumuyla
+          kalıp başka bir kullanıcının rolünü/ekranını salt okunur görebilir
+          (bkz. context/ViewAsContext.jsx, lib/viewAsGuard.js). "Kendi
+          hesabına dön" her zaman REAL kimliğe göre gösterilir, overridden
+          role'e bağlı DEĞİL — aksi halde broker kendi çıkışını bulamazdı. */}
+      {isViewingAs && (
+        <div className="border-b border-border-subtle bg-tint-amber px-2 py-2">
+          <p className="px-2 pb-1 text-[11px] font-medium text-tint-amber-text">Şu an birini görüntülüyorsun (salt okunur)</p>
+          <button
+            onClick={() => {
+              handleStopViewAs()
+              setOpen(false)
+            }}
+            className="flex w-full items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-sunken"
+          >
+            <Undo2 size={15} />
+            Kendi hesabına dön ({realUser?.name})
+          </button>
+        </div>
+      )}
+
+      {canViewAs && !isViewingAs && (
+        <div className="border-b border-border-subtle px-2 py-2">
+          <button
+            onClick={() => setViewAsPickerOpen((v) => !v)}
+            className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-text-primary hover:bg-surface-sunken"
+          >
+            <span className="flex items-center gap-2">
+              <Eye size={15} />
+              Birini Olarak Görüntüle
+            </span>
+            {viewAsPickerOpen ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
+          </button>
+          {viewAsPickerOpen && (
+            <div className="mt-1 max-h-56 overflow-y-auto">
+              {viewableUsers.length === 0 ? (
+                <p className="px-2 py-1.5 text-xs text-text-muted">Başka kullanıcı yok.</p>
+              ) : (
+                viewableUsers.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => {
+                      handleStartViewAs(u)
+                      setOpen(false)
+                    }}
+                    className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-text-primary hover:bg-surface-sunken"
+                  >
+                    <span className="truncate">{u.name}</span>
+                    <span className="shrink-0 text-xs text-text-muted">{ROLE_LABELS[u.role] ?? u.role}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {showDevRoleSwitcher && (
         <div className="border-b border-border-subtle px-2 py-2">
           <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-amber-600">
@@ -101,10 +169,13 @@ function ProfileMenuBody({
 }
 
 export default function ProfileMenu({ variant = 'sidebar' }) {
-  const { user, role, setRole, isMock, signOut } = useAuth()
+  const { user, role, setRole, isMock, signOut, isViewingAs, realRole, realUser } = useAuth()
+  const { startViewAs, stopViewAs } = useViewAs()
+  const { knownUsers } = useKnownUsers()
   const { showToast } = useToast()
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [viewAsPickerOpen, setViewAsPickerOpen] = useState(false)
   // Sadece menü her açıldığında okunuyor — Notification.permission tarayıcı
   // durumu, render arasında kendiliğinden değişmez (bkz. handleEnable
   // sonrası elle güncelleme).
@@ -176,6 +247,20 @@ export default function ProfileMenu({ variant = 'sidebar' }) {
     }
   }
 
+  // "Birini Olarak Görüntüle" — SADECE broker/owner'ın gerçek (overridden
+  // olmayan) rolüne göre, görüntülemeye zaten başlamışken kendi kendini
+  // tekrar seçme ihtimali olmasın diye isViewingAs'ken hiç gösterilmiyor
+  // (bkz. ProfileMenuBody). Test hesapları ve kendisi listede yok.
+  const canViewAs = realRole === ROLES.BROKER || realRole === ROLES.OWNER
+  const viewableUsers = Object.values(knownUsers)
+    .filter((u) => !u.testHesabi && u.id !== realUser?.id)
+    .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+
+  function handleStartViewAs(u) {
+    startViewAs(u)
+    setViewAsPickerOpen(false)
+  }
+
   const bodyProps = {
     role,
     showDevRoleSwitcher,
@@ -187,6 +272,14 @@ export default function ProfileMenu({ variant = 'sidebar' }) {
     navigate,
     handleLogout,
     signingOut,
+    canViewAs,
+    isViewingAs,
+    realUser,
+    viewableUsers,
+    viewAsPickerOpen,
+    setViewAsPickerOpen,
+    handleStartViewAs,
+    handleStopViewAs: stopViewAs,
   }
 
   if (variant === 'sidebar') {

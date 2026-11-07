@@ -1,6 +1,7 @@
 import { getSupabaseClient } from './supabaseClient'
 import { mapSupabaseError } from './errors'
 import { USE_SUPABASE } from './env'
+import { assertNotViewingAs } from './viewAsGuard'
 
 const BUCKET = 'docs'
 const MAX_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB — bucket policy ile birebir aynı (defense in depth)
@@ -58,6 +59,7 @@ export function validateFile(file) {
 // bir blob URL'e çeviriyoruz ki Önizle/İndir dev ortamında da gerçekten
 // çalışsın (üretimde bu dal hiç çalışmaz, USE_SUPABASE her zaman true).
 export async function uploadDocFile(file, { categoryKey, docId }, onProgress) {
+  assertNotViewingAs()
   const check = validateFile(file)
   if (!check.ok) throw new Error(check.reason)
 
@@ -97,6 +99,7 @@ export async function getSignedDocUrl(path, expiresInSeconds = 300, downloadFile
 }
 
 export async function deleteDocFile(path) {
+  assertNotViewingAs()
   if (!USE_SUPABASE) return
   const client = getSupabaseClient()
   const { error } = await client.storage.from(BUCKET).remove([path])
@@ -124,6 +127,7 @@ export function validateFinansFile(file) {
 
 // Mock modda gerçek Storage yok — uploadDocFile ile AYNI blob URL deseni.
 export async function uploadFinansFile(file, userId) {
+  assertNotViewingAs()
   const check = validateFinansFile(file)
   if (!check.ok) throw new Error(check.reason)
 
@@ -171,6 +175,7 @@ export function validateAvatarFile(file) {
 // Mock modda gerçek Storage yok — dosyayı tarayıcı belleğinde bir blob
 // URL'e çevirip önizlemenin dev ortamında da çalışmasını sağlıyoruz.
 export async function uploadAvatarFile(file, userId) {
+  assertNotViewingAs()
   const check = validateAvatarFile(file)
   if (!check.ok) throw new Error(check.reason)
 

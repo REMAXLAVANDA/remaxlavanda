@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '../../context/AuthContext'
+import { ViewAsProvider } from '../../context/ViewAsContext'
 import { UsersProvider } from '../../context/UsersContext'
 import { ToastProvider } from '../../context/ToastContext'
 import AppLayout from './AppLayout'
@@ -35,6 +36,7 @@ describe('AppLayout — masaüstü sidebar/içerik yerleşimi', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/panel']}>
         <AuthProvider>
+        <ViewAsProvider>
           <UsersProvider>
             <ToastProvider>
               <Routes>
@@ -44,6 +46,7 @@ describe('AppLayout — masaüstü sidebar/içerik yerleşimi', () => {
               </Routes>
             </ToastProvider>
           </UsersProvider>
+        </ViewAsProvider>
         </AuthProvider>
       </MemoryRouter>,
     )
@@ -70,6 +73,7 @@ describe('AppLayout — masaüstü sidebar/içerik yerleşimi', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/panel']}>
         <AuthProvider>
+        <ViewAsProvider>
           <UsersProvider>
             <ToastProvider>
               <Routes>
@@ -79,6 +83,7 @@ describe('AppLayout — masaüstü sidebar/içerik yerleşimi', () => {
               </Routes>
             </ToastProvider>
           </UsersProvider>
+        </ViewAsProvider>
         </AuthProvider>
       </MemoryRouter>,
     )

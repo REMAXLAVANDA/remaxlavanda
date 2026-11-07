@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, cleanup, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider, useAuth } from '../context/AuthContext'
+import { ViewAsProvider } from '../context/ViewAsContext'
 import { ToastProvider } from '../context/ToastContext'
 import { UsersProvider } from '../context/UsersContext'
 import Kartvizitim from './Kartvizitim'
@@ -25,13 +26,15 @@ async function renderKartvizitim(role) {
   const result = render(
     <MemoryRouter>
       <AuthProvider>
-        <UsersProvider>
-          <ToastProvider>
-            <AsRole role={role}>
-              <Kartvizitim />
-            </AsRole>
-          </ToastProvider>
-        </UsersProvider>
+        <ViewAsProvider>
+          <UsersProvider>
+            <ToastProvider>
+              <AsRole role={role}>
+                <Kartvizitim />
+              </AsRole>
+            </ToastProvider>
+          </UsersProvider>
+        </ViewAsProvider>
       </AuthProvider>
     </MemoryRouter>,
   )

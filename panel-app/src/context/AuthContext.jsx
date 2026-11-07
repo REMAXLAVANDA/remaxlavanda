@@ -4,6 +4,7 @@ import { USE_SUPABASE } from '../lib/env'
 import { getSupabaseClient } from '../lib/supabaseClient'
 import { ApiError, mapSupabaseError } from '../lib/errors'
 import { users as usersProvider } from '../lib/dataProvider'
+import { useViewAs } from './ViewAsContext'
 
 // "Portal Kullanımı" widget'ının gerçek sinyal alması için (bkz. migration
 // 20260902130000) — şifre istemeden, sessizce. localStorage ile saatte
@@ -212,8 +213,28 @@ function RealAuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// "Birini Olarak Görüntüle" — sadece broker/owner'ın KENDİ gerçek
+// oturumunda, uygulamanın GÖRDÜĞÜ role/user'ı geçici olarak değiştirir
+// (bkz. context/ViewAsContext.jsx). Gerçek kimlik (realRole/realUser)
+// her zaman erişilebilir kalır — ProfileMenu'deki "Kendi hesabına dön"
+// ve seçici bunu kullanır, overridden role'e göre gizlenmez (aksi halde
+// broker kendi çıkışını bulamayabilir). Yazma istekleri bu modda ayrıca
+// lib/viewAsGuard.js tarafından engelleniyor — buradaki rol/isim
+// değişimi SADECE görüntüleme amaçlı, gerçek yetkiyi değiştirmiyor.
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth, AuthProvider içinde kullanılmalı')
-  return ctx
+  const { target } = useViewAs()
+
+  if (target && (ctx.role === ROLES.BROKER || ctx.role === ROLES.OWNER)) {
+    return {
+      ...ctx,
+      role: target.rol,
+      user: { id: target.id, name: target.ad, email: null, mustChangePassword: false },
+      isViewingAs: true,
+      realRole: ctx.role,
+      realUser: ctx.user,
+    }
+  }
+  return { ...ctx, isViewingAs: false, realRole: ctx.role, realUser: ctx.user }
 }
