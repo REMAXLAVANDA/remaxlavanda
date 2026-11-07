@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import Modal from '../common/Modal'
+import SiteKonumSecici from '../common/SiteKonumSecici'
 import { OPPORTUNITY_CATEGORIES } from '../../lib/categories'
 import { OPPORTUNITY_TYPE_LABELS, ISLEM_TIPI_LABELS, tarafLabel } from '../../lib/opportunities'
 import { capitalizeFirst, capitalizeWords, formatThousands, parseThousands } from '../../lib/format'
@@ -22,6 +23,12 @@ function emptyForm(defaultType, initialValues) {
     m2: '',
     odaSayisi: '',
     havuzaAt: false,
+    // Harita (broker, 2026-11-07 pasted spec) — sadece satıcı tipinde
+    // anlamlı, alıcı talebinin pinlenecek bir mülkü yok (bkz. aşağıdaki
+    // JSX). Opsiyonel — Ciro Raporu'ndaki gibi zorunlu DEĞİL.
+    siteAdi: '',
+    lat: null,
+    lng: null,
     ...initialValues,
   }
 }
@@ -218,6 +225,16 @@ export default function NewOpportunityModal({
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
         </div>
+
+        {!isAlici && (
+          <SiteKonumSecici
+            siteAdi={form.siteAdi}
+            onSiteAdiChange={(deger) => set({ siteAdi: deger })}
+            lat={form.lat}
+            lng={form.lng}
+            onLocationChange={(yeniLat, yeniLng) => set({ lat: yeniLat, lng: yeniLng })}
+          />
+        )}
 
         {isAlici ? (
           <div>

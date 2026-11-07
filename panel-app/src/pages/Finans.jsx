@@ -4,6 +4,7 @@ import { canSubmitBankaHareketi, canManageBankaHareketleri } from '../lib/bankaH
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
 import RaporlarPanel from '../components/finans/RaporlarPanel'
+import HaritaPanel from '../components/finans/HaritaPanel'
 
 // Finans TEK menü girdisi, sekmeli — önceden Banka Hareketleri/Masraflar/
 // Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu, hepsi
@@ -24,6 +25,10 @@ const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
   { key: 'raporlar', label: 'Raporlar' },
+  // Broker, 2026-11-07 (pasted spec): harita + "bu sitede kaça sattık"
+  // bilgisi HERKESE açık — showBankaTab filtresinden bilerek muaf
+  // (bkz. aşağıdaki visibleTabs).
+  { key: 'harita', label: 'Harita' },
 ]
 
 export default function Finans() {
@@ -33,7 +38,7 @@ export default function Finans() {
   // dar yetki) ama canManageBankaHareketleri'nde var (tam yönetim,
   // 2026-11-07) — ikisinden biri yeterli, sekme açılsın.
   const showBankaTab = canSubmitBankaHareketi(role) || canManageBankaHareketleri(role)
-  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
+  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar' || t.key === 'harita')
 
   return (
     <div>
@@ -56,6 +61,7 @@ export default function Finans() {
       {tab === 'ciro' && <CiroRaporlariPanel />}
       {showBankaTab && tab === 'banka' && <BankaHareketleriPanel />}
       {tab === 'raporlar' && <RaporlarPanel />}
+      {tab === 'harita' && <HaritaPanel />}
     </div>
   )
 }

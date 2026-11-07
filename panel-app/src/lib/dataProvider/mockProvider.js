@@ -900,6 +900,9 @@ export const ciroRaporlari = {
       disBeyanKodu,
       tapuBilgileri,
       mulkBedeli,
+      siteAdi,
+      lat,
+      lng,
       saticiHizmetBedeliAlindi,
       saticiAdSoyad,
       saticiTelefon,
@@ -945,6 +948,9 @@ export const ciroRaporlari = {
       disBeyanKodu: disBeyanKodu || null,
       tapuBilgileri: tapuBilgileri || null,
       mulkBedeli: mulkBedeli ?? null,
+      siteAdi: siteAdi || null,
+      lat: lat ?? null,
+      lng: lng ?? null,
       // Taraf kimlik bilgileri artık checkbox'tan bağımsız her zaman
       // zorunlu — bkz. supabaseProvider.js'teki aynı not.
       saticiHizmetBedeliAlindi: !!saticiHizmetBedeliAlindi,
@@ -1056,6 +1062,9 @@ export const ciroRaporlari = {
       disBeyanKodu,
       tapuBilgileri,
       mulkBedeli,
+      siteAdi,
+      lat,
+      lng,
       saticiHizmetBedeliAlindi,
       saticiAdSoyad,
       saticiTelefon,
@@ -1093,6 +1102,9 @@ export const ciroRaporlari = {
       disBeyanKodu: disBeyanKodu || null,
       tapuBilgileri: tapuBilgileri || null,
       mulkBedeli: mulkBedeli ?? null,
+      siteAdi: siteAdi || null,
+      lat: lat ?? null,
+      lng: lng ?? null,
       saticiHizmetBedeliAlindi: !!saticiHizmetBedeliAlindi,
       saticiAdSoyad: saticiAdSoyad || null,
       saticiTelefon: saticiTelefon || null,
@@ -1200,6 +1212,26 @@ export const ciroRaporlari = {
     if (!rapor) throw new Error('Rapor bulunamadı.')
     rapor.durum = 'onay_bekliyor'
     return delay({ id })
+  },
+  // supabaseProvider.site_satis_gecmisi() RPC'siyle AYNI davranış —
+  // SADECE onaylanmış raporlar, normalize edilmiş site_adi eşleşmesi.
+  async siteSatisGecmisi(siteAdi) {
+    const normalize = (s) => (s ?? '').toLowerCase().trim().replace(/\s+/g, ' ')
+    const hedef = normalize(siteAdi)
+    return delay(
+      MOCK_CIRO_RAPORLARI.filter((r) => r.durum === 'onaylandi' && r.siteAdi && normalize(r.siteAdi) === hedef)
+        .map((r) => ({
+          id: r.id,
+          tarih: r.islemTarihi,
+          tutar: Number(r.islemTutari),
+          danismanAdi: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id)
+            .map((k) => allMockUserRows().find((u) => u.id === k.danismanId)?.name)
+            .filter(Boolean)
+            .join(' / '),
+          islemTipi: r.islemTipi,
+        }))
+        .sort((a, b) => new Date(b.tarih) - new Date(a.tarih)),
+    )
   },
   async updateKatilimciFatura(id, patch) {
     const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === id)
@@ -2055,5 +2087,44 @@ export const kararlar = {
     const idx = MOCK_KARARLAR.findIndex((k) => k.id === id)
     if (idx !== -1) MOCK_KARARLAR.splice(idx, 1)
     return delay({ id })
+  },
+}
+
+// supabaseProvider.harita.listKayitlar() (harita_kayitlari RPC) ile AYNI
+// davranış — onaylanmış ciro raporları + açık/üstlenilmiş satıcı portföyleri.
+export const harita = {
+  async listKayitlar() {
+    const satisKayitlari = MOCK_CIRO_RAPORLARI.filter((r) => r.durum === 'onaylandi' && r.lat != null && r.lng != null).map(
+      (r) => ({
+        kaynak: 'satis',
+        id: r.id,
+        siteAdi: r.siteAdi,
+        lat: Number(r.lat),
+        lng: Number(r.lng),
+        tutar: Number(r.islemTutari),
+        tarih: r.islemTarihi,
+        danismanAdi: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id)
+          .map((k) => allMockUserRows().find((u) => u.id === k.danismanId)?.name)
+          .filter(Boolean)
+          .join(' / '),
+        durum: r.durum,
+        islemTipi: r.islemTipi,
+      }),
+    )
+    const portfoyKayitlari = MOCK_OPPORTUNITIES.filter(
+      (o) => o.type === 'satici' && (o.status === 'acik' || o.status === 'claimed') && o.lat != null && o.lng != null,
+    ).map((o) => ({
+      kaynak: 'portfoy',
+      id: o.id,
+      siteAdi: o.siteAdi,
+      lat: Number(o.lat),
+      lng: Number(o.lng),
+      tutar: o.fiyat == null ? null : Number(o.fiyat),
+      tarih: o.createdAt,
+      danismanAdi: allMockUserRows().find((u) => u.id === o.ownerId)?.name,
+      durum: o.status,
+      islemTipi: o.islemTipi,
+    }))
+    return delay([...satisKayitlari, ...portfoyKayitlari])
   },
 }

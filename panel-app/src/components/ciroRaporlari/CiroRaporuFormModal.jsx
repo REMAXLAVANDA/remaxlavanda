@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Modal from '../common/Modal'
-import { formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
+import SiteKonumSecici from '../common/SiteKonumSecici'
+import { ciroRaporlari as ciroRaporlariProvider } from '../../lib/dataProvider'
+import { formatThousands, parseThousands, capitalizeWords, formatDateOnly } from '../../lib/format'
 import {
   ISLEM_TIPI_LABELS,
   PORTFOY_TIPI_LABELS,
@@ -73,6 +75,15 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   // sadece danışman il/ilçe/mahalle/ada/parsel/bağımsız bölümün HEPSİNİ
   // bu tek alana yazmak zorunda, üstünde kırmızı "zorunlu" uyarısı var.
   const [tapuBilgileri, setTapuBilgileri] = useState(editing?.tapuBilgileri ?? '')
+  // Site/Bina Adı + harita konumu (broker, 2026-11-07 pasted spec): "bu
+  // sitede daha önce satış yaptık mı, kaça" sorusuna tek bakışta cevap +
+  // ofis geneli harita. Tapu Bilgileri (yukarıdaki) AYNEN kalıyor, bunlar
+  // ONA EK — site_adi eşleştirmesiyle (normalize_site_adi, bkz. migration
+  // 20261107100000) ayrı bir siteler tablosu açılmadı.
+  const [siteAdi, setSiteAdi] = useState(editing?.siteAdi ?? '')
+  const [lat, setLat] = useState(editing?.lat ?? null)
+  const [lng, setLng] = useState(editing?.lng ?? null)
+  const [oncekiSatislar, setOncekiSatislar] = useState([])
   const [mulkBedeli, setMulkBedeli] = useState(editing?.mulkBedeli != null ? formatThousands(String(editing.mulkBedeli)) : '')
   const [raporKategori, setRaporKategori] = useState(editing?.raporKategori ?? '')
   const [krediDurumu, setKrediDurumu] = useState(editing?.krediDurumu ?? 'nakit')
@@ -123,6 +134,32 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       : [],
   )
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+
+  // Site Adı yazıldıkça (debounce'lu) o siteye bağlı ONAYLANMIŞ önceki
+  // satışları çeker — veri yoksa oncekiSatislar boş kalır, kutu hiç
+  // gösterilmez (bkz. aşağıdaki JSX, broker: "boş kutu gösterme").
+  useEffect(() => {
+    const deger = siteAdi.trim()
+    if (deger.length < 3) {
+      setOncekiSatislar([])
+      return
+    }
+    let iptal = false
+    const zamanlayici = setTimeout(() => {
+      ciroRaporlariProvider
+        .siteSatisGecmisi(deger)
+        .then((sonuc) => {
+          if (!iptal) setOncekiSatislar(sonuc)
+        })
+        .catch(() => {
+          if (!iptal) setOncekiSatislar([])
+        })
+    }, 500)
+    return () => {
+      iptal = true
+      clearTimeout(zamanlayici)
+    }
+  }, [siteAdi])
 
   function addParaHareketi() {
     setParaHareketleri((list) => [
@@ -257,6 +294,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     disBeyanKodu.trim().length > 0 &&
     // Broker, 2026-10-20: "tapu bilgileri mecbur opsiyonel değil".
     tapuBilgileri.trim().length > 0 &&
+    // Broker, 2026-11-07: Site/Bina Adı + harita konumu da zorunlu —
+    // Tapu Bilgileri ile AYNI kural (bkz. yukarıdaki not).
+    siteAdi.trim().length > 0 &&
+    lat != null &&
+    lng != null &&
     islemTutariToplam > 0 &&
     (!mulkBedeliGerekli || (mulkBedeliParsed !== null && mulkBedeliParsed > 0)) &&
     form.islemTarihi &&
@@ -296,6 +338,8 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const eksikAlanlar = []
   if (disBeyanKodu.trim().length === 0) eksikAlanlar.push(portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu')
   if (tapuBilgileri.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri (İl/İlçe/Mahalle/Ada/Parsel/Bağımsız Bölüm)')
+  if (siteAdi.trim().length === 0) eksikAlanlar.push('Site/Bina Adı')
+  if (lat == null || lng == null) eksikAlanlar.push('Harita Konumu (haritadan pin koy ya da adres ara)')
   if (mulkBedeliGerekli && !(mulkBedeliParsed !== null && mulkBedeliParsed > 0)) eksikAlanlar.push('Anlaşılan Bedel')
   if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
   if (!raporKategori) eksikAlanlar.push('Kategori')
@@ -350,6 +394,9 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       portfoyTipi,
       disBeyanKodu: disBeyanKodu.trim() || null,
       tapuBilgileri: tapuBilgileri.trim() || null,
+      siteAdi: siteAdi.trim() || null,
+      lat,
+      lng,
       mulkBedeli: mulkBedeliGerekli ? mulkBedeliParsed : null,
       saticiHizmetBedeliAlindi: saticiVar,
       saticiAdSoyad: capitalizeWords(satici.adSoyad.trim()),
@@ -473,6 +520,36 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               yazarsan sorumluluk sana aittir — kaydetmeden önce mutlaka kontrol et.
             </p>
           </div>
+
+          <SiteKonumSecici
+            siteAdi={siteAdi}
+            onSiteAdiChange={setSiteAdi}
+            lat={lat}
+            lng={lng}
+            onLocationChange={(yeniLat, yeniLng) => {
+              setLat(yeniLat)
+              setLng(yeniLng)
+            }}
+            required
+          />
+
+          {/* Broker, 2026-11-07: "bu sitede daha önce satış yaptık mı,
+              kaça sorusuna tek bakışta cevap" — veri yoksa HİÇ gösterilmiyor
+              (boş kutu gösterme). */}
+          {oncekiSatislar.length > 0 && (
+            <div className="rounded-lg bg-tint-amber p-3">
+              <p className="mb-1 text-xs font-semibold text-tint-amber-text">
+                Bu sitede önceki satışlar ({oncekiSatislar.length})
+              </p>
+              <ul className="space-y-0.5 text-xs text-tint-amber-text">
+                {oncekiSatislar.map((s) => (
+                  <li key={s.id}>
+                    {formatDateOnly(s.tarih)} — {tl(s.tutar)} ({s.danismanAdi || '—'})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-xs text-ink-500">İşlem Tipi</label>
