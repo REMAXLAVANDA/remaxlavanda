@@ -1,7 +1,5 @@
--- Yeni rol: "muhasebe" (broker, 2026-11-07: "muhasebe de açalım faturaları
--- kessin paraları kontrol etsin kesilen faturaları kontrol etsin şimdilik" —
--- sonra netleşti: "kontrol ettiğini de beyan etsin kontrol ettim
--- eşleştirmeleri yapsın. ben aylık son olarak incelemek istiyorum").
+-- Muhasebe rolünün yetkileri (bkz. 20261107080000 — enum değeri orada
+-- eklendi, bu dosya onun ÜZERİNE devam ediyor).
 --
 -- Kapsam BİLİNÇLİ olarak sadece Finans: banka hareketi eşleştirme/teyit,
 -- bloke çözme, masraf işaretleme, ciro raporu fatura bilgisi girişi, ofis
@@ -15,8 +13,6 @@
 -- tablolarda is_manager()'ın YANINA eklendi, böylece Lead Havuzu/
 -- Recruiting/Rehber-yönetim/Log gibi diğer tüm is_manager() kapıları
 -- etkilenmeden kalıyor.
-
-alter type user_role add value 'muhasebe';
 
 create or replace function public.is_finans_yetkili()
 returns boolean
