@@ -1,5 +1,5 @@
-import { Fragment, useMemo, useState } from 'react'
-import { Plus, ChevronDown, ChevronUp, Check, X as XIcon, RotateCcw, Pencil, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Plus, ChevronDown, ChevronUp, ChevronRight, Check, X as XIcon, RotateCcw, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useKnownUsers } from '../../context/UsersContext'
@@ -49,6 +49,7 @@ import { toplamEslesenTutar, toplamEmanetMahsubu } from '../../lib/bankaHareketl
 import { formatDateOnly } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
+import Modal from '../common/Modal'
 import CiroRaporuFormModal from '../ciroRaporlari/CiroRaporuFormModal'
 import CiroRaporuKatilimciRow from '../ciroRaporlari/CiroRaporuKatilimciRow'
 import RejectCiroRaporuModal from '../ciroRaporlari/RejectCiroRaporuModal'
@@ -91,7 +92,13 @@ export default function CiroRaporlariPanel() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [approveTarget, setApproveTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [expandedId, setExpandedId] = useState(null)
+  // 2026-11-07 broker: "temel bilgileri görmek istesem çok karmaşık ekran,
+  // detay görmek istersem içine girsem daha iyi olmaz mı" — satır artık
+  // aynı sayfada aşağı AÇILMIYOR, ayrı bir pencerede (modal) detay
+  // gösteriliyor. id tutuluyor (nesnenin kendisi değil) ki reload()
+  // sonrası modal en güncel veriyi göstersin, bkz. detailReport aşağıda.
+  const [detailId, setDetailId] = useState(null)
+  const detailReport = detailId ? (data?.raporlar ?? []).find((r) => r.id === detailId) ?? null : null
   const [rejectTarget, setRejectTarget] = useState(null)
   // Broker, 2026-10-20: "muhasebe de müşteriye kesilen faturayı sisteme
   // yüklemeli" — CiroRaporuKatilimciRow'daki AYNI dosya yükleme deseni
@@ -818,7 +825,11 @@ export default function CiroRaporlariPanel() {
 
   // Broker, 2026-10-20 (madde 7): "liste (kapalı) görünümünü MyRemax'taki
   // gibi yoğun bir tablo satırına çevir: Portföy No, Danışman, Durum,
-  // Tutar, İşlem Tipi, Tarih tek satırda; tıklanınca altta detay açılsın."
+  // Tutar, İşlem Tipi, Tarih tek satırda; tıklanınca detay açılsın."
+  // 2026-11-07 broker düzeltmesi: detay artık AYNI sayfada altta açılmıyor
+  // (satıcı/alıcı bilgisi + fatura formu + para hareketleri + muhasebe
+  // kutusu hepsi birden çok karmaşık geliyordu) — "temel bilgileri" bu
+  // satır zaten gösteriyor, detay için ayrı bir pencereye (modal) giriliyor.
   function renderReportTable(list) {
     return (
       <div className="overflow-x-auto rounded-2xl border border-border-default bg-surface-raised">
@@ -835,42 +846,31 @@ export default function CiroRaporlariPanel() {
             </tr>
           </thead>
           <tbody>
-            {list.map((r) => {
-              const isExpanded = expandedId === r.id
-              return (
-                <Fragment key={r.id}>
-                  <tr
-                    onClick={() => setExpandedId(isExpanded ? null : r.id)}
-                    className="cursor-pointer border-b border-border-subtle last:border-b-0 hover:bg-surface-sunken"
-                  >
-                    {/* Broker, 2026-10-20: "a dan z ye hepsini göster" —
-                        kısaltma/truncate yok, tam metin görünsün. */}
-                    <td className="px-4 py-2.5 font-medium text-text-primary">{r.disBeyanKodu ?? '—'}</td>
-                    <td className="px-4 py-2.5">
-                      {(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
-                        {CIRO_RAPORU_DURUM_LABELS[r.durum]}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2.5 font-medium text-text-primary">{tl(r.islemTutari)}</td>
-                    <td className="whitespace-nowrap px-4 py-2.5">{ISLEM_TIPI_LABELS[r.islemTipi]}</td>
-                    <td className="whitespace-nowrap px-4 py-2.5">{formatDateOnly(r.createdAt)}</td>
-                    <td className="px-4 py-2.5 text-text-muted">
-                      {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={7} className="border-b border-border-subtle p-0 last:border-b-0">
-                        {renderReportDetail(r)}
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              )
-            })}
+            {list.map((r) => (
+              <tr
+                key={r.id}
+                onClick={() => setDetailId(r.id)}
+                className="cursor-pointer border-b border-border-subtle last:border-b-0 hover:bg-surface-sunken"
+              >
+                {/* Broker, 2026-10-20: "a dan z ye hepsini göster" —
+                    kısaltma/truncate yok, tam metin görünsün. */}
+                <td className="px-4 py-2.5 font-medium text-text-primary">{r.disBeyanKodu ?? '—'}</td>
+                <td className="px-4 py-2.5">
+                  {(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'}
+                </td>
+                <td className="px-4 py-2.5">
+                  <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
+                    {CIRO_RAPORU_DURUM_LABELS[r.durum]}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-4 py-2.5 font-medium text-text-primary">{tl(r.islemTutari)}</td>
+                <td className="whitespace-nowrap px-4 py-2.5">{ISLEM_TIPI_LABELS[r.islemTipi]}</td>
+                <td className="whitespace-nowrap px-4 py-2.5">{formatDateOnly(r.createdAt)}</td>
+                <td className="px-4 py-2.5 text-text-muted">
+                  <ChevronRight size={15} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -992,6 +992,32 @@ export default function CiroRaporlariPanel() {
           onCancel={() => setApproveTarget(null)}
           confirming={submitting}
         />
+      )}
+
+      {/* 2026-11-07 broker: satır listesi "temel bilgiler" olarak kalsın,
+          detaya ayrı bir pencerede girilsin — aşağıdaki başlık da satırla
+          aynı temel bilgileri (danışman, portföy no, durum) tekrarlıyor ki
+          hangi rapora bakıldığı modalda da hiç kaybolmasın. */}
+      {detailReport && (
+        <Modal
+          title={
+            <span className="flex flex-wrap items-center gap-2">
+              <span>
+                {(detailReport.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'} ·{' '}
+                {detailReport.disBeyanKodu ?? '—'}
+              </span>
+              <span
+                className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[detailReport.durum]}`}
+              >
+                {CIRO_RAPORU_DURUM_LABELS[detailReport.durum]}
+              </span>
+            </span>
+          }
+          onClose={() => setDetailId(null)}
+          maxWidth="max-w-2xl"
+        >
+          {renderReportDetail(detailReport)}
+        </Modal>
       )}
     </div>
   )
