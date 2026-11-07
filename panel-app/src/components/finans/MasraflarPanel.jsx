@@ -79,6 +79,12 @@ export default function MasraflarPanel() {
       .map((r) => ({ ...r, name: knownUsers[r.danismanId]?.name ?? '—' }))
       .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 
+    // Madde 5 (broker onayı 2026-11-06): "sınıflandırılmamış geçerli bir
+    // durum, Finans ana ekranında adet+tutar uyarısı olarak görünsün".
+    const siniflandirilmamisMasraflar = masraflar.filter((m) => m.siniflandirma === 'siniflandirilmamis')
+    const siniflandirilmamisAdet = siniflandirilmamisMasraflar.length
+    const siniflandirilmamisToplam = siniflandirilmamisMasraflar.reduce((s, m) => s + Number(m.tutar), 0)
+
     const kazancByDanisman = {}
     for (const r of raporlar) {
       if (r.durum !== 'onaylandi') continue
@@ -92,7 +98,17 @@ export default function MasraflarPanel() {
       .map(([danismanId, tutar]) => ({ danismanId, tutar, name: knownUsers[danismanId]?.name ?? '—' }))
       .sort((a, b) => b.tutar - a.tutar)
 
-    return { bloke, buAykiMasrafToplam, kategoriKirilimi, cariOzet, kazancListesi, genelOfisGideri, kisiBasiGenelGider }
+    return {
+      bloke,
+      buAykiMasrafToplam,
+      kategoriKirilimi,
+      cariOzet,
+      kazancListesi,
+      genelOfisGideri,
+      kisiBasiGenelGider,
+      siniflandirilmamisAdet,
+      siniflandirilmamisToplam,
+    }
   }, [data, knownUsers, danismanOptions.length])
 
   if (!canManageMasraflar(role)) {
@@ -139,6 +155,14 @@ export default function MasraflarPanel() {
 
       {loading && <LoadingState />}
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
+
+      {!loading && !error && ozet.siniflandirilmamisAdet > 0 && (
+        <div className="mb-5 rounded-2xl border border-tint-amber bg-tint-amber/40 p-4">
+          <p className="text-sm font-medium text-tint-amber-text">
+            {ozet.siniflandirilmamisAdet} masraf henüz sınıflandırılmadı — toplam {tl(ozet.siniflandirilmamisToplam)}
+          </p>
+        </div>
+      )}
 
       {!loading && !error && (
         <>

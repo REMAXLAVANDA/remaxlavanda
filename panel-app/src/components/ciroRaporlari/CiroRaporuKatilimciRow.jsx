@@ -50,7 +50,18 @@ function Alan({ etiket, deger }) {
 // tutar) — sapma varsa zaten aşağıdaki kırmızı uyarı devreye giriyor.
 // gd_cirosu veritabanı kolonu SİLİNMEDİ (Kârlılık sekmesinin tabanı,
 // KarlilikPanel.jsx) — sadece bu karttaki tekrarlı gösterimi kaldırıldı.
-export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggleOdeme, eslesenTutar, onSaveFatura, onToggleOdeme, onTeyitEt, submitting }) {
+export default function CiroRaporuKatilimciRow({
+  k,
+  userName,
+  isOwnRow,
+  canToggleOdeme,
+  eslesenTutar,
+  emanetMahsupTutari,
+  onSaveFatura,
+  onToggleOdeme,
+  onTeyitEt,
+  submitting,
+}) {
   const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -165,7 +176,19 @@ export default function CiroRaporuKatilimciRow({ k, userName, isOwnRow, canToggl
       {/* Broker, 2026-10-22 (madde 11): tire ile birleşik cümle yerine
           ayrı, açıkça etiketlenmiş iki alan. */}
       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5">
-        {canToggleOdeme && eslesenTutar != null && <Alan etiket="Bankadan Tahsil Edilen" deger={tl(eslesenTutar)} />}
+        {/* Broker, 2026-11-06 (Finans madde 1 düzeltmesi): "mahsup edilen
+            tutar, Bankadan tahsil edilen toplamına TAM OLARAK BİR KEZ
+            eklenir" — karşılaştırmada kullanılan tek rakam artık banka +
+            emanet mahsubunun TOPLAMI, emanet payı ayrıca alt detay olarak
+            görünüyor (şeffaflık için, ikinci kez SAYILMIYOR). */}
+        {canToggleOdeme && eslesenTutar != null && (
+          <Alan
+            etiket="Toplam Tahsil Edilen"
+            deger={`${tl(eslesenTutar + (emanetMahsupTutari ?? 0))}${
+              emanetMahsupTutari > 0 ? ` (bunun ${tl(emanetMahsupTutari)}'si emanet mahsubundan)` : ''
+            }`}
+          />
+        )}
         {k.faturaTutari != null ? (
           <Alan etiket="Kesilen Fatura" deger={tl(k.faturaTutari)} />
         ) : (

@@ -44,7 +44,7 @@ function raporOnayUyarisi(r) {
   if (tutarsizKatilimci) return 'Bir katılımcının fatura tutarı önerilenden farklı — onaylamadan önce kontrol et.'
   return null
 }
-import { toplamEslesenTutar } from '../../lib/bankaHareketleri'
+import { toplamEslesenTutar, toplamEmanetMahsubu } from '../../lib/bankaHareketleri'
 import { formatDateOnly } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
@@ -71,12 +71,13 @@ function Alan({ etiket, deger }) {
 }
 
 async function loadAll() {
-  const [raporlar, anlasmalar, hareketler] = await Promise.all([
+  const [raporlar, anlasmalar, hareketler, emanetMahsuplari] = await Promise.all([
     ciroRaporlariProvider.list(),
     danismanAnlasmalariProvider.list(),
     bankaHareketleriProvider.list(),
+    bankaHareketleriProvider.listEmanetMahsuplari(),
   ])
-  return { raporlar, anlasmalar, hareketler }
+  return { raporlar, anlasmalar, hareketler, emanetMahsuplari }
 }
 
 export default function CiroRaporlariPanel() {
@@ -627,6 +628,7 @@ export default function CiroRaporlariPanel() {
                 isOwnRow={k.danismanId === user.id}
                 canToggleOdeme={isApprover}
                 eslesenTutar={toplamEslesenTutar(k.id, data?.hareketler)}
+                emanetMahsupTutari={toplamEmanetMahsubu(k.id, data?.emanetMahsuplari)}
                 onSaveFatura={handleSaveFatura}
                 onToggleOdeme={handleToggleOdeme}
                 onTeyitEt={handleTeyit}

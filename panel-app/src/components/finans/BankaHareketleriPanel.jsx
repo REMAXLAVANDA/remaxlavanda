@@ -33,13 +33,14 @@ function tl(n) {
 const today = () => new Date().toISOString().slice(0, 10)
 
 async function loadAll() {
-  const [hareketler, raporlar, opportunities, kategoriler] = await Promise.all([
+  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet] = await Promise.all([
     bankaHareketleriProvider.list(),
     ciroRaporlariProvider.list(),
     opportunitiesProvider.list(),
     categoriesProvider.list('masraflar'),
+    bankaHareketleriProvider.listEmanetOzet(),
   ])
-  return { hareketler, raporlar, opportunities, kategoriler }
+  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet }
 }
 
 export default function BankaHareketleriPanel() {
@@ -247,6 +248,18 @@ export default function BankaHareketleriPanel() {
         Banka API'si bağlanana kadar ekstreyi buraya elle gir — bir ödeme bekleyen kayıtla eşleştir, masraf olarak
         işaretle ya da dekontu teyit et.
       </p>
+
+      {!loading && !error && (data?.emanetOzet?.length ?? 0) > 0 && (
+        <div className="mb-5 rounded-2xl border border-tint-blue bg-tint-blue/40 p-4">
+          <p className="text-xs font-medium text-remax-blue">Emanette bekleyen</p>
+          <p className="mt-1 text-lg font-semibold text-remax-blue">
+            {tl(data.emanetOzet.reduce((s, e) => s + e.bakiye, 0))}
+          </p>
+          <p className="mt-1 text-xs text-text-muted">
+            {data.emanetOzet.length} bağlanma parası tapu gününü bekliyor.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleCreate} className="mb-6 space-y-2 rounded-2xl border border-border-default bg-surface-raised p-4">
         <div className="flex gap-2">

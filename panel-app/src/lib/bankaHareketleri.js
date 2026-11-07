@@ -79,6 +79,19 @@ export function toplamEslesenTutar(katilimciId, hareketler) {
     .reduce((sum, h) => sum + Number(h.tutar || 0), 0)
 }
 
+// Emanet (bağlanma parası) mahsubu — broker, 2026-11-06 (Finans madde 1
+// düzeltmesi): "mahsup edilen tutar, Bankadan tahsil edilen toplamına TAM
+// OLARAK BİR KEZ eklenir". Mahsup edilen para gerçek bir banka hareketi
+// DEĞİL (zaten gelmiş, sadece etiketi değişiyor) — bu yüzden
+// toplamEslesenTutar()'a hiç karışmıyor, kaynaklar hiç birleşmediği için
+// çifte sayım imkansız; karşılaştırmada kullanılan TEK toplam ikisinin
+// TOPLAMI (bkz. CiroRaporlariPanel.jsx).
+export function toplamEmanetMahsubu(katilimciId, emanetMahsuplari) {
+  return (emanetMahsuplari ?? [])
+    .filter((m) => m.ciroRaporuKatilimciId === katilimciId)
+    .reduce((sum, m) => sum + Number(m.tutar || 0), 0)
+}
+
 // Bir banka hareketine en olası eşleşme adaylarını (ödeme bekleyen
 // katılımcılar) tutar farkına göre artan sırada döner — broker en
 // muhtemel eşleşmeyi en üstte görür. `adaylar` her biri en az

@@ -17,14 +17,25 @@ const YENI_KATEGORI = '__yeni__'
 // değil — broker burada ("yeni kalem olunca da ekleme yapabileyim")
 // doğrudan yeni bir kategori ekleyip onu seçebilir, bkz.
 // onKategoriEkle (BankaHareketleriPanel'den categoriesProvider.create).
+// Sınıflandırma (madde 5, broker onayı 2026-11-06): danisman_id'den
+// TÜRETİLMİYOR, bilerek 3 açık seçenek — boş danışman her zaman "ofis
+// gideri" anlamına gelmeyebilir, "henüz sınıflandırılmadı" da olabilir.
+const SINIFLANDIRMA_SECENEKLERI = [
+  { key: 'siniflandirilmamis', label: 'Şimdilik sınıflandırma (sonra karar verilecek)' },
+  { key: 'ofis_gideri', label: 'Genel ofis gideri' },
+  { key: 'danisman_cari', label: 'Bir danışmanın cari hesabına yazılsın' },
+]
+
 export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOptions, onClose, onSubmit, onKategoriEkle, submitting }) {
   const [tur, setTur] = useState(kategoriler[0]?.key ?? '')
+  const [siniflandirma, setSiniflandirma] = useState('siniflandirilmamis')
   const [danismanId, setDanismanId] = useState('')
   const [aciklama, setAciklama] = useState(hareket.aciklama ?? '')
   const [yeniKategoriAdi, setYeniKategoriAdi] = useState('')
   const [kategoriEkleniyor, setKategoriEkleniyor] = useState(false)
 
   const yeniKategoriModu = tur === YENI_KATEGORI
+  const danismanCariModu = siniflandirma === 'danisman_cari'
 
   async function handleKategoriEkle() {
     if (!yeniKategoriAdi.trim()) return
@@ -41,7 +52,8 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
   function handleSubmit(e) {
     e.preventDefault()
     if (!tur || yeniKategoriModu) return
-    onSubmit({ tur, aciklama: aciklama.trim(), danismanId: danismanId || null })
+    if (danismanCariModu && !danismanId) return
+    onSubmit({ tur, aciklama: aciklama.trim(), siniflandirma, danismanId: danismanCariModu ? danismanId : null })
   }
 
   return (
@@ -86,19 +98,39 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
           )}
         </div>
         <div>
-          <label className="mb-1 block text-xs text-text-secondary">Bir danışmana bağlansın mı (opsiyonel)</label>
-          <select
-            value={danismanId}
-            onChange={(e) => setDanismanId(e.target.value)}
-            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
-          >
-            <option value="">Kimseye bağlanmasın — genel ofis gideri</option>
-            {danismanOptions.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} — Cari Hesabına borç yazılır
-              </option>
+          <label className="mb-1 block text-xs text-text-secondary">Sınıflandırma</label>
+          <div className="space-y-1.5">
+            {SINIFLANDIRMA_SECENEKLERI.map((s) => (
+              <label
+                key={s.key}
+                className="flex items-center gap-2 rounded-lg border border-border-default p-2.5 text-sm has-[:checked]:border-brand-300 has-[:checked]:bg-brand-50"
+              >
+                <input
+                  type="radio"
+                  name="siniflandirma"
+                  value={s.key}
+                  checked={siniflandirma === s.key}
+                  onChange={() => setSiniflandirma(s.key)}
+                />
+                {s.label}
+              </label>
             ))}
-          </select>
+          </div>
+          {danismanCariModu && (
+            <select
+              required
+              value={danismanId}
+              onChange={(e) => setDanismanId(e.target.value)}
+              className="mt-2 w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+            >
+              <option value="">Danışman seç</option>
+              {danismanOptions.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} — Cari Hesabına borç yazılır
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <input
           value={aciklama}
@@ -112,7 +144,7 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
           </button>
           <button
             type="submit"
-            disabled={submitting || !tur || yeniKategoriModu}
+            disabled={submitting || !tur || yeniKategoriModu || (danismanCariModu && !danismanId)}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {submitting ? 'Kaydediliyor...' : 'Masraf Olarak Kaydet'}

@@ -1905,48 +1905,19 @@ export const bankaHareketleri = {
     )
     return mapBankaHareketi(data)
   },
-  // Eşleşmemiş bir çıkış hareketini masraf olarak sınıflandırır —
-  // kayıt kaynaksız kalmasın diye islem_masraflari.banka_hareketi_id ile
-  // bu hareketle ilişkilendirilir. danismanId verilirse Cari Hesabına
-  // "borç" satırı da yazılır (updateKatilimciFatura'daki AYNI senkron
-  // deseni — ayrı bir tabloya yazılan, kaynağı net satır).
-  async masrafOlarakIsaretle(hareketId, { tur, aciklama, danismanId }, kullaniciId) {
-    const hareket = await run(client().from('banka_hareketleri').select('tutar, tarih').eq('id', hareketId).single())
-    const masraf = await run(
-      client()
-        .from('islem_masraflari')
-        .insert({
-          ciro_raporu_id: null,
-          danisman_id: danismanId || null,
-          tur,
-          aciklama: aciklama || null,
-          tutar: Number(hareket.tutar),
-          banka_hareketi_id: hareketId,
-          created_by: kullaniciId,
-        })
-        .select()
-        .single(),
-    )
-    if (danismanId) {
-      await run(
-        client().from('cari_hareketler').insert({
-          danisman_id: danismanId,
-          tarih: hareket.tarih,
-          tur: 'borc',
-          tutar: Number(hareket.tutar),
-          kategori: 'islem_masrafi',
-          aciklama: aciklama || null,
-          kaynak_tip: 'islem_masrafi',
-          kaynak_id: masraf.id,
-          created_by: kullaniciId,
-        }),
-      )
-    }
-    await run(
-      client()
-        .from('banka_hareketleri')
-        .update({ durum: 'masraf', eslestiren_id: kullaniciId, eslesme_tarihi: new Date().toISOString() })
-        .eq('id', hareketId),
+  // Eşleşmemiş bir çıkış hareketini masraf olarak sınıflandırır — tek,
+  // atomik RPC (Finans madde 5/6, 2026-11-06): islem_masraflari + (varsa)
+  // cari_hareketler + banka_hareketleri tek transaction'da, ayrı
+  // transaction'sız çağrılardaki eski mükerrer kayıt riski olmadan.
+  async masrafOlarakIsaretle(hareketId, { tur, aciklama, siniflandirma, danismanId }) {
+    return run(
+      client().rpc('masraf_olarak_isaretle', {
+        p_banka_hareketi_id: hareketId,
+        p_tur: tur,
+        p_aciklama: aciklama || null,
+        p_siniflandirma: siniflandirma || 'siniflandirilmamis',
+        p_danisman_id: danismanId || null,
+      }),
     )
   },
   // Eşleştirme artık katılımcının ödeme durumunu OTOMATİK "alındı" yapmıyor
@@ -1994,56 +1965,46 @@ export const bankaHareketleri = {
   },
   // Bloke (bağlanma parası) tapu günü çözümlenir — 4 senaryo:
   // geri_gonder/saticiya_gonder (tamamı çıkış), mahsup_et (tamamı hizmet
-  // bedeline), kismi_mahsup (bir kısmı mahsup, kalanı çıkış). Mahsup olan
-  // kısım mevcut eşleştirme mantığıyla AYNI (katılımcı odeme_durumu +
-  // cari hareket kapanır); çıkış kısmı yeni bir banka_hareketleri satırı
-  // olarak (tip='cikis', ust_hareket_id=bloke) kayıt altına alınır.
-  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }, kullaniciId) {
-    const bloke = await run(client().from('banka_hareketleri').select('tutar, tarih').eq('id', blokeId).single())
-    const mahsupVar = aksiyon === 'mahsup_et' || aksiyon === 'kismi_mahsup'
-    const cikisVar = aksiyon === 'geri_gonder' || aksiyon === 'saticiya_gonder' || aksiyon === 'kismi_mahsup'
-    const gercekMahsup = aksiyon === 'mahsup_et' ? Number(bloke.tutar) : Number(mahsupTutari || 0)
-    const cikisTutari = aksiyon === 'kismi_mahsup' ? Number(bloke.tutar) - gercekMahsup : Number(bloke.tutar)
-
-    if (mahsupVar && katilimciId) {
-      await run(client().from('ciro_raporu_katilimcilari').update({ odeme_durumu: 'alindi' }).eq('id', katilimciId))
-      await run(
-        client()
-          .from('cari_hareketler')
-          .update({ durum: 'kapandi' })
-          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
-          .eq('kaynak_id', katilimciId),
-      )
-    }
-    if (cikisVar && cikisTutari > 0) {
-      await run(
-        client()
-          .from('banka_hareketleri')
-          .insert({
-            tutar: cikisTutari,
-            tarih: new Date().toISOString().slice(0, 10),
-            gonderen_adi: aliciAdi || null,
-            aciklama: aksiyon === 'saticiya_gonder' ? 'Satıcıya gönderim' : 'Geri gönderim',
-            kaynak: 'manuel',
-            tip: 'cikis',
-            ust_hareket_id: blokeId,
-            durum: 'eslesti',
-            olusturan_id: kullaniciId,
-          }),
-      )
-    }
-    await run(
-      client()
-        .from('banka_hareketleri')
-        .update({
-          durum: 'cozuldu',
-          eslesen_katilimci_id: mahsupVar ? katilimciId : null,
-          mahsup_tutari: aksiyon === 'kismi_mahsup' ? gercekMahsup : null,
-          eslestiren_id: kullaniciId,
-          eslesme_tarihi: new Date().toISOString(),
-        })
-        .eq('id', blokeId),
+  // bedeline), kismi_mahsup (bir kısmı mahsup, kalanı çıkış). Tek, atomik
+  // RPC (Finans madde 1/2, 2026-11-06): eski kod burada 3-4 ayrı,
+  // transaction'sız çağrı yapıyordu — satır kilidi yoktu, iki kez
+  // tıklanırsa mükerrer çıkış kaydı oluşabiliyordu, mahsup tutarı sunucu
+  // tarafında hiç sınırlanmıyordu. cozumle_emanet() fonksiyonu kilitli
+  // tek transaction'da yapıyor, kısmi mahsupta artık yanlışlıkla "ödeme
+  // alındı" işaretlemiyor (sadece tam karşılananda).
+  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }) {
+    return run(
+      client().rpc('cozumle_emanet', {
+        p_banka_hareketi_id: blokeId,
+        p_aksiyon: aksiyon,
+        p_katilimci_id: katilimciId || null,
+        p_mahsup_tutari: mahsupTutari ?? null,
+        p_alici_adi: aliciAdi || null,
+      }),
     )
+  },
+  // Finans madde 1 — "Emanette bekleyen: X TL" özeti. emanet_ozet view'ı
+  // (security_invoker) zaten RLS'e tabi, is_manager() olmayan rol boş
+  // liste görür.
+  async listEmanetOzet() {
+    const data = await run(client().from('emanet_ozet').select('*').eq('durum', 'acik'))
+    return data.map((e) => ({
+      id: e.id,
+      opportunityId: e.opportunity_id,
+      gonderenAdi: e.gonderen_adi,
+      bakiye: Number(e.bakiye),
+    }))
+  },
+  // Broker, 2026-11-06 (madde 1 düzeltmesi): "mahsup edilen tutar,
+  // Bankadan tahsil edilen toplamına TAM OLARAK BİR KEZ eklenir" —
+  // CiroRaporlariPanel'in "Tahsil Edilen" karşılaştırmasının emanet
+  // mahsubunu da sayabilmesi için (bkz. lib/bankaHareketleri.js
+  // toplamEmanetMahsubu).
+  async listEmanetMahsuplari() {
+    const data = await run(
+      client().from('emanet_hareketleri').select('ciro_raporu_katilimci_id, tutar').eq('cikis_nedeni', 'hizmet_bedeline_mahsup'),
+    )
+    return data.map((r) => ({ ciroRaporuKatilimciId: r.ciro_raporu_katilimci_id, tutar: Number(r.tutar) }))
   },
 }
 
@@ -2106,6 +2067,8 @@ function mapIslemMasrafi(row) {
     aciklama: row.aciklama,
     tutar: Number(row.tutar),
     bankaHareketiId: row.banka_hareketi_id,
+    kaynakTuru: row.kaynak_turu,
+    siniflandirma: row.siniflandirma,
     createdBy: row.created_by,
     createdAt: row.created_at,
   }

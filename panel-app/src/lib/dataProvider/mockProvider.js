@@ -1432,23 +1432,32 @@ export const bankaHareketleri = {
     row.teyitTarihi = deger ? new Date().toISOString() : null
     return delay({ ...row })
   },
-  // bkz. supabaseProvider.js masrafOlarakIsaretle — AYNI mantık.
-  async masrafOlarakIsaretle(hareketId, { tur, aciklama, danismanId }, kullaniciId) {
+  // bkz. supabaseProvider.js masrafOlarakIsaretle (masraf_olarak_isaretle
+  // RPC'si) — AYNI mantık, mock'ta tek transaction kaygısı yok ama
+  // sınıflandırma davranışı birebir aynı (madde 5, 2026-11-06).
+  async masrafOlarakIsaretle(hareketId, { tur, aciklama, siniflandirma, danismanId }, kullaniciId) {
     const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
     if (!hareket) throw new Error('Hareket bulunamadı.')
+    if (MOCK_ISLEM_MASRAFLARI.some((m) => m.bankaHareketiId === hareketId)) {
+      throw new Error('Bu banka hareketi zaten masraf olarak işaretlenmiş.')
+    }
+    const siniflandirmaDeger = siniflandirma || 'siniflandirilmamis'
+    const danismanCariMi = siniflandirmaDeger === 'danisman_cari'
     const masrafRow = {
       id: `im-${Date.now()}`,
       ciroRaporuId: null,
-      danismanId: danismanId || null,
+      danismanId: danismanCariMi ? danismanId : null,
       tur,
       aciklama: aciklama || null,
       tutar: Number(hareket.tutar),
       bankaHareketiId: hareketId,
+      kaynakTuru: 'banka',
+      siniflandirma: siniflandirmaDeger,
       createdBy: kullaniciId,
       createdAt: new Date().toISOString(),
     }
     MOCK_ISLEM_MASRAFLARI.unshift(masrafRow)
-    if (danismanId) {
+    if (danismanCariMi) {
       MOCK_CARI_HAREKETLER.unshift({
         id: `ch-${Date.now()}-m`,
         danismanId,
@@ -1492,19 +1501,34 @@ export const bankaHareketleri = {
     return delay({ id: hareketId })
   },
   // Bloke (bağlanma parası) çözümleme — 4 senaryo, bkz. supabaseProvider.js
-  // aynı adlı fonksiyondaki açıklama.
+  // cozumle_emanet RPC'sindeki açıklama (madde 1/2, 2026-11-06). Mock'ta
+  // gerçek transaction/kilit kaygısı yok ama davranış AYNI: kısmi
+  // mahsupta sadece TAM karşılandıysa "alındı" (eski hata burada da
+  // düzeltildi), mahsup tutarı bloke bakiyesini aşamaz.
   async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }, kullaniciId) {
     const bloke = MOCK_BANKA_HAREKETLERI.find((h) => h.id === blokeId)
     if (!bloke) throw new Error('Bloke kaydı bulunamadı.')
+    if (bloke.durum === 'cozuldu') throw new Error('Bu emanet zaten çözümlenmiş, tekrar işlem yapılamaz.')
     const mahsupVar = aksiyon === 'mahsup_et' || aksiyon === 'kismi_mahsup'
     const cikisVar = aksiyon === 'geri_gonder' || aksiyon === 'saticiya_gonder' || aksiyon === 'kismi_mahsup'
     const gercekMahsup = aksiyon === 'mahsup_et' ? Number(bloke.tutar) : Number(mahsupTutari || 0)
     const cikisTutari = aksiyon === 'kismi_mahsup' ? Number(bloke.tutar) - gercekMahsup : Number(bloke.tutar)
+    if (mahsupVar && gercekMahsup > Number(bloke.tutar)) {
+      throw new Error('Mahsup tutarı emanet bakiyesini aşamaz.')
+    }
 
     if (mahsupVar && katilimciId) {
       const katilimci = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
-      if (katilimci) katilimci.odemeDurumu = 'alindi'
-      mockCariSatiriKapat(katilimciId, true)
+      if (katilimci) {
+        const simdiyeKadarTahsil = MOCK_BANKA_HAREKETLERI.filter(
+          (h) => h.eslesenKatilimciId === katilimciId && h.durum === 'eslesti',
+        ).reduce((s, h) => s + Number(h.tutar), 0)
+        const faturaTutari = Number(katilimci.faturaTutari ?? katilimci.komisyonTutariOnerisi ?? 0)
+        if (simdiyeKadarTahsil + gercekMahsup >= faturaTutari) {
+          katilimci.odemeDurumu = 'alindi'
+          mockCariSatiriKapat(katilimciId, true)
+        }
+      }
     }
     if (cikisVar && cikisTutari > 0) {
       MOCK_BANKA_HAREKETLERI.unshift({
@@ -1534,6 +1558,25 @@ export const bankaHareketleri = {
     bloke.eslestirenId = kullaniciId
     bloke.eslesmeTarihi = new Date().toISOString()
     return delay({ id: blokeId })
+  },
+  // Finans madde 1 — "Emanette bekleyen: X TL" özeti. Mock'ta ayrı bir
+  // emanet_hareketleri defteri yok, blokede duran banka hareketlerinin
+  // tutarı doğrudan bakiye sayılır (dev amaçlı basitleştirme).
+  async listEmanetOzet() {
+    return delay(
+      MOCK_BANKA_HAREKETLERI.filter((h) => h.durum === 'blokede').map((h) => ({
+        id: h.id,
+        opportunityId: h.opportunityId,
+        gonderenAdi: h.gonderenAdi,
+        bakiye: Number(h.tutar),
+      })),
+    )
+  },
+  // Mock'ta ayrı bir emanet_hareketleri defteri yok — mahsup senaryosu
+  // şu an katılımcının odeme_durumu'nu doğrudan güncelliyor (yukarıdaki
+  // blokeyiCozumle), ayrıca sayılacak bir mahsup listesi yok, boş döner.
+  async listEmanetMahsuplari() {
+    return delay([])
   },
 }
 
