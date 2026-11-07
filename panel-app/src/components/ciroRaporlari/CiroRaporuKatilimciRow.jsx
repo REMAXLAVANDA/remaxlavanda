@@ -79,6 +79,26 @@ export default function CiroRaporuKatilimciRow({
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tutarsiz = faturaTutarsizMi(k.faturaTutari, k.komisyonTutariOnerisi)
 
+  // Dış ofis satırı (broker, 2026-11-07): bizim danışmanımız değil, fatura/
+  // hakediş/ödeme hiç üretilmiyor (bkz. migration 20261107110000) — bu
+  // kart için ayrı, sade bir rozet gösterilir, aşağıdaki fatura UI'ı hiç
+  // render edilmez.
+  if (k.disOfisMi) {
+    return (
+      <div className="rounded-lg border border-border-subtle p-3">
+        <div className="text-sm text-text-primary">
+          <span className="rounded-full bg-tint-blue px-2 py-0.5 text-xs font-medium text-remax-blue">
+            İşbirliği: {k.disOfisAdi}
+          </span>
+          {k.disOfisKisi && <span className="ml-2 text-xs text-text-muted">İlgili kişi: {k.disOfisKisi}</span>}
+        </div>
+        <p className="mt-1 text-[11px] text-text-muted">
+          Bu taraf başka bir ofis tarafından temsil ediliyor — fatura/hakediş/cari hesap bizde oluşmaz.
+        </p>
+      </div>
+    )
+  }
+
   function handleFileChange(e) {
     const selected = e.target.files?.[0] ?? null
     if (!selected) {

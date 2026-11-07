@@ -73,6 +73,10 @@ export default function BankaHareketleriPanel() {
     const list = []
     for (const r of data?.raporlar ?? []) {
       for (const k of r.katilimcilar ?? []) {
+        // Dış ofis satırının danismanId'si yok, bankadan/emanetten ona
+        // tahsilat eşleşmesi hiç yapılmaz (broker, 2026-11-07) — eşleşme
+        // adayı listesine hiç girmesin.
+        if (k.disOfisMi) continue
         if (k.odemeDurumu !== 'bekliyor') continue
         list.push({
           katilimciId: k.id,

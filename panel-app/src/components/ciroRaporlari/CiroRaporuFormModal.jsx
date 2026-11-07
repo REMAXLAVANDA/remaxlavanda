@@ -64,6 +64,18 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   // elle düzeltebilir, hiçbiri sessizce kaybolmaz.
   const [saticiDanismanId, setSaticiDanismanId] = useState(editing?.katilimcilar?.[0]?.danismanId ?? user.id)
   const [aliciDanismanId, setAliciDanismanId] = useState(editing?.katilimcilar?.[1]?.danismanId ?? editing?.katilimcilar?.[0]?.danismanId ?? user.id)
+  // Broker, 2026-11-07 (pasted spec): satıcı/alıcı tarafını biz değil,
+  // başka bir emlak ofisi temsil edebilir (işbirliği). "kendi" = yukarıdaki
+  // danismanId seçimi geçerli; "dis_ofis" = aşağıdaki ofis adı/kişi
+  // alanları geçerli, danismanId'ye hiç bakılmaz. Aynı pozisyonel tahmin
+  // (katilimcilar[0]=satıcı, [1]=alıcı) yukarıdaki danismanId init'iyle
+  // AYNI yaklaşım — kesin değil, yanlışsa danışman elle düzeltir.
+  const [saticiTemsilciTipi, setSaticiTemsilciTipi] = useState(editing?.katilimcilar?.[0]?.disOfisMi ? 'dis_ofis' : 'kendi')
+  const [saticiDisOfisAdi, setSaticiDisOfisAdi] = useState(editing?.katilimcilar?.[0]?.disOfisAdi ?? '')
+  const [saticiDisOfisKisi, setSaticiDisOfisKisi] = useState(editing?.katilimcilar?.[0]?.disOfisKisi ?? '')
+  const [aliciTemsilciTipi, setAliciTemsilciTipi] = useState(editing?.katilimcilar?.[1]?.disOfisMi ? 'dis_ofis' : 'kendi')
+  const [aliciDisOfisAdi, setAliciDisOfisAdi] = useState(editing?.katilimcilar?.[1]?.disOfisAdi ?? '')
+  const [aliciDisOfisKisi, setAliciDisOfisKisi] = useState(editing?.katilimcilar?.[1]?.disOfisKisi ?? '')
   const [form, setForm] = useState({
     islemTipi: editing?.islemTipi ?? 'satis',
     islemTarihi: editing?.islemTarihi ?? today(),
@@ -244,8 +256,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const aliciPayTutari = aliciVar === true ? aliciHizmetBedeliHaric ?? 0 : 0
 
   const katilimciPaylari = useMemo(() => {
-    if (!saticiDanismanId || !aliciDanismanId) return []
-    if (saticiDanismanId === aliciDanismanId) {
+    const saticiTarafGecerli = saticiTemsilciTipi === 'dis_ofis' ? saticiDisOfisAdi.trim().length > 0 : !!saticiDanismanId
+    const aliciTarafGecerli = aliciTemsilciTipi === 'dis_ofis' ? aliciDisOfisAdi.trim().length > 0 : !!aliciDanismanId
+    if (!saticiTarafGecerli || !aliciTarafGecerli) return []
+    // Aynı kişi kısayolu SADECE ikisi de "Kendi Danışmanımız" ve aynı
+    // id'yse geçerli — dış ofis her zaman ayrı bir taraf.
+    if (saticiTemsilciTipi === 'kendi' && aliciTemsilciTipi === 'kendi' && saticiDanismanId === aliciDanismanId) {
       return [{ danismanId: saticiDanismanId, payOrani: 100 }]
     }
     const toplam = saticiPayTutari + aliciPayTutari
@@ -257,14 +273,43 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     const saticiOrani = Math.round((saticiPayTutari / toplam) * 10000) / 100
     const aliciOrani = Math.round((100 - saticiOrani) * 100) / 100
     const liste = []
-    if (saticiPayTutari > 0) liste.push({ danismanId: saticiDanismanId, payOrani: saticiOrani })
-    if (aliciPayTutari > 0) liste.push({ danismanId: aliciDanismanId, payOrani: aliciOrani })
+    if (saticiPayTutari > 0) {
+      liste.push(
+        saticiTemsilciTipi === 'dis_ofis'
+          ? { disOfisMi: true, disOfisAdi: saticiDisOfisAdi.trim(), disOfisKisi: saticiDisOfisKisi.trim() || null, payOrani: saticiOrani }
+          : { danismanId: saticiDanismanId, payOrani: saticiOrani },
+      )
+    }
+    if (aliciPayTutari > 0) {
+      liste.push(
+        aliciTemsilciTipi === 'dis_ofis'
+          ? { disOfisMi: true, disOfisAdi: aliciDisOfisAdi.trim(), disOfisKisi: aliciDisOfisKisi.trim() || null, payOrani: aliciOrani }
+          : { danismanId: aliciDanismanId, payOrani: aliciOrani },
+      )
+    }
     return liste
-  }, [saticiDanismanId, aliciDanismanId, saticiPayTutari, aliciPayTutari])
+  }, [
+    saticiTemsilciTipi,
+    saticiDanismanId,
+    saticiDisOfisAdi,
+    saticiDisOfisKisi,
+    aliciTemsilciTipi,
+    aliciDanismanId,
+    aliciDisOfisAdi,
+    aliciDisOfisKisi,
+    saticiPayTutari,
+    aliciPayTutari,
+  ])
 
   const katilimcilarHazir = useMemo(
     () =>
       katilimciPaylari.map((k) => {
+        // Dış ofis satırı hiçbir hakediş/anlaşma oranı hesabına girmez —
+        // bu taraf bizim danışmanımız değil (bkz. migration 20261107110000
+        // approve_ciro_raporu'daki aynı atlama).
+        if (k.disOfisMi) {
+          return { ...k, anlasmaOrani: null, rtOrani: null, gdCirosu: null, komisyonTutariOnerisi: null, rtPayiTutari: null }
+        }
         const anlasmaOrani = guncelAnlasmaOrani(anlasmalar, k.danismanId, form.islemTarihi)
         const rtOrani = guncelRtPayOrani(anlasmalar, k.danismanId, form.islemTarihi)
         const gdCirosuDeger = gdCirosu(toplamHizmetBedeliDeger, k.payOrani)
@@ -283,6 +328,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   function temsilciAdi(danismanId) {
     if (danismanId === user.id) return 'Sen'
     return danismanOptions.find((u) => u.id === danismanId)?.name ?? '—'
+  }
+
+  function katilimciGosterimAdi(k) {
+    return k.disOfisMi ? `İşbirliği: ${k.disOfisAdi}` : temsilciAdi(k.danismanId)
   }
 
   // handleSubmit'teki paraHareketleri filtresiyle AYNI şart (tutar>0, tarihli).
@@ -318,8 +367,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       (aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0 && aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) &&
     saticiDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
     aliciDiger.every((k) => k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0) &&
-    !!saticiDanismanId &&
-    !!aliciDanismanId &&
+    (saticiTemsilciTipi === 'dis_ofis' ? saticiDisOfisAdi.trim().length > 0 : !!saticiDanismanId) &&
+    (aliciTemsilciTipi === 'dis_ofis' ? aliciDisOfisAdi.trim().length > 0 : !!aliciDanismanId) &&
+    // Broker onayı, 2026-11-07: en az bir taraf bizim danışmanımız olmalı
+    // — ikisi de dış ofisse bu işlem kimseye bağlanamaz.
+    !(saticiTemsilciTipi === 'dis_ofis' && aliciTemsilciTipi === 'dis_ofis') &&
     katilimcilarHazir.length > 0 &&
     // Broker, 2026-10-17: "para hareketleri opsiyonel yazmış, bağlanma
     // parası giriş/çıkışları, hizmet bedeli — tüm hareketleri buraya
@@ -362,6 +414,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     eksikAlanlar.push('Eklediğin ek satıcı bilgileri (ad soyad/telefon/TC no) eksik')
   if (aliciDiger.some((k) => !(k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0)))
     eksikAlanlar.push('Eklediğin ek alıcı bilgileri (ad soyad/telefon/TC no) eksik')
+  if (saticiTemsilciTipi === 'dis_ofis' && saticiDisOfisAdi.trim().length === 0) eksikAlanlar.push('Satıcı tarafı — Dış Ofis Adı')
+  if (aliciTemsilciTipi === 'dis_ofis' && aliciDisOfisAdi.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı tarafı — Dış Ofis Adı')
+  if (saticiTemsilciTipi === 'dis_ofis' && aliciTemsilciTipi === 'dis_ofis')
+    eksikAlanlar.push('Satıcı ve Alıcı aynı anda "Başka Ofis" olamaz — en az biri bizim danışmanımız olmalı')
   if (islemTutariToplam <= 0) eksikAlanlar.push('Satıcı veya alıcıdan en az birinden hizmet bedeli girilmeli')
   if (katilimcilarHazir.length === 0 && islemTutariToplam > 0) eksikAlanlar.push('Pay hesaplanamadı — hizmet bedellerini kontrol et')
   if (paraHareketleriGecerliSayisi === 0 && (existingParaHareketleri?.length ?? 0) === 0)
@@ -376,7 +432,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       return
     }
     const katilimcilar = katilimcilarHazir.map((k) => ({
-      danismanId: k.danismanId,
+      danismanId: k.danismanId ?? null,
+      disOfisMi: !!k.disOfisMi,
+      disOfisAdi: k.disOfisAdi ?? null,
+      disOfisKisi: k.disOfisKisi ?? null,
       payOrani: k.payOrani,
       anlasmaOraniSnapshot: k.anlasmaOrani,
       komisyonTutariOnerisi: k.komisyonTutariOnerisi,
@@ -644,19 +703,57 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           </div>
 
           <div className="mt-2">
-            <label className="mb-1 block text-[11px] text-ink-500">Satıcıyı temsil eden danışman</label>
-            <select
-              value={saticiDanismanId}
-              onChange={(e) => setSaticiDanismanId(e.target.value)}
-              className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            >
-              <option value={user.id}>Ben</option>
-              {danismanOptions.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+            <label className="mb-1 block text-[11px] text-ink-500">Satıcı tarafını kim temsil ediyor?</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSaticiTemsilciTipi('kendi')}
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                  saticiTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                }`}
+              >
+                Kendi Danışmanımız
+              </button>
+              <button
+                type="button"
+                onClick={() => setSaticiTemsilciTipi('dis_ofis')}
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                  saticiTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                }`}
+              >
+                Başka Ofis (İşbirliği)
+              </button>
+            </div>
+            {saticiTemsilciTipi === 'kendi' ? (
+              <select
+                value={saticiDanismanId}
+                onChange={(e) => setSaticiDanismanId(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              >
+                <option value={user.id}>Ben</option>
+                {danismanOptions.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="mt-2 space-y-2">
+                <input
+                  required
+                  value={saticiDisOfisAdi}
+                  onChange={(e) => setSaticiDisOfisAdi(e.target.value)}
+                  placeholder="Ofis Adı *"
+                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  value={saticiDisOfisKisi}
+                  onChange={(e) => setSaticiDisOfisKisi(e.target.value)}
+                  placeholder="İlgili Kişi (opsiyonel)"
+                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+              </div>
+            )}
           </div>
 
           {saticiDiger.map((k, i) => (
@@ -784,19 +881,57 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           </div>
 
           <div className="mt-2">
-            <label className="mb-1 block text-[11px] text-ink-500">Alıcıyı/Kiracıyı temsil eden danışman</label>
-            <select
-              value={aliciDanismanId}
-              onChange={(e) => setAliciDanismanId(e.target.value)}
-              className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            >
-              <option value={user.id}>Ben</option>
-              {danismanOptions.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+            <label className="mb-1 block text-[11px] text-ink-500">Alıcı/Kiracı tarafını kim temsil ediyor?</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setAliciTemsilciTipi('kendi')}
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                  aliciTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                }`}
+              >
+                Kendi Danışmanımız
+              </button>
+              <button
+                type="button"
+                onClick={() => setAliciTemsilciTipi('dis_ofis')}
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                  aliciTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                }`}
+              >
+                Başka Ofis (İşbirliği)
+              </button>
+            </div>
+            {aliciTemsilciTipi === 'kendi' ? (
+              <select
+                value={aliciDanismanId}
+                onChange={(e) => setAliciDanismanId(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+              >
+                <option value={user.id}>Ben</option>
+                {danismanOptions.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="mt-2 space-y-2">
+                <input
+                  required
+                  value={aliciDisOfisAdi}
+                  onChange={(e) => setAliciDisOfisAdi(e.target.value)}
+                  placeholder="Ofis Adı *"
+                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  value={aliciDisOfisKisi}
+                  onChange={(e) => setAliciDisOfisKisi(e.target.value)}
+                  placeholder="İlgili Kişi (opsiyonel)"
+                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+              </div>
+            )}
           </div>
 
           {aliciDiger.map((k, i) => (
@@ -912,9 +1047,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               'Pay hesaplanamadı — satıcı/alıcıdan alınan hizmet bedelini kontrol et.'
             ) : (
               katilimcilarHazir.map((k) => (
-                <p key={k.danismanId}>
-                  <span className="font-medium">{temsilciAdi(k.danismanId)}</span>
-                  {k.anlasmaOrani != null ? (
+                <p key={k.danismanId ?? k.disOfisAdi}>
+                  <span className="font-medium">{katilimciGosterimAdi(k)}</span>
+                  {k.disOfisMi ? (
+                    ' · dış ofis — bu pay için hakediş/cari hesap oluşturulmaz'
+                  ) : k.anlasmaOrani != null ? (
                     <>
                       {' '}
                       · hakediş: <span className="font-semibold">{tl(k.komisyonTutariOnerisi)}</span> (%{k.anlasmaOrani} anlaşma oranı)

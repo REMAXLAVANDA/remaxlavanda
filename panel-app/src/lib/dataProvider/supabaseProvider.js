@@ -1292,6 +1292,9 @@ function mapCiroRaporuKatilimcisi(k) {
     id: k.id,
     ciroRaporuId: k.ciro_raporu_id,
     danismanId: k.danisman_id,
+    disOfisMi: k.dis_ofis_mi,
+    disOfisAdi: k.dis_ofis_adi,
+    disOfisKisi: k.dis_ofis_kisi,
     payOrani: Number(k.pay_orani),
     anlasmaOraniSnapshot: k.anlasma_orani_snapshot == null ? null : Number(k.anlasma_orani_snapshot),
     komisyonTutariOnerisi: k.komisyon_tutari_onerisi == null ? null : Number(k.komisyon_tutari_onerisi),
@@ -1479,7 +1482,10 @@ export const ciroRaporlari = {
     try {
       const katilimciRows = katilimcilar.map((k) => ({
         ciro_raporu_id: rapor.id,
-        danisman_id: k.danismanId,
+        danisman_id: k.danismanId ?? null,
+        dis_ofis_mi: !!k.disOfisMi,
+        dis_ofis_adi: k.disOfisAdi ?? null,
+        dis_ofis_kisi: k.disOfisKisi ?? null,
         pay_orani: k.payOrani,
         anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
         komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
@@ -1607,7 +1613,10 @@ export const ciroRaporlari = {
       await run(client().from('ciro_raporu_katilimcilari').delete().eq('ciro_raporu_id', id))
       const katilimciRows = katilimcilar.map((k) => ({
         ciro_raporu_id: id,
-        danisman_id: k.danismanId,
+        danisman_id: k.danismanId ?? null,
+        dis_ofis_mi: !!k.disOfisMi,
+        dis_ofis_adi: k.disOfisAdi ?? null,
+        dis_ofis_kisi: k.disOfisKisi ?? null,
         pay_orani: k.payOrani,
         anlasma_orani_snapshot: k.anlasmaOraniSnapshot ?? null,
         komisyon_tutari_onerisi: k.komisyonTutariOnerisi ?? null,
