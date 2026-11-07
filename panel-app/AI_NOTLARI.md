@@ -2995,3 +2995,22 @@ isteğe bağlıya çekip kendini muaf tutabilirdi. `tasks_restrict_
 assignee_update` ile aynı desen: `BEFORE UPDATE` trigger, yönetim
 dışındaki güncellemede `katilim_tipi` eski değerine sessizce döner.
 
+## 2026-11-07 — Site/bina bazlı konum takibi ve harita
+
+Broker talebi: Ciro Raporu'na site/bina adı + harita konumu (zorunlu),
+aynı sitede önceki satışları gösteren uyarı; Fırsat (satıcı) formuna
+aynı konum alanı (opsiyonel); Finans > Harita sekmesinde tüm bu
+kayıtların OpenStreetMap üzerinde pin olarak görünmesi. Broker kararı:
+"A seçeneği, herkese açık olsun" — konum alanı hem Ciro Raporu hem
+Fırsat formunda, harita + site geçmişi TÜM roller için açık (sadece
+broker/owner değil). Ayrı bir "siteler" tablosu açılmadı — `site_adi`
+metni normalize edilip (küçük harf + boşluk sadeleştirme) eşleştiriliyor.
+Harita/geçmiş sorguları `SECURITY DEFINER` RPC ile normal RLS'i (kendi
+kaydını görme kısıtı) bilinçli olarak atlıyor, sadece `is_active()`
+kontrolü var — çünkü bu bilgi tanım olarak herkese açık olacak.
+Haritada sadece `durum='açık'/'üstlenildi'` olan satıcı fırsatları
+görünüyor (kapandı/iptal hariç) — kapanan fırsatın zaten ciro raporunda
+karşılığı olacağından aynı yer için iki çelişkili pin çıkmasın diye;
+bu yorum broker'a henüz ayrıca sorulmadı. Leaflet + OpenStreetMap
+kullanıldı (ücretsiz, API anahtarı gerekmiyor). Eski kayıtlarda konum
+yok, haritada görünmüyorlar (geriye dönük doldurma kapsam dışı).
