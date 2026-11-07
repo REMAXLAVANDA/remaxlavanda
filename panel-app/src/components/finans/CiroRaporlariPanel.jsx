@@ -130,6 +130,9 @@ export default function CiroRaporlariPanel() {
   // için bu bloklar EKRANDAKİ TEK İŞİ, her raporda elle açmak gereksiz tık.
   const isMuhasebeOnly = isViewAll && !isApprover
   const userName = (id) => knownUsers[id]?.name ?? '—'
+  // Dış ofis katılımcısının danismanId'si yok — adı yerine "İşbirliği: ..."
+  // gösterilir (broker, 2026-11-07).
+  const katilimciAdi = (k) => (k.disOfisMi ? `İşbirliği: ${k.disOfisAdi}` : userName(k.danismanId))
 
   const danismanOptions = useMemo(
     () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi && u.id !== user.id),
@@ -468,7 +471,13 @@ export default function CiroRaporlariPanel() {
     return {
       bankaKontrol: hareketler.length > 0 && hareketler.every((h) => h.teyitEdildi),
       musteriFatura: (!r.saticiHizmetBedeliAlindi || !!r.ofisFaturaSaticiDosyaUrl) && (!r.aliciHizmetBedeliAlindi || !!r.ofisFaturaAliciDosyaUrl),
-      danismanFatura: katilimcilar.length > 0 && katilimcilar.every((k) => k.faturaDosyaUrl),
+      // Dış ofis katılımcısının fatura yükleme işi hiç yok (bkz. CiroRaporu
+      // KatilimciRow'daki rozet) — sadece bizim danışmanlarımızın satırları
+      // sayılır.
+      danismanFatura: (() => {
+        const kendiKatilimcilar = katilimcilar.filter((k) => !k.disOfisMi)
+        return kendiKatilimcilar.length > 0 && kendiKatilimcilar.every((k) => k.faturaDosyaUrl)
+      })(),
       myremax: !!r.myremaxGirildi,
     }
   }
@@ -856,7 +865,7 @@ export default function CiroRaporlariPanel() {
                     kısaltma/truncate yok, tam metin görünsün. */}
                 <td className="px-4 py-2.5 font-medium text-text-primary">{r.disBeyanKodu ?? '—'}</td>
                 <td className="px-4 py-2.5">
-                  {(r.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'}
+                  {(r.katilimcilar ?? []).map((k) => katilimciAdi(k)).join(' / ') || '—'}
                 </td>
                 <td className="px-4 py-2.5">
                   <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
@@ -1003,7 +1012,7 @@ export default function CiroRaporlariPanel() {
           title={
             <span className="flex flex-wrap items-center gap-2">
               <span>
-                {(detailReport.katilimcilar ?? []).map((k) => userName(k.danismanId)).join(' / ') || '—'} ·{' '}
+                {(detailReport.katilimcilar ?? []).map((k) => katilimciAdi(k)).join(' / ') || '—'} ·{' '}
                 {detailReport.disBeyanKodu ?? '—'}
               </span>
               <span

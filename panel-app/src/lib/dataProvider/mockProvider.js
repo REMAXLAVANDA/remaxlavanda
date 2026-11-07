@@ -993,7 +993,10 @@ export const ciroRaporlari = {
       MOCK_CIRO_RAPORU_KATILIMCILARI.push({
         id: `crk-${Date.now()}-${i}`,
         ciroRaporuId: rapor.id,
-        danismanId: k.danismanId,
+        danismanId: k.danismanId ?? null,
+        disOfisMi: !!k.disOfisMi,
+        disOfisAdi: k.disOfisAdi ?? null,
+        disOfisKisi: k.disOfisKisi ?? null,
         payOrani: Number(k.payOrani),
         anlasmaOraniSnapshot: k.anlasmaOraniSnapshot ?? null,
         komisyonTutariOnerisi: k.komisyonTutariOnerisi ?? null,
@@ -1137,7 +1140,10 @@ export const ciroRaporlari = {
         MOCK_CIRO_RAPORU_KATILIMCILARI.push({
           id: `crk-${Date.now()}-${i}`,
           ciroRaporuId: id,
-          danismanId: k.danismanId,
+          danismanId: k.danismanId ?? null,
+          disOfisMi: !!k.disOfisMi,
+          disOfisAdi: k.disOfisAdi ?? null,
+          disOfisKisi: k.disOfisKisi ?? null,
           payOrani: Number(k.payOrani),
           anlasmaOraniSnapshot: k.anlasmaOraniSnapshot ?? null,
           komisyonTutariOnerisi: k.komisyonTutariOnerisi ?? null,
@@ -1259,6 +1265,9 @@ export const ciroRaporlari = {
     if (!rapor) throw new Error('Rapor bulunamadı.')
     const katilimcilar = MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === id)
     for (const k of katilimcilar) {
+      // Dış ofis satırı (danismanId yok) hiçbir Lig/cari otomasyonuna
+      // girmez — bkz. supabaseProvider.js approve_ciro_raporu'daki aynı atlama.
+      if (!k.danismanId) continue
       const value = Number(rapor.islemTutari) * (Number(k.payOrani) / 100)
       await league.addScore({ userId: k.danismanId, type: 'ciro', value, tarih: rapor.islemTarihi }, approverId)
     }
@@ -1267,6 +1276,7 @@ export const ciroRaporlari = {
     rapor.onayTarihi = new Date().toISOString()
     // Cari Hesap: her katılımcı için hak ediş kadar "alacak" satırı.
     katilimcilar.forEach((k, i) => {
+      if (!k.danismanId) return
       const tutar = Number(k.faturaTutari ?? k.komisyonTutariOnerisi ?? 0)
       if (tutar <= 0) return
       MOCK_CARI_HAREKETLER.push({
@@ -2147,8 +2157,10 @@ export const harita = {
         lng: Number(r.lng),
         tutar: Number(r.islemTutari),
         tarih: r.islemTarihi,
+        // Dış ofis satırının danismanId'si yok — adı yerine "İşbirliği: ..."
+        // gösterilir (supabaseProvider.js harita_kayitlari ile AYNI mantık).
         danismanAdi: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id)
-          .map((k) => allMockUserRows().find((u) => u.id === k.danismanId)?.name)
+          .map((k) => (k.disOfisMi ? `İşbirliği: ${k.disOfisAdi}` : allMockUserRows().find((u) => u.id === k.danismanId)?.name))
           .filter(Boolean)
           .join(' / '),
         durum: r.durum,
