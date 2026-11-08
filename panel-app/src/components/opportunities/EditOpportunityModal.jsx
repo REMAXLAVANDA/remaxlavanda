@@ -42,9 +42,12 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
   const minVal = parseThousands(form.fiyatMin)
   const maxVal = parseThousands(form.fiyatMax)
   const budgetRangeInvalid = isAlici && minVal !== null && maxVal !== null && minVal > maxVal
+  // Portföy (satıcı) girişinde "Ek notlar" zorunlu — bkz. NewOpportunityModal.jsx notu.
+  const ozetGerekli = !isAlici
   const canSubmit =
     form.leadAd.trim().length > 0 &&
     form.konum.trim().length > 0 &&
+    (!ozetGerekli || form.ozet.trim().length > 0) &&
     !budgetRangeInvalid &&
     isPhoneComplete(form.leadTelefon)
 
@@ -61,6 +64,7 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
           if (
             form.leadAd.trim().length === 0 ||
             form.konum.trim().length === 0 ||
+            (ozetGerekli && form.ozet.trim().length === 0) ||
             budgetRangeInvalid ||
             !isPhoneComplete(leadTelefon)
           ) {
@@ -281,14 +285,19 @@ export default function EditOpportunityModal({ opportunity: opp, contact, onClos
 
         <div>
           <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-edit-ozet">
-            Ek notlar
+            Ek notlar {ozetGerekli && <span className="text-red-600">* zorunlu</span>}
           </label>
           <textarea
             id="opp-edit-ozet"
+            required={ozetGerekli}
             value={form.ozet}
             onChange={(e) => set({ ozet: e.target.value })}
             onBlur={(e) => set({ ozet: capitalizeFirst(e.target.value) })}
-            placeholder="Konum yukarıdaki Mahalle alanına yazılmalı, buraya değil"
+            placeholder={
+              ozetGerekli
+                ? 'Daire mi villa mı, kaç oda (ör. 3+1), öne çıkan özellikleri yaz — konum yukarıdaki Mahalle alanına yazılmalı, buraya değil'
+                : 'Konum yukarıdaki Mahalle alanına yazılmalı, buraya değil'
+            }
             rows={3}
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
