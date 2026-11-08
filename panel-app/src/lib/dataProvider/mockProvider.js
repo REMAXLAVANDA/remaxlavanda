@@ -1224,20 +1224,29 @@ export const ciroRaporlari = {
   async siteSatisGecmisi(siteAdi) {
     const normalize = (s) => (s ?? '').toLowerCase().trim().replace(/\s+/g, ' ')
     const hedef = normalize(siteAdi)
-    return delay(
-      MOCK_CIRO_RAPORLARI.filter((r) => r.durum === 'onaylandi' && r.siteAdi && normalize(r.siteAdi) === hedef)
-        .map((r) => ({
-          id: r.id,
-          tarih: r.islemTarihi,
-          tutar: Number(r.islemTutari),
-          danismanAdi: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id)
-            .map((k) => allMockUserRows().find((u) => u.id === k.danismanId)?.name)
-            .filter(Boolean)
-            .join(' / '),
-          islemTipi: r.islemTipi,
-        }))
-        .sort((a, b) => new Date(b.tarih) - new Date(a.tarih)),
+    const ciroKayitlari = MOCK_CIRO_RAPORLARI.filter((r) => r.durum === 'onaylandi' && r.siteAdi && normalize(r.siteAdi) === hedef).map(
+      (r) => ({
+        id: r.id,
+        tarih: r.islemTarihi,
+        tutar: Number(r.islemTutari),
+        danismanAdi: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id)
+          .map((k) => allMockUserRows().find((u) => u.id === k.danismanId)?.name)
+          .filter(Boolean)
+          .join(' / '),
+        islemTipi: r.islemTipi,
+      }),
     )
+    // Broker'ın elle eklediği geçmiş kayıtlar da DA buraya giriyor
+    // (2026-11-08) — asıl amaç, danışman form doldururken bu bilgiyi de
+    // görsün (bkz. harita.manuelKayitEkle notu).
+    const manuelKayitlar = MOCK_HARITA_MANUEL_KAYITLAR.filter((m) => normalize(m.siteAdi) === hedef).map((m) => ({
+      id: m.id,
+      tarih: m.tarih,
+      tutar: m.tutar == null ? null : Number(m.tutar),
+      danismanAdi: allMockUserRows().find((u) => u.id === m.danismanId)?.name ?? null,
+      islemTipi: null,
+    }))
+    return delay([...ciroKayitlari, ...manuelKayitlar].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
   },
   async updateKatilimciFatura(id, patch) {
     const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === id)
@@ -2102,6 +2111,12 @@ export const kararlar = {
 
 // supabaseProvider.harita.listKayitlar() (harita_kayitlari RPC) ile AYNI
 // davranış — onaylanmış ciro raporları + açık/üstlenilmiş satıcı portföyleri.
+// Broker'ın geçmişe dönük elle eklediği kayıtlar (2026-11-08) — mock
+// modda role-bazlı tutar maskesi YOK (supabaseProvider.js'teki
+// is_finans_yetkili() kontrolü gibi bir mekanizma mock tarafında hiçbir
+// alan için yok, bu yeni bir kısıt eklemiyor, mevcut desenle tutarlı).
+const MOCK_HARITA_MANUEL_KAYITLAR = []
+
 export const harita = {
   async listKayitlar() {
     const satisKayitlari = MOCK_CIRO_RAPORLARI.filter((r) => r.durum === 'onaylandi' && r.lat != null && r.lng != null).map(
@@ -2137,6 +2152,39 @@ export const harita = {
       durum: o.status,
       islemTipi: o.islemTipi,
     }))
-    return delay([...satisKayitlari, ...portfoyKayitlari])
+    const manuelKayitlar = MOCK_HARITA_MANUEL_KAYITLAR.map((m) => ({
+      kaynak: 'manuel',
+      id: m.id,
+      siteAdi: m.siteAdi,
+      lat: Number(m.lat),
+      lng: Number(m.lng),
+      tutar: m.tutar == null ? null : Number(m.tutar),
+      tarih: m.tarih,
+      danismanAdi: allMockUserRows().find((u) => u.id === m.danismanId)?.name ?? null,
+      durum: null,
+      islemTipi: null,
+    }))
+    return delay([...satisKayitlari, ...portfoyKayitlari, ...manuelKayitlar])
+  },
+  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, aciklama }, ekleyenId) {
+    const row = {
+      id: `hmk-${Date.now()}`,
+      siteAdi,
+      lat,
+      lng,
+      tutar: tutar ?? null,
+      tarih: tarih || null,
+      danismanId: danismanId || null,
+      aciklama: aciklama || null,
+      ekleyenId,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_HARITA_MANUEL_KAYITLAR.push(row)
+    return delay({ id: row.id })
+  },
+  async manuelKayitSil(id) {
+    const idx = MOCK_HARITA_MANUEL_KAYITLAR.findIndex((m) => m.id === id)
+    if (idx !== -1) MOCK_HARITA_MANUEL_KAYITLAR.splice(idx, 1)
+    return delay({ id })
   },
 }
