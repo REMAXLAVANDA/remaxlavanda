@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { canSubmitBankaHareketi, canManageBankaHareketleri } from '../lib/bankaHareketleri'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
@@ -31,9 +32,19 @@ const TABS = [
   { key: 'harita', label: 'Harita' },
 ]
 
+const TAB_KEYS = TABS.map((t) => t.key)
+
 export default function Finans() {
   const { role } = useAuth()
-  const [tab, setTab] = useState('ciro')
+  // Panel'deki "Harita" kısayol kartı buraya ?tab=harita ile geliyor
+  // (broker, 2026-11-08: "panele ekleyelim, tıklayınca finans kısmındaki
+  // harita bölümüne atsın") — sadece ilk açılışta okunuyor, sekmeler arası
+  // geçiş yine normal state ile.
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState(() => {
+    const istenen = searchParams.get('tab')
+    return TAB_KEYS.includes(istenen) ? istenen : 'ciro'
+  })
   // Muhasebe canSubmitBankaHareketi'nde yok (o "kendi dekontunu giren"
   // dar yetki) ama canManageBankaHareketleri'nde var (tam yönetim,
   // 2026-11-07) — ikisinden biri yeterli, sekme açılsın.
