@@ -241,3 +241,14 @@ $function$;
 -- garanti altına almak için tekrar ediliyor, zararsız (zaten kaldırılmış
 -- bir izni tekrar kaldırmak hata vermez).
 revoke execute on function public.senkronize_komisyon_farki(uuid) from public, anon, authenticated;
+
+-- EK (broker onayı, 2026-11-08): aynı tarama sırasında aynı deseni iki
+-- trigger fonksiyonunda da gördüm — bunlar sadece banka_hareketleri/
+-- ciro_raporu_katilimcilari üzerindeki trigger'lardan Postgres tarafından
+-- tetikleniyor (frontend hiç doğrudan çağırmıyor, bkz. supabaseProvider.js
+-- taraması), trigger çalışması fonksiyonun kendi EXECUTE iznine
+-- bakmaz (tablo yazma izni yeterli) — bu yüzden execute iznini kaldırmak
+-- trigger'ları ETKİLEMİYOR, sadece /rest/v1/rpc/... üzerinden doğrudan
+-- çağrılabilme yolunu kapatıyor.
+revoke execute on function public.komisyon_farki_banka_tetikleyici() from public, anon, authenticated;
+revoke execute on function public.komisyon_farki_katilimci_tetikleyici() from public, anon, authenticated;
