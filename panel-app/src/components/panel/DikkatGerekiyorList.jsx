@@ -7,23 +7,27 @@ import { CheckCircle2 } from 'lucide-react'
 // severity'sinden geliyor (bkz. Panel.jsx attentionItems). Kritik rengi
 // stok Tailwind kırmızısı değil, RE/MAX marka kırmızısı (brand-600) —
 // Fırsatlar/Ofisin Nabzı'ndaki aynı kırmızıyla tutarlı.
+// Kart zemini artık rozetle AYNI açık ton (mockup, broker 2026-11-08) —
+// yeni bir renk üretmek yerine zaten tanımlı badge rengi tekrar kullanıldı.
 const SEVERITY_STYLES = {
-  kritik: { border: 'border-l-brand-600', badge: 'bg-brand-50 text-brand-700', label: 'KRİTİK' },
-  uyari: { border: 'border-l-amber-400', badge: 'bg-amber-50 text-amber-700', label: 'UYARI' },
+  kritik: { border: 'border-l-brand-600', badge: 'bg-brand-50 text-brand-700', cardBg: 'bg-brand-50', label: 'KRİTİK' },
+  uyari: { border: 'border-l-amber-400', badge: 'bg-amber-50 text-amber-700', cardBg: 'bg-amber-50', label: 'UYARI' },
 }
 
+// Tam genişlik satır yerine kart — metin artık 2 satıra sarabiliyor
+// (truncate kaldırıldı). Grid auto-fit kullanıyor (sabit sm:/lg: breakpoint
+// yerine) ki ara genişliklerde (ör. 2 sütuna henüz geçmemiş dar ekran)
+// kartlar sıkışmasın, mockup'ta bu şekilde test edildi.
 function Row({ item }) {
   const s = SEVERITY_STYLES[item.severity]
   return (
     <Link
       to={item.to}
-      className={`group flex items-center justify-between gap-3 border-l-2 ${s.border} bg-surface-raised px-4 py-3 transition-colors hover:bg-surface-sunken`}
+      className={`group flex flex-col gap-2 rounded-xl border border-border-default border-l-2 ${s.border} ${s.cardBg} p-3 transition-shadow hover:shadow-sm`}
     >
-      <div className="flex min-w-0 items-center gap-2.5">
-        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide ${s.badge}`}>{s.label}</span>
-        <span className="min-w-0 truncate text-sm text-text-secondary">{item.text}</span>
-      </div>
-      <span className="shrink-0 text-xs font-medium text-text-primary transition-colors group-hover:text-brand-700">İncele →</span>
+      <span className={`w-fit shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide ${s.badge}`}>{s.label}</span>
+      <span className="text-sm text-text-secondary">{item.text}</span>
+      <span className="self-end text-xs font-medium text-text-primary transition-colors group-hover:text-brand-700">İncele →</span>
     </Link>
   )
 }
@@ -40,16 +44,16 @@ export default function DikkatGerekiyorList({ items }) {
             konuları gösterir (bkz. "Tarih Filtresi Kararları"). */}
         <span className="text-[11px] font-normal normal-case tracking-normal text-text-muted">Açık konular</span>
       </div>
-      <div className="divide-y divide-surface-sunken overflow-hidden rounded-2xl border border-border-default bg-surface-raised">
-        {items.length === 0 ? (
-          <div className="flex items-center gap-2.5 border-l-2 border-l-emerald-500 bg-surface-raised px-4 py-3">
-            <CheckCircle2 size={15} strokeWidth={1.75} className="shrink-0 text-emerald-600" />
-            <span className="text-sm text-text-secondary">Şu anda müdahale gerektiren bir konu bulunmuyor.</span>
-          </div>
-        ) : (
-          items.map((item) => <Row key={item.id} item={item} />)
-        )}
-      </div>
+      {items.length === 0 ? (
+        <div className="flex items-center gap-2.5 rounded-xl border border-border-default border-l-2 border-l-emerald-500 bg-tint-green px-4 py-3">
+          <CheckCircle2 size={15} strokeWidth={1.75} className="shrink-0 text-emerald-600" />
+          <span className="text-sm text-text-secondary">Şu anda müdahale gerektiren bir konu bulunmuyor.</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-2.5">
+          {items.map((item) => <Row key={item.id} item={item} />)}
+        </div>
+      )}
     </div>
   )
 }

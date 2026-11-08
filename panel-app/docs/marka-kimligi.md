@@ -57,6 +57,7 @@ tokenleri kullanmalı:
 | `tint-blue` | `#DBE7FF` | Mavi arka plan tonu |
 | `tint-amber` | `#FDF0D5` | Amber arka plan tonu |
 | `tint-amber-text` | `#8A6100` | Amber üzerine yazılan metin |
+| `tint-navy` | `#DDE3EE` | Lacivert arka plan tonu (Panel Ofisin Nabzı, 2026-11-08) |
 | `text-primary` | `#1B2534` | Birincil metin |
 | `text-secondary` | `#4C5361` | İkincil metin |
 | `text-muted` | `#6B7280` | Soluk metin |
