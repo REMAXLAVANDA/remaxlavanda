@@ -19,7 +19,7 @@ import {
   eslesmeAdaylari,
 } from '../../lib/bankaHareketleri'
 import { slugify } from '../../lib/categories'
-import { formatDateOnly, formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
+import { formatDateOnly, formatThousands, parseThousands, capitalizeWords, sortByName } from '../../lib/format'
 import { getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 import BlokeCozumleModal from './BlokeCozumleModal'
@@ -94,7 +94,7 @@ export default function BankaHareketleriPanel() {
   // sıralamaları gibi performans listelerinde YAYINLANMAK istemiyor (bkz.
   // OperasyonTab.jsx'teki aynı ayrım, broker 2026-11-08).
   const danismanOptions = useMemo(
-    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi),
+    () => sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi)),
     [knownUsers],
   )
 
