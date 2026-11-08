@@ -58,7 +58,11 @@ export default function RecruitingKaynakRaporu({ candidates, sorumluOptions }) {
         onClick={() => setExpanded((v) => !v)}
         className="flex w-full items-center justify-between text-left"
       >
-        <span className="text-sm font-semibold text-ink-900">Kaynak Raporu</span>
+        {/* Broker, 2026-11-08: eski ink-900 (lacivert) rengi, sayfa
+            başlığından daha baskın görünmesine sebep oluyordu — Takip'teki
+            collapsible başlıklarla (YonlendirmeDurumuSection, KoclukRaporu)
+            AYNI standarda (text-primary) çekildi. */}
+        <span className="text-sm font-semibold text-text-primary">Kaynak Raporu</span>
         <ChevronDown size={16} className={`text-ink-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
       </button>
 
