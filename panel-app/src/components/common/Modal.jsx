@@ -54,7 +54,11 @@ export default function Modal({ title, onClose, children, maxWidth = 'max-w-md',
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      // z-[1100]: Leaflet'in kendi kontrol katmanı (zoom butonları vb.)
+      // z-index:1000 kullanıyor — Tailwind'in standart z-50'si bunun
+      // altında kalıp arkadaki harita modalın önünde görünüyordu (bkz.
+      // broker 2026-11-08, Manuel Kayıt Ekle modalı).
+      className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/30 p-4"
       onClick={dismissible ? onClose : undefined}
     >
       <div
