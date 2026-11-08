@@ -176,8 +176,9 @@ export default function Lig() {
   // fonksiyonu çağırıyor (2026-10-04 /kurul bulgusu: eskiden iki ayrı kod
   // kopyası farklı sonuç verebiliyordu).
   const rankingsByCategory = useMemo(
-    () => rankingsByCategoryFor({ periodScores, musteriReviewCounts: data?.musteriReviewCounts, periodId, danismanOptions, userName }),
-    [periodScores, userName, data, periodId, danismanOptions],
+    () =>
+      rankingsByCategoryFor({ periodScores, musteriReviewCounts: data?.musteriReviewCounts, periodId, danismanOptions, userName, knownUsers }),
+    [periodScores, userName, data, periodId, danismanOptions, knownUsers],
   )
 
   const rankings = rankingsByCategory[tab] ?? []
