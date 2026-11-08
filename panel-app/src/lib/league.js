@@ -182,14 +182,23 @@ export function periodScoresFor(scores, periodId, knownUsers) {
 // filtre (hakSayisi=0 olanı da dahil ediyordu) kullanıyordu — aktif
 // dönemde kimse yorum almamışken iki ekran farklı kişiye "lider" tacı
 // verebiliyordu. Artık tek kaynak burası.
-export function rankingsByCategoryFor({ periodScores, musteriReviewCounts, periodId, danismanOptions, userName }) {
+// knownUsers (opsiyonel): Ciro/Sosyal Medya puanları score_entries'ten
+// doğrudan geliyor ve danismanOptions'tan (zaten broker'ı dışarıda
+// bırakıyor) GEÇMİYOR — broker kendi ciro'sunu girebildiği için
+// (canSubmitCiroRaporu, 2026-10-09 kararı) bu iki kategoride broker'ın
+// puanı FARKETMEDEN sıralamaya karışıyordu (broker, 2026-11-08: "lig
+// sıralamalarında ... görünmemeliyim"). knownUsers verilirse broker'ın
+// satırı burada ayıklanır — Memnuniyet zaten etkilenmiyor (danismanOptions
+// kaynaklı).
+export function rankingsByCategoryFor({ periodScores, musteriReviewCounts, periodId, danismanOptions, userName, knownUsers }) {
   const map = {}
   const countsByUser = {}
   for (const c of musteriReviewCounts ?? []) {
     if (c.periodId === periodId) countsByUser[c.userId] = c
   }
+  const rankableScores = knownUsers ? periodScores.filter((s) => knownUsers[s.userId]?.role !== ROLES.BROKER) : periodScores
   // Beraberlikte ciro puanı yüksek olan üstte (2026-09-02 broker kararı).
-  const ciroByUser = Object.fromEntries(periodScores.filter((s) => s.type === 'ciro').map((s) => [s.userId, s.value]))
+  const ciroByUser = Object.fromEntries(rankableScores.filter((s) => s.type === 'ciro').map((s) => [s.userId, s.value]))
   for (const cat of LEAGUE_CATEGORIES) {
     if (cat.key === 'memnuniyet') {
       // Hiç müşteri girilmemiş (hakSayisi 0) danışman sıralamaya hiç
@@ -206,7 +215,7 @@ export function rankingsByCategoryFor({ periodScores, musteriReviewCounts, perio
         })
       map[cat.key] = rankingsFor(cat.key, memnuniyetScores, userName, (id) => ciroByUser[id])
     } else {
-      map[cat.key] = rankingsFor(cat.key, periodScores, userName)
+      map[cat.key] = rankingsFor(cat.key, rankableScores, userName)
     }
   }
   return map

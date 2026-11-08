@@ -933,8 +933,9 @@ export default function Panel() {
         periodId: activePeriod?.id,
         danismanOptions: teamMembers,
         userName: resolveUserName,
+        knownUsers,
       }),
-    [periodScores, data, activePeriod, teamMembers, resolveUserName],
+    [periodScores, data, activePeriod, teamMembers, resolveUserName, knownUsers],
   )
   const lastLeagueUpdate = useMemo(() => latestUpdate(periodScores), [periodScores])
 

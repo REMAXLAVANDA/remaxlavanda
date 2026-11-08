@@ -134,8 +134,14 @@ export default function CiroRaporlariPanel() {
   // gösterilir (broker, 2026-11-07).
   const katilimciAdi = (k) => (k.disOfisMi ? `İşbirliği: ${k.disOfisAdi}` : userName(k.danismanId))
 
+  // Broker de ortak katılımcı olarak eklenebilir — ama Lig sıralamaları
+  // gibi performans listelerinde YAYINLANMAK istemiyor (bkz.
+  // OperasyonTab.jsx'teki aynı ayrım, broker 2026-11-08).
   const danismanOptions = useMemo(
-    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi && u.id !== user.id),
+    () =>
+      Object.values(knownUsers).filter(
+        (u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi && u.id !== user.id,
+      ),
     [knownUsers, user.id],
   )
 

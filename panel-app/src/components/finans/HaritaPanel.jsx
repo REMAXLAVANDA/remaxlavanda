@@ -75,8 +75,11 @@ export default function HaritaPanel() {
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
 
+  // Broker de kendi işlemini kaydedebilmek için seçilebilir — ama Lig
+  // sıralamaları gibi performans listelerinde YAYINLANMAK istemiyor (bkz.
+  // OperasyonTab.jsx'teki aynı ayrım, broker 2026-11-08).
   const danismanOptions = useMemo(
-    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman') && !u.testHesabi),
+    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi),
     [knownUsers],
   )
 
