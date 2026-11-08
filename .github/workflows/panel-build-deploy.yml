@@ -37,6 +37,10 @@ jobs:
       # sadece danışmanlar için değil). Değer, bildirimin son çalıştığı bilinen
       # üretim derlemesinden (0696b28, 2026-09-03) geri çıkarıldı.
       VITE_VAPID_PUBLIC_KEY: BDxX_2CBodL8mjBWMOMMVMB_J9aN8SiR8-b4RyP-IfEeRr9zs2Pcgkl8StLUpbpaO-vEfye7F4igJwSy1fBn03k
+      # LocationIQ harita tile key — gizli değil, domain-kısıtlı public key
+      # (bkz. panel-app/.env.example notu). 2026-11-08: OpenStreetMap'in
+      # genel tile sunucusu yerine (ticari kullanım için uygun değil).
+      VITE_LOCATIONIQ_KEY: pk.871cb21bd225eb480b50eadfdc78ea04
     steps:
       - name: Depoyu çek
         uses: actions/checkout@v7

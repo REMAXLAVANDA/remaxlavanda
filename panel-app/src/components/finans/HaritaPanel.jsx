@@ -9,6 +9,7 @@ import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { harita as haritaProvider } from '../../lib/dataProvider'
 import { formatDateOnly } from '../../lib/format'
+import { LOCATIONIQ_KEY } from '../../lib/env'
 import { ROLES } from '../../lib/roles'
 import { ISLEM_TIPI_LABELS as CIRO_ISLEM_TIPI_LABELS } from '../../lib/ciroRaporlari'
 import { ISLEM_TIPI_LABELS as PORTFOY_ISLEM_TIPI_LABELS } from '../../lib/opportunities'
@@ -140,8 +141,8 @@ export default function HaritaPanel() {
       <div className="h-[560px] overflow-hidden rounded-2xl border border-border-default">
         <MapContainer center={merkez} zoom={12} style={{ height: '100%', width: '100%' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://locationiq.com/">LocationIQ</a>'
+            url={`https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`}
           />
           {kayitlar.map((k) => (
             <Marker key={`${k.kaynak}-${k.id}`} position={[k.lat, k.lng]} icon={PIN_ICONS[k.kaynak] ?? PORTFOY_ICON}>
