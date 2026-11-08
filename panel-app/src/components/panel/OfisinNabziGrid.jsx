@@ -18,18 +18,28 @@ const ACCENT_BORDER = {
   navy: 'border-t-remax-navy',
 }
 
+// Kutunun iç zemini artık nötr beyaz değil, aksan rengine göre hafif bir
+// ton (mockup, broker 2026-11-08: "panele girer girmez tüm süreçlere
+// hakim olmak istiyorum" isteğinin devamı — kutular daha fark edilir
+// olsun). Üst çizgi (ACCENT_BORDER) aynen koruniyor.
+const ACCENT_BG = {
+  red: 'bg-brand-50',
+  blue: 'bg-tint-blue',
+  navy: 'bg-tint-navy',
+}
+
 function Tile({ icon: Icon, label, value, detail, to, onClick, accent = 'navy' }) {
   const inner = (
     <>
       <div className="mb-1.5 flex items-center gap-1.5 text-text-muted">
-        <Icon size={14} strokeWidth={1.75} />
-        <span className="text-xs font-medium">{label}</span>
+        <Icon size={18} strokeWidth={2} />
+        <span className="text-sm font-medium">{label}</span>
       </div>
-      <p className="text-2xl font-bold leading-none text-text-primary">{value}</p>
+      <p className="text-4xl font-bold leading-none text-text-primary">{value}</p>
       {detail && <p className="mt-1 text-xs leading-snug text-text-muted">{detail}</p>}
     </>
   )
-  const className = `block w-full rounded-xl border border-border-default bg-surface-raised border-t-4 ${ACCENT_BORDER[accent]} p-3.5 text-left transition-colors hover:bg-surface-sunken`
+  const className = `block w-full rounded-xl border border-border-default ${ACCENT_BG[accent]} border-t-4 ${ACCENT_BORDER[accent]} p-3.5 text-left transition-colors hover:brightness-95`
   if (onClick) {
     return (
       <button type="button" onClick={onClick} className={className}>

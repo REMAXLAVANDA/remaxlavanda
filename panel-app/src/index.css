@@ -92,6 +92,11 @@
   --color-tint-amber-text: #8a6100;
   --color-tint-green: #dcf2e3;
   --color-tint-green-text: #15733f;
+  /* remax-navy (#0C2749) için açık ton — marka-kimliği.md'de daha önce
+     tanımlı değildi, Panel "Ofisin Nabzı" mockup'ı (2026-11-08) için
+     eklendi. surface-page'den (#EEF1F6) kasıtlı biraz daha koyu/mavi,
+     yoksa sayfa arka planıyla karışıp "tint" fark edilmezdi. */
+  --color-tint-navy: #dde3ee;
 
   --color-text-primary: #1b2534;
   --color-text-secondary: #4c5361;
