@@ -155,7 +155,7 @@ export default function SiteKonumSecici({ siteAdi, onSiteAdiChange, lat, lng, on
           <input
             value={aramaMetni}
             onChange={(e) => handleAramaDegisti(e.target.value)}
-            placeholder="Adres yaz, haritayı oraya götür (opsiyonel) — ya da doğrudan haritadan tıkla"
+            placeholder="Adres yaz, haritayı oraya götür — ya da doğrudan haritadan tıkla"
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
           {aramaYukleniyor && <p className="mt-1 text-xs text-ink-400">Aranıyor...</p>}
