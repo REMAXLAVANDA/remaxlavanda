@@ -1245,7 +1245,7 @@ export const ciroRaporlari = {
       tarih: m.tarih,
       tutar: m.tutar == null ? null : Number(m.tutar),
       danismanAdi: allMockUserRows().find((u) => u.id === m.danismanId)?.name ?? null,
-      islemTipi: null,
+      islemTipi: m.islemTipi,
     }))
     return delay([...ciroKayitlari, ...manuelKayitlar].sort((a, b) => new Date(b.tarih) - new Date(a.tarih)))
   },
@@ -2206,11 +2206,12 @@ export const harita = {
       tarih: m.tarih,
       danismanAdi: allMockUserRows().find((u) => u.id === m.danismanId)?.name ?? null,
       durum: null,
-      islemTipi: null,
+      islemTipi: m.islemTipi,
+      kategori: m.kategori,
     }))
     return delay([...satisKayitlari, ...portfoyKayitlari, ...manuelKayitlar])
   },
-  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, aciklama }, ekleyenId) {
+  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, kategori, islemTipi, aciklama }, ekleyenId) {
     const row = {
       id: `hmk-${Date.now()}`,
       siteAdi,
@@ -2219,6 +2220,8 @@ export const harita = {
       tutar: tutar ?? null,
       tarih: tarih || null,
       danismanId: danismanId || null,
+      kategori: kategori || null,
+      islemTipi: islemTipi || null,
       aciklama: aciklama || null,
       ekleyenId,
       createdAt: new Date().toISOString(),

@@ -2729,13 +2729,15 @@ export const harita = {
       danismanAdi: r.danisman_adi,
       durum: r.durum,
       islemTipi: r.islem_tipi,
+      kategori: r.kategori,
     }))
   },
   // Broker'ın geçmişe dönük elle eklediği kayıtlar (broker, 2026-11-08) —
   // tam bir Ciro Raporu DEĞİL, sadece site_adi/konum/tutar/tarih/danışman/
-  // not. RLS zaten sadece broker/owner'a izin veriyor (harita_manuel_
-  // kayitlari_manage), burada ayrı bir rol kontrolüne gerek yok.
-  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, aciklama }, ekleyenId) {
+  // kategori/işlem tipi/not. RLS zaten sadece broker/owner'a izin veriyor
+  // (harita_manuel_kayitlari_manage), burada ayrı bir rol kontrolüne
+  // gerek yok. kategori/islemTipi opsiyonel (bkz. migration 20261108120000).
+  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, kategori, islemTipi, aciklama }, ekleyenId) {
     const data = await run(
       client()
         .from('harita_manuel_kayitlar')
@@ -2746,6 +2748,8 @@ export const harita = {
           tutar: tutar ?? null,
           tarih: tarih || null,
           danisman_id: danismanId || null,
+          kategori: kategori || null,
+          islem_tipi: islemTipi || null,
           aciklama: aciklama || null,
           ekleyen_id: ekleyenId,
         })
