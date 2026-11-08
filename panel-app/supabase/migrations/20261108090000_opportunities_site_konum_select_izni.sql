@@ -1,0 +1,11 @@
+-- Acil düzeltme (broker, 2026-11-08): migration 20261107100000'de
+-- opportunities'e eklenen site_adi/lat/lng kolonlarına INSERT/UPDATE
+-- izni verilmişti ama SELECT izni unutulmuştu — bu tabloda SELECT
+-- kolon bazlı veriliyor (bazı alanlar bilerek gizli, bkz.
+-- get_opportunity_contact RPC'si), ALTER TABLE ADD COLUMN yeni
+-- kolonları bu listeye otomatik eklemiyor. Sonuç: site_adi/lat/lng
+-- kolonlarını seçen HER sorgu (Panel, Fırsatlar) "permission denied
+-- for table opportunities" hatası veriyordu — 2026-11-07 22:14 (deploy
+-- anı) itibarıyla gerçek kullanıcılarda tekrarlayan 403 olarak
+-- doğrulandı (edge_logs/postgres_logs).
+grant select (site_adi, lat, lng) on public.opportunities to anon, authenticated;
