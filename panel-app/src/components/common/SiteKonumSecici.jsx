@@ -6,6 +6,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { LOCATIONIQ_KEY } from '../../lib/env'
+import { loadGooglePlaces } from '../../lib/googlePlacesLoader'
 
 // Vite/bundler'lar Leaflet'in varsayılan pin görselini kendi yoluyla
 // bulamıyor (bilinen bir Leaflet+bundler sorunu) — ikon elle ayarlanmazsa
@@ -41,13 +42,6 @@ function TiklamaDinleyici({ onClick }) {
   return null
 }
 
-async function nominatimAra(sorgu) {
-  const url = `${NOMINATIM_BASE}/search?format=json&limit=5&countrycodes=tr&q=${encodeURIComponent(sorgu)}`
-  const res = await fetch(url, { headers: NOMINATIM_HEADERS })
-  if (!res.ok) throw new Error('Arama başarısız')
-  return res.json()
-}
-
 async function nominatimTersCevir(lat, lng) {
   const url = `${NOMINATIM_BASE}/reverse?format=json&lat=${lat}&lon=${lng}`
   const res = await fetch(url, { headers: NOMINATIM_HEADERS })
@@ -63,13 +57,11 @@ async function nominatimTersCevir(lat, lng) {
 // satırı olarak gösterilir ki danışman yanlış yere tıklarsa fark etsin —
 // bu metin SADECE görsel onay, ayrıca kaydedilmiyor (lat/lng yeterli).
 export default function SiteKonumSecici({ siteAdi, onSiteAdiChange, lat, lng, onLocationChange, required = false }) {
-  const [aramaMetni, setAramaMetni] = useState('')
-  const [aramaSonuclari, setAramaSonuclari] = useState([])
-  const [aramaYukleniyor, setAramaYukleniyor] = useState(false)
   const [secilenAdres, setSecilenAdres] = useState(null)
   const [adresYukleniyor, setAdresYukleniyor] = useState(false)
   const [ucusHedefi, setUcusHedefi] = useState(null)
-  const debounceRef = useRef(null)
+  const [aramaHatali, setAramaHatali] = useState(false)
+  const aramaKutusuRef = useRef(null)
 
   const pinVar = lat != null && lng != null
   const merkez = pinVar ? [lat, lng] : VARSAYILAN_MERKEZ
@@ -99,35 +91,49 @@ export default function SiteKonumSecici({ siteAdi, onSiteAdiChange, lat, lng, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat, lng])
 
-  function handleAramaDegisti(deger) {
-    setAramaMetni(deger)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (deger.trim().length < 3) {
-      setAramaSonuclari([])
-      return
-    }
-    debounceRef.current = setTimeout(async () => {
-      setAramaYukleniyor(true)
-      try {
-        const sonuclar = await nominatimAra(deger.trim())
-        setAramaSonuclari(sonuclar)
-      } catch {
-        setAramaSonuclari([])
-      } finally {
-        setAramaYukleniyor(false)
-      }
-    }, 500)
-  }
+  // Arama kutusu artık Nominatim değil, Google Places Autocomplete (2026-
+  // 11-08 broker kararı: Nominatim site/bina isimlerini bulamıyordu).
+  // Google'ın kendi hazır arama kutusu (web component) container'a
+  // ekleniyor — oturum/ücretlendirme takibini kendisi hallediyor.
+  // Harita görseli (LocationIQ) ve haritaya tıklayıp pin koyma BUNDAN
+  // bağımsız, değişmedi.
+  useEffect(() => {
+    let iptal = false
+    let eleman = null
+    let dinleyici = null
 
-  function handleSonucSec(sonuc) {
-    const yeniLat = Number(sonuc.lat)
-    const yeniLng = Number(sonuc.lon)
-    onLocationChange(yeniLat, yeniLng)
-    setSecilenAdres(sonuc.display_name)
-    setAramaSonuclari([])
-    setAramaMetni('')
-    setUcusHedefi([yeniLat, yeniLng])
-  }
+    loadGooglePlaces()
+      .then((googleMaps) => {
+        if (iptal || !aramaKutusuRef.current) return
+        eleman = new googleMaps.places.PlaceAutocompleteElement({
+          includedRegionCodes: ['tr'],
+        })
+        dinleyici = async ({ placePrediction }) => {
+          try {
+            const place = placePrediction.toPlace()
+            await place.fetchFields({ fields: ['location'] })
+            const yeniLat = place.location.lat()
+            const yeniLng = place.location.lng()
+            onLocationChange(yeniLat, yeniLng)
+            setUcusHedefi([yeniLat, yeniLng])
+          } catch {
+            // Konum alınamadı — kullanıcı haritadan elle tıklayarak devam edebilir.
+          }
+        }
+        eleman.addEventListener('gmp-select', dinleyici)
+        aramaKutusuRef.current.appendChild(eleman)
+      })
+      .catch(() => {
+        if (!iptal) setAramaHatali(true)
+      })
+
+    return () => {
+      iptal = true
+      if (eleman && dinleyici) eleman.removeEventListener('gmp-select', dinleyici)
+      eleman?.remove()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleHaritaTiklandi(yeniLat, yeniLng) {
     onLocationChange(yeniLat, yeniLng)
@@ -153,26 +159,12 @@ export default function SiteKonumSecici({ siteAdi, onSiteAdiChange, lat, lng, on
           Harita Konumu {required && <span className="text-red-600">* zorunlu</span>}
         </label>
         <div className="relative">
-          <input
-            value={aramaMetni}
-            onChange={(e) => handleAramaDegisti(e.target.value)}
-            placeholder="Adres yaz, haritayı oraya götür — ya da doğrudan haritadan tıkla"
-            className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-          />
-          {aramaYukleniyor && <p className="mt-1 text-xs text-ink-400">Aranıyor...</p>}
-          {aramaSonuclari.length > 0 && (
-            <div className="absolute z-[1000] mt-1 w-full overflow-hidden rounded-lg border border-ink-200 bg-white shadow-lg">
-              {aramaSonuclari.map((sonuc) => (
-                <button
-                  key={sonuc.place_id}
-                  type="button"
-                  onClick={() => handleSonucSec(sonuc)}
-                  className="block w-full px-3 py-2 text-left text-xs text-ink-700 hover:bg-ink-50"
-                >
-                  {sonuc.display_name}
-                </button>
-              ))}
-            </div>
+          {aramaHatali ? (
+            <p className="rounded-lg border border-ink-200 px-3 py-2 text-xs text-ink-400">
+              Arama şu an kullanılamıyor — haritadan doğrudan tıklayarak seç.
+            </p>
+          ) : (
+            <div ref={aramaKutusuRef} />
           )}
         </div>
 
