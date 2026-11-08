@@ -41,6 +41,13 @@ jobs:
       # (bkz. panel-app/.env.example notu). 2026-11-08: OpenStreetMap'in
       # genel tile sunucusu yerine (ticari kullanım için uygun değil).
       VITE_LOCATIONIQ_KEY: pk.871cb21bd225eb480b50eadfdc78ea04
+      # Google Places Autocomplete key — gizli değil, domain-kısıtlı public
+      # key (bkz. panel-app/.env.example notu). 2026-11-08: adres/site arama
+      # kutusu Nominatim'den buna geçti (site/bina isimlerini bulamıyordu).
+      # NOT: broker'ın Google Cloud faturalandırması henüz bağlı değil —
+      # bağlanana kadar arama kutusu "şu an kullanılamıyor" mesajı gösterir,
+      # harita/haritaya tıklama bundan etkilenmez.
+      VITE_GOOGLE_MAPS_KEY: AIzaSyDfuSa4MBxcZeufCAOUKl7ZskeXSbuKuiM
     steps:
       - name: Depoyu çek
         uses: actions/checkout@v7
