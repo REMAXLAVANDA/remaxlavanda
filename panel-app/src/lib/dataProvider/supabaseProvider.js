@@ -2642,7 +2642,7 @@ export const kararlar = {
 // açık (RPC RLS'i bilerek atlıyor, bkz. migration 20261107100000).
 export const harita = {
   async listKayitlar() {
-    const data = await run(client().rpc('harita_kayitlari'))
+    const data = await run(client().rpc('harita_kayitlari_v2'))
     return (data ?? []).map((r) => ({
       kaynak: r.kaynak,
       id: r.id,
