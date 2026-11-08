@@ -11,7 +11,7 @@ import OpportunityTable from './OpportunityTable'
 // Broker/ofis mevcut Düzenle akışıyla gerçek bir kategoriye taşıyabilir;
 // sayı sıfıra inince kutu kendiliğinden kaybolur (bkz. lib/opportunities.js
 // legacyCategoryOpportunities).
-export default function LegacyCategoryReview({ opportunities, onRowClick, onExpressInterest, expressingId, user, interestedIds }) {
+export default function LegacyCategoryReview({ opportunities, onRowClick, onExpressInterest, expressingId, user, role, interestedIds }) {
   const [open, setOpen] = useState(false)
   if (opportunities.length === 0) return null
 
@@ -47,6 +47,7 @@ export default function LegacyCategoryReview({ opportunities, onRowClick, onExpr
             onExpressInterest={onExpressInterest}
             expressingId={expressingId}
             user={user}
+            role={role}
             interestedIds={interestedIds}
           />
         </Modal>

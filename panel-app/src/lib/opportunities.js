@@ -120,6 +120,39 @@ export function formatPrice(amount) {
   )
 }
 
+// Alıcı fırsatlarının fiyatı fiyatMin/fiyatMax'ta — karşılaştırma/sıralama
+// için TEK bir sayı lazım, bütçenin alt sınırı kullanılıyor (bkz.
+// OpportunityTable priceLabel ile aynı ayrım).
+export function effectivePrice(opp) {
+  if (opp.type === 'alici') return opp.fiyatMin ?? opp.fiyatMax ?? null
+  return opp.fiyat ?? null
+}
+
+// "Portföy Havuzu'nda hem Fiyat hem Özet boş satırlar var, hiçbir karar
+// verilecek bilgi yok" (broker, 2026-11-08) — bu satırlar listenin altına
+// alınıp küçük bir "Detay eksik" rozetiyle işaretleniyor.
+export function isIncompleteOpp(opp) {
+  return effectivePrice(opp) == null && !opp.ozet
+}
+
+// Şüpheli (muhtemelen yanlış girilmiş) düşük fiyat — broker, 2026-11-08:
+// "₺25.000 gibi gerçekçi olmayan bir fiyat gördüm". Basitlik için 3
+// kategoride de (Konut/Arsa/Ticari) aynı eşik kullanılıyor, broker'ın
+// verdiği örnek sayı. Sadece Satıcı tarafında anlamlı (Alıcı'da fiyat
+// değil bütçe aralığı var).
+const SUPHELI_FIYAT_ESIGI = 50000
+export function isSuspiciousPrice(opp) {
+  if (opp.type !== 'satici') return false
+  const p = effectivePrice(opp)
+  return p != null && p < SUPHELI_FIYAT_ESIGI
+}
+
+// Şüpheli fiyat ikonu SADECE broker/owner/ofis'e — danışmanın kafasını
+// karıştırmasın (broker: "danışmana gösterme").
+export function canSeeOpportunityWarnings(role) {
+  return role === ROLES.BROKER || role === ROLES.OWNER || role === ROLES.OFIS
+}
+
 export const OPPORTUNITY_TYPE_LABELS = {
   satici: 'Satıcı',
   alici: 'Alıcı',
