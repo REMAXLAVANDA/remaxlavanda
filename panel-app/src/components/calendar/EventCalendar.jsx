@@ -72,11 +72,14 @@ export default function EventCalendar({ events, onEventClick }) {
         height="auto"
         eventDisplay="block"
         displayEventEnd
-        // Yoğun günlerde (4-6 etkinlikli) hücre sonsuza kadar uzayıp ay
-        // görünümündeki satırları dengesiz kılıyordu — dayMaxEvents ile
-        // hücre sabit yükseklikte kalıyor, fazlası "+N daha" popover'ında
-        // açılıyor (bkz. "hücre boyu dengesiz" geri bildirimi).
-        dayMaxEvents={4}
+        // Yoğun günlerde hücre sonsuza kadar uzayıp ay görünümündeki
+        // satırları dengesiz kılıyordu — dayMaxEvents ile hücre sabit
+        // yükseklikte kalıyor, fazlası "+N daha" popover'ında açılıyor
+        // (bkz. "hücre boyu dengesiz" geri bildirimi). Broker, 2026-11-08:
+        // 2-3 etkinlikte metin sıkışıp okunmuyordu — metni küçültmek yerine
+        // eşik 4'ten 2'ye indirildi, "+N daha" deseni artık 3. etkinlikten
+        // itibaren devreye giriyor.
+        dayMaxEvents={2}
         moreLinkText={(n) => `+${n} daha`}
         eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
         eventContent={renderEventContent}

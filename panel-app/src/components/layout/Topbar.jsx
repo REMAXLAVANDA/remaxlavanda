@@ -11,7 +11,13 @@ export default function Topbar({ title, subtitle, onMenuClick }) {
           <Menu size={20} />
         </button>
         <div className="min-w-0 leading-tight">
-          <h1 className="truncate text-lg font-semibold text-text-primary">{title}</h1>
+          {/* Broker, 2026-11-08: sayfa başlığı diğer başlıklardan (bölüm/
+              collapsible) net ayrışmıyordu — text-xl (21px) tasarım
+              sistemindeki "Sayfa başlığı" boyutu, text-lg (19px) "Bölüm
+              başlığı"ydı, ikisi birbirine çok yakındı. Bu TEK satır TÜM
+              sayfaların başlığını kapsıyor (her sayfa bu component'i
+              kullanıyor). */}
+          <h1 className="truncate text-xl font-semibold text-text-primary">{title}</h1>
           {subtitle ? <p className="truncate text-xs text-text-muted">{subtitle}</p> : null}
         </div>
       </div>

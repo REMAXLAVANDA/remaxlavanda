@@ -12,7 +12,10 @@ function FolderButton({ c, selected, onSelect, countFor }) {
     >
       {c.visibility === 'yonetim' ? <Lock size={16} /> : <Folder size={16} />}
       <span className="flex-1">{c.label}</span>
-      <span className="text-xs text-text-muted">{countFor(c.key)}</span>
+      {/* Broker, 2026-11-08: "önemli olan daha anlaşılabilir olması" —
+          sayı bu satırın asıl bilgisi, soluk/küçük kalmasın (Panel'deki
+          KPI kutusuyla aynı mantık: text-primary + kalın). */}
+      <span className="text-sm font-bold text-text-primary">{countFor(c.key)}</span>
     </button>
   )
 }

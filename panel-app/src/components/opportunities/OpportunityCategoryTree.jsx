@@ -23,13 +23,12 @@ function IconBadge({ Icon, bg, text, size, iconSize }) {
   )
 }
 
-// Bu bir GEZİNME kutusu — önce okunan/aranan şey kategori ADI (Konut/Arsa/
-// Ticari), adet yardımcı bilgi. Bir önceki deneme (adet büyük, etiket küçük
-// rozet — Operasyon'daki salt-bilgi İstatistikler kartlarıyla aynı dil)
-// mantıksızdı: broker, 2026-10-10 "konut küçük olmuş sayı büyük olmuş,
-// mantık dışı" diye düzeltti. "Küçük kaldı" şikayetinin asıl sebebi etiket
-// boyutu değil, kutunun İstatistikler kartlarındaki gibi renkli bir üst
-// çizgisi olmamasıydı — o eklendi, etiket-önce hiyerarşisi KORUNDU.
+// 2026-10-10'da bilerek etiket-önce (büyük isim, küçük rozet sayı) yapılmıştı
+// — broker o gün "sayı büyük olmuş mantık dışı" demişti. 2026-11-08'de
+// broker bunu TERSİNE çevirdi: "önemli olan daha anlaşılabilir olması" —
+// bu kartın ASIL bilgisi sayı, Panel'deki "Ofisin Nabzı" KPI kutusuyla
+// (OfisinNabziGrid.jsx Tile) AYNI dil: küçük/soluk etiket üstte, büyük/kalın
+// rakam altta.
 function GridBox({ label, total, today, selected, onClick }) {
   return (
     <button
@@ -40,15 +39,9 @@ function GridBox({ label, total, today, selected, onClick }) {
           : 'border-border-default border-t-brand-300 bg-surface-raised hover:border-brand-200'
       }`}
     >
-      <p className={`text-base font-semibold ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{label}</p>
-      <div className="mt-1.5 flex items-center gap-2">
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            selected ? 'bg-brand-100 text-brand-700' : 'bg-surface-sunken text-text-muted'
-          }`}
-        >
-          {total}
-        </span>
+      <p className={`text-xs font-medium ${selected ? 'text-brand-700' : 'text-text-muted'}`}>{label}</p>
+      <div className="mt-1 flex items-baseline gap-2">
+        <span className={`text-2xl font-bold leading-none ${selected ? 'text-brand-700' : 'text-text-primary'}`}>{total}</span>
         {today > 0 && <span className="text-xs font-medium text-emerald-600">Bugün +{today}</span>}
       </div>
     </button>
