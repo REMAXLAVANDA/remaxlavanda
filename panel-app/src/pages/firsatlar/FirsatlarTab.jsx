@@ -315,6 +315,7 @@ export default function FirsatlarTab() {
             expressingId={expressingId}
             user={user}
             interestedIds={interestedIds}
+            role={role}
           />
         </>
       )}
@@ -364,6 +365,7 @@ export default function FirsatlarTab() {
             onExpressInterest={(opp) => setInterestTargetId(opp.id)}
             expressingId={expressingId}
             user={user}
+            role={role}
             interestedIds={interestedIds}
             legacyOpps={legacyOpps}
             canSeeLegacyReview={canSeeLegacyReview}

@@ -1,6 +1,9 @@
-import { UserSearch, Handshake, Building, User } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { UserSearch, Handshake, Building, User, Search } from 'lucide-react'
 import OpportunityTable from './OpportunityTable'
 import LegacyCategoryReview from './LegacyCategoryReview'
+import { effectivePrice, isIncompleteOpp } from '../../lib/opportunities'
+import { formatThousands, parseThousands } from '../../lib/format'
 
 // Taraf ikonu — ticari+kiralık dalında Mülk/Kiracı'ya özel ikon
 // (lib/opportunities.js'teki tarafLabel ile aynı istisna).
@@ -48,6 +51,117 @@ function GridBox({ label, total, today, selected, onClick }) {
   )
 }
 
+// Portföy Havuzu arama/filtre/sıralama (broker, 2026-11-08: "danışman
+// elindeki alıcı müşterisine uygun satıcı fırsatını bulmak için satır
+// satır manuel tarıyor"). Seçili Kategori+İşlemTipi+Taraf kapsamında
+// çalışır, ağaç mantığına (kategori/tip seçimi) dokunmaz.
+const SORT_OPTIONS = [
+  { key: 'tarih_yeni', label: 'En yeni' },
+  { key: 'tarih_eski', label: 'En eski' },
+  { key: 'fiyat_artan', label: 'Fiyat: düşükten yükseğe' },
+  { key: 'fiyat_azalan', label: 'Fiyat: yüksekten düşüğe' },
+]
+
+// Açık/Üstlenildi karışık görünüyordu, elden gitmiş kayıtlar taze
+// fırsatların önüne çıkabiliyordu (broker, 2026-11-08). Artık HER sıralama
+// modunda önce durum (Açık > Üstlenildi > diğer), sonra veri bütünlüğü
+// (dolu > eksik) öncelikli — seçili sıralama bunların İÇİNDE uygulanıyor.
+function statusRank(opp) {
+  if (opp.status === 'acik') return 0
+  if (opp.status === 'claimed') return 1
+  return 2
+}
+
+function filterAndSortRows(rows, { mahalle, fiyatMin, fiyatMax, sort }) {
+  let result = rows
+  const q = mahalle.trim().toLocaleLowerCase('tr-TR')
+  if (q) result = result.filter((o) => (o.konum ?? '').toLocaleLowerCase('tr-TR').includes(q))
+  const min = parseThousands(fiyatMin)
+  const max = parseThousands(fiyatMax)
+  if (min != null) result = result.filter((o) => effectivePrice(o) != null && effectivePrice(o) >= min)
+  if (max != null) result = result.filter((o) => effectivePrice(o) != null && effectivePrice(o) <= max)
+
+  return [...result].sort((a, b) => {
+    if (statusRank(a) !== statusRank(b)) return statusRank(a) - statusRank(b)
+    const aIncomplete = isIncompleteOpp(a) ? 1 : 0
+    const bIncomplete = isIncompleteOpp(b) ? 1 : 0
+    if (aIncomplete !== bIncomplete) return aIncomplete - bIncomplete
+    if (sort === 'tarih_eski') return new Date(a.createdAt) - new Date(b.createdAt)
+    if (sort === 'fiyat_artan') return (effectivePrice(a) ?? Infinity) - (effectivePrice(b) ?? Infinity)
+    if (sort === 'fiyat_azalan') return (effectivePrice(b) ?? -Infinity) - (effectivePrice(a) ?? -Infinity)
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
+}
+
+function TarafBlock({ taraf, rows, icon, onRowClick, onExpressInterest, expressingId, user, role, interestedIds }) {
+  const [mahalle, setMahalle] = useState('')
+  const [fiyatMin, setFiyatMin] = useState('')
+  const [fiyatMax, setFiyatMax] = useState('')
+  const [sort, setSort] = useState('tarih_yeni')
+
+  const filtered = useMemo(
+    () => filterAndSortRows(rows, { mahalle, fiyatMin, fiyatMax, sort }),
+    [rows, mahalle, fiyatMin, fiyatMax, sort],
+  )
+
+  return (
+    <div className="rounded-2xl border border-border-default bg-surface-raised p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+        <IconBadge {...icon} size="h-7 w-7" iconSize={14} />
+        {taraf.label}
+        <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{taraf.total}</span>
+      </h3>
+
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-400" />
+          <input
+            value={mahalle}
+            onChange={(e) => setMahalle(e.target.value)}
+            placeholder="Mahalle ara"
+            className="w-40 rounded-lg border border-ink-200 py-1.5 pl-8 pr-2 text-xs text-ink-800 placeholder:text-ink-400"
+          />
+        </div>
+        <input
+          inputMode="numeric"
+          value={fiyatMin}
+          onChange={(e) => setFiyatMin(formatThousands(e.target.value))}
+          placeholder="Fiyat min"
+          className="w-24 rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800 placeholder:text-ink-400"
+        />
+        <input
+          inputMode="numeric"
+          value={fiyatMax}
+          onChange={(e) => setFiyatMax(formatThousands(e.target.value))}
+          placeholder="Fiyat max"
+          className="w-24 rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800 placeholder:text-ink-400"
+        />
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+        >
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.key} value={o.key}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <OpportunityTable
+        opportunities={filtered}
+        onRowClick={onRowClick}
+        onExpressInterest={onExpressInterest}
+        expressingId={expressingId}
+        user={user}
+        role={role}
+        interestedIds={interestedIds}
+      />
+    </div>
+  )
+}
+
 // Fırsatlar menüsü — 3 seviyeli geziniyor: 1) Kategori (Konut/Arsa/Ticari,
 // + yönetime "Diğer" eski-kayıt bandı), 2) o kategorideki İşlem Tipi
 // (Satılık/Kiralık — boş olan hiç gösterilmez), 3) seçili İşlem Tipi'nin
@@ -66,6 +180,7 @@ export default function OpportunityCategoryTree({
   onExpressInterest,
   expressingId,
   user,
+  role,
   interestedIds,
   legacyOpps,
   canSeeLegacyReview,
@@ -102,6 +217,7 @@ export default function OpportunityCategoryTree({
             onExpressInterest={onExpressInterest}
             expressingId={expressingId}
             user={user}
+            role={role}
             interestedIds={interestedIds}
           />
         )}
@@ -129,21 +245,18 @@ export default function OpportunityCategoryTree({
           {selectedTipi.taraflar
             .filter((taraf) => taraf.total > 0)
             .map((taraf) => (
-              <div key={taraf.type} className="rounded-2xl border border-border-default bg-surface-raised p-4">
-                <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
-                  <IconBadge {...tarafIcon(selectedCat.key, selectedTipi.key, taraf.type)} size="h-7 w-7" iconSize={14} />
-                  {taraf.label}
-                  <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs font-medium text-text-muted">{taraf.total}</span>
-                </h3>
-                <OpportunityTable
-                  opportunities={rowsByTaraf[taraf.type] ?? []}
-                  onRowClick={onRowClick}
-                  onExpressInterest={onExpressInterest}
-                  expressingId={expressingId}
-                  user={user}
-                  interestedIds={interestedIds}
-                />
-              </div>
+              <TarafBlock
+                key={taraf.type}
+                taraf={taraf}
+                rows={rowsByTaraf[taraf.type] ?? []}
+                icon={tarafIcon(selectedCat.key, selectedTipi.key, taraf.type)}
+                onRowClick={onRowClick}
+                onExpressInterest={onExpressInterest}
+                expressingId={expressingId}
+                user={user}
+                role={role}
+                interestedIds={interestedIds}
+              />
             ))}
         </div>
       )}

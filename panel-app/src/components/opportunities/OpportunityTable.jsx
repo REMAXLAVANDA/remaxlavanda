@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react'
 import { categoryLabel } from '../../lib/categories'
 import {
   OPPORTUNITY_STATUS_LABELS,
@@ -6,7 +7,10 @@ import {
   ISLEM_TIPI_CODES,
   ISLEM_TIPI_STYLES,
   canExpressInterest,
+  canSeeOpportunityWarnings,
   formatPrice,
+  isIncompleteOpp,
+  isSuspiciousPrice,
   relativeTime,
 } from '../../lib/opportunities'
 import { Table, Thead, Th, Tbody, Tr, Td } from '../common/Table'
@@ -26,10 +30,34 @@ function IslemTipiBadge({ islemTipi }) {
   )
 }
 
+// Eksik veri rozeti — hem Fiyat hem Özet boşsa (broker, 2026-11-08: "hiçbir
+// karar verilecek bilgi yok"). Herkese görünür, veri kaybı yaşanmasın diye
+// satır gizlenmiyor, sadece işaretleniyor.
+function DetayEksikBadge() {
+  return (
+    <span className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold text-text-disabled">
+      Detay eksik
+    </span>
+  )
+}
+
+// Şüpheli düşük fiyat uyarısı — SADECE role verilip canSeeOpportunityWarnings
+// true dönerse render edilir (broker: "danışmana gösterme").
+function SuspiciousPriceIcon() {
+  return (
+    <span title="Fiyat gerçekçi görünmüyor, kontrol et" className="inline-flex shrink-0 text-amber-600">
+      <AlertTriangle size={13} strokeWidth={2} />
+    </span>
+  )
+}
+
 // Gizlilik kuralı: bu tabloda müşteri isim/telefon/danışman bilgisi HİÇ
 // gösterilmiyor. Detay sadece satıra tıklayınca açılan modalda, izinliyse
 // gösteriliyor (bkz. OpportunityDetailModal + canRevealContact).
-export default function OpportunityTable({ opportunities, onRowClick, onExpressInterest, expressingId, user, interestedIds }) {
+// role (opsiyonel): şüpheli fiyat ikonunu göstermek için (bkz.
+// canSeeOpportunityWarnings) — verilmezse ikon hiç gösterilmez.
+export default function OpportunityTable({ opportunities, onRowClick, onExpressInterest, expressingId, user, interestedIds, role }) {
+  const showWarnings = canSeeOpportunityWarnings(role)
   if (opportunities.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border-default bg-surface-raised py-10 text-center text-sm text-text-muted">
@@ -64,6 +92,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
                   ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
                   : formatPrice(opp.fiyat)
               const urgent = isStaleOpp(opp)
+              const incomplete = isIncompleteOpp(opp)
               return (
                 <Tr
                   key={opp.id}
@@ -76,8 +105,15 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
                   </Td>
                   <Td className="text-text-secondary">{opp.konum || '—'}</Td>
                   <Td className="text-text-muted">{categoryLabel(opp.category)}</Td>
-                  <Td className="font-medium text-text-primary">{priceLabel}</Td>
-                  <Td className="max-w-[260px] truncate text-text-muted">{opp.ozet || '—'}</Td>
+                  <Td className="font-medium text-text-primary">
+                    <span className="inline-flex items-center gap-1">
+                      {priceLabel}
+                      {showWarnings && isSuspiciousPrice(opp) && <SuspiciousPriceIcon />}
+                    </span>
+                  </Td>
+                  <Td className="max-w-[260px] truncate text-text-muted">
+                    {opp.ozet || (incomplete ? <DetayEksikBadge /> : '—')}
+                  </Td>
                   <Td className={`whitespace-nowrap ${urgent ? 'font-medium text-brand-700' : 'text-text-muted'}`}>
                     {relativeTime(opp.createdAt)}
                   </Td>
@@ -126,6 +162,7 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
               ? `${formatPrice(opp.fiyatMin)} – ${formatPrice(opp.fiyatMax)}`
               : formatPrice(opp.fiyat)
           const urgent = isStaleOpp(opp)
+          const incomplete = isIncompleteOpp(opp)
           return (
             <div
               key={opp.id}
@@ -148,8 +185,16 @@ export default function OpportunityTable({ opportunities, onRowClick, onExpressI
                   <IslemTipiBadge islemTipi={opp.islemTipi} />
                   <span className="truncate">{opp.konum || '—'}</span>
                 </span>
-                <span className="shrink-0 font-medium text-text-primary">{priceLabel}</span>
+                <span className="flex shrink-0 items-center gap-1 font-medium text-text-primary">
+                  {priceLabel}
+                  {showWarnings && isSuspiciousPrice(opp) && <SuspiciousPriceIcon />}
+                </span>
               </div>
+              {incomplete && (
+                <div className="mt-1">
+                  <DetayEksikBadge />
+                </div>
+              )}
               {opp.ozet && <p className="mt-1 truncate text-sm text-text-muted">{opp.ozet}</p>}
               <div className="mt-2 flex items-center justify-between gap-2">
                 <span
