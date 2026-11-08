@@ -73,10 +73,16 @@ export default function NewOpportunityModal({
   const minVal = parseThousands(form.fiyatMin)
   const maxVal = parseThousands(form.fiyatMax)
   const budgetRangeInvalid = isAlici && minVal !== null && maxVal !== null && minVal > maxVal
+  // Portföy (satıcı) girişinde "Ek notlar" zorunlu — broker, 2026-11-08:
+  // "Daire mi villa mı 3+1 mi ne olduğunu yazmamız gerekiyor", yeni alan
+  // eklemeden (kalabalıklaştırmadan) mevcut not kutusu zorunlu kılındı.
+  // Alıcı talebinde (ne aradığı zaten diğer alanlarda var) zorunlu değil.
+  const ozetGerekli = !isAlici
   const canSubmit =
     Boolean(form.type) &&
     form.leadAd.trim().length > 0 &&
     form.konum.trim().length > 0 &&
+    (!ozetGerekli || form.ozet.trim().length > 0) &&
     !budgetRangeInvalid &&
     isPhoneComplete(form.leadTelefon)
 
@@ -94,6 +100,7 @@ export default function NewOpportunityModal({
             !form.type ||
             form.leadAd.trim().length === 0 ||
             form.konum.trim().length === 0 ||
+            (ozetGerekli && form.ozet.trim().length === 0) ||
             budgetRangeInvalid ||
             !isPhoneComplete(leadTelefon)
           ) {
@@ -314,14 +321,19 @@ export default function NewOpportunityModal({
 
         <div>
           <label className="mb-1 block text-xs font-medium text-ink-600" htmlFor="opp-new-ozet">
-            Ek notlar
+            Ek notlar {ozetGerekli && <span className="text-red-600">* zorunlu</span>}
           </label>
           <textarea
             id="opp-new-ozet"
+            required={ozetGerekli}
             value={form.ozet}
             onChange={(e) => set({ ozet: e.target.value })}
             onBlur={(e) => set({ ozet: capitalizeFirst(e.target.value) })}
-            placeholder="Konum yukarıdaki Mahalle alanına yazılmalı, buraya değil"
+            placeholder={
+              ozetGerekli
+                ? 'Daire mi villa mı, kaç oda (ör. 3+1), öne çıkan özellikleri yaz — konum yukarıdaki Mahalle alanına yazılmalı, buraya değil'
+                : 'Konum yukarıdaki Mahalle alanına yazılmalı, buraya değil'
+            }
             rows={3}
             className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
           />
