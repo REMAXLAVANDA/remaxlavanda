@@ -11,7 +11,7 @@ import { harita as haritaProvider } from '../../lib/dataProvider'
 import { formatDateOnly } from '../../lib/format'
 import { LOCATIONIQ_KEY } from '../../lib/env'
 import { ROLES } from '../../lib/roles'
-import { ISLEM_TIPI_LABELS as CIRO_ISLEM_TIPI_LABELS } from '../../lib/ciroRaporlari'
+import { ISLEM_TIPI_LABELS as CIRO_ISLEM_TIPI_LABELS, RAPOR_KATEGORI_LABELS } from '../../lib/ciroRaporlari'
 import { ISLEM_TIPI_LABELS as PORTFOY_ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import ManuelHaritaKaydiModal from './ManuelHaritaKaydiModal'
@@ -155,9 +155,10 @@ export default function HaritaPanel() {
                   <p>{formatDateOnly(k.tarih)}</p>
                   {k.islemTipi && (
                     <p className="text-text-muted">
-                      {(k.kaynak === 'satis' ? CIRO_ISLEM_TIPI_LABELS : PORTFOY_ISLEM_TIPI_LABELS)[k.islemTipi] ?? k.islemTipi}
+                      {(k.kaynak === 'portfoy' ? PORTFOY_ISLEM_TIPI_LABELS : CIRO_ISLEM_TIPI_LABELS)[k.islemTipi] ?? k.islemTipi}
                     </p>
                   )}
+                  {k.kategori && <p className="text-text-muted">{RAPOR_KATEGORI_LABELS[k.kategori] ?? k.kategori}</p>}
                   {isManager && k.kaynak === 'manuel' && (
                     <button
                       disabled={deletingId === k.id}

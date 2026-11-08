@@ -2,6 +2,12 @@ import { useState } from 'react'
 import Modal from '../common/Modal'
 import SiteKonumSecici from '../common/SiteKonumSecici'
 import { formatThousands, parseThousands } from '../../lib/format'
+import { ISLEM_TIPI_LABELS, RAPOR_KATEGORI_LABELS } from '../../lib/ciroRaporlari'
+
+// Sadece Satış/Kiralama gösteriliyor — Referral/Co-operation ciro
+// raporunun komisyon paylaşım mekaniğiyle ilgili, basit bir geçmiş
+// notunda anlamsız (bkz. migration 20261108120000).
+const MANUEL_ISLEM_TIPI_LABELS = { satis: ISLEM_TIPI_LABELS.satis, kiralama: ISLEM_TIPI_LABELS.kiralama }
 
 // Broker'ın geçmişe dönük, sisteme hiç ciro raporu olarak girilmemiş
 // eski/bilinen satışları elle haritaya eklemesi için (2026-11-08) — tam
@@ -15,6 +21,8 @@ export default function ManuelHaritaKaydiModal({ onClose, onSubmit, submitting, 
   const [tutar, setTutar] = useState('')
   const [tarih, setTarih] = useState('')
   const [danismanId, setDanismanId] = useState('')
+  const [kategori, setKategori] = useState('')
+  const [islemTipi, setIslemTipi] = useState('')
   const [aciklama, setAciklama] = useState('')
 
   const canSubmit = siteAdi.trim().length > 0 && lat != null && lng != null
@@ -29,6 +37,8 @@ export default function ManuelHaritaKaydiModal({ onClose, onSubmit, submitting, 
       tutar: parseThousands(tutar),
       tarih: tarih || null,
       danismanId: danismanId || null,
+      kategori: kategori || null,
+      islemTipi: islemTipi || null,
       aciklama: aciklama.trim() || null,
     })
   }
@@ -61,6 +71,42 @@ export default function ManuelHaritaKaydiModal({ onClose, onSubmit, submitting, 
               onChange={(e) => setTarih(e.target.value)}
               className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
             />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs text-ink-500">Kategori — biliniyorsa seç</label>
+          <div className="flex gap-2">
+            {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setKategori(kategori === key ? '' : key)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                  kategori === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-ink-200 bg-white text-ink-600'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs text-ink-500">İşlem Tipi — biliniyorsa seç</label>
+          <div className="flex gap-2">
+            {Object.entries(MANUEL_ISLEM_TIPI_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setIslemTipi(islemTipi === key ? '' : key)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                  islemTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-ink-200 bg-white text-ink-600'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
