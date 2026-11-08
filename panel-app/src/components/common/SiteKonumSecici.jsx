@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { LOCATIONIQ_KEY } from '../../lib/env'
 
 // Vite/bundler'lar Leaflet'in varsayılan pin görselini kendi yoluyla
 // bulamıyor (bilinen bir Leaflet+bundler sorunu) — ikon elle ayarlanmazsa
@@ -178,8 +179,8 @@ export default function SiteKonumSecici({ siteAdi, onSiteAdiChange, lat, lng, on
         <div className="mt-2 h-[260px] overflow-hidden rounded-lg border border-ink-200">
           <MapContainer center={merkez} zoom={pinVar ? 17 : 13} style={{ height: '100%', width: '100%' }}>
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://locationiq.com/">LocationIQ</a>'
+              url={`https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`}
             />
             <TiklamaDinleyici onClick={handleHaritaTiklandi} />
             <AramaSonucunaUc hedef={ucusHedefi} />

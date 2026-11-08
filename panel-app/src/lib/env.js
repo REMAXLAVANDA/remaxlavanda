@@ -9,6 +9,11 @@
 export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// Harita tile sağlayıcı (LocationIQ) — domain-kısıtlı public key, gizli
+// değil (bkz. 2026-11-08 broker kararı: MapTiler/Stadia Maps'in ücretsiz
+// planları ticari kullanıma kapalı, LocationIQ'ninki açık).
+export const LOCATIONIQ_KEY = import.meta.env.VITE_LOCATIONIQ_KEY
+
 export const IS_PROD = import.meta.env.PROD
 export const IS_DEV = import.meta.env.DEV
 
