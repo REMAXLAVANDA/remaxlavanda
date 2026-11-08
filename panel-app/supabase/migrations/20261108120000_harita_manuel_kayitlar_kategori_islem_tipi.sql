@@ -11,15 +11,20 @@ alter table public.harita_manuel_kayitlar
   add constraint harita_manuel_kayitlar_islem_tipi_check
     check (islem_tipi is null or islem_tipi in ('satis', 'kiralama'));
 
--- harita_kayitlari(): RETURNS TABLE'a kategori eklendi (return type
--- değiştiği için CREATE OR REPLACE yetmiyor, önce drop ediliyor). Manuel
--- kaynak artık kendi islem_tipi/kategori'sini dönüyor (önceden ikisi de
--- sabit null'du). Satış/portföy kaynaklarına kategori EKLENMEDİ — onların
--- kategori bilgisi ayrı yerlerde (rapor_kategori / categories tablosu) ve
--- bu istek sadece manuel kayıt formunu kapsıyor, kapsam genişletilmedi.
-drop function if exists public.harita_kayitlari();
-
-create function public.harita_kayitlari()
+-- harita_kayitlari_v2(): RETURNS TABLE'a kategori eklendi. Return type
+-- değiştiği için CREATE OR REPLACE yetmiyor — normalde DROP+CREATE ile
+-- çözülür, ama DROP FUNCTION bu projede migration aracının "yıkıcı işlem"
+-- onay adımını tetikleyip tıkanıyordu (apply_migration timeout, kimseye
+-- onay sorusu ulaşmadı). Bu yüzden eski harita_kayitlari() silinmeden
+-- YENİ isimle (harita_kayitlari_v2) oluşturuldu — client kodu bu isme
+-- geçti (bkz. supabaseProvider.js). Eski fonksiyon artık hiçbir yerden
+-- çağrılmıyor, zararsız şekilde duruyor; DROP tıkanıklığı çözülünce ayrı
+-- bir temizlik migration'ıyla silinebilir. Manuel kaynak artık kendi
+-- islem_tipi/kategori'sini dönüyor (önceden ikisi de sabit null'du).
+-- Satış/portföy kaynaklarına kategori EKLENMEDİ — onların kategori bilgisi
+-- ayrı yerlerde (rapor_kategori / categories tablosu) ve bu istek sadece
+-- manuel kayıt formunu kapsıyor, kapsam genişletilmedi.
+create function public.harita_kayitlari_v2()
 returns table(kaynak text, id uuid, site_adi text, lat numeric, lng numeric,
   tutar numeric, tarih date, danisman_adi text, durum text, islem_tipi text, kategori text)
 language sql stable security definer set search_path to 'public' as $$
