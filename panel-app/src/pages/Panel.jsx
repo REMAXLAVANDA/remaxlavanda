@@ -13,6 +13,7 @@ import {
   Megaphone,
   HeartPulse,
   Lock,
+  Map,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useKnownUsers } from '../context/UsersContext'
@@ -553,6 +554,15 @@ export default function Panel() {
     return { total, acik, claimed, kapandi, iptal }
   }, [data, filters])
 
+  // Harita nabız kutusu için sayı — ayrı bir sorgu eklemeden, zaten yüklü
+  // `opps`'tan (lat/lng dahil) sayılıyor, bkz. nabziTiles'taki not. Tarih
+  // filtresinden BAĞIMSIZ (haritadaki pinler zaten güncel/aktif durumu
+  // gösteriyor, dönemsel bir metrik değil).
+  const haritaPinSayisi = useMemo(
+    () => (data?.opps ?? []).filter((o) => o.type === 'satici' && (o.status === 'acik' || o.status === 'claimed') && o.lat != null && o.lng != null).length,
+    [data],
+  )
+
   // --- Broker raporu: "Ofisin Nabzı" kutuları — "Tarih filtresi Kararları"
   // (bkz. AI_NOTLARI.md) uyarınca Lead Havuzu/Recruiting artık Operasyon/
   // Recruiting'in bir parçası olarak üstteki tarih filtresini dinliyor
@@ -883,8 +893,23 @@ export default function Panel() {
         detail: 'bu ay, gerekçeyle',
         accent: 'red',
       },
+      // Broker, 2026-11-08: "panele ekleyelim, tıklayınca finans kısmındaki
+      // harita bölümüne atsın" — Finans > Harita'ya ?tab=harita ile deep-link
+      // (bkz. Finans.jsx). Sayı için ayrı bir sorgu eklemek yerine (Panel'in
+      // zaten 20 paralel sorgusu var, bkz. loadAll notu) burada çoktan
+      // yüklenmiş olan `opps`'tan (artık lat/lng de içeriyor) sayılıyor —
+      // sadece aktif portföy pinleri, ciro raporu (satış) pinleri dahil
+      // değil, bu yüzden detay metni bunu açıkça belirtiyor.
+      {
+        label: 'Harita',
+        icon: Map,
+        to: '/finans?tab=harita',
+        value: haritaPinSayisi,
+        detail: 'aktif portföy haritada',
+        accent: 'blue',
+      },
     ],
-    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, checklistGaps, attentionItems, dusukPuanAtamaCount],
+    [callStats, leadStats, opportunityStats, recruitingStats, nextEventsAlways, checklistGaps, attentionItems, dusukPuanAtamaCount, haritaPinSayisi],
   )
 
   // --- Lig: en güncel dönemin üç kategorisindeki sıralama + son güncelleme ---
