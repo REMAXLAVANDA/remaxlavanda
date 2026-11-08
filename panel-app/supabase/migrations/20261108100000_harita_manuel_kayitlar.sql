@@ -88,5 +88,5 @@ language sql stable security definer set search_path to 'public' as $$
     u.ad, null
   from harita_manuel_kayitlar m left join users u on u.id = m.danisman_id
   where (select is_active()) and normalize_site_adi(m.site_adi) = normalize_site_adi(p_site_adi)
-  order by tarih desc nulls last;
+  order by 2 desc nulls last;
 $$;
