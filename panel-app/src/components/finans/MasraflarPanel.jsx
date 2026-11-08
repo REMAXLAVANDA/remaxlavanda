@@ -13,7 +13,7 @@ import {
 } from '../../lib/dataProvider'
 import { canManageMasraflar } from '../../lib/islemMasraflari'
 import { cariOzetiByDanisman } from '../../lib/cariHesap'
-import { formatDateOnly, formatThousands, parseThousands } from '../../lib/format'
+import { formatDateOnly, formatThousands, parseThousands, sortByName } from '../../lib/format'
 import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 
 function tl(n) {
@@ -48,7 +48,7 @@ export default function MasraflarPanel() {
   // sıralamaları gibi performans listelerinde YAYINLANMAK istemiyor (bkz.
   // OperasyonTab.jsx'teki aynı ayrım, broker 2026-11-08).
   const danismanOptions = useMemo(
-    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi),
+    () => sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi)),
     [knownUsers],
   )
 

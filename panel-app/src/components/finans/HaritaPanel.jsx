@@ -8,7 +8,7 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { harita as haritaProvider } from '../../lib/dataProvider'
-import { formatDateOnly } from '../../lib/format'
+import { formatDateOnly, sortByName } from '../../lib/format'
 import { LOCATIONIQ_KEY } from '../../lib/env'
 import { ROLES } from '../../lib/roles'
 import { ISLEM_TIPI_LABELS as CIRO_ISLEM_TIPI_LABELS, RAPOR_KATEGORI_LABELS } from '../../lib/ciroRaporlari'
@@ -79,7 +79,7 @@ export default function HaritaPanel() {
   // sıralamaları gibi performans listelerinde YAYINLANMAK istemiyor (bkz.
   // OperasyonTab.jsx'teki aynı ayrım, broker 2026-11-08).
   const danismanOptions = useMemo(
-    () => Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi),
+    () => sortByName(Object.values(knownUsers).filter((u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi)),
     [knownUsers],
   )
 

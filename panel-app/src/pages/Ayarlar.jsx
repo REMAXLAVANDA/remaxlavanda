@@ -24,6 +24,7 @@ import { DANISMAN_TIER_RATES, tierFromOranlar } from '../lib/danismanTier'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
 import { callNeedsTracking } from '../lib/callLogs'
+import { sortByName } from '../lib/format'
 import { mentorPrimiRows, mentorPrimiToplam, MENTOR_PRIMI_DEFAULT_ORAN, MENTOR_PRIMI_DEFAULT_GUN } from '../lib/mentorPrimi'
 import { currentMonthKey, monthRangeFor } from '../components/common/MonthFilter'
 import UsersTable from '../components/settings/UsersTable'
@@ -832,8 +833,8 @@ export default function Ayarlar() {
           targetName={devretTarget.name}
           pendingCallCount={devretTarget.pendingCallCount}
           pendingOpportunityCount={devretTarget.pendingOpportunityCount}
-          candidates={(allUsers ?? []).filter(
-            (u) => u.id !== devretTarget.id && u.role === 'danisman' && u.durum === 'aktif',
+          candidates={sortByName(
+            (allUsers ?? []).filter((u) => u.id !== devretTarget.id && u.role === 'danisman' && u.durum === 'aktif'),
           )}
           onSubmit={handleDevretAndDeactivate}
           onCancel={() => setDevretTarget(null)}

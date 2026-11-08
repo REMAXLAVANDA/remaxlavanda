@@ -46,7 +46,7 @@ function raporOnayUyarisi(r) {
   return null
 }
 import { toplamEslesenTutar, toplamEmanetMahsubu } from '../../lib/bankaHareketleri'
-import { formatDateOnly } from '../../lib/format'
+import { formatDateOnly, sortByName } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import Modal from '../common/Modal'
@@ -139,8 +139,10 @@ export default function CiroRaporlariPanel() {
   // OperasyonTab.jsx'teki aynı ayrım, broker 2026-11-08).
   const danismanOptions = useMemo(
     () =>
-      Object.values(knownUsers).filter(
-        (u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi && u.id !== user.id,
+      sortByName(
+        Object.values(knownUsers).filter(
+          (u) => (!u.role || u.role === 'danisman' || u.role === 'broker') && !u.testHesabi && u.id !== user.id,
+        ),
       ),
     [knownUsers, user.id],
   )
