@@ -1311,6 +1311,15 @@ export const ciroRaporlari = {
     rapor.redSebebi = redSebebi
     return delay({ id })
   },
+  async duzeltAlanlar(id, { islemTipi, raporKategori, siteAdi, tapuBilgileri }) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    if (islemTipi) rapor.islemTipi = islemTipi
+    if (raporKategori) rapor.raporKategori = raporKategori
+    if (siteAdi) rapor.siteAdi = siteAdi
+    if (tapuBilgileri) rapor.tapuBilgileri = tapuBilgileri
+    return delay({ id })
+  },
   async katilimciTeyitEt(katilimciId, kullaniciId, deger = true) {
     const row = MOCK_CIRO_RAPORU_KATILIMCILARI.find((k) => k.id === katilimciId)
     if (!row) throw new Error('Katılımcı bulunamadı.')

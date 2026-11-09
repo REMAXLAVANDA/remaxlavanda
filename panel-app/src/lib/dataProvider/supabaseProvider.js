@@ -1746,6 +1746,21 @@ export const ciroRaporlari = {
       throw new Error('Bu rapor artık onay bekleyen durumda değil — sayfayı yenile.')
     }
   },
+  // Onaylanmış raporda SADECE sınıflandırma alanlarını düzeltme (broker,
+  // 2026-11-09) — tutar/katılımcı/pay oranına dokunmuyor, bkz. migration
+  // 20261109130000. duzelt_ciro_raporu_alanlari her değişikliği
+  // ciro_raporu_duzeltme_gecmisi'ne kaydediyor.
+  async duzeltAlanlar(raporId, { islemTipi, raporKategori, siteAdi, tapuBilgileri }) {
+    await run(
+      client().rpc('duzelt_ciro_raporu_alanlari', {
+        p_rapor_id: raporId,
+        p_islem_tipi: islemTipi || null,
+        p_rapor_kategori: raporKategori || null,
+        p_site_adi: siteAdi || null,
+        p_tapu_bilgileri: tapuBilgileri || null,
+      }),
+    )
+  },
   // Finans > Raporlar > Fatura Kontrol — broker/owner'ın danışmanın kestiği
   // faturayı teyit etmesi. RLS zaten is_manager() ile sınırlı
   // (ciro_raporu_katilimcilari_update), ayrı bir kontrol burada gerekmiyor.
