@@ -1893,6 +1893,7 @@ function mapBankaHareketi(row) {
     teyitEdenId: row.teyit_eden_id,
     teyitTarihi: row.teyit_tarihi,
     ciroRaporuId: row.ciro_raporu_id,
+    kasaId: row.kasa_id,
   }
 }
 
