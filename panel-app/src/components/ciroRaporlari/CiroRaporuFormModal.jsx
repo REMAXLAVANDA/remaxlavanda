@@ -76,6 +76,15 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const [aliciTemsilciTipi, setAliciTemsilciTipi] = useState(editing?.katilimcilar?.[1]?.disOfisMi ? 'dis_ofis' : 'kendi')
   const [aliciDisOfisAdi, setAliciDisOfisAdi] = useState(editing?.katilimcilar?.[1]?.disOfisAdi ?? '')
   const [aliciDisOfisKisi, setAliciDisOfisKisi] = useState(editing?.katilimcilar?.[1]?.disOfisKisi ?? '')
+  // Broker, 2026-11-09 (canlı vaka: Birgül Özdemir dış ofis olduğunu hiç
+  // işaretlemedi çünkü yukarıdaki saticiTemsilciTipi/aliciTemsilciTipi
+  // sessizce 'kendi' kalıyordu) — artık YENİ raporda bu ayrı, zorunlu bir
+  // soru: null = henüz cevaplanmadı, submit engellenir (bkz. canSubmit/
+  // eksikAlanlar). Düzenlemede yukarıdakiyle AYNI mantıkla var olan
+  // disOfisMi durumuna göre otomatik geliyor, tekrar sorulmuyor.
+  const [disOfisVarMi, setDisOfisVarMi] = useState(
+    editing ? !!(editing?.katilimcilar?.[0]?.disOfisMi || editing?.katilimcilar?.[1]?.disOfisMi) : null,
+  )
   const [form, setForm] = useState({
     islemTipi: editing?.islemTipi ?? 'satis',
     islemTarihi: editing?.islemTarihi ?? today(),
@@ -352,6 +361,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     (!mulkBedeliGerekli || (mulkBedeliParsed !== null && mulkBedeliParsed > 0)) &&
     form.islemTarihi &&
     !!raporKategori &&
+    disOfisVarMi !== null &&
     (krediDurumu !== 'kredi' || krediBankasi.trim().length > 0) &&
     satici.adSoyad.trim().length > 0 &&
     satici.telefon.trim().length > 0 &&
@@ -395,6 +405,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   if (mulkBedeliGerekli && !(mulkBedeliParsed !== null && mulkBedeliParsed > 0)) eksikAlanlar.push('Anlaşılan Bedel')
   if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
   if (!raporKategori) eksikAlanlar.push('Kategori')
+  if (disOfisVarMi === null) eksikAlanlar.push('Satıcı veya alıcı tarafını başka bir ofis mi temsil etti? (Evet/Hayır seç)')
   if (krediDurumu === 'kredi' && krediBankasi.trim().length === 0) eksikAlanlar.push('Kredi bankası')
   if (satici.adSoyad.trim().length === 0) eksikAlanlar.push('Satıcı — Ad Soyad')
   if (satici.telefon.trim().length === 0) eksikAlanlar.push('Satıcı — Telefon')
@@ -645,6 +656,32 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           )}
 
           <div>
+            <label className="mb-1 block text-xs text-ink-500">
+              Bu işlemde satıcı veya alıcı tarafını başka bir emlak ofisi mi temsil etti? *
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDisOfisVarMi(false)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                  disOfisVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                }`}
+              >
+                Hayır, ikisi de bizim danışmanımız
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisOfisVarMi(true)}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                  disOfisVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                }`}
+              >
+                Evet, biri başka ofisten
+              </button>
+            </div>
+          </div>
+
+          <div>
             <label className="mb-1 block text-xs text-ink-500">Kategori *</label>
             <div className="flex gap-2">
               {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
@@ -702,8 +739,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             />
           </div>
 
-          <div className="mt-2">
-            <label className="mb-1 block text-[11px] text-ink-500">Satıcı tarafını kim temsil ediyor?</label>
+          <div className={`mt-2 ${disOfisVarMi === true ? 'rounded-lg ring-2 ring-red-500 p-1.5' : ''}`}>
+            <label className="mb-1 block text-[11px] text-ink-500">
+              Satıcı tarafını kim temsil ediyor?
+              {disOfisVarMi === true && <span className="ml-1 font-semibold text-red-600">⬇ aşağıda işaretle</span>}
+            </label>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -880,8 +920,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             />
           </div>
 
-          <div className="mt-2">
-            <label className="mb-1 block text-[11px] text-ink-500">Alıcı/Kiracı tarafını kim temsil ediyor?</label>
+          <div className={`mt-2 ${disOfisVarMi === true ? 'rounded-lg ring-2 ring-red-500 p-1.5' : ''}`}>
+            <label className="mb-1 block text-[11px] text-ink-500">
+              Alıcı/Kiracı tarafını kim temsil ediyor?
+              {disOfisVarMi === true && <span className="ml-1 font-semibold text-red-600">⬇ aşağıda işaretle</span>}
+            </label>
             <div className="flex gap-2">
               <button
                 type="button"
