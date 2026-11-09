@@ -20,6 +20,7 @@ import {
   hizmetBedeliStandartDisiMi,
   faturaTutarsizMi,
 } from '../../lib/ciroRaporlari'
+import DuzeltCiroRaporuModal from './DuzeltCiroRaporuModal'
 
 // Standart hizmet bedeli oranından (satışta %2+KDV, kiralamada 1 kira+KDV)
 // sapan rapor — broker/owner listede tek bakışta görsün diye (broker,
@@ -91,6 +92,7 @@ export default function CiroRaporlariPanel() {
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [approveTarget, setApproveTarget] = useState(null)
+  const [duzeltTarget, setDuzeltTarget] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   // 2026-11-07 broker: "temel bilgileri görmek istesem çok karmaşık ekran,
   // detay görmek istersem içine girsem daha iyi olmaz mı" — satır artık
@@ -256,6 +258,20 @@ export default function CiroRaporlariPanel() {
       reload()
     } catch (err) {
       showToast(err.message ?? 'Onaylanamadı, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleDuzelt(payload) {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.duzeltAlanlar(duzeltTarget.id, payload)
+      setDuzeltTarget(null)
+      showToast('Rapor düzeltildi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Düzeltilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -835,6 +851,18 @@ export default function CiroRaporlariPanel() {
                   </button>
                 </>
               )}
+              {/* Broker, 2026-11-09: onaylandıktan sonra işlem tipi/kategori/
+                  site/tapu gibi sınıflandırma hatası fark edilirse düzeltme
+                  yolu — tutar/katılımcı/pay oranına dokunmuyor (bkz.
+                  DuzeltCiroRaporuModal notu). */}
+              {isApprover && r.durum === 'onaylandi' && (
+                <button
+                  onClick={() => setDuzeltTarget(r)}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-sunken"
+                >
+                  <Pencil size={13} /> Düzelt
+                </button>
+              )}
             </div>
       </div>
     )
@@ -994,6 +1022,10 @@ export default function CiroRaporlariPanel() {
 
       {rejectTarget && (
         <RejectCiroRaporuModal onClose={() => setRejectTarget(null)} onSubmit={handleReject} submitting={submitting} />
+      )}
+
+      {duzeltTarget && (
+        <DuzeltCiroRaporuModal rapor={duzeltTarget} onClose={() => setDuzeltTarget(null)} onSubmit={handleDuzelt} submitting={submitting} />
       )}
 
       {approveTarget && (
