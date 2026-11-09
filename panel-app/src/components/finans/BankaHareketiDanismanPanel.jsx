@@ -3,7 +3,7 @@ import { Plus, Upload, Trash2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
-import { bankaHareketleri as bankaHareketleriProvider } from '../../lib/dataProvider'
+import { bankaHareketleri as bankaHareketleriProvider, kasalar as kasalarProvider } from '../../lib/dataProvider'
 import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, BANKA_HAREKETI_TUR_LABELS } from '../../lib/bankaHareketleri'
 import { formatDateOnly, formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
@@ -29,10 +29,15 @@ const today = () => new Date().toISOString().slice(0, 10)
 // lib/bankaHareketleri.js canSubmitBankaHareketi/canManageBankaHareketleri
 // notu, migration 20261011093000 RLS'i zaten eşleşmiş bir kaydı buradan
 // düzenletmiyor/sildirmiyor).
+async function loadAll() {
+  const [hareketler, kasalar] = await Promise.all([bankaHareketleriProvider.list(), kasalarProvider.list()])
+  return { hareketler, kasalar }
+}
+
 export default function BankaHareketiDanismanPanel() {
   const { user } = useAuth()
   const { showToast } = useToast()
-  const { data, setData, loading, error, reload } = useAsyncList(() => bankaHareketleriProvider.list(), [])
+  const { data, setData, loading, error, reload } = useAsyncList(loadAll, [])
   const [form, setForm] = useState({
     tip: 'giris',
     tutar: '',
@@ -43,6 +48,7 @@ export default function BankaHareketiDanismanPanel() {
     aciklama: '',
     tur: 'hizmet_bedeli',
     bankaAdi: '',
+    kasaId: '',
   })
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
@@ -50,7 +56,7 @@ export default function BankaHareketiDanismanPanel() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
-  const ownHareketler = (data ?? []).filter((h) => h.olusturanId === user.id)
+  const ownHareketler = (data?.hareketler ?? []).filter((h) => h.olusturanId === user.id)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const parsedTutar = parseThousands(form.tutar)
   const cikis = form.tip === 'cikis'
@@ -84,7 +90,8 @@ export default function BankaHareketiDanismanPanel() {
     form.tarih &&
     form.dekontTarihi &&
     form.gonderenAdi.trim().length > 0 &&
-    form.referansNo.trim().length > 0
+    form.referansNo.trim().length > 0 &&
+    !!form.kasaId
 
   function handleFileChange(e) {
     const selected = e.target.files?.[0] ?? null
@@ -121,10 +128,11 @@ export default function BankaHareketiDanismanPanel() {
           tur: form.tur,
           bankaAdi: form.bankaAdi.trim(),
           dekontDosyaUrl,
+          kasaId: form.kasaId,
         },
         user.id,
       )
-      setData((prev) => [created, ...(prev ?? [])])
+      setData((prev) => ({ ...prev, hareketler: [created, ...(prev?.hareketler ?? [])] }))
       setForm({
         tip: form.tip,
         tutar: '',
@@ -135,6 +143,7 @@ export default function BankaHareketiDanismanPanel() {
         aciklama: '',
         tur: 'hizmet_bedeli',
         bankaAdi: '',
+        kasaId: form.kasaId,
       })
       setFile(null)
       showToast(cikis ? 'Çıkış hareketi kaydedildi.' : 'Dekont kaydedildi, broker eşleştirip onaylayacak.', 'success')
@@ -158,7 +167,7 @@ export default function BankaHareketiDanismanPanel() {
     setDeleting(true)
     try {
       await bankaHareketleriProvider.remove(deleteTarget)
-      setData((prev) => (prev ?? []).filter((h) => h.id !== deleteTarget))
+      setData((prev) => ({ ...prev, hareketler: (prev?.hareketler ?? []).filter((h) => h.id !== deleteTarget) }))
       setDeleteTarget(null)
       showToast('Kayıt silindi.', 'success')
     } catch (err) {
@@ -236,6 +245,19 @@ export default function BankaHareketiDanismanPanel() {
             placeholder="İşlem Referans Numarası (EFT/FAST) *"
             className="sm:col-span-2 rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
+          <select
+            required
+            value={form.kasaId}
+            onChange={(e) => set({ kasaId: e.target.value })}
+            className="sm:col-span-2 rounded-lg border border-border-default bg-white px-3 py-2 text-sm text-text-primary"
+          >
+            <option value="">Hangi kasaya/hesaba girdi/çıktı? *</option>
+            {(data?.kasalar ?? []).map((k) => (
+              <option key={k.id} value={k.id}>
+                {k.ad}
+              </option>
+            ))}
+          </select>
           <select
             value={form.tur}
             onChange={(e) => set({ tur: e.target.value })}

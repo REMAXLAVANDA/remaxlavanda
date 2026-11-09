@@ -1934,7 +1934,7 @@ export const bankaHareketleri = {
   // ve durum='eslesmedi' insert'e izin veriyor — bloke/tip seçenekleri
   // sadece broker ekranında kullanılıyor, danışman formunda yok).
   async create(
-    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, ciroRaporuId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
+    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, ciroRaporuId, bloke, tip, tur, bankaAdi, dekontDosyaUrl, kasaId },
     olusturanId,
   ) {
     const cikis = tip === 'cikis'
@@ -1957,6 +1957,7 @@ export const bankaHareketleri = {
           banka_adi: bankaAdi || null,
           dekont_dosya_url: dekontDosyaUrl || null,
           olusturan_id: olusturanId,
+          kasa_id: kasaId || null,
         })
         .select()
         .single(),

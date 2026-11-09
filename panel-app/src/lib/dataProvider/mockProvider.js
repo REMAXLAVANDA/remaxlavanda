@@ -1450,7 +1450,7 @@ export const bankaHareketleri = {
     return delay(null)
   },
   async create(
-    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, ciroRaporuId, bloke, tip, tur, bankaAdi, dekontDosyaUrl },
+    { tutar, tarih, dekontTarihi, gonderenAdi, aciklama, referansNo, opportunityId, ciroRaporuId, bloke, tip, tur, bankaAdi, dekontDosyaUrl, kasaId },
     olusturanId,
   ) {
     const cikis = tip === 'cikis'
@@ -1469,6 +1469,7 @@ export const bankaHareketleri = {
       ustHareketId: null,
       tur: !cikis && bloke ? 'baglanma_parasi' : tur || 'diger',
       bankaAdi: bankaAdi || null,
+      kasaId: kasaId || null,
       dekontDosyaUrl: dekontDosyaUrl || null,
       mahsupTutari: null,
       durum: !cikis && bloke ? 'blokede' : 'eslesmedi',
