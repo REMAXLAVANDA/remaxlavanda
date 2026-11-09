@@ -20,12 +20,15 @@ function tl(n) {
   return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
 }
 
-// Satış (gerçekleşmiş) pini yeşil, portföy (hâlâ satışta) pini mavi, broker'ın
-// elle eklediği manuel kayıt amber — tasarım sistemindeki tint-green/
-// remax-blue/tint-amber token'larıyla aynı mantık (bkz. bankaHareketleri.js
-// BANKA_HAREKETI_DURUM_STYLES notu).
-function pinIcon(kaynak) {
-  const renk = kaynak === 'satis' ? '#16a34a' : kaynak === 'manuel' ? '#d97706' : '#1d4ed8'
+// Pin rengi emlak tipine göre (broker, 2026-11-09: danışman araştırma
+// yaparken konut/ticari/arsa ayrımını haritada direkt görmeli) —
+// gerçekleşmiş satış/aktif portföy ayrımı artık renkte değil, popup'ın en
+// üstündeki "SATILDI"/"AKTİF PORTFÖY" etiketinde (bkz. durumBasligi).
+const KATEGORI_RENK = { konut: '#1d4ed8', ticari: '#7c3aed', arsa: '#16a34a' }
+const KATEGORI_VARSAYILAN_RENK = '#6b7280'
+
+function pinIcon(kategori) {
+  const renk = KATEGORI_RENK[kategori] ?? KATEGORI_VARSAYILAN_RENK
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" viewBox="0 0 26 36">
     <path fill="${renk}" stroke="white" stroke-width="1.5" d="M13 0C5.8 0 0 5.8 0 13c0 9.5 13 23 13 23s13-13.5 13-23C26 5.8 20.2 0 13 0z"/>
     <circle cx="13" cy="13" r="5" fill="white"/>
@@ -39,23 +42,24 @@ function pinIcon(kaynak) {
   })
 }
 
-const SATIS_ICON = pinIcon('satis')
-const PORTFOY_ICON = pinIcon('portfoy')
-const MANUEL_ICON = pinIcon('manuel')
+const PIN_ICONS = { konut: pinIcon('konut'), ticari: pinIcon('ticari'), arsa: pinIcon('arsa') }
+const VARSAYILAN_ICON = pinIcon(null)
 const VARSAYILAN_MERKEZ = [40.9833, 27.5167]
 
-const DURUM_LABELS = { acik: 'Açık', claimed: 'Üstlenilmiş', onaylandi: 'Satıldı' }
+const KATEGORI_LABELS = { ...RAPOR_KATEGORI_LABELS, diger: 'Diğer' }
 
 async function loadAll() {
   return { kayitlar: await haritaProvider.listKayitlar() }
 }
 
-const PIN_ICONS = { satis: SATIS_ICON, portfoy: PORTFOY_ICON, manuel: MANUEL_ICON }
-
-function durumMetni(k) {
-  if (k.kaynak === 'satis') return 'Satıldı'
+// Danışman araştırma yaparken önce bunu görmeli: bu gerçekten satılmış mı,
+// hâlâ satışta olan bir portföy mü, yoksa elle girilmiş bilgi notu mu —
+// tarih veya renkten tahmin etmesin, direkt yazsın (broker, 2026-11-09:
+// "sadece gerçekleşen işlem diye uyarı olmalı").
+function durumBasligi(k) {
+  if (k.kaynak === 'satis') return 'SATILDI'
   if (k.kaynak === 'manuel') return 'Manuel kayıt'
-  return DURUM_LABELS[k.durum] ?? k.durum
+  return 'AKTİF PORTFÖY'
 }
 
 // Broker, 2026-11-07 (pasted spec): "ofis genelinde hangi bölgede ne
@@ -122,13 +126,16 @@ export default function HaritaPanel() {
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-text-secondary">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#16a34a' }} /> Gerçekleşmiş satış
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: KATEGORI_RENK.konut }} /> Konut
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#1d4ed8' }} /> Aktif portföy
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: KATEGORI_RENK.ticari }} /> Ticari
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#d97706' }} /> Manuel kayıt
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: KATEGORI_RENK.arsa }} /> Arsa/Arazi
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: KATEGORI_VARSAYILAN_RENK }} /> Kategori girilmemiş
         </span>
         <span className={isManager ? '' : 'ml-auto'}>{kayitlar.length} kayıt</span>
         {isManager && (
@@ -148,20 +155,23 @@ export default function HaritaPanel() {
             url={`https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`}
           />
           {kayitlar.map((k) => (
-            <Marker key={`${k.kaynak}-${k.id}`} position={[k.lat, k.lng]} icon={PIN_ICONS[k.kaynak] ?? PORTFOY_ICON}>
+            <Marker key={`${k.kaynak}-${k.id}`} position={[k.lat, k.lng]} icon={PIN_ICONS[k.kategori] ?? VARSAYILAN_ICON}>
               <Popup>
                 <div className="space-y-0.5 text-xs">
-                  <p className="font-semibold text-text-primary">{k.siteAdi || 'Site adı yok'}</p>
-                  <p>{durumMetni(k)}</p>
-                  <p>{k.danismanAdi || '—'}</p>
-                  <p>{tl(k.tutar)}</p>
-                  <p>{formatDateOnly(k.tarih)}</p>
+                  <p className="font-semibold text-text-primary">{durumBasligi(k)}</p>
+                  <p>{k.siteAdi || 'Site adı yok'}</p>
                   {k.islemTipi && (
-                    <p className="text-text-muted">
+                    <p>
                       {(k.kaynak === 'portfoy' ? PORTFOY_ISLEM_TIPI_LABELS : CIRO_ISLEM_TIPI_LABELS)[k.islemTipi] ?? k.islemTipi}
                     </p>
                   )}
-                  {k.kategori && <p className="text-text-muted">{RAPOR_KATEGORI_LABELS[k.kategori] ?? k.kategori}</p>}
+                  <p className="text-text-muted">{k.kategori ? (KATEGORI_LABELS[k.kategori] ?? k.kategori) : 'Kategori girilmemiş'}</p>
+                  {(k.m2 != null || k.odaSayisi) && (
+                    <p className="text-text-muted">{[k.m2 != null ? `${k.m2} m²` : null, k.odaSayisi || null].filter(Boolean).join(' · ')}</p>
+                  )}
+                  <p>{k.danismanAdi || '—'}</p>
+                  <p>{tl(k.tutar)}</p>
+                  <p>{formatDateOnly(k.tarih)}</p>
                   {isManager && k.kaynak === 'manuel' && (
                     <button
                       disabled={deletingId === k.id}

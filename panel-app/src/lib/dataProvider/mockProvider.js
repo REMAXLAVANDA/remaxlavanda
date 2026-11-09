@@ -2136,6 +2136,9 @@ export const harita = {
           .join(' / '),
         durum: r.durum,
         islemTipi: r.islemTipi,
+        kategori: r.raporKategori,
+        m2: MOCK_OPPORTUNITIES.find((o) => o.id === r.opportunityId)?.m2 ?? null,
+        odaSayisi: MOCK_OPPORTUNITIES.find((o) => o.id === r.opportunityId)?.odaSayisi ?? null,
       }),
     )
     const portfoyKayitlari = MOCK_OPPORTUNITIES.filter(
@@ -2151,6 +2154,9 @@ export const harita = {
       danismanAdi: allMockUserRows().find((u) => u.id === o.ownerId)?.name,
       durum: o.status,
       islemTipi: o.islemTipi,
+      kategori: o.category,
+      m2: o.m2 ?? null,
+      odaSayisi: o.odaSayisi ?? null,
     }))
     const manuelKayitlar = MOCK_HARITA_MANUEL_KAYITLAR.map((m) => ({
       kaynak: 'manuel',
@@ -2164,6 +2170,8 @@ export const harita = {
       durum: null,
       islemTipi: m.islemTipi,
       kategori: m.kategori,
+      m2: null,
+      odaSayisi: null,
     }))
     return delay([...satisKayitlari, ...portfoyKayitlari, ...manuelKayitlar])
   },
