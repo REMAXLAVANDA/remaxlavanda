@@ -2214,12 +2214,12 @@ export const harita = {
       durum: null,
       islemTipi: m.islemTipi,
       kategori: m.kategori,
-      m2: null,
-      odaSayisi: null,
+      m2: m.m2 ?? null,
+      odaSayisi: m.odaSayisi ?? null,
     }))
     return delay([...satisKayitlari, ...portfoyKayitlari, ...manuelKayitlar])
   },
-  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, kategori, islemTipi, aciklama }, ekleyenId) {
+  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, kategori, islemTipi, m2, odaSayisi, aciklama }, ekleyenId) {
     const row = {
       id: `hmk-${Date.now()}`,
       siteAdi,
@@ -2230,6 +2230,8 @@ export const harita = {
       danismanId: danismanId || null,
       kategori: kategori || null,
       islemTipi: islemTipi || null,
+      m2: m2 ?? null,
+      odaSayisi: odaSayisi || null,
       aciklama: aciklama || null,
       ekleyenId,
       createdAt: new Date().toISOString(),
