@@ -12,6 +12,7 @@ import { MOCK_RECRUITING_CANDIDATES, MOCK_RECRUITING_NOTES } from '../../data/mo
 import { MOCK_TASKS } from '../../data/mockTasks'
 import { MOCK_COACHING_NOTES } from '../../data/mockCoachingNotes'
 import { MOCK_KARARLAR } from '../../data/mockKararlar'
+import { MOCK_DOCUMENT_TEMPLATES, MOCK_DOCUMENT_FIELDS, MOCK_DOCUMENT_INSTANCES } from '../../data/mockBelgeler'
 import { MOCK_DOCS, MOCK_DOC_VERSIONS } from '../../data/mockDocs'
 import { MOCK_CATEGORIES } from '../../data/mockCategories'
 import {
@@ -2114,6 +2115,49 @@ export const kararlar = {
   async remove(id) {
     const idx = MOCK_KARARLAR.findIndex((k) => k.id === id)
     if (idx !== -1) MOCK_KARARLAR.splice(idx, 1)
+    return delay({ id })
+  },
+}
+
+export const belgeler = {
+  async listTemplates() {
+    return delay([...MOCK_DOCUMENT_TEMPLATES].sort((a, b) => a.sortOrder - b.sortOrder))
+  },
+  async listFields(templateId) {
+    return delay(
+      MOCK_DOCUMENT_FIELDS.filter((f) => f.templateId === templateId).sort((a, b) => a.sortOrder - b.sortOrder).map((f) => ({ ...f })),
+    )
+  },
+  async listInstances(templateId) {
+    return delay(
+      MOCK_DOCUMENT_INSTANCES.filter((i) => i.templateId === templateId)
+        .sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1))
+        .map((i) => ({ ...i })),
+    )
+  },
+  async createInstance(templateId, userId) {
+    const row = {
+      id: `belge-${Date.now()}`,
+      templateId,
+      createdBy: userId,
+      data: {},
+      status: 'draft',
+      pdfStoragePath: null,
+      lockedAt: null,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_DOCUMENT_INSTANCES.unshift(row)
+    return delay({ ...row })
+  },
+  async updateInstanceData(id, dataPatch) {
+    const row = MOCK_DOCUMENT_INSTANCES.find((i) => i.id === id)
+    if (!row) throw new Error('Belge taslağı bulunamadı.')
+    row.data = dataPatch
+    return delay({ ...row })
+  },
+  async removeInstance(id) {
+    const idx = MOCK_DOCUMENT_INSTANCES.findIndex((i) => i.id === id)
+    if (idx !== -1) MOCK_DOCUMENT_INSTANCES.splice(idx, 1)
     return delay({ id })
   },
 }
