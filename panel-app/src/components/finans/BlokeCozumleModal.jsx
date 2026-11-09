@@ -36,6 +36,9 @@ export default function BlokeCozumleModal({ bloke, adaylar, userName, onClose, o
       <p className="mb-4 text-sm text-text-muted">
         {tl(bloke.tutar)} · {formatDateOnly(bloke.tarih)} · {bloke.gonderenAdi || 'Gönderen belirtilmemiş'}
       </p>
+      {bloke.aciklama && (
+        <p className="mb-4 rounded-lg bg-surface-sunken p-2 text-xs text-text-secondary">{bloke.aciklama}</p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
           {Object.entries(BLOKE_AKSIYON_LABELS).map(([key, label]) => (
