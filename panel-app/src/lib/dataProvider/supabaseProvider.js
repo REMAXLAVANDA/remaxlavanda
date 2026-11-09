@@ -2717,7 +2717,7 @@ export const belgeler = {
 // açık (RPC RLS'i bilerek atlıyor, bkz. migration 20261107100000).
 export const harita = {
   async listKayitlar() {
-    const data = await run(client().rpc('harita_kayitlari_v2'))
+    const data = await run(client().rpc('harita_kayitlari_v3'))
     return (data ?? []).map((r) => ({
       kaynak: r.kaynak,
       id: r.id,
@@ -2730,6 +2730,8 @@ export const harita = {
       durum: r.durum,
       islemTipi: r.islem_tipi,
       kategori: r.kategori,
+      m2: r.m2 == null ? null : Number(r.m2),
+      odaSayisi: r.oda_sayisi,
     }))
   },
   // Broker'ın geçmişe dönük elle eklediği kayıtlar (broker, 2026-11-08) —
