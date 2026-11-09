@@ -1707,19 +1707,12 @@ export const ciroRaporlari = {
     if ('notlar' in patch) dbPatch.notlar = patch.notlar || null
     if ('rtPayiTutari' in patch) dbPatch.rt_payi_tutari = patch.rtPayiTutari ?? null
 
-    // Çalışan Payı (fatura) veya RT Payı değiştiyse, Ofis Payı (hep kalan)
-    // yeniden hesaplanır — üçü GD Cirosu'na eşit kalsın garantisi burada.
-    if ('faturaTutari' in patch || 'rtPayiTutari' in patch) {
-      const guncel = await run(
-        client().from('ciro_raporu_katilimcilari').select('gd_cirosu, fatura_tutari, rt_payi_tutari').eq('id', id).single(),
-      )
-      const gdCirosuDeger = guncel.gd_cirosu
-      if (gdCirosuDeger != null) {
-        const calisanPayi = 'faturaTutari' in patch ? patch.faturaTutari : guncel.fatura_tutari
-        const rtPayi = 'rtPayiTutari' in patch ? patch.rtPayiTutari : guncel.rt_payi_tutari
-        dbPatch.ofis_payi_tutari = Number(gdCirosuDeger) - Number(calisanPayi || 0) - Number(rtPayi || 0)
-      }
-    }
+    // Ofis Payı (hep kalan) artık burada hesaplanmıyor — DB tetikleyicisi
+    // (trg_ciro_katilimcilari_ofis_payi_hesapla, migration 20261109170000)
+    // her UPDATE'te GD Cirosu/fatura/RT payından otomatik üretiyor. Önceki
+    // client-taraflı hesap, muhasebe (is_manager() olmayan) fatura girince
+    // broker_alanlarini_koru tetikleyicisi yüzünden sessizce null'a
+    // dönüyordu — bkz. o migration'daki not.
     await run(client().from('ciro_raporu_katilimcilari').update(dbPatch).eq('id', id))
 
     // Cari Hesap senkronu: fatura tutarı değiştiyse ilgili alacak satırının
