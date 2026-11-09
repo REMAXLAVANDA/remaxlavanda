@@ -32,10 +32,16 @@ export default function KarlilikPanel() {
     for (const r of onaylanan) {
       for (const k of r.katilimcilar ?? []) {
         if (k.ofisPayiTutari == null) continue
+        // Broker, 2026-11-09: "hepsini KDV dahil yap" — gd_cirosu/
+        // ofis_payi_tutari veritabanında hep KDV HARİÇ (net) tutuluyor
+        // (diğer hesaplar — Cari Hesap, RT Payı — buna dayanıyor,
+        // değiştirilmedi), burada SADECE gösterim için danışmanın kendi
+        // fatura KDV oranıyla (yoksa standart %20) brüte çevriliyor.
+        const kdvCarpani = 1 + (k.kdvOrani ?? 20) / 100
         const mevcut = byDanisman.get(k.danismanId) ?? { danismanId: k.danismanId, islemSayisi: 0, ofisPayiToplam: 0, gdCirosuToplam: 0 }
         mevcut.islemSayisi += 1
-        mevcut.ofisPayiToplam += Number(k.ofisPayiTutari)
-        mevcut.gdCirosuToplam += Number(k.gdCirosu ?? 0)
+        mevcut.ofisPayiToplam += Number(k.ofisPayiTutari) * kdvCarpani
+        mevcut.gdCirosuToplam += Number(k.gdCirosu ?? 0) * kdvCarpani
         byDanisman.set(k.danismanId, mevcut)
       }
     }
@@ -47,7 +53,7 @@ export default function KarlilikPanel() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-text-muted">Onaylanmış ciro raporlarından, dönem ve danışman bazlı ofis payı toplamı.</p>
+        <p className="text-sm text-text-muted">Onaylanmış ciro raporlarından, dönem ve danışman bazlı ofis payı toplamı (KDV dahil).</p>
         <MonthFilter monthKey={monthKey} onSelect={setMonthKey} />
       </div>
 
@@ -61,8 +67,8 @@ export default function KarlilikPanel() {
               <tr className="border-b border-border-subtle bg-surface-sunken text-text-muted">
                 <th className="px-4 py-2.5 font-medium">Danışman</th>
                 <th className="px-4 py-2.5 font-medium">İşlem Sayısı</th>
-                <th className="px-4 py-2.5 font-medium">GD Cirosu</th>
-                <th className="px-4 py-2.5 font-medium">Ofis Payı</th>
+                <th className="px-4 py-2.5 font-medium">GD Cirosu (KDV Dahil)</th>
+                <th className="px-4 py-2.5 font-medium">Ofis Payı (KDV Dahil)</th>
               </tr>
             </thead>
             <tbody>
