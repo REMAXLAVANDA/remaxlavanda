@@ -2213,19 +2213,26 @@ export const harita = {
 }
 
 const MOCK_KASALAR = [
-  { id: 'kasa-vakifbank', ad: 'Vakıfbank', tip: 'banka', aktif: true },
-  { id: 'kasa-ziraat', ad: 'Ziraat', tip: 'banka', aktif: true },
-  { id: 'kasa-fon', ad: 'FON', tip: 'fon', aktif: true },
-  { id: 'kasa-fon-ziraat', ad: 'FON Ziraat', tip: 'fon', aktif: true },
-  { id: 'kasa-baglanma-vakifbank', ad: 'Bağlanma Hesabı Vakıfbank', tip: 'banka', aktif: true },
-  { id: 'kasa-ortak', ad: 'Şirket Ortağı Hesabı', tip: 'ortak_hesabi', aktif: true },
-  { id: 'kasa-tl', ad: 'TL Kasa', tip: 'nakit', aktif: true },
-  { id: 'kasa-param-pos', ad: 'Param POS', tip: 'pos', aktif: true },
+  { id: 'kasa-vakifbank', ad: 'Vakıfbank', tip: 'banka', aktif: true, acilisBakiyesi: 124.37, acilisTarihi: '2026-09-30' },
+  { id: 'kasa-ziraat', ad: 'Ziraat', tip: 'banka', aktif: true, acilisBakiyesi: 180958.74, acilisTarihi: '2026-09-30' },
+  { id: 'kasa-fon', ad: 'FON', tip: 'fon', aktif: true, acilisBakiyesi: 0, acilisTarihi: null },
+  { id: 'kasa-fon-ziraat', ad: 'FON Ziraat', tip: 'fon', aktif: true, acilisBakiyesi: 0, acilisTarihi: null },
+  { id: 'kasa-baglanma-vakifbank', ad: 'Bağlanma Hesabı Vakıfbank', tip: 'banka', aktif: true, acilisBakiyesi: 0, acilisTarihi: null },
+  { id: 'kasa-ortak', ad: 'Şirket Ortağı Hesabı', tip: 'ortak_hesabi', aktif: true, acilisBakiyesi: 0, acilisTarihi: null },
+  { id: 'kasa-tl', ad: 'TL Kasa', tip: 'nakit', aktif: true, acilisBakiyesi: 0, acilisTarihi: null },
+  { id: 'kasa-param-pos', ad: 'Param POS', tip: 'pos', aktif: true, acilisBakiyesi: 0, acilisTarihi: null },
 ]
 
 export const kasalar = {
   async list() {
     return delay([...MOCK_KASALAR])
+  },
+  async setAcilisBakiyesi(kasaId, { acilisBakiyesi, acilisTarihi }) {
+    const row = MOCK_KASALAR.find((k) => k.id === kasaId)
+    if (!row) throw new Error('Kasa bulunamadı.')
+    row.acilisBakiyesi = Number(acilisBakiyesi)
+    row.acilisTarihi = acilisTarihi || null
+    return delay(row)
   },
 }
 
