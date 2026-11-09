@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { canSubmitBankaHareketi, canManageBankaHareketleri } from '../lib/bankaHareketleri'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
 import RaporlarPanel from '../components/finans/RaporlarPanel'
-import HaritaPanel from '../components/finans/HaritaPanel'
 
 // Finans TEK menü girdisi, sekmeli — önceden Banka Hareketleri/Masraflar/
 // Cari Hesap ayrı sidebar maddeleriydi, broker "yanlış kurgu, hepsi
@@ -22,34 +20,24 @@ import HaritaPanel from '../components/finans/HaritaPanel'
 // göremiyor (canSubmitBankaHareketi owner için false). Raporlar sekmesi
 // herkese açık — içindeki Cari Hesap danışmana da kendi bakiyesini
 // gösteriyor (RaporlarPanel'in kendi iç ayrımı).
+// Broker, 2026-11-09: Harita artık ayrı bir ana menü maddesi (bkz.
+// pages/Harita.jsx, lib/modules.js) — Finans içinde tekrar sekme olarak
+// göstermeye gerek yok, sadeleşir (2026-10-09'daki "Finans'ı teke
+// indirelim" kararıyla aynı mantık).
 const TABS = [
   { key: 'ciro', label: 'Ciro Raporları' },
   { key: 'banka', label: 'Banka Hareketleri' },
   { key: 'raporlar', label: 'Raporlar' },
-  // Broker, 2026-11-07 (pasted spec): harita + "bu sitede kaça sattık"
-  // bilgisi HERKESE açık — showBankaTab filtresinden bilerek muaf
-  // (bkz. aşağıdaki visibleTabs).
-  { key: 'harita', label: 'Harita' },
 ]
-
-const TAB_KEYS = TABS.map((t) => t.key)
 
 export default function Finans() {
   const { role } = useAuth()
-  // Panel'deki "Harita" kısayol kartı buraya ?tab=harita ile geliyor
-  // (broker, 2026-11-08: "panele ekleyelim, tıklayınca finans kısmındaki
-  // harita bölümüne atsın") — sadece ilk açılışta okunuyor, sekmeler arası
-  // geçiş yine normal state ile.
-  const [searchParams] = useSearchParams()
-  const [tab, setTab] = useState(() => {
-    const istenen = searchParams.get('tab')
-    return TAB_KEYS.includes(istenen) ? istenen : 'ciro'
-  })
+  const [tab, setTab] = useState('ciro')
   // Muhasebe canSubmitBankaHareketi'nde yok (o "kendi dekontunu giren"
   // dar yetki) ama canManageBankaHareketleri'nde var (tam yönetim,
   // 2026-11-07) — ikisinden biri yeterli, sekme açılsın.
   const showBankaTab = canSubmitBankaHareketi(role) || canManageBankaHareketleri(role)
-  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar' || t.key === 'harita')
+  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
 
   return (
     <div>
@@ -72,7 +60,6 @@ export default function Finans() {
       {tab === 'ciro' && <CiroRaporlariPanel />}
       {showBankaTab && tab === 'banka' && <BankaHareketleriPanel />}
       {tab === 'raporlar' && <RaporlarPanel />}
-      {tab === 'harita' && <HaritaPanel />}
     </div>
   )
 }

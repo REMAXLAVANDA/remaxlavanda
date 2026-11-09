@@ -12,6 +12,7 @@ import {
   Inbox,
   UserSearch,
   Wallet,
+  Map,
 } from 'lucide-react'
 import { ROLES } from './roles'
 
@@ -32,7 +33,7 @@ const LEADS_ROLES = [ROLES.BROKER, ROLES.OWNER]
 // Muhasebe 2026-11-07'de eklendi — menüde SADECE Finans'ı görür (başka
 // hiçbir modülün roles listesinde MUHASEBE yok, bu yüzden otomatik olarak
 // tek madde kalıyor, bkz. getModulesForRole).
-const FINANS_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN, ROLES.MUHASEBE]
+export const FINANS_ROLES = [ROLES.BROKER, ROLES.OWNER, ROLES.DANISMAN, ROLES.MUHASEBE]
 
 // "Takip & Gelişim" grup başlığı, içindeki "Takip" (sağlık skoru/eğitim)
 // menü öğesiyle aynı kelimeyi taşıyordu — isim çakışması geri bildirimi
@@ -164,6 +165,22 @@ export const MODULES = [
     icon: Wallet,
     roles: FINANS_ROLES,
     group: 'finans',
+  },
+  // Broker, 2026-11-09: "Harita'nın bulunması kolay olsun, Finans'ın içine
+  // gömülü kalmasın" — artık bağımsız bir menü maddesi (önceden Finans'ın
+  // bir sekmesiydi, bkz. pages/Finans.jsx'teki kaldırma notu). "operasyon"
+  // grubuna konuldu çünkü bu bir muhasebe işlemi değil, danışmanın
+  // araştırma/lookup aracı — Fırsatlar/Panel'le aynı kategori. Erişim
+  // FINANS_ROLES ile AYNI (eskiden Finans sekmesindeyken hangi rol
+  // görüyorsa o), ikisi senkron kalsın diye paylaşılan liste kullanılıyor.
+  {
+    key: 'harita',
+    path: '/harita',
+    label: 'Harita',
+    description: 'Ofis genelinde satışlar ve aktif portföyler — danışman araştırma aracı',
+    icon: Map,
+    roles: FINANS_ROLES,
+    group: 'operasyon',
   },
 ]
 

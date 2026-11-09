@@ -22,6 +22,7 @@ const Recruiting = lazy(() => import('./pages/Recruiting'))
 const Takip = lazy(() => import('./pages/Takip'))
 const Lig = lazy(() => import('./pages/Lig'))
 const Finans = lazy(() => import('./pages/Finans'))
+const Harita = lazy(() => import('./pages/Harita'))
 const Rehber = lazy(() => import('./pages/Rehber'))
 const Ayarlar = lazy(() => import('./pages/Ayarlar'))
 const Login = lazy(() => import('./pages/Login'))
@@ -95,6 +96,7 @@ export default function App() {
                       <Route path="/egitim" element={<Takip />} />
                       <Route path="/lig" element={<Lig />} />
                       <Route path="/finans" element={<Finans />} />
+                      <Route path="/harita" element={<Harita />} />
                       {/* Eski ayrı sayfa linkleri/bookmarklar kırılmasın diye tek
                           Finans sekmeli sayfasına yönlendiriliyor (2026-10-09). */}
                       <Route path="/ciro-raporlari" element={<Navigate to="/finans" replace />} />
