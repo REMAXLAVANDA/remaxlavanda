@@ -10,6 +10,7 @@ export const CARI_KATEGORI_LABELS = {
   sahibinden_bedeli: 'Sahibinden İlan Bedeli',
   ofis_katilim_bedeli: 'Ofis Katılım Bedeli',
   islem_masrafi: 'İşlem Masrafı',
+  odeme: 'Ödeme (Kasadan)',
   diger: 'Diğer',
 }
 
