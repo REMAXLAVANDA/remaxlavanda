@@ -1372,6 +1372,7 @@ function mapCiroRaporu(r) {
     muhasebeTamamlandi: r.muhasebe_tamamlandi,
     muhasebeTamamlanmaTarihi: r.muhasebe_tamamlanma_tarihi,
     muhasebeTamamlayanId: r.muhasebe_tamamlayan_id,
+    emanetId: r.emanet_id,
     katilimcilar: (r.ciro_raporu_katilimcilari ?? []).map(mapCiroRaporuKatilimcisi),
   }
 }
@@ -1424,6 +1425,7 @@ export const ciroRaporlari = {
       krediBankasi,
       katilimcilar,
       paraHareketleri,
+      baglanmaParasi,
     },
     olusturanId,
   ) {
@@ -1516,11 +1518,34 @@ export const ciroRaporlari = {
         }))
         await run(client().from('banka_hareketleri').insert(hareketRows))
       }
+      // Broker, 2026-11-09: "bağlanma parası alındı mı" beyanı — rapora
+      // bağlı ayrı bir emanet açar (bkz. migration 20261109160000). Son
+      // adım: öncesinde bir hata olursa emanet hiç oluşmaz, burada bir
+      // hata olursa aşağıdaki catch rapor satırını zaten siliyor.
+      if (baglanmaParasi) {
+        await run(
+          client().rpc('ciro_raporu_baglanma_parasi_isaretle', {
+            p_ciro_raporu_id: rapor.id,
+            p_tutar: baglanmaParasi.tutar,
+            p_tarih: baglanmaParasi.tarih,
+          }),
+        )
+      }
     } catch (err) {
       await client().from('ciro_raporlari').delete().eq('id', rapor.id)
       throw err
     }
     return mapCiroRaporu(rapor)
+  },
+  // Düzenleme ekranında kendi (ya da yönettiği) raporuna bağlı emanetin
+  // tutar/tarihini göstermek için — emanetler/emanet_hareketleri RLS'i
+  // sadece is_manager()'a açık, danışman bunu normal select ile okuyamaz
+  // (bkz. aynı migrasyondaki not). Rapor emanete bağlı değilse null döner.
+  async baglanmaParasiBilgisi(ciroRaporuId) {
+    const data = await run(client().rpc('ciro_raporu_baglanma_parasi_bilgisi', { p_ciro_raporu_id: ciroRaporuId }))
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) return null
+    return { tutar: Number(row.tutar), tarih: row.tarih }
   },
   // Taslak/reddedilen bir raporun TÜM alanlarını düzenler — broker,
   // 2026-10-11: "sil ve düzenle diye seçim olmalı". RLS zaten sadece
