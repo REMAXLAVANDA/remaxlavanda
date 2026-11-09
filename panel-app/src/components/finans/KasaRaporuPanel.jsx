@@ -11,6 +11,7 @@ import {
   ortakHesabiHareketleri as ortakHesabiHareketleriProvider,
   kasaTransferleri as kasaTransferleriProvider,
   cariHesapOdemeleri as cariHesapOdemeleriProvider,
+  bankaHareketleri as bankaHareketleriProvider,
 } from '../../lib/dataProvider'
 import { formatDateOnly } from '../../lib/format'
 import { DATE_RANGES, isWithinRange } from '../../lib/dateRange'
@@ -33,18 +34,24 @@ const HAREKET_TIPLERI = {
   transfer_cikis: 'Kasa Transferi (Çıkış)',
   transfer_giris: 'Kasa Transferi (Giriş)',
   cari_odeme: 'Danışman Hakedişi Ödemesi',
+  banka_hareketi: 'Banka Hareketi',
 }
 
 async function loadAll() {
-  const [kasalar, genelGiderler, tedarikciOdemeleri, ortakHesabiHareketleri, kasaTransferleri, cariHesapOdemeleri] = await Promise.all([
+  const [kasalar, genelGiderler, tedarikciOdemeleri, ortakHesabiHareketleri, kasaTransferleri, cariHesapOdemeleri, bankaHareketleriTumu] = await Promise.all([
     kasalarProvider.list(),
     genelGiderlerProvider.list(),
     tedarikciOdemeleriProvider.list(),
     ortakHesabiHareketleriProvider.list(),
     kasaTransferleriProvider.list(),
     cariHesapOdemeleriProvider.list(),
+    bankaHareketleriProvider.list(),
   ])
-  return { kasalar, genelGiderler, tedarikciOdemeleri, ortakHesabiHareketleri, kasaTransferleri, cariHesapOdemeleri }
+  // Broker, 2026-11-09: Kasa Raporu'na bankaHareketleri de eklenmeli — ama
+  // sadece kasa_id atanmış olanlar (henüz atanmamışları raporda GÖSTERMİYORUZ,
+  // sayısını ayrıca kontrol edip broker'a bildiriyoruz, bkz. kasasizBankaHareketiSayisi).
+  const bankaHareketleri = bankaHareketleriTumu.filter((h) => h.kasaId != null)
+  return { kasalar, genelGiderler, tedarikciOdemeleri, ortakHesabiHareketleri, kasaTransferleri, cariHesapOdemeleri, bankaHareketleri, kasasizBankaHareketiSayisi: bankaHareketleriTumu.length - bankaHareketleri.length }
 }
 
 // Her kaynaktan gelen farklı şekildeki satırları tek bir ortak forma
@@ -102,6 +109,18 @@ function ortakForma(data) {
       giris: 0,
     })
   }
+  for (const h of data.bankaHareketleri) {
+    satirlar.push({
+      id: `bh-${h.id}`,
+      tarih: h.tarih,
+      tip: HAREKET_TIPLERI.banka_hareketi,
+      aciklama: h.aciklama || h.gonderenAdi || '—',
+      kasaId: h.kasaId,
+      kullaniciId: h.olusturanId,
+      cikis: h.tip === 'cikis' ? h.tutar : 0,
+      giris: h.tip === 'giris' ? h.tutar : 0,
+    })
+  }
   for (const t of data.kasaTransferleri) {
     satirlar.push({
       id: `kt-cikis-${t.id}`,
@@ -142,6 +161,7 @@ export default function KasaRaporuPanel() {
   const [submitting, setSubmitting] = useState(false)
 
   const kasalar = data?.kasalar ?? []
+  const kasasizBankaHareketiSayisi = data?.kasasizBankaHareketiSayisi ?? 0
   const tumSatirlar = useMemo(() => (data ? ortakForma(data) : []), [data])
 
   const kasayaGoreSatirlar = useMemo(
@@ -229,6 +249,13 @@ export default function KasaRaporuPanel() {
       {kasaFiltre && (
         <p className="mb-2 text-xs text-text-muted">
           Dönem başı bakiye: <span className="font-medium text-text-primary">{tl(donemBasiBakiye)}</span>
+        </p>
+      )}
+
+      {kasasizBankaHareketiSayisi > 0 && (
+        <p className="mb-2 rounded-lg bg-tint-amber px-3 py-2 text-xs text-tint-amber-text">
+          {kasasizBankaHareketiSayisi} banka hareketinde kasa seçilmemiş — bu rapora hiç girmiyorlar, bakiye eksik
+          görünebilir. Banka Hareketleri ekranında bunları kasaya bağlamak gerekiyor.
         </p>
       )}
 
