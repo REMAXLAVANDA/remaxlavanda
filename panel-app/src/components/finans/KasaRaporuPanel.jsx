@@ -158,6 +158,7 @@ export default function KasaRaporuPanel() {
   const [kasaFiltre, setKasaFiltre] = useState('')
   const [tarihFiltre, setTarihFiltre] = useState({ dateRange: '30g', customFrom: '', customTo: '' })
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showAcilisModal, setShowAcilisModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const kasalar = data?.kasalar ?? []
@@ -170,8 +171,7 @@ export default function KasaRaporuPanel() {
   )
 
   // Dönem başı bakiye = seçilen aralığın başlangıcından ÖNCEKİ tüm
-  // hareketlerin toplamı — "Tümü" seçiliyse sıfır (zaten en baştan
-  // gösteriliyor), "Özel" seçiliyse customFrom'dan önceki her şey.
+  // hareketlerin toplamı — "Özel" seçiliyse customFrom'dan önceki her şey.
   const araligiBaslangici = useMemo(() => {
     const { dateRange, customFrom } = tarihFiltre
     if (dateRange === 'tumu') return null
@@ -181,10 +181,27 @@ export default function KasaRaporuPanel() {
     return gun != null ? new Date(Date.now() - gun * 24 * 60 * 60 * 1000) : null
   }, [tarihFiltre])
 
+  const seciliKasa = useMemo(() => kasalar.find((k) => k.id === kasaFiltre) ?? null, [kasalar, kasaFiltre])
+
+  // Broker, 2026-11-09: açılış bakiyesi devreye girdi — dönem başı artık
+  // sıfırdan değil, kasanın acilisBakiyesi'nden başlıyor. "Tümü" seçiliyse
+  // direkt acilisBakiyesi (zaten en baştan gösteriliyor). Aralık başı
+  // açılış tarihinden ÖNCEYSE direkt acilisBakiyesi; SONRAYSA
+  // acilisBakiyesi + açılış tarihinden aralık başına kadarki hareketler.
+  // Açılış tarihi hiç girilmemiş kasalarda (6'sı) eski davranış (sıfırdan
+  // toplam) aynen devam ediyor.
   const donemBasiBakiye = useMemo(() => {
-    if (!kasaFiltre || !araligiBaslangici) return 0
-    return kasayaGoreSatirlar.filter((s) => new Date(s.tarih) < araligiBaslangici).reduce((top, s) => top + s.giris - s.cikis, 0)
-  }, [kasayaGoreSatirlar, araligiBaslangici, kasaFiltre])
+    if (!kasaFiltre) return 0
+    const acilisBakiyesi = seciliKasa?.acilisBakiyesi ?? 0
+    const acilisTarihi = seciliKasa?.acilisTarihi ? new Date(seciliKasa.acilisTarihi) : null
+    if (!araligiBaslangici) return acilisBakiyesi
+    if (acilisTarihi && araligiBaslangici <= acilisTarihi) return acilisBakiyesi
+    const baslangicNoktasi = acilisTarihi ?? new Date(0)
+    const baslangicDeger = acilisTarihi ? acilisBakiyesi : 0
+    return kasayaGoreSatirlar
+      .filter((s) => new Date(s.tarih) >= baslangicNoktasi && new Date(s.tarih) < araligiBaslangici)
+      .reduce((top, s) => top + s.giris - s.cikis, baslangicDeger)
+  }, [kasayaGoreSatirlar, araligiBaslangici, kasaFiltre, seciliKasa])
 
   const gosterilenSatirlar = useMemo(
     () => kasayaGoreSatirlar.filter((s) => isWithinRange(s.tarih, tarihFiltre.dateRange, tarihFiltre.customFrom, tarihFiltre.customTo)),
@@ -211,6 +228,20 @@ export default function KasaRaporuPanel() {
       }
       setShowAddModal(false)
       showToast('Hareket eklendi.', 'success')
+      await reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleAcilisSubmit({ acilisBakiyesi, acilisTarihi }) {
+    setSubmitting(true)
+    try {
+      await kasalarProvider.setAcilisBakiyesi(kasaFiltre, { acilisBakiyesi, acilisTarihi })
+      setShowAcilisModal(false)
+      showToast('Açılış bakiyesi güncellendi.', 'success')
       await reload()
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
@@ -247,8 +278,11 @@ export default function KasaRaporuPanel() {
       </div>
 
       {kasaFiltre && (
-        <p className="mb-2 text-xs text-text-muted">
+        <p className="mb-2 flex items-center gap-2 text-xs text-text-muted">
           Dönem başı bakiye: <span className="font-medium text-text-primary">{tl(donemBasiBakiye)}</span>
+          <button type="button" onClick={() => setShowAcilisModal(true)} className="font-medium text-brand-700 hover:underline">
+            Açılış Bakiyesini Düzenle
+          </button>
         </p>
       )}
 
@@ -296,7 +330,57 @@ export default function KasaRaporuPanel() {
       </div>
 
       {showAddModal && <HareketEkleModal kasalar={kasalar} onClose={() => setShowAddModal(false)} onSubmit={handleAddSubmit} submitting={submitting} />}
+      {showAcilisModal && (
+        <AcilisBakiyesiModal kasa={seciliKasa} onClose={() => setShowAcilisModal(false)} onSubmit={handleAcilisSubmit} submitting={submitting} />
+      )}
     </div>
+  )
+}
+
+function AcilisBakiyesiModal({ kasa, onClose, onSubmit, submitting }) {
+  const [tutar, setTutar] = useState(kasa?.acilisBakiyesi ? String(kasa.acilisBakiyesi) : '')
+  const [tarih, setTarih] = useState(kasa?.acilisTarihi ?? '')
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    onSubmit({ acilisBakiyesi: tutar ? Number(tutar) : 0, acilisTarihi: tarih || null })
+  }
+
+  return (
+    <Modal title={`${kasa?.ad ?? 'Kasa'} — Açılış Bakiyesi`} onClose={onClose} maxWidth="max-w-sm">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div>
+          <label className="mb-1 block text-xs text-text-secondary">Açılış Bakiyesi (₺)</label>
+          <input
+            inputMode="decimal"
+            value={tutar}
+            onChange={(e) => setTutar(e.target.value.replace(/[^0-9.,-]/g, ''))}
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs text-text-secondary">Açılış Tarihi</label>
+          <input
+            type="date"
+            value={tarih}
+            onChange={(e) => setTarih(e.target.value)}
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
+            Vazgeç
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          >
+            {submitting ? 'Kaydediliyor...' : 'Kaydet'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 

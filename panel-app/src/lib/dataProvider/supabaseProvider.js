@@ -2788,13 +2788,34 @@ export const harita = {
 // Sadece broker/owner/muhasebe görür (bkz. lib/ciroRaporlari.js
 // canViewAllCiroRaporlari, aynı yetki seviyesi kullanılıyor).
 function mapKasa(row) {
-  return { id: row.id, ad: row.ad, tip: row.tip, aktif: row.aktif }
+  return {
+    id: row.id,
+    ad: row.ad,
+    tip: row.tip,
+    aktif: row.aktif,
+    acilisBakiyesi: row.acilis_bakiyesi == null ? 0 : Number(row.acilis_bakiyesi),
+    acilisTarihi: row.acilis_tarihi,
+  }
 }
 
 export const kasalar = {
   async list() {
     const data = await run(client().from('kasalar').select('*').order('ad'))
     return data.map(mapKasa)
+  },
+  // Broker/owner'ın elle düzelttiği açılış bakiyesi (2026-11-09) — RLS
+  // zaten kasalar_manage (is_manager()) ile sınırlı, ayrı bir kontrol
+  // gerekmiyor.
+  async setAcilisBakiyesi(kasaId, { acilisBakiyesi, acilisTarihi }) {
+    const data = await run(
+      client()
+        .from('kasalar')
+        .update({ acilis_bakiyesi: acilisBakiyesi, acilis_tarihi: acilisTarihi || null })
+        .eq('id', kasaId)
+        .select()
+        .single(),
+    )
+    return mapKasa(data)
   },
 }
 
