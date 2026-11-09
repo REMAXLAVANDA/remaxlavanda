@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { canManageMasraflar } from '../../lib/islemMasraflari'
-import { canApproveCiroRaporu } from '../../lib/ciroRaporlari'
+import { canApproveCiroRaporu, canViewAllCiroRaporlari } from '../../lib/ciroRaporlari'
 import CariHesapPanel from './CariHesapPanel'
 import MasraflarPanel from './MasraflarPanel'
 import KarlilikPanel from './KarlilikPanel'
+import KasaRaporuPanel from './KasaRaporuPanel'
 
 // Finans > Raporlar — Cari Hesap ve Masraflar burada toplandı (2026-10-09
 // broker: "rapor demiştim ama sen masraflar menüsüne eklemişsin, rapor
@@ -24,6 +25,7 @@ const TABS = [
   { key: 'cari', label: 'Cari Hesap' },
   { key: 'masraflar', label: 'Masraflar' },
   { key: 'karlilik', label: 'Kârlılık' },
+  { key: 'kasa', label: 'Kasa Raporu' },
 ]
 
 export default function RaporlarPanel() {
@@ -31,7 +33,12 @@ export default function RaporlarPanel() {
   const [tab, setTab] = useState('cari')
   const showMasraflar = canManageMasraflar(role)
   const showKarlilik = canApproveCiroRaporu(role)
-  const visibleTabs = TABS.filter((t) => (t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : true))
+  // Kasa Raporu — broker/owner/muhasebe (Excel/BizimHesap'ın yerine geçen
+  // kasa/gider takibi, 2026-11-09). Danışman hiç görmez.
+  const showKasa = canViewAllCiroRaporlari(role)
+  const visibleTabs = TABS.filter((t) =>
+    t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : t.key === 'kasa' ? showKasa : true,
+  )
 
   return (
     <div>
@@ -54,6 +61,7 @@ export default function RaporlarPanel() {
       {tab === 'cari' && <CariHesapPanel />}
       {showMasraflar && tab === 'masraflar' && <MasraflarPanel />}
       {showKarlilik && tab === 'karlilik' && <KarlilikPanel />}
+      {showKasa && tab === 'kasa' && <KasaRaporuPanel />}
     </div>
   )
 }

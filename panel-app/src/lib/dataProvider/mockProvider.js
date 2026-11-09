@@ -2254,3 +2254,103 @@ export const harita = {
     return delay({ id })
   },
 }
+
+const MOCK_KASALAR = [
+  { id: 'kasa-vakifbank', ad: 'Vakıfbank', tip: 'banka', aktif: true },
+  { id: 'kasa-ziraat', ad: 'Ziraat', tip: 'banka', aktif: true },
+  { id: 'kasa-fon', ad: 'FON', tip: 'fon', aktif: true },
+  { id: 'kasa-fon-ziraat', ad: 'FON Ziraat', tip: 'fon', aktif: true },
+  { id: 'kasa-baglanma-vakifbank', ad: 'Bağlanma Hesabı Vakıfbank', tip: 'banka', aktif: true },
+  { id: 'kasa-ortak', ad: 'Şirket Ortağı Hesabı', tip: 'ortak_hesabi', aktif: true },
+  { id: 'kasa-tl', ad: 'TL Kasa', tip: 'nakit', aktif: true },
+  { id: 'kasa-param-pos', ad: 'Param POS', tip: 'pos', aktif: true },
+]
+
+export const kasalar = {
+  async list() {
+    return delay([...MOCK_KASALAR])
+  },
+}
+
+const MOCK_GENEL_GIDERLER = []
+export const genelGiderler = {
+  async list() {
+    return delay([...MOCK_GENEL_GIDERLER])
+  },
+  async create({ anaKategori, altKategori, tutar, tarih, kasaId, aciklama }, olusturanId) {
+    const row = { id: `gg-${Date.now()}`, anaKategori, altKategori, tutar: Number(tutar), tarih, kasaId, aciklama: aciklama || null, createdBy: olusturanId, createdAt: new Date().toISOString() }
+    MOCK_GENEL_GIDERLER.push(row)
+    return delay(row)
+  },
+}
+
+const MOCK_TEDARIKCI_ODEMELERI = []
+export const tedarikciOdemeleri = {
+  async list() {
+    return delay([...MOCK_TEDARIKCI_ODEMELERI])
+  },
+  async create({ tedarikciAdi, vergiNo, tutar, tarih, kasaId, faturaNo, faturaDosyaUrl, aciklama }, olusturanId) {
+    const row = {
+      id: `to-${Date.now()}`,
+      tedarikciAdi,
+      vergiNo: vergiNo || null,
+      tutar: Number(tutar),
+      tarih,
+      kasaId,
+      faturaNo: faturaNo || null,
+      faturaDosyaUrl: faturaDosyaUrl || null,
+      aciklama: aciklama || null,
+      createdBy: olusturanId,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_TEDARIKCI_ODEMELERI.push(row)
+    return delay(row)
+  },
+}
+
+const MOCK_ORTAK_HESABI_HAREKETLERI = []
+export const ortakHesabiHareketleri = {
+  async list() {
+    return delay([...MOCK_ORTAK_HESABI_HAREKETLERI])
+  },
+  async create({ ortakId, tutar, tarih, kasaId, aciklama }, olusturanId) {
+    const row = { id: `oh-${Date.now()}`, ortakId, tur: 'cekis', tutar: Number(tutar), tarih, kasaId, aciklama: aciklama || null, createdBy: olusturanId, createdAt: new Date().toISOString() }
+    MOCK_ORTAK_HESABI_HAREKETLERI.push(row)
+    return delay(row)
+  },
+}
+
+const MOCK_KASA_TRANSFERLERI = []
+export const kasaTransferleri = {
+  async list() {
+    return delay([...MOCK_KASA_TRANSFERLERI])
+  },
+  async create({ tarih, tutar, cikisKasaId, girisKasaId, aciklama }, olusturanId) {
+    const row = { id: `kt-${Date.now()}`, tarih, tutar: Number(tutar), cikisKasaId, girisKasaId, aciklama: aciklama || null, createdBy: olusturanId, createdAt: new Date().toISOString() }
+    MOCK_KASA_TRANSFERLERI.push(row)
+    return delay(row)
+  },
+}
+
+const MOCK_CARI_HESAP_ODEMELERI = []
+export const cariHesapOdemeleri = {
+  async list() {
+    return delay([...MOCK_CARI_HESAP_ODEMELERI])
+  },
+  async ode({ danismanId, tutar, tarih, kasaId, aciklama }) {
+    const row = { id: `cho-${Date.now()}`, danismanId, tutar: Number(tutar), tarih, kasaId, aciklama: aciklama || null, createdAt: new Date().toISOString() }
+    MOCK_CARI_HESAP_ODEMELERI.push(row)
+    MOCK_CARI_HAREKETLER.push({
+      id: `ch-${Date.now()}`,
+      danismanId,
+      tarih,
+      tur: 'borc',
+      tutar: Number(tutar),
+      kategori: 'odeme',
+      aciklama: aciklama || 'Kasadan ödeme',
+      durum: 'acik',
+      createdAt: new Date().toISOString(),
+    })
+    return delay(row)
+  },
+}

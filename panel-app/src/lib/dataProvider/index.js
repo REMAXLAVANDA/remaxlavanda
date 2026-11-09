@@ -34,6 +34,12 @@ export const islemMasraflari = provider.islemMasraflari
 export const kararlar = provider.kararlar
 export const belgeler = provider.belgeler
 export const harita = provider.harita
+export const kasalar = provider.kasalar
+export const genelGiderler = provider.genelGiderler
+export const tedarikciOdemeleri = provider.tedarikciOdemeleri
+export const ortakHesabiHareketleri = provider.ortakHesabiHareketleri
+export const kasaTransferleri = provider.kasaTransferleri
+export const cariHesapOdemeleri = provider.cariHesapOdemeleri
 
 // Debug/rapor amaçlı — hangi sağlayıcının aktif olduğunu görmek için
 // (ör. ConfigErrorScreen veya gelecekteki bir "sistem durumu" ekranı).
