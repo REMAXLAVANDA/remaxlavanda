@@ -9,6 +9,7 @@ import {
   ciroRaporlari as ciroRaporlariProvider,
   bankaHareketleri as bankaHareketleriProvider,
   categories as categoriesProvider,
+  kasalar as kasalarProvider,
 } from '../../lib/dataProvider'
 import {
   BANKA_HAREKETI_DURUM_LABELS,
@@ -33,14 +34,15 @@ function tl(n) {
 const today = () => new Date().toISOString().slice(0, 10)
 
 async function loadAll() {
-  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet] = await Promise.all([
+  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar] = await Promise.all([
     bankaHareketleriProvider.list(),
     ciroRaporlariProvider.list(),
     opportunitiesProvider.list(),
     categoriesProvider.list('masraflar'),
     bankaHareketleriProvider.listEmanetOzet(),
+    kasalarProvider.list(),
   ])
-  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet }
+  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar }
 }
 
 export default function BankaHareketleriPanel() {
@@ -58,6 +60,7 @@ export default function BankaHareketleriPanel() {
     referansNo: '',
     bloke: false,
     opportunityId: '',
+    kasaId: '',
   })
   const [submitting, setSubmitting] = useState(false)
   const [matchTarget, setMatchTarget] = useState(null)
@@ -110,7 +113,7 @@ export default function BankaHareketleriPanel() {
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const parsedTutar = parseThousands(form.tutar)
   const cikis = form.tip === 'cikis'
-  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && (cikis || !form.bloke || form.opportunityId)
+  const canSubmit = parsedTutar !== null && parsedTutar > 0 && form.tarih && !!form.kasaId && (cikis || !form.bloke || form.opportunityId)
 
   const userName = (id) => knownUsers[id]?.name ?? '—'
   const opportunityLabel = (id) => {
@@ -134,6 +137,7 @@ export default function BankaHareketleriPanel() {
           referansNo: form.referansNo.trim(),
           opportunityId: !cikis && form.bloke ? form.opportunityId : null,
           bloke: !cikis && form.bloke,
+          kasaId: form.kasaId,
         },
         user.id,
       )
@@ -147,6 +151,7 @@ export default function BankaHareketleriPanel() {
         referansNo: '',
         bloke: false,
         opportunityId: '',
+        kasaId: form.kasaId,
       })
       showToast(form.bloke ? 'Bağlanma parası bloke olarak kaydedildi.' : 'Hareket eklendi.', 'success')
       reload()
@@ -287,6 +292,19 @@ export default function BankaHareketleriPanel() {
           ))}
         </div>
         <div className="grid gap-2 sm:grid-cols-5">
+          <select
+            required
+            value={form.kasaId}
+            onChange={(e) => set({ kasaId: e.target.value })}
+            className="rounded-lg border border-border-default bg-white px-3 py-2 text-sm text-text-primary"
+          >
+            <option value="">Kasa seç *</option>
+            {(data?.kasalar ?? []).map((k) => (
+              <option key={k.id} value={k.id}>
+                {k.ad}
+              </option>
+            ))}
+          </select>
           <input
             required
             inputMode="numeric"
