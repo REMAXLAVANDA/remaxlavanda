@@ -66,6 +66,7 @@ export default function BankaHareketleriPanel() {
   const [matchTarget, setMatchTarget] = useState(null)
   const [blokeTarget, setBlokeTarget] = useState(null)
   const [masrafTarget, setMasrafTarget] = useState(null)
+  const [aciklamaTarget, setAciklamaTarget] = useState(null)
 
   // Ödeme bekleyen tüm katılımcı satırları — her bankadan gelen hareket
   // için en olası eşleşme adayları buradan çıkıyor (bkz. lib/
@@ -419,8 +420,19 @@ export default function BankaHareketleriPanel() {
                       </button>
                     )}
                   </td>
-                  <td className="max-w-xs truncate px-4 py-2.5 text-text-secondary" title={h.aciklama || ''}>
-                    {h.aciklama || '—'}
+                  <td className="max-w-xs px-4 py-2.5 text-text-secondary">
+                    {h.aciklama ? (
+                      <button
+                        type="button"
+                        onClick={() => setAciklamaTarget(h)}
+                        className="block max-w-full truncate text-left hover:underline"
+                        title="Tamamını oku"
+                      >
+                        {h.aciklama}
+                      </button>
+                    ) : (
+                      '—'
+                    )}
                   </td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
@@ -519,6 +531,30 @@ export default function BankaHareketleriPanel() {
             <div className="mt-4 flex justify-end">
               <button onClick={() => setMatchTarget(null)} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
                 Vazgeç
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {aciklamaTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setAciklamaTarget(null)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-lg"
+          >
+            <h2 className="mb-1 text-base font-semibold text-ink-900">Açıklama</h2>
+            <p className="mb-4 text-sm text-text-muted">
+              {tl(aciklamaTarget.tutar)} · {formatDateOnly(aciklamaTarget.tarih)}
+            </p>
+            <p className="whitespace-pre-wrap rounded-lg bg-surface-sunken p-3 text-sm text-text-primary">
+              {aciklamaTarget.aciklama}
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button onClick={() => setAciklamaTarget(null)} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
+                Kapat
               </button>
             </div>
           </div>
