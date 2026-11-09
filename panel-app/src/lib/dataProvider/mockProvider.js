@@ -863,6 +863,11 @@ function mockCiroRaporuWithKatilimcilar(r) {
   return { ...r, katilimcilar: MOCK_CIRO_RAPORU_KATILIMCILARI.filter((k) => k.ciroRaporuId === r.id) }
 }
 
+// Gerçek emanetler/emanet_hareketleri tabloları mock'ta yok (canlıda RLS
+// zaten is_manager()'a kapalı, danışman bunu bir RPC üzerinden okuyor) —
+// bağlanma parası beyanının tutar/tarihini tutmak için bu kadarı yeterli.
+const MOCK_EMANET_BILGILERI = {}
+
 // Cari Hesap (danışman borç/alacak defteri) + İşlem Masrafları — Ciro
 // Raporu onaylanınca/fatura girilince ve masraf/aylık ofis faturası
 // kaydedilince otomatik beslenir (bkz. approve()/updateKatilimciFatura()
@@ -926,6 +931,7 @@ export const ciroRaporlari = {
       krediBankasi,
       katilimcilar,
       paraHareketleri,
+      baglanmaParasi,
     },
     olusturanId,
   ) {
@@ -986,6 +992,12 @@ export const ciroRaporlari = {
       muhasebeTamamlandi: false,
       muhasebeTamamlanmaTarihi: null,
       muhasebeTamamlayanId: null,
+      emanetId: null,
+    }
+    if (baglanmaParasi) {
+      const emanetId = `em-${Date.now()}`
+      rapor.emanetId = emanetId
+      MOCK_EMANET_BILGILERI[emanetId] = { tutar: Number(baglanmaParasi.tutar), tarih: baglanmaParasi.tarih }
     }
     MOCK_CIRO_RAPORLARI.unshift(rapor)
     katilimcilar.forEach((k, i) => {
@@ -1049,6 +1061,11 @@ export const ciroRaporlari = {
       })
     }
     return delay(mockCiroRaporuWithKatilimcilar(rapor))
+  },
+  async baglanmaParasiBilgisi(ciroRaporuId) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === ciroRaporuId)
+    if (!rapor?.emanetId) return delay(null)
+    return delay(MOCK_EMANET_BILGILERI[rapor.emanetId] ?? null)
   },
   // Broker, 2026-10-11: "sil ve düzenle diye seçim olmalı" — create()'teki
   // AYNI tüm alanlar güncellenebiliyor, katılımcılar TAMAMEN yeniden

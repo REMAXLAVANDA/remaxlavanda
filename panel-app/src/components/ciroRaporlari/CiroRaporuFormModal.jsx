@@ -85,6 +85,15 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   const [disOfisVarMi, setDisOfisVarMi] = useState(
     editing ? !!(editing?.katilimcilar?.[0]?.disOfisMi || editing?.katilimcilar?.[1]?.disOfisMi) : null,
   )
+  // Broker, 2026-11-09 (Net Ödeme Özeti'nin 1. bölümü): "bu işlemde
+  // bağlanma parası alındı mı" — dış ofis sorusuyla AYNI desen (null =
+  // henüz cevaplanmadı, submit engellenir). SADECE yeni raporda sorulur —
+  // düzenlemede zaten bağlıysa (editing.emanetId) tekrar sorulmaz, aşağıda
+  // salt okunur gösterilir (bkz. baglanmaParasiBilgi useEffect'i).
+  const [baglanmaParasiVarMi, setBaglanmaParasiVarMi] = useState(null)
+  const [baglanmaParasiTutari, setBaglanmaParasiTutari] = useState('')
+  const [baglanmaParasiTarihi, setBaglanmaParasiTarihi] = useState(today())
+  const [baglanmaParasiBilgi, setBaglanmaParasiBilgi] = useState(null)
   const [form, setForm] = useState({
     islemTipi: editing?.islemTipi ?? 'satis',
     islemTarihi: editing?.islemTarihi ?? today(),
@@ -181,6 +190,26 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       clearTimeout(zamanlayici)
     }
   }, [siteAdi])
+
+  // Düzenlemede soru tekrar sorulmuyor (bkz. yukarıdaki not) — zaten bağlı
+  // bir emanet varsa tutar/tarihini göstermek için bu kadarı yeterli.
+  // emanetler/emanet_hareketleri RLS'i danışmana kapalı, bu yüzden bir RPC
+  // üzerinden (ciro_raporu_baglanma_parasi_bilgisi) okunuyor.
+  useEffect(() => {
+    if (!editing?.emanetId) return
+    let iptal = false
+    ciroRaporlariProvider
+      .baglanmaParasiBilgisi(editing.id)
+      .then((sonuc) => {
+        if (!iptal) setBaglanmaParasiBilgi(sonuc)
+      })
+      .catch(() => {
+        if (!iptal) setBaglanmaParasiBilgi(null)
+      })
+    return () => {
+      iptal = true
+    }
+  }, [editing?.emanetId, editing?.id])
 
   function addParaHareketi() {
     setParaHareketleri((list) => [
@@ -362,6 +391,9 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     form.islemTarihi &&
     !!raporKategori &&
     disOfisVarMi !== null &&
+    (editing || baglanmaParasiVarMi !== null) &&
+    (baglanmaParasiVarMi !== true ||
+      (parseThousands(baglanmaParasiTutari) !== null && parseThousands(baglanmaParasiTutari) > 0 && baglanmaParasiTarihi)) &&
     (krediDurumu !== 'kredi' || krediBankasi.trim().length > 0) &&
     satici.adSoyad.trim().length > 0 &&
     satici.telefon.trim().length > 0 &&
@@ -406,6 +438,12 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
   if (!raporKategori) eksikAlanlar.push('Kategori')
   if (disOfisVarMi === null) eksikAlanlar.push('Satıcı veya alıcı tarafını başka bir ofis mi temsil etti? (Evet/Hayır seç)')
+  if (!editing && baglanmaParasiVarMi === null) eksikAlanlar.push('Bu işlemde bağlanma parası alındı mı? (Evet/Hayır seç)')
+  if (
+    baglanmaParasiVarMi === true &&
+    !(parseThousands(baglanmaParasiTutari) !== null && parseThousands(baglanmaParasiTutari) > 0 && baglanmaParasiTarihi)
+  )
+    eksikAlanlar.push('Bağlanma Parası — Tutar ve Tarih')
   if (krediDurumu === 'kredi' && krediBankasi.trim().length === 0) eksikAlanlar.push('Kredi bankası')
   if (satici.adSoyad.trim().length === 0) eksikAlanlar.push('Satıcı — Ad Soyad')
   if (satici.telefon.trim().length === 0) eksikAlanlar.push('Satıcı — Telefon')
@@ -506,6 +544,10 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           referansNo: h.referansNo.trim(),
         }))
         .filter((h) => h.tutar !== null && h.tutar > 0 && h.tarih),
+      baglanmaParasi:
+        !editing && baglanmaParasiVarMi === true
+          ? { tutar: parseThousands(baglanmaParasiTutari), tarih: baglanmaParasiTarihi }
+          : null,
     })
   }
 
@@ -679,6 +721,63 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 Evet, biri başka ofisten
               </button>
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">
+              Bu işlemde bağlanma parası alındı mı? {!editing && '*'}
+            </label>
+            {editing ? (
+              <p className="rounded-lg bg-surface-sunken px-3 py-2 text-xs text-text-secondary">
+                {editing.emanetId
+                  ? baglanmaParasiBilgi
+                    ? `Evet — ${tl(baglanmaParasiBilgi.tutar)} (${formatDateOnly(baglanmaParasiBilgi.tarih)}) — düzenlemede değiştirilemez`
+                    : 'Evet — bağlı (yükleniyor…)'
+                  : 'Hayır / işaretlenmemiş — düzenlemede eklenemez'}
+              </p>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBaglanmaParasiVarMi(false)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                      baglanmaParasiVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    Hayır
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBaglanmaParasiVarMi(true)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                      baglanmaParasiVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    Evet
+                  </button>
+                </div>
+                {baglanmaParasiVarMi === true && (
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      required
+                      inputMode="numeric"
+                      value={baglanmaParasiTutari}
+                      onChange={(e) => setBaglanmaParasiTutari(formatThousands(e.target.value))}
+                      placeholder="Tutar (₺) *"
+                      className="flex-1 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                    />
+                    <input
+                      required
+                      type="date"
+                      value={baglanmaParasiTarihi}
+                      onChange={(e) => setBaglanmaParasiTarihi(e.target.value)}
+                      className="rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div>
