@@ -2637,6 +2637,81 @@ export const kararlar = {
   },
 }
 
+function mapBelgeInstance(row) {
+  return {
+    id: row.id,
+    templateId: row.template_id,
+    createdBy: row.created_by,
+    data: row.data ?? {},
+    status: row.status,
+    pdfStoragePath: row.pdf_storage_path,
+    lockedAt: row.locked_at,
+    createdAt: row.created_at,
+  }
+}
+
+// Belge Oluştur (Yetki Belgesi vb.) — tablolar/RLS zaten kurulu (bkz.
+// migration 20260820100000_belge_doldurma_platformu, broker 2026-08-20
+// isteği). Eski deneme burada YARIM kalmıştı (broker, 2026-11-05:
+// "kutucukları doldururken çift kayıt yapıyordu, sığmıyordu hata
+// veriyordu") — gerçek veride de doğrulandı: aynı danışman aynı belge
+// için "Kaydet"e her bastığında yeni bir taslak satırı açılmış (11 ayrı
+// taslak, bazıları 9 saniye arayla). Kök sebep: her kaydetmede create()
+// çağrılıyordu. Burada create() SADECE "Yeni Belge" ile bir kere
+// çağrılıyor, sonraki her "Kaydet" aynı id'yi update ediyor — ikinci
+// kayıt asla açılmıyor.
+export const belgeler = {
+  async listTemplates() {
+    const data = await run(
+      client().from('document_templates').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
+    )
+    return data.map((t) => ({ id: t.id, slug: t.slug, name: t.name, sortOrder: t.sort_order }))
+  },
+  async listFields(templateId) {
+    const data = await run(
+      client().from('document_fields').select('*').eq('template_id', templateId).order('sort_order', { ascending: true }),
+    )
+    return data.map((f) => ({
+      id: f.id,
+      templateId: f.template_id,
+      fieldKey: f.field_key,
+      label: f.label,
+      fieldType: f.field_type,
+      required: f.required,
+      sortOrder: f.sort_order,
+    }))
+  },
+  // document_instances_select RLS'i zaten sadece dolduran + broker/owner'a
+  // izin veriyor — burada ayrı bir rol filtresine gerek yok.
+  async listInstances(templateId) {
+    const data = await run(
+      client()
+        .from('document_instances')
+        .select('*')
+        .eq('template_id', templateId)
+        .order('created_at', { ascending: false }),
+    )
+    return data.map(mapBelgeInstance)
+  },
+  async createInstance(templateId, userId) {
+    const data = await run(
+      client().from('document_instances').insert({ template_id: templateId, created_by: userId, data: {} }).select().single(),
+    )
+    return mapBelgeInstance(data)
+  },
+  // Taslak kaydetme — HER ZAMAN mevcut satırı günceller, yeni satır
+  // AÇMAZ (eski hatanın düzeltmesi, bkz. yukarıdaki dosya notu).
+  async updateInstanceData(id, dataPatch) {
+    const data = await run(client().from('document_instances').update({ data: dataPatch }).eq('id', id).select().single())
+    return mapBelgeInstance(data)
+  },
+  // Sadece kendi taslağını (kilitlenmemiş) silebilir — RLS zaten bunu
+  // garanti ediyor, burada ayrı kontrol gerekmiyor.
+  async removeInstance(id) {
+    await run(client().from('document_instances').delete().eq('id', id))
+  },
+}
+
 // --- Harita (site/bina bazlı konum) — broker 2026-11-07 pasted spec:
 // onaylanmış ciro raporları + açık/üstlenilmiş satıcı portföyleri, HERKESE
 // açık (RPC RLS'i bilerek atlıyor, bkz. migration 20261107100000).
