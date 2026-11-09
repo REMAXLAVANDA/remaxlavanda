@@ -893,17 +893,18 @@ export default function Panel() {
         detail: 'bu ay, gerekçeyle',
         accent: 'red',
       },
-      // Broker, 2026-11-08: "panele ekleyelim, tıklayınca finans kısmındaki
-      // harita bölümüne atsın" — Finans > Harita'ya ?tab=harita ile deep-link
-      // (bkz. Finans.jsx). Sayı için ayrı bir sorgu eklemek yerine (Panel'in
-      // zaten 20 paralel sorgusu var, bkz. loadAll notu) burada çoktan
-      // yüklenmiş olan `opps`'tan (artık lat/lng de içeriyor) sayılıyor —
-      // sadece aktif portföy pinleri, ciro raporu (satış) pinleri dahil
-      // değil, bu yüzden detay metni bunu açıkça belirtiyor.
+      // Broker, 2026-11-08: "panele ekleyelim, tıklayınca haritaya atsın" —
+      // Harita artık bağımsız bir menü/route (2026-11-09'dan, bkz.
+      // lib/modules.js), eskiden Finans'ın bir sekmesiydi. Sayı için ayrı
+      // bir sorgu eklemek yerine (Panel'in zaten 20 paralel sorgusu var,
+      // bkz. loadAll notu) burada çoktan yüklenmiş olan `opps`'tan (artık
+      // lat/lng de içeriyor) sayılıyor — sadece aktif portföy pinleri, ciro
+      // raporu (satış) pinleri dahil değil, bu yüzden detay metni bunu
+      // açıkça belirtiyor.
       {
         label: 'Harita',
         icon: Map,
-        to: '/finans?tab=harita',
+        to: '/harita',
         value: haritaPinSayisi,
         detail: 'aktif portföy haritada',
         accent: 'blue',
