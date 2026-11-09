@@ -2664,7 +2664,7 @@ export const harita = {
   // kategori/işlem tipi/not. RLS zaten sadece broker/owner'a izin veriyor
   // (harita_manuel_kayitlari_manage), burada ayrı bir rol kontrolüne
   // gerek yok. kategori/islemTipi opsiyonel (bkz. migration 20261108120000).
-  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, kategori, islemTipi, aciklama }, ekleyenId) {
+  async manuelKayitEkle({ siteAdi, lat, lng, tutar, tarih, danismanId, kategori, islemTipi, m2, odaSayisi, aciklama }, ekleyenId) {
     const data = await run(
       client()
         .from('harita_manuel_kayitlar')
@@ -2677,6 +2677,8 @@ export const harita = {
           danisman_id: danismanId || null,
           kategori: kategori || null,
           islem_tipi: islemTipi || null,
+          m2: m2 ?? null,
+          oda_sayisi: odaSayisi || null,
           aciklama: aciklama || null,
           ekleyen_id: ekleyenId,
         })

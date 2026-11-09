@@ -23,6 +23,8 @@ export default function ManuelHaritaKaydiModal({ onClose, onSubmit, submitting, 
   const [danismanId, setDanismanId] = useState('')
   const [kategori, setKategori] = useState('')
   const [islemTipi, setIslemTipi] = useState('')
+  const [m2, setM2] = useState('')
+  const [odaSayisi, setOdaSayisi] = useState('')
   const [aciklama, setAciklama] = useState('')
 
   const canSubmit = siteAdi.trim().length > 0 && lat != null && lng != null
@@ -39,6 +41,8 @@ export default function ManuelHaritaKaydiModal({ onClose, onSubmit, submitting, 
       danismanId: danismanId || null,
       kategori: kategori || null,
       islemTipi: islemTipi || null,
+      m2: m2 ? Number(m2) : null,
+      odaSayisi: odaSayisi.trim() || null,
       aciklama: aciklama.trim() || null,
     })
   }
@@ -107,6 +111,28 @@ export default function ManuelHaritaKaydiModal({ onClose, onSubmit, submitting, 
                 {label}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">m² — biliniyorsa yaz</label>
+            <input
+              inputMode="numeric"
+              value={m2}
+              onChange={(e) => setM2(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="ör. 120"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-ink-500">Oda Sayısı — biliniyorsa yaz</label>
+            <input
+              value={odaSayisi}
+              onChange={(e) => setOdaSayisi(e.target.value)}
+              placeholder="ör. 3+1"
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
           </div>
         </div>
 
