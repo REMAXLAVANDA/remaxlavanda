@@ -2706,3 +2706,177 @@ export const harita = {
     await run(client().from('harita_manuel_kayitlar').delete().eq('id', id))
   },
 }
+
+// Kasa takibi — Excel/BizimHesap'tan Portal'a taşıma (broker, 2026-11-09).
+// Sadece broker/owner/muhasebe görür (bkz. lib/ciroRaporlari.js
+// canViewAllCiroRaporlari, aynı yetki seviyesi kullanılıyor).
+function mapKasa(row) {
+  return { id: row.id, ad: row.ad, tip: row.tip, aktif: row.aktif }
+}
+
+export const kasalar = {
+  async list() {
+    const data = await run(client().from('kasalar').select('*').order('ad'))
+    return data.map(mapKasa)
+  },
+}
+
+function mapGenelGider(row) {
+  return {
+    id: row.id,
+    anaKategori: row.ana_kategori,
+    altKategori: row.alt_kategori,
+    tutar: Number(row.tutar),
+    tarih: row.tarih,
+    kasaId: row.kasa_id,
+    aciklama: row.aciklama,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const genelGiderler = {
+  async list() {
+    const data = await run(client().from('genel_giderler').select('*').order('tarih', { ascending: false }))
+    return data.map(mapGenelGider)
+  },
+  async create({ anaKategori, altKategori, tutar, tarih, kasaId, aciklama }, olusturanId) {
+    const data = await run(
+      client()
+        .from('genel_giderler')
+        .insert({ ana_kategori: anaKategori, alt_kategori: altKategori, tutar, tarih, kasa_id: kasaId, aciklama: aciklama || null, created_by: olusturanId })
+        .select()
+        .single(),
+    )
+    return mapGenelGider(data)
+  },
+}
+
+function mapTedarikciOdemesi(row) {
+  return {
+    id: row.id,
+    tedarikciAdi: row.tedarikci_adi,
+    vergiNo: row.vergi_no,
+    tutar: Number(row.tutar),
+    tarih: row.tarih,
+    kasaId: row.kasa_id,
+    faturaNo: row.fatura_no,
+    faturaDosyaUrl: row.fatura_dosya_url,
+    aciklama: row.aciklama,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const tedarikciOdemeleri = {
+  async list() {
+    const data = await run(client().from('tedarikci_odemeleri').select('*').order('tarih', { ascending: false }))
+    return data.map(mapTedarikciOdemesi)
+  },
+  async create({ tedarikciAdi, vergiNo, tutar, tarih, kasaId, faturaNo, faturaDosyaUrl, aciklama }, olusturanId) {
+    const data = await run(
+      client()
+        .from('tedarikci_odemeleri')
+        .insert({
+          tedarikci_adi: tedarikciAdi,
+          vergi_no: vergiNo || null,
+          tutar,
+          tarih,
+          kasa_id: kasaId,
+          fatura_no: faturaNo || null,
+          fatura_dosya_url: faturaDosyaUrl || null,
+          aciklama: aciklama || null,
+          created_by: olusturanId,
+        })
+        .select()
+        .single(),
+    )
+    return mapTedarikciOdemesi(data)
+  },
+}
+
+function mapOrtakHesabiHareketi(row) {
+  return {
+    id: row.id,
+    ortakId: row.ortak_id,
+    tur: row.tur,
+    tutar: Number(row.tutar),
+    tarih: row.tarih,
+    kasaId: row.kasa_id,
+    aciklama: row.aciklama,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const ortakHesabiHareketleri = {
+  async list() {
+    const data = await run(client().from('ortak_hesabi_hareketleri').select('*').order('tarih', { ascending: false }))
+    return data.map(mapOrtakHesabiHareketi)
+  },
+  async create({ ortakId, tutar, tarih, kasaId, aciklama }, olusturanId) {
+    const data = await run(
+      client()
+        .from('ortak_hesabi_hareketleri')
+        .insert({ ortak_id: ortakId, tutar, tarih, kasa_id: kasaId, aciklama: aciklama || null, created_by: olusturanId })
+        .select()
+        .single(),
+    )
+    return mapOrtakHesabiHareketi(data)
+  },
+}
+
+function mapKasaTransferi(row) {
+  return {
+    id: row.id,
+    tarih: row.tarih,
+    tutar: Number(row.tutar),
+    cikisKasaId: row.cikis_kasa_id,
+    girisKasaId: row.giris_kasa_id,
+    aciklama: row.aciklama,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const kasaTransferleri = {
+  async list() {
+    const data = await run(client().from('kasa_transferleri').select('*').order('tarih', { ascending: false }))
+    return data.map(mapKasaTransferi)
+  },
+  async create({ tarih, tutar, cikisKasaId, girisKasaId, aciklama }, olusturanId) {
+    const data = await run(
+      client()
+        .from('kasa_transferleri')
+        .insert({ tarih, tutar, cikis_kasa_id: cikisKasaId, giris_kasa_id: girisKasaId, aciklama: aciklama || null, created_by: olusturanId })
+        .select()
+        .single(),
+    )
+    return mapKasaTransferi(data)
+  },
+}
+
+function mapCariHesapOdemesi(row) {
+  return {
+    id: row.id,
+    danismanId: row.danisman_id,
+    tutar: Number(row.tutar),
+    tarih: row.tarih,
+    kasaId: row.kasa_id,
+    aciklama: row.aciklama,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+export const cariHesapOdemeleri = {
+  async list() {
+    const data = await run(client().from('cari_hesap_odemeleri').select('*').order('tarih', { ascending: false }))
+    return data.map(mapCariHesapOdemesi)
+  },
+  // cari_hesap_ode() RPC'si hem cari_hareketler'e 'borc' satırı ekliyor hem
+  // bu tabloya kasa bilgisini kaydediyor — bkz. migration 20261109143500.
+  async ode({ danismanId, tutar, tarih, kasaId, aciklama }) {
+    await run(client().rpc('cari_hesap_ode', { p_danisman_id: danismanId, p_tutar: tutar, p_tarih: tarih, p_kasa_id: kasaId, p_aciklama: aciklama || null }))
+  },
+}
