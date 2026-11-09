@@ -390,6 +390,7 @@ export default function BankaHareketleriPanel() {
                 <th className="px-4 py-2.5 font-medium">Tip</th>
                 <th className="px-4 py-2.5 font-medium">Tutar</th>
                 <th className="px-4 py-2.5 font-medium">Gönderen</th>
+                <th className="px-4 py-2.5 font-medium">Açıklama</th>
                 <th className="px-4 py-2.5 font-medium">Durum</th>
                 <th className="px-4 py-2.5 font-medium">Dekont</th>
                 <th className="px-4 py-2.5 font-medium" />
@@ -398,7 +399,7 @@ export default function BankaHareketleriPanel() {
             <tbody>
               {hareketler.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-text-muted">
+                  <td colSpan={8} className="px-4 py-6 text-center text-text-muted">
                     Henüz hareket yok.
                   </td>
                 </tr>
@@ -417,6 +418,9 @@ export default function BankaHareketleriPanel() {
                         Dekont
                       </button>
                     )}
+                  </td>
+                  <td className="max-w-xs truncate px-4 py-2.5 text-text-secondary" title={h.aciklama || ''}>
+                    {h.aciklama || '—'}
                   </td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
@@ -487,6 +491,9 @@ export default function BankaHareketleriPanel() {
             <p className="mb-4 text-sm text-text-muted">
               {tl(matchTarget.tutar)} · {formatDateOnly(matchTarget.tarih)} · {matchTarget.gonderenAdi || 'Gönderen belirtilmemiş'}
             </p>
+            {matchTarget.aciklama && (
+              <p className="mb-4 rounded-lg bg-surface-sunken p-2 text-xs text-text-secondary">{matchTarget.aciklama}</p>
+            )}
             {adaylar.length === 0 ? (
               <p className="text-sm text-text-muted">Ödeme bekleyen kayıt yok.</p>
             ) : (
