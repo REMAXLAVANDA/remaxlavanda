@@ -100,6 +100,18 @@ export function parseThousands(formatted) {
   return digits ? Number(digits) : null
 }
 
+// Para gösterimi için — toLocaleString('tr-TR') tek başına çağrılırsa
+// varsayılan olarak 3 ondalık basamağa kadar gösterebiliyor (ECMA-402
+// varsayılanı), bölme/çarpma sonucu tam olmayan tutarlarda (ör. ofis
+// payı/KDV hesapları) "15.833,327 TL" gibi 3 kuruşlu, yanlış görünen bir
+// çıktı veriyordu (broker, 2026-11-09: "kuruş hanesi 3 haneli neden").
+// maximumFractionDigits:2 ile kuruş her zaman en fazla 2 basamak oluyor,
+// tam sayılarda hâlâ ",00" eklenmiyor (minimumFractionDigits varsayılan 0).
+export function formatCurrency(n, suffix = ' TL') {
+  if (n == null) return '—'
+  return `${Number(n).toLocaleString('tr-TR', { maximumFractionDigits: 2 })}${suffix}`
+}
+
 export function relativeTime(dateIso) {
   if (!dateIso) return null
   const diffMs = Date.now() - new Date(dateIso).getTime()
