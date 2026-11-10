@@ -106,6 +106,25 @@
   --color-chart-track: #e2e8f0;
   --color-chart-warn: #e2394c;
   /* brand.redDark (#B01522) zaten --color-brand-700 ile birebir aynı — text-brand-700 kullanılır. */
+
+  /* Broker, 2026-11-10: formlarda bir seçime göre yeni alanlar (ör. Ciro
+     Raporu'nda "Evet" denince çıkan tutar/tarih) animasyonsuz aniden
+     belirip altındaki her şeyi sert şekilde kaydırıyordu. Hafif bir
+     giriş animasyonu — framer-motion gibi bir bağımlılık gerekmiyor,
+     saf CSS. Koşullu olarak mount edilen bloklara `animate-expand-in`
+     eklemek yeterli. */
+  --animate-expand-in: expand-in 180ms ease-out;
+}
+
+@keyframes expand-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 * {
