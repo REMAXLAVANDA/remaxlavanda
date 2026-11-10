@@ -32,6 +32,7 @@ export const bankaHareketleri = provider.bankaHareketleri
 export const cariHareketler = provider.cariHareketler
 export const islemMasraflari = provider.islemMasraflari
 export const kararlar = provider.kararlar
+export const belgeler = provider.belgeler
 export const harita = provider.harita
 export const kasalar = provider.kasalar
 export const genelGiderler = provider.genelGiderler
