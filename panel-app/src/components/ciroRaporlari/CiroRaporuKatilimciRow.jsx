@@ -65,11 +65,19 @@ export default function CiroRaporuKatilimciRow({
 }) {
   const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
+  // Broker, 2026-11-10 (canlı vaka: Hamza Bakırcı KDV hariç hakedişi
+  // fatura tutarına yazmış) — "danışman zaten bilinen bir rakamı neden
+  // elden hesaplasın" sorusu üzerine: tutar artık BOŞ başlamıyor, sistemin
+  // önerisiyle (komisyonTutariOnerisi, zaten KDV dahil) dolu geliyor —
+  // danışman sadece gerçek faturası farklıysa değiştirir. KDV oranı da
+  // formun geri kalanıyla AYNI varsayılanla (%20) geliyor. Fatura no/
+  // tarihi/vergi no/dosya hâlâ elle — bunlar gerçek, danışmanın kendi
+  // kestiği fatura belgesinden geliyor, sistem bilemez.
   const [form, setForm] = useState({
     faturaNo: k.faturaNo ?? '',
     faturaTarihi: k.faturaTarihi ?? '',
-    faturaTutari: k.faturaTutari ?? '',
-    kdvOrani: k.kdvOrani ?? '',
+    faturaTutari: k.faturaTutari ?? (k.komisyonTutariOnerisi != null ? String(Math.round(k.komisyonTutariOnerisi * 100) / 100) : ''),
+    kdvOrani: k.kdvOrani ?? '20',
     vergiNo: k.vergiNo ?? '',
   })
   const [file, setFile] = useState(null)
@@ -268,7 +276,7 @@ export default function CiroRaporuKatilimciRow({
               inputMode="numeric"
               value={form.faturaTutari}
               onChange={(e) => set({ faturaTutari: e.target.value })}
-              placeholder="Fatura tutarı (₺)"
+              placeholder="Fatura tutarı (₺, KDV dahil)"
               className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
             />
             <input
