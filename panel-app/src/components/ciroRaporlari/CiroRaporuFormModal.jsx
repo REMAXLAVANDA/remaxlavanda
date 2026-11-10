@@ -709,7 +709,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                   disOfisVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
-                Hayır, ikisi de bizim danışmanımız
+                Hayır
               </button>
               <button
                 type="button"
@@ -718,7 +718,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                   disOfisVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
-                Evet, biri başka ofisten
+                Evet, başka ofis
               </button>
             </div>
           </div>
@@ -758,7 +758,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                   </button>
                 </div>
                 {baglanmaParasiVarMi === true && (
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex animate-expand-in gap-2">
                     <input
                       required
                       inputMode="numeric"
@@ -847,7 +847,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               <button
                 type="button"
                 onClick={() => setSaticiTemsilciTipi('kendi')}
-                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                   saticiTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
@@ -856,7 +856,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               <button
                 type="button"
                 onClick={() => setSaticiTemsilciTipi('dis_ofis')}
-                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                   saticiTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
@@ -877,7 +877,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 ))}
               </select>
             ) : (
-              <div className="mt-2 space-y-2">
+              <div className="mt-2 animate-expand-in space-y-2">
                 <input
                   required
                   value={saticiDisOfisAdi}
@@ -943,7 +943,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             <button
               type="button"
               onClick={() => setSaticiVar(true)}
-              className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                 saticiVar === true
                   ? 'border-brand-600 bg-brand-600 text-white'
                   : 'border-border-default bg-surface-sunken text-text-secondary'
@@ -954,7 +954,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             <button
               type="button"
               onClick={() => setSaticiVar(false)}
-              className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                 saticiVar === false
                   ? 'border-brand-600 bg-brand-600 text-white'
                   : 'border-border-default bg-surface-sunken text-text-secondary'
@@ -964,7 +964,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             </button>
           </div>
           {saticiVar === true && (
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex animate-expand-in gap-2">
               <input
                 required
                 inputMode="numeric"
@@ -1028,7 +1028,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               <button
                 type="button"
                 onClick={() => setAliciTemsilciTipi('kendi')}
-                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                   aliciTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
@@ -1037,7 +1037,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
               <button
                 type="button"
                 onClick={() => setAliciTemsilciTipi('dis_ofis')}
-                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                   aliciTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
               >
@@ -1058,7 +1058,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
                 ))}
               </select>
             ) : (
-              <div className="mt-2 space-y-2">
+              <div className="mt-2 animate-expand-in space-y-2">
                 <input
                   required
                   value={aliciDisOfisAdi}
@@ -1124,7 +1124,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             <button
               type="button"
               onClick={() => setAliciVar(true)}
-              className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                 aliciVar === true
                   ? 'border-brand-600 bg-brand-600 text-white'
                   : 'border-border-default bg-surface-sunken text-text-secondary'
@@ -1135,7 +1135,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             <button
               type="button"
               onClick={() => setAliciVar(false)}
-              className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                 aliciVar === false
                   ? 'border-brand-600 bg-brand-600 text-white'
                   : 'border-border-default bg-surface-sunken text-text-secondary'
@@ -1145,7 +1145,7 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             </button>
           </div>
           {aliciVar === true && (
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex animate-expand-in gap-2">
               <input
                 required
                 inputMode="numeric"
