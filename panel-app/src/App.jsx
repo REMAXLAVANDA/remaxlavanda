@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ViewAsProvider } from './context/ViewAsContext'
 import { ROLES } from './lib/roles'
+import { getModuleByPath } from './lib/modules'
 import { UsersProvider } from './context/UsersContext'
 import { ToastProvider } from './context/ToastContext'
 import AppLayout from './components/layout/AppLayout'
@@ -45,6 +46,22 @@ function HomeRedirect() {
   return <Navigate to={role === ROLES.MUHASEBE ? '/finans' : '/panel'} replace />
 }
 
+// /kurul, 2026-11-15: Sidebar/MobileBottomNav bir modülü role göre
+// gizliyor ama bu sadece arayüzdü — deep link ile (veya adres çubuğuna
+// yazarak) aynı route'a girilebiliyordu, tek savunma RLS + sayfanın kendi
+// (geç) kontrolüydü. Bu sarmalayıcı lib/modules.js'teki AYNI roles
+// listesini route seviyesinde de uyguluyor; path bir modüle karşılık
+// gelmiyorsa (ör. /ayarlar, /kartvizitim, eski alias'lar) kontrol
+// yapılmadan geçer, mevcut davranış bozulmaz.
+function RoleRoute({ path, children }) {
+  const { role } = useAuth()
+  const module = getModuleByPath(path)
+  if (module && !module.roles.includes(role)) {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
 // Uygulama açılışında TEK SEFERLİK kontrol: production'da (veya
 // VITE_DATA_SOURCE=supabase ile) Supabase env değişkenleri eksikse,
 // uygulamanın yarım/bozuk render olmasındansa net bir hata ekranı gösterir.
@@ -83,27 +100,27 @@ export default function App() {
                     <Route path="/pano" element={<Pano />} />
                     <Route element={<AppLayout />}>
                       <Route index element={<HomeRedirect />} />
-                      <Route path="/panel" element={<Panel />} />
-                      <Route path="/firsatlar" element={<Firsatlar />} />
-                      <Route path="/takvim" element={<Takvim />} />
+                      <Route path="/panel" element={<RoleRoute path="/panel"><Panel /></RoleRoute>} />
+                      <Route path="/firsatlar" element={<RoleRoute path="/firsatlar"><Firsatlar /></RoleRoute>} />
+                      <Route path="/takvim" element={<RoleRoute path="/takvim"><Takvim /></RoleRoute>} />
                       <Route path="/gorevler" element={<Takvim />} />
                       <Route path="/operasyon" element={<Firsatlar />} />
-                      <Route path="/leads" element={<Leads />} />
+                      <Route path="/leads" element={<RoleRoute path="/leads"><Leads /></RoleRoute>} />
                       {/* Kararlar artık Rehber'in bir sekmesi (2026-10-17) — eski link kırılmasın. */}
                       <Route path="/kararlar" element={<Navigate to="/rehber" replace />} />
-                      <Route path="/recruiting" element={<Recruiting />} />
-                      <Route path="/takip" element={<Takip />} />
+                      <Route path="/recruiting" element={<RoleRoute path="/recruiting"><Recruiting /></RoleRoute>} />
+                      <Route path="/takip" element={<RoleRoute path="/takip"><Takip /></RoleRoute>} />
                       <Route path="/egitim" element={<Takip />} />
-                      <Route path="/lig" element={<Lig />} />
-                      <Route path="/finans" element={<Finans />} />
-                      <Route path="/harita" element={<Harita />} />
+                      <Route path="/lig" element={<RoleRoute path="/lig"><Lig /></RoleRoute>} />
+                      <Route path="/finans" element={<RoleRoute path="/finans"><Finans /></RoleRoute>} />
+                      <Route path="/harita" element={<RoleRoute path="/harita"><Harita /></RoleRoute>} />
                       {/* Eski ayrı sayfa linkleri/bookmarklar kırılmasın diye tek
                           Finans sekmeli sayfasına yönlendiriliyor (2026-10-09). */}
                       <Route path="/ciro-raporlari" element={<Navigate to="/finans" replace />} />
                       <Route path="/banka-hareketleri" element={<Navigate to="/finans" replace />} />
                       <Route path="/masraflar" element={<Navigate to="/finans" replace />} />
                       <Route path="/cari-hesap" element={<Navigate to="/finans" replace />} />
-                      <Route path="/rehber" element={<Rehber />} />
+                      <Route path="/rehber" element={<RoleRoute path="/rehber"><Rehber /></RoleRoute>} />
                       <Route path="/kartvizitim" element={<Kartvizitim />} />
                       <Route path="/ayarlar" element={<Ayarlar />} />
                       <Route path="*" element={<Navigate to="/panel" replace />} />
