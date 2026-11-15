@@ -52,3 +52,27 @@ export function cariOzetiByDanisman(hareketler) {
     netBakiye: netBakiye(list),
   }))
 }
+
+// Gerçek hesap ekstresi — broker, 2026-11-15: "neden açık/kapandı gibi
+// yazıyor, neden bir hesap ekstresi şeklinde ilerlemiyor". açık/kapandı
+// SADECE anlık bakiyeyi hızlı göstermek için var (netBakiye); bir fatura
+// ödenince hakediş satırı sadece kapanmıyor, kaynak_tip=
+// 'ciro_katilimci_odemesi' olan AYRI bir "ödeme" satırı da ekleniyor
+// (bkz. migration 20261115380000_cari_hesap_odeme_kaydi.sql — ayrı bir
+// kaynak_tip kullanıldı çünkü 'cari_hesap_odemesi' zaten kasadan yapılan
+// gerçek nakit ödemeler için kullanımda) — tıpkı gerçek bir muhasebe
+// defteri gibi, her işlem (hakediş VE ödeme) kendi satırı olarak kalıcı
+// duruyor. Bu fonksiyon TÜM satırları (durum ne olursa olsun) tarihe göre
+// artan sırada dizip her satırdan sonraki bakiyeyi hesaplar.
+export function ekstreForDanisman(hareketler) {
+  const sorted = [...(hareketler ?? [])].sort((a, b) => {
+    const fark = new Date(a.tarih) - new Date(b.tarih)
+    if (fark !== 0) return fark
+    return String(a.id).localeCompare(String(b.id))
+  })
+  let bakiye = 0
+  return sorted.map((h) => {
+    bakiye += h.tur === 'alacak' ? Number(h.tutar) : -Number(h.tutar)
+    return { ...h, bakiye }
+  })
+}

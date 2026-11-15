@@ -1284,6 +1284,40 @@ export const ciroRaporlari = {
       if ('faturaTutari' in patch && patch.faturaTutari != null) cariSatir.tutar = Number(patch.faturaTutari)
       if ('odemeDurumu' in patch) cariSatir.durum = patch.odemeDurumu === 'alindi' ? 'kapandi' : 'acik'
     }
+    // Gerçek çift kayıt (2026-11-15, broker: "BizimHesap gibi") — ödeme
+    // alındığında hakediş satırı sadece kapatılmıyor, hesap ekstresinde
+    // ayrı bir satır olarak görünsün diye kaynakTip='ciro_katilimci_odemesi'
+    // olan AYRI bir "ödeme" kaydı da oluşturuluyor/güncelleniyor/siliniyor
+    // (bkz. aynı mantığın DB tarafı: migration 20261115380000, trigger
+    // cari_hesap_odeme_kaydi_senkronize — 'cari_hesap_odemesi' DEĞİL,
+    // çünkü o kasadan yapılan gerçek nakit ödemeler için zaten kullanımda).
+    // durum='kapandi' ile ekleniyor — zaten kapanan hakediş satırı gibi
+    // netBakiye()'den dışlanıyor, sıfır regresyon.
+    const odemeSatiri = MOCK_CARI_HAREKETLER.find((c) => c.kaynakTip === 'ciro_katilimci_odemesi' && c.kaynakId === id)
+    const yeniOdemeDurumu = 'odemeDurumu' in patch ? patch.odemeDurumu : row.odemeDurumu
+    const yeniFaturaTutari = Number('faturaTutari' in patch ? patch.faturaTutari : row.faturaTutari)
+    if (yeniOdemeDurumu === 'alindi' && yeniFaturaTutari > 0) {
+      if (odemeSatiri) {
+        odemeSatiri.tutar = yeniFaturaTutari
+      } else {
+        MOCK_CARI_HAREKETLER.push({
+          id: `ch-odeme-${Date.now()}`,
+          danismanId: row.danismanId,
+          tarih: new Date().toISOString().slice(0, 10),
+          tur: 'borc',
+          tutar: yeniFaturaTutari,
+          kategori: 'odeme',
+          aciklama: 'Hizmet bedeli ödemesi (otomatik)',
+          kaynakTip: 'ciro_katilimci_odemesi',
+          kaynakId: id,
+          durum: 'kapandi',
+          createdBy: null,
+          createdAt: new Date().toISOString(),
+        })
+      }
+    } else if (odemeSatiri) {
+      MOCK_CARI_HAREKETLER.splice(MOCK_CARI_HAREKETLER.indexOf(odemeSatiri), 1)
+    }
     return delay({ ...row })
   },
   async approve(id, approverId) {
