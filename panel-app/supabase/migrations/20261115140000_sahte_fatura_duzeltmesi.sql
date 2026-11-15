@@ -18,11 +18,14 @@ where id in (
   '17545a78-ffd0-4c82-8fbf-13616ca8c1f1'
 );
 
--- Nihal Sunar'ın 19.10.2026 kaydı (TBS2026000000006) RT'de "Dış" etiketli
--- ama Portal'da dis_ofis_mi=false kalmış — broker teyidiyle düzeltiliyor.
-update public.ciro_raporu_katilimcilari
-set dis_ofis_mi = true
-where id = '271d14e9-eaf7-4108-bd04-b2bfa9df7bfd';
+-- NOT (uygulanmadı): Nihal Sunar'ın 19.10.2026 kaydında (TBS2026000000006)
+-- dis_ofis_mi=true denendi ama ciro_raporu_katilimcilari_dis_ofis_tutarliligi
+-- CHECK'i bunu engelliyor — dis_ofis_mi=true, danisman_id'nin NULL ve
+-- dis_ofis_adi'nin dolu olmasını şart koşuyor. Bu satır zaten Nihal'in
+-- KENDİ payını (%100) temsil ediyor; onu "dış ofis" yapmak Nihal'in payını
+-- siler. Raporda (3ea14a2f) tek katılımcı var, "dış" tarafın kendi satırı
+-- hiç oluşturulmamış görünüyor — broker'dan netleştirme bekleniyor,
+-- dokunulmadı.
 
 -- İlgili 8 raporun "İşlem Tamamlandı" işareti geri açılıyor (2'si zaten
 -- false, where koşulu onları etkilemez).
