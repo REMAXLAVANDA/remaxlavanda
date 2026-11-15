@@ -19,7 +19,12 @@ async function loadAll() {
 }
 
 function HareketTable({ hareketler }) {
-  const ekstre = useMemo(() => ekstreForDanisman(hareketler), [hareketler])
+  // Bakiye ascending (tarihe göre artan) hesaplanıyor (ekstreForDanisman),
+  // ama broker ekranda en üstte en son hareketi görmek istiyor (2026-11-15:
+  // "ekstre üstten alta doğru gider" — en yeni üstte, aşağı indikçe
+  // geçmişe gidilir) — bu yüzden gösterimde ters çevriliyor, bakiye
+  // hesabı değişmiyor.
+  const ekstre = useMemo(() => [...ekstreForDanisman(hareketler)].reverse(), [hareketler])
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-xs">
