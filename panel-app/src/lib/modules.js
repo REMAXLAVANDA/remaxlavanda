@@ -187,3 +187,12 @@ export const MODULES = [
 export function getModulesForRole(role) {
   return MODULES.filter((m) => m.roles.includes(role))
 }
+
+// /kurul, 2026-11-15: menüde (Sidebar/MobileBottomNav) gizlenen bir modüle
+// route seviyesinde koruma yoktu, sadece RLS + sayfa içindeki geç kontrol
+// vardı (/leads, /recruiting, muhasebe'nin menüsünde olmayan sayfalar).
+// App.jsx'teki RoleRoute bu fonksiyonla path'in hangi role açık olduğunu
+// bulup Sidebar ile AYNI listeyi route'a da uyguluyor.
+export function getModuleByPath(path) {
+  return MODULES.find((m) => m.path === path)
+}

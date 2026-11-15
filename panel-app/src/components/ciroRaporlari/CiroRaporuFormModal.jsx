@@ -391,6 +391,11 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
     form.islemTarihi &&
     !!raporKategori &&
     disOfisVarMi !== null &&
+    // /kurul, 2026-11-15: bu cevap aşağıdaki Satıcı/Alıcı "Başka Ofis"
+    // seçimiyle BİREBİR eşleşmek zorunda — yoksa (ör. "Evet" denip aşağıda
+    // hiçbir taraf işaretlenmeden) dış ofis işlemi sessizce "dış ofis yok"
+    // olarak kaydediliyordu.
+    disOfisVarMi === (saticiTemsilciTipi === 'dis_ofis' || aliciTemsilciTipi === 'dis_ofis') &&
     (editing || baglanmaParasiVarMi !== null) &&
     (baglanmaParasiVarMi !== true ||
       (parseThousands(baglanmaParasiTutari) !== null && parseThousands(baglanmaParasiTutari) > 0 && baglanmaParasiTarihi)) &&
@@ -438,6 +443,14 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
   if (!raporKategori) eksikAlanlar.push('Kategori')
   if (disOfisVarMi === null) eksikAlanlar.push('Satıcı veya alıcı tarafını başka bir ofis mi temsil etti? (Evet/Hayır seç)')
+  // /kurul, 2026-11-15: yukarıdaki soruya "Evet" denip aşağıda hiçbir taraf
+  // "Başka Ofis" işaretlenmezse rapor sessizce "dış ofis yok" kaydediliyordu
+  // (Birgül Özdemir vakasının aynı kökü) — artık bu tutarsızlık submit'i
+  // engelliyor (her iki yönde).
+  if (disOfisVarMi === true && saticiTemsilciTipi !== 'dis_ofis' && aliciTemsilciTipi !== 'dis_ofis')
+    eksikAlanlar.push('"Evet, başka ofis" dedin ama aşağıda Satıcı veya Alıcı tarafında "Başka Ofis" işaretlemedin')
+  if (disOfisVarMi === false && (saticiTemsilciTipi === 'dis_ofis' || aliciTemsilciTipi === 'dis_ofis'))
+    eksikAlanlar.push('"Hayır" dedin ama aşağıda Satıcı veya Alıcı tarafında hâlâ "Başka Ofis" işaretli — yukarıdaki soruyu tekrar kontrol et')
   if (!editing && baglanmaParasiVarMi === null) eksikAlanlar.push('Bu işlemde bağlanma parası alındı mı? (Evet/Hayır seç)')
   if (
     baglanmaParasiVarMi === true &&
@@ -704,7 +717,15 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setDisOfisVarMi(false)}
+                onClick={() => {
+                  // "Hayır" derken aşağıdaki Satıcı/Alıcı "Başka Ofis"
+                  // seçimi unutulmuş kalabiliyordu (/kurul, 2026-11-15) —
+                  // bu soru artık alt seçimleri de "Kendi Danışmanımız"a
+                  // çekiyor, ikisi birbiriyle çelişen bir kayıt üretemez.
+                  setDisOfisVarMi(false)
+                  setSaticiTemsilciTipi('kendi')
+                  setAliciTemsilciTipi('kendi')
+                }}
                 className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
                   disOfisVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                 }`}
