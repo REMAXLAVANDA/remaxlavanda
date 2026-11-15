@@ -3,12 +3,11 @@ import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { ciroRaporlari as ciroRaporlariProvider } from '../../lib/dataProvider'
 import { isWithinRange } from '../../lib/dateRange'
+import { formatCurrency } from '../../lib/format'
 import MonthFilter, { currentMonthKey, monthRangeFor } from '../common/MonthFilter'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 
-function tl(n) {
-  return n == null ? '—' : `${Number(n).toLocaleString('tr-TR')} TL`
-}
+const tl = formatCurrency
 
 // Finans > Raporlar > Kârlılık — broker, 2026-10-11: dönem/danışman
 // bazlı ofis payı toplamı. ofisPayiTutari zaten approve()'dan beri

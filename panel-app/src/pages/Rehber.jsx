@@ -16,6 +16,7 @@ import FaqAccordionItem from '../components/rehber/FaqAccordionItem'
 import PreviewModal from '../components/rehber/PreviewModal'
 import UploadDocModal from '../components/rehber/UploadDocModal'
 import KararlarPanel from '../components/rehber/KararlarPanel'
+import BelgeOlusturPanel from '../components/rehber/BelgeOlusturPanel'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/common/AsyncState'
 
@@ -250,29 +251,35 @@ export default function Rehber() {
     }
   }
 
+  // "Belge Oluştur" (Yetki Belgesi taslağı) herkese açık — danışman
+  // kendi müşteri bilgilerini kendi doldursun diye eklendi (broker,
+  // 2026-11-05). "Kararlar" hâlâ sadece broker/owner'da.
+  const tabs = [
+    { key: 'dokumanlar', label: 'Dokümanlar' },
+    { key: 'belge-olustur', label: 'Belge Oluştur' },
+    ...(showKararlar ? [{ key: 'kararlar', label: 'Kararlar' }] : []),
+  ]
+
   return (
     <div>
-      {showKararlar && (
-        <div className="mb-5 flex gap-1 border-b border-border-default">
-          {[
-            { key: 'dokumanlar', label: 'Dokümanlar' },
-            { key: 'kararlar', label: 'Kararlar' },
-          ].map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-text-muted hover:text-text-primary'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="mb-5 flex gap-1 border-b border-border-default">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+              tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-text-muted hover:text-text-primary'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {tab === 'kararlar' ? (
         <KararlarPanel />
+      ) : tab === 'belge-olustur' ? (
+        <BelgeOlusturPanel />
       ) : (
         <>
           {canManage && (
