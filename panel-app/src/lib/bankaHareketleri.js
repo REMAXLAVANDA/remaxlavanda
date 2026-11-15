@@ -76,9 +76,14 @@ export function canSubmitBankaHareketi(role) {
 // tam karşılanıp karşılanmadığına broker karar verip odemeDurumu'nu elle
 // 'alindi' yapar — eslestir() artık bunu OTOMATİK yapmıyor (bkz.
 // dataProvider, 2026-10-11 öncesi davranışın aksine).
+// SADECE tip='cikis' (şirketten danışmana ÇIKAN) hareketler sayılır — bir
+// müşteriden şirkete GİREN (tip='giris') toplam hizmet bedeli de aynı
+// katılımcıya eşleşmiş olabilir (ofis/RT payı dahil, danışmanın kendi
+// payından büyük); bu durumda "tahsil edilen" yanlışlıkla şişiyordu
+// (bkz. senkronize_komisyon_farki()'ndeki AYNI düzeltme, 2026-11-15).
 export function toplamEslesenTutar(katilimciId, hareketler) {
   return (hareketler ?? [])
-    .filter((h) => h.eslesenKatilimciId === katilimciId && h.durum === 'eslesti')
+    .filter((h) => h.eslesenKatilimciId === katilimciId && h.durum === 'eslesti' && h.tip === 'cikis')
     .reduce((sum, h) => sum + Number(h.tutar || 0), 0)
 }
 

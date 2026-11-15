@@ -21,14 +21,22 @@ describe('canSubmitBankaHareketi', () => {
 })
 
 describe('toplamEslesenTutar', () => {
-  it('sadece eşleşmiş (durum=eslesti) ve aynı katılımcıya ait hareketleri toplar (parçalı ödeme)', () => {
+  it('sadece eşleşmiş (durum=eslesti), tip=cikis ve aynı katılımcıya ait hareketleri toplar (parçalı ödeme)', () => {
     const hareketler = [
-      { eslesenKatilimciId: 'k1', durum: 'eslesti', tutar: 15000 },
-      { eslesenKatilimciId: 'k1', durum: 'eslesti', tutar: 10000 },
-      { eslesenKatilimciId: 'k1', durum: 'eslesmedi', tutar: 5000 },
-      { eslesenKatilimciId: 'k2', durum: 'eslesti', tutar: 999 },
+      { eslesenKatilimciId: 'k1', durum: 'eslesti', tip: 'cikis', tutar: 15000 },
+      { eslesenKatilimciId: 'k1', durum: 'eslesti', tip: 'cikis', tutar: 10000 },
+      { eslesenKatilimciId: 'k1', durum: 'eslesmedi', tip: 'cikis', tutar: 5000 },
+      { eslesenKatilimciId: 'k2', durum: 'eslesti', tip: 'cikis', tutar: 999 },
     ]
     expect(toplamEslesenTutar('k1', hareketler)).toBe(25000)
+  })
+
+  it('müşteriden şirkete giren (tip=giris) hareketleri saymaz — gerçekte danışmana ödenmemiş para', () => {
+    const hareketler = [
+      { eslesenKatilimciId: 'k1', durum: 'eslesti', tip: 'giris', tutar: 190000 },
+      { eslesenKatilimciId: 'k1', durum: 'eslesti', tip: 'cikis', tutar: 50000 },
+    ]
+    expect(toplamEslesenTutar('k1', hareketler)).toBe(50000)
   })
 
   it('boş/eşleşmemiş listede 0 döner', () => {
