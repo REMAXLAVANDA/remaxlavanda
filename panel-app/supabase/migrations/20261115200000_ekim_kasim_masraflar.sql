@@ -21,7 +21,7 @@ do $$
 declare
   v record;
 begin
-  for v in (
+  for v in select * from (
     values
       ('2aec0d99-6a5a-4d77-be5a-18f8a37722f0'::uuid, 'eft_ucreti', null::text),
       ('fcbf0784-aeff-4cfa-8ffe-ca62b8f2256e'::uuid, 'eft_ucreti', null::text),
