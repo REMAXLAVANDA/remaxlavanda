@@ -36,6 +36,7 @@ export const MOCK_CATEGORIES = [
   { id: 'cat-masraf-meta', module: 'masraflar', key: 'meta_reklam', label: 'Meta Reklam', sortOrder: 7, isActive: true, visibility: 'yonetim', parentId: null },
   { id: 'cat-masraf-eft', module: 'masraflar', key: 'eft_ucreti', label: 'EFT Ücreti', sortOrder: 8, isActive: true, visibility: 'yonetim', parentId: null },
   { id: 'cat-masraf-diger', module: 'masraflar', key: 'diger', label: 'Diğer', sortOrder: 9, isActive: true, visibility: 'yonetim', parentId: null },
+  { id: 'cat-masraf-telekom', module: 'masraflar', key: 'telefon_internet', label: 'Telefon/İnternet', sortOrder: 10, isActive: true, visibility: 'yonetim', parentId: null },
   // Kararlar kategorileri (2026-10-17 broker: "yönetim olarak aldığımız
   // kararların toplandığı bir alan istiyorum") — bkz. migration
   // 20261017210000_kararlar.sql.
