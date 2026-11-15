@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useKnownUsers } from '../../context/UsersContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { cariHareketler as cariHareketlerProvider, bankaHareketleri as bankaHareketleriProvider } from '../../lib/dataProvider'
-import { CARI_KATEGORI_LABELS, CARI_TUR_LABELS, canManageCariHesap, cariOzetiByDanisman } from '../../lib/cariHesap'
+import { CARI_KATEGORI_LABELS, CARI_TUR_LABELS, canManageCariHesap, cariOzetiByDanisman, ekstreForDanisman } from '../../lib/cariHesap'
 import { musteriCarisi } from '../../lib/bankaHareketleri'
 import { formatDateOnly } from '../../lib/format'
 import { LoadingState, ErrorState } from '../common/AsyncState'
@@ -19,6 +19,7 @@ async function loadAll() {
 }
 
 function HareketTable({ hareketler }) {
+  const ekstre = useMemo(() => ekstreForDanisman(hareketler), [hareketler])
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-xs">
@@ -29,24 +30,22 @@ function HareketTable({ hareketler }) {
             <th className="px-2 py-1.5 font-medium">Kategori</th>
             <th className="px-2 py-1.5 font-medium">Açıklama</th>
             <th className="px-2 py-1.5 font-medium">Tutar</th>
-            <th className="px-2 py-1.5 font-medium">Durum</th>
+            <th className="px-2 py-1.5 font-medium">Bakiye</th>
           </tr>
         </thead>
         <tbody>
-          {hareketler
-            .sort((a, b) => new Date(b.tarih) - new Date(a.tarih))
-            .map((h) => (
-              <tr key={h.id} className="border-t border-border-subtle">
-                <td className="px-2 py-1.5 text-text-secondary">{formatDateOnly(h.tarih)}</td>
-                <td className={`px-2 py-1.5 font-medium ${h.tur === 'alacak' ? 'text-emerald-700' : 'text-red-600'}`}>
-                  {CARI_TUR_LABELS[h.tur]}
-                </td>
-                <td className="px-2 py-1.5 text-text-secondary">{CARI_KATEGORI_LABELS[h.kategori]}</td>
-                <td className="px-2 py-1.5 text-text-muted">{h.aciklama || '—'}</td>
-                <td className="px-2 py-1.5 font-medium text-text-primary">{tl(h.tutar)}</td>
-                <td className="px-2 py-1.5 text-text-muted">{h.durum === 'kapandi' ? 'Kapandı' : 'Açık'}</td>
-              </tr>
-            ))}
+          {ekstre.map((h) => (
+            <tr key={h.id} className="border-t border-border-subtle">
+              <td className="px-2 py-1.5 text-text-secondary">{formatDateOnly(h.tarih)}</td>
+              <td className={`px-2 py-1.5 font-medium ${h.tur === 'alacak' ? 'text-emerald-700' : 'text-red-600'}`}>
+                {CARI_TUR_LABELS[h.tur]}
+              </td>
+              <td className="px-2 py-1.5 text-text-secondary">{CARI_KATEGORI_LABELS[h.kategori]}</td>
+              <td className="px-2 py-1.5 text-text-muted">{h.aciklama || '—'}</td>
+              <td className="px-2 py-1.5 font-medium text-text-primary">{tl(h.tutar)}</td>
+              <td className={`px-2 py-1.5 font-semibold ${h.bakiye >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{tl(h.bakiye)}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
