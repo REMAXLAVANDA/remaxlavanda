@@ -925,8 +925,8 @@ export default function CiroRaporlariPanel() {
                         const eksikler = eksikKalemler(r)
                         if (eksikler.length === 0) return null
                         return (
-                          <span className="inline-flex shrink-0 rounded-full bg-tint-amber px-2 py-0.5 text-xs font-medium text-tint-amber-text">
-                            Eksik: {eksikler.join(', ')}
+                          <span className="inline-flex shrink-0 rounded-full bg-tint-red px-2 py-0.5 text-xs font-medium text-brand-700">
+                            {eksikler.join(', ')}
                           </span>
                         )
                       })()}
