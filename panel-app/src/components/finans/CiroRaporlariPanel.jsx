@@ -35,6 +35,16 @@ function hizmetBedeliUyarisiVar(r) {
   )
 }
 
+// muhasebeDurumu()'nun hesapladığı 4 kalem — hem detaydaki rozet sırasında
+// (renderMuhasebeDurumSatiri) hem de ana liste satırındaki "Eksik" uyarısında
+// (renderReportTable) AYNI sırayla kullanılıyor.
+const MUHASEBE_KALEMLERI = [
+  { key: 'danismanFatura', label: 'Danışman Fatura' },
+  { key: 'musteriFatura', label: 'Müşteri Fatura' },
+  { key: 'bankaKontrol', label: 'Banka Kontrol' },
+  { key: 'myremax', label: 'MyRemax' },
+]
+
 // /kurul denetimi (2026-10-17, kod-güvenlik-denetçi): Onayla butonu sabit
 // bir mesaj gösteriyordu, katılımcı satırlarındaki kırmızı "tutarsız
 // fatura" uyarısını veya "Oran Uyarısı" rozetini tekrar etmiyordu — ekran
@@ -507,24 +517,24 @@ export default function CiroRaporlariPanel() {
     }
   }
 
+  // Broker, 2026-11-17: "ciro raporunun içinde eksik varsa onu ana ekranda
+  // gösterelim, mesela myRMX'e girilmeyen bir ciro varsa o ciro raporlarının
+  // ana ekranında görünsün" — raporu tek tek açmadan, ana listede Durum
+  // rozetinin yanında hangi kalemin eksik olduğu görünsün.
+  function eksikKalemler(r) {
+    const durum = muhasebeDurumu(r)
+    return MUHASEBE_KALEMLERI.filter((k) => !durum[k.key]).map((k) => k.label)
+  }
+
   function renderMuhasebeDurumSatiri(r) {
     const durum = muhasebeDurumu(r)
-    // Broker, 2026-10-20: "sıra işin gerçek akışına göre olsun" — danışman
-    // önce kendi faturasını keser, sonra müşteriye ofis faturası kesilir,
-    // sonra banka tahsilatı kontrol edilir, en son MyRemax'a girilir.
-    const kalemler = [
-      { key: 'danismanFatura', label: 'Danışman Fatura' },
-      { key: 'musteriFatura', label: 'Müşteri Fatura' },
-      { key: 'bankaKontrol', label: 'Banka Kontrol' },
-      { key: 'myremax', label: 'MyRemax' },
-    ]
     // Broker, 2026-10-20: "tek bir sabit rozet seti kullan, her raporda
     // aynı 4 aşama görünsün" — hepsi tamamsa tek rozete indirgeme
     // kaldırıldı (önceki hâli, Onay Bekleyenler'de 4 rozet, tamamlanmış
     // bir raporda bambaşka 3 etiket göstererek tutarsızlık yaratıyordu).
     return (
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        {kalemler.map((k) => (
+        {MUHASEBE_KALEMLERI.map((k) => (
           <span
             key={k.key}
             className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -906,9 +916,21 @@ export default function CiroRaporlariPanel() {
                   {(r.katilimcilar ?? []).map((k) => katilimciAdi(k)).join(' / ') || '—'}
                 </td>
                 <td className="px-4 py-2.5">
-                  <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
-                    {CIRO_RAPORU_DURUM_LABELS[r.durum]}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CIRO_RAPORU_DURUM_STYLES[r.durum]}`}>
+                      {CIRO_RAPORU_DURUM_LABELS[r.durum]}
+                    </span>
+                    {r.durum === 'onaylandi' &&
+                      (() => {
+                        const eksikler = eksikKalemler(r)
+                        if (eksikler.length === 0) return null
+                        return (
+                          <span className="inline-flex shrink-0 rounded-full bg-tint-amber px-2 py-0.5 text-xs font-medium text-tint-amber-text">
+                            Eksik: {eksikler.join(', ')}
+                          </span>
+                        )
+                      })()}
+                  </div>
                 </td>
                 <td className="whitespace-nowrap px-4 py-2.5 font-medium text-text-primary">{tl(r.islemTutari)}</td>
                 <td className="whitespace-nowrap px-4 py-2.5">{ISLEM_TIPI_LABELS[r.islemTipi]}</td>
