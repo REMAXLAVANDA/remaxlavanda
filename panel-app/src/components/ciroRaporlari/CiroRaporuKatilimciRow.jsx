@@ -65,26 +65,19 @@ export default function CiroRaporuKatilimciRow({
 }) {
   const { showToast } = useToast()
   const [editing, setEditing] = useState(false)
-  // Broker, 2026-11-10 (canlı vaka: Hamza Bakırcı KDV hariç hakedişi
-  // fatura tutarına yazmış) — "danışman zaten bilinen bir rakamı neden
-  // elden hesaplasın" sorusu üzerine: tutar artık BOŞ başlamıyor, sistemin
-  // önerisiyle (komisyonTutariOnerisi, zaten KDV dahil) dolu geliyor —
-  // danışman sadece gerçek faturası farklıysa değiştirir. KDV oranı da
-  // formun geri kalanıyla AYNI varsayılanla (%20) geliyor. Fatura no/
-  // tarihi/vergi no/dosya hâlâ elle — bunlar gerçek, danışmanın kendi
-  // kestiği fatura belgesinden geliyor, sistem bilemez.
-  const [form, setForm] = useState({
-    faturaNo: k.faturaNo ?? '',
-    faturaTarihi: k.faturaTarihi ?? '',
-    faturaTutari: k.faturaTutari ?? (k.komisyonTutariOnerisi != null ? String(Math.round(k.komisyonTutariOnerisi * 100) / 100) : ''),
-    kdvOrani: k.kdvOrani ?? '20',
-    vergiNo: k.vergiNo ?? '',
-  })
+  // Broker, 2026-11-17: "zaten rakamların hepsini yazıyor, bir de üstüne
+  // fatura numarası mantıksız" — danışman artık HİÇBİR fatura alanını
+  // (no/tarih/tutar/KDV/vergi no) elle yazmıyor, sadece gerçek fatura
+  // dosyasını yüklüyor. Tutar otomatik olarak sistemin önerdiği komisyon
+  // tutarıyla (komisyonTutariOnerisi, zaten KDV dahil) dolduruluyor — "ben
+  // zaten her faturayı açıp kontrol ediyorum" dediği için rakamın
+  // doğruluğunu broker/muhasebe faturayı açarak kontrol ediyor, gerekirse
+  // başka bir yoldan düzeltiyor (bkz. 2026-11-10'daki önceki, yarım
+  // çözüm — bu onun yerine geçti).
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [viewingFile, setViewingFile] = useState(false)
-  const set = (patch) => setForm((f) => ({ ...f, ...patch }))
   const tutarsiz = faturaTutarsizMi(k.faturaTutari, k.komisyonTutariOnerisi)
 
   // Dış ofis satırı (broker, 2026-11-07): bizim danışmanımız değil, fatura/
@@ -140,11 +133,16 @@ export default function CiroRaporuKatilimciRow({
   }
 
   async function handleSave() {
-    if (fileError) return
+    if (fileError || !file) return
     setUploading(true)
     try {
-      const faturaDosyaUrl = file ? await uploadFinansFile(file, k.danismanId) : undefined
-      await onSaveFatura(k.id, { ...form, ...(faturaDosyaUrl !== undefined ? { faturaDosyaUrl } : {}) })
+      const faturaDosyaUrl = await uploadFinansFile(file, k.danismanId)
+      await onSaveFatura(k.id, {
+        faturaDosyaUrl,
+        faturaTutari: k.faturaTutari ?? (k.komisyonTutariOnerisi != null ? Math.round(k.komisyonTutariOnerisi * 100) / 100 : null),
+        kdvOrani: k.kdvOrani ?? 20,
+        faturaTarihi: k.faturaTarihi ?? new Date().toISOString().slice(0, 10),
+      })
       setEditing(false)
       setFile(null)
     } catch (err) {
@@ -184,7 +182,7 @@ export default function CiroRaporuKatilimciRow({
               (sadece broker/owner) ile AYNI koşula bağlıydı, muhasebe bu
               butonu hiç göremiyordu. Artık ayrı canTeyitEt (broker/owner/
               muhasebe) kullanıyor. */}
-          {canTeyitEt && k.faturaNo && (
+          {canTeyitEt && k.faturaDosyaUrl && (
             <button
               disabled={submitting}
               onClick={() => onTeyitEt(k.id, !k.teyitEdildi)}
@@ -233,16 +231,10 @@ export default function CiroRaporuKatilimciRow({
         )}
       </div>
 
-      {!editing && (k.faturaNo || k.faturaTutari) && (
+      {!editing && k.faturaTutari != null && (
         <div className="mt-2 text-xs text-text-muted">
-          {/* Broker, 2026-10-20: "boş tireler neyin eksik olduğunu
-              göstermiyor" — eksik alan hiç gösterilmiyor, placeholder tire
-              konmuyor. */}
           Fatura{' '}
-          {[k.faturaNo, k.faturaTarihi ? formatDateOnly(k.faturaTarihi) : null, k.faturaTutari != null ? tl(k.faturaTutari) : null]
-            .filter(Boolean)
-            .join(' · ')}
-          {k.kdvOrani != null && ` · KDV %${k.kdvOrani}`}
+          {[k.faturaTarihi ? formatDateOnly(k.faturaTarihi) : null, tl(k.faturaTutari)].filter(Boolean).join(' · ')}
           {k.faturaDosyaUrl && (
             <button onClick={handleViewFile} disabled={viewingFile} className="ml-1.5 font-medium text-brand-700 hover:underline disabled:opacity-50">
               {viewingFile ? 'Açılıyor...' : 'Dosyayı görüntüle'}
@@ -253,60 +245,24 @@ export default function CiroRaporuKatilimciRow({
 
       {isOwnRow && !editing && (
         <button onClick={() => setEditing(true)} className="mt-2 text-xs font-medium text-brand-700 hover:underline">
-          {k.faturaNo || k.faturaTutari ? 'Fatura bilgisini düzenle' : 'Fatura bilgisi ekle'}
+          {k.faturaDosyaUrl ? 'Faturayı değiştir' : 'Fatura ekle'}
         </button>
       )}
 
       {isOwnRow && editing && (
         <div className="mt-3 space-y-2 rounded-lg bg-surface-sunken p-3">
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              value={form.faturaNo}
-              onChange={(e) => set({ faturaNo: e.target.value })}
-              placeholder="Fatura no"
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
-            <input
-              type="date"
-              value={form.faturaTarihi}
-              onChange={(e) => set({ faturaTarihi: e.target.value })}
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
-            <input
-              inputMode="numeric"
-              value={form.faturaTutari}
-              onChange={(e) => set({ faturaTutari: e.target.value })}
-              placeholder="Fatura tutarı (₺, KDV dahil)"
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
-            <input
-              inputMode="numeric"
-              value={form.kdvOrani}
-              onChange={(e) => set({ kdvOrani: e.target.value })}
-              placeholder="KDV oranı (%)"
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
-            <input
-              value={form.vergiNo}
-              onChange={(e) => set({ vergiNo: e.target.value })}
-              placeholder="Vergi no"
-              className="rounded-lg border border-border-default px-2 py-1.5 text-xs text-text-primary"
-            />
-            <div className="col-span-2">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border-default bg-white px-2 py-2 text-xs text-text-secondary hover:bg-surface-sunken">
-                <Upload size={14} className="shrink-0 text-text-muted" />
-                <span className="truncate">
-                  {file
-                    ? `${file.name} (${formatSize(file.size)})`
-                    : k.faturaDosyaUrl
-                      ? 'Dosya yüklü — değiştirmek için seç (PDF/görsel)'
-                      : 'Fatura dosyası seç (PDF/görsel, opsiyonel)'}
-                </span>
-                <input type="file" onChange={handleFileChange} className="hidden" />
-              </label>
-              {fileError && <p className="mt-1 text-brand-700">{fileError}</p>}
-            </div>
-          </div>
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border-default bg-white px-2 py-2 text-xs text-text-secondary hover:bg-surface-sunken">
+            <Upload size={14} className="shrink-0 text-text-muted" />
+            <span className="truncate">
+              {file
+                ? `${file.name} (${formatSize(file.size)})`
+                : k.faturaDosyaUrl
+                  ? 'Dosya yüklü — değiştirmek için seç (PDF/görsel)'
+                  : 'Gerçek fatura dosyasını seç (PDF/görsel)'}
+            </span>
+            <input type="file" onChange={handleFileChange} className="hidden" />
+          </label>
+          {fileError && <p className="text-brand-700">{fileError}</p>}
           <div className="flex justify-end gap-2">
             <button
               type="button"
@@ -317,7 +273,7 @@ export default function CiroRaporuKatilimciRow({
             </button>
             <button
               type="button"
-              disabled={submitting || uploading}
+              disabled={submitting || uploading || !file}
               onClick={handleSave}
               className="rounded-lg bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
             >

@@ -179,12 +179,13 @@ export default function CiroRaporlariPanel() {
   )
   const danismanRaporlarim = useMemo(() => visibleReports.filter((r) => r.durum !== 'taslak'), [visibleReports])
 
-  // Onaya gönderebilmek için kendi katılımcı satırında fatura no gerekli
-  // (2026-10-09 broker kararı: "fatura numarasını yazacağı alan olsun",
-  // "kestikten sonra onaya göndermiş olmalı") — ortak çalışmada partner'ın
-  // kendi faturası ayrı, bu kontrolü etkilemiyor.
-  function ownFaturaNoVar(r) {
-    return !!r.katilimcilar?.find((k) => k.danismanId === r.olusturanId)?.faturaNo
+  // Onaya gönderebilmek için kendi katılımcı satırında gerçek fatura
+  // dosyası yüklenmiş olmalı (2026-10-09 broker kararı: "kestikten sonra
+  // onaya göndermiş olmalı" — 2026-11-17'de fatura NO'dan fatura DOSYASI'na
+  // çevrildi, broker: "rakamları da yazmasa, sadece faturasını eklesin")
+  // — ortak çalışmada partner'ın kendi faturası ayrı, bu kontrolü etkilemiyor.
+  function ownFaturaDosyasiVar(r) {
+    return !!r.katilimcilar?.find((k) => k.danismanId === r.olusturanId)?.faturaDosyaUrl
   }
 
   async function handleCreate(form) {
@@ -192,7 +193,7 @@ export default function CiroRaporlariPanel() {
     try {
       await ciroRaporlariProvider.create(form, user.id)
       setShowFormModal(false)
-      showToast('Taslak kaydedildi — fatura no\'nu girip onaya gönder.', 'success')
+      showToast('Taslak kaydedildi — fatura dosyanı yükleyip onaya gönder.', 'success')
       reload()
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
@@ -231,8 +232,8 @@ export default function CiroRaporlariPanel() {
   }
 
   async function handleSubmitTaslak(r) {
-    if (!ownFaturaNoVar(r)) {
-      showToast('Onaya göndermeden önce fatura no\'nu gir.', 'error')
+    if (!ownFaturaDosyasiVar(r)) {
+      showToast('Onaya göndermeden önce fatura dosyanı yükle.', 'error')
       return
     }
     setSubmitting(true)
@@ -666,9 +667,9 @@ export default function CiroRaporlariPanel() {
             {r.durum === 'reddedildi' && r.redSebebi && (
               <p className="rounded-lg bg-tint-red p-2 text-xs text-brand-700">Red sebebi: {r.redSebebi}</p>
             )}
-            {isDanisman && isOwner && r.durum === 'taslak' && !ownFaturaNoVar(r) && (
+            {isDanisman && isOwner && r.durum === 'taslak' && !ownFaturaDosyasiVar(r) && (
               <p className="rounded-lg bg-tint-amber p-2 text-xs text-tint-amber-text">
-                Onaya göndermeden önce aşağıdan kendi fatura no'nu gir.
+                Onaya göndermeden önce aşağıdan kendi fatura dosyanı yükle.
               </p>
             )}
             {(r.katilimcilar ?? []).map((k) => (
@@ -756,7 +757,8 @@ export default function CiroRaporlariPanel() {
                           .map((k) => (
                             <div key={k.id} className="flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 text-xs text-text-secondary">
                               <span className="min-w-0 flex-1 truncate">
-                                {userName(k.danismanId)} · {k.faturaNo || 'Fatura no yok'} {k.faturaTutari != null && `· ${tl(k.faturaTutari)}`}
+                                {userName(k.danismanId)}
+                                {k.faturaTutari != null && ` · ${tl(k.faturaTutari)}`}
                               </span>
                               <button
                                 type="button"
@@ -819,8 +821,8 @@ export default function CiroRaporlariPanel() {
               {isDanisman && isOwner && r.durum === 'taslak' && (
                 <button
                   onClick={() => handleSubmitTaslak(r)}
-                  disabled={!ownFaturaNoVar(r) || submitting}
-                  title={!ownFaturaNoVar(r) ? 'Önce fatura no\'nu gir' : undefined}
+                  disabled={!ownFaturaDosyasiVar(r) || submitting}
+                  title={!ownFaturaDosyasiVar(r) ? 'Önce fatura dosyanı yükle' : undefined}
                   className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Check size={13} /> Onaya Gönder
