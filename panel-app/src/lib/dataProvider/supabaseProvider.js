@@ -1370,6 +1370,7 @@ function mapCiroRaporu(r) {
     ofisFaturaAliciDosyaUrl: r.ofis_fatura_alici_dosya_url,
     myremaxGirildi: r.myremax_girildi,
     muhasebeTamamlandi: r.muhasebe_tamamlandi,
+    muhasebeYoksayilanKalemler: r.muhasebe_yoksayilan_kalemler ?? [],
     muhasebeTamamlanmaTarihi: r.muhasebe_tamamlanma_tarihi,
     muhasebeTamamlayanId: r.muhasebe_tamamlayan_id,
     emanetId: r.emanet_id,
@@ -1816,6 +1817,9 @@ export const ciroRaporlari = {
   },
   async setMuhasebeTamamlandi(id, deger) {
     await run(client().rpc('set_muhasebe_tamamlandi', { p_ciro_raporu_id: id, p_deger: deger }))
+  },
+  async setMuhasebeYoksay(id, kalem, yoksay) {
+    await run(client().rpc('set_muhasebe_yoksay', { p_ciro_raporu_id: id, p_kalem: kalem, p_yoksay: yoksay }))
   },
 }
 

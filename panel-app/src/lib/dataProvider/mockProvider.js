@@ -1400,6 +1400,18 @@ export const ciroRaporlari = {
     rapor.muhasebeTamamlayanId = deger ? kullaniciId : null
     return delay({ id })
   },
+  // Broker, 2026-11-17: "bazı uyarıları yoksay diyebilmeliyiz, bazen
+  // hesaplar farklılaşabiliyor" — eksik görünen bir muhasebe kalemi
+  // (Danışman Fatura/Müşteri Fatura/Banka Kontrol/MyRemax) gerçekte
+  // farklı bir yoldan kapatılmışsa, ana listedeki kırmızı uyarıdan
+  // düşsün diye elle "yoksayıldı" işaretlenebiliyor.
+  async setMuhasebeYoksay(id, kalem, yoksay) {
+    const rapor = MOCK_CIRO_RAPORLARI.find((r) => r.id === id)
+    if (!rapor) throw new Error('Rapor bulunamadı.')
+    const mevcut = rapor.muhasebeYoksayilanKalemler ?? []
+    rapor.muhasebeYoksayilanKalemler = yoksay ? [...new Set([...mevcut, kalem])] : mevcut.filter((k) => k !== kalem)
+    return delay({ id })
+  },
 }
 
 // --- Danışman Anlaşmaları (komisyon paylaşım oranı, tarih aralıklı) --------

@@ -472,6 +472,19 @@ export default function CiroRaporlariPanel() {
       setSubmitting(false)
     }
   }
+  // Broker, 2026-11-17: "bazı uyarıları yoksay diyebilmeliyiz, bazen
+  // hesaplar farklılaşabiliyor, farklı hesaplaşmalar yapabiliyoruz."
+  async function handleYoksay(raporId, kalem, yoksay) {
+    setSubmitting(true)
+    try {
+      await ciroRaporlariProvider.setMuhasebeYoksay(raporId, kalem, yoksay)
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
   // --- /Fatura Kontrol'den taşındı ---
 
   // Broker, 2026-10-20: "para alışverişleri, hizmet bedelleri, iadeler
@@ -521,29 +534,49 @@ export default function CiroRaporlariPanel() {
   // gösterelim, mesela myRMX'e girilmeyen bir ciro varsa o ciro raporlarının
   // ana ekranında görünsün" — raporu tek tek açmadan, ana listede Durum
   // rozetinin yanında hangi kalemin eksik olduğu görünsün.
+  // Broker, 2026-11-17: "bazı uyarıları yoksay diyebilmeliyiz çünkü bazen
+  // hesaplar farklılaşabiliyor" — yoksayılan kalem gerçekte tamamlanmış
+  // SAYILMIYOR (muhasebeDurumu değişmiyor), sadece eksik uyarısından düşüyor.
   function eksikKalemler(r) {
     const durum = muhasebeDurumu(r)
-    return MUHASEBE_KALEMLERI.filter((k) => !durum[k.key]).map((k) => k.label)
+    const yoksayilanlar = r.muhasebeYoksayilanKalemler ?? []
+    return MUHASEBE_KALEMLERI.filter((k) => !durum[k.key] && !yoksayilanlar.includes(k.key)).map((k) => k.label)
   }
 
   function renderMuhasebeDurumSatiri(r) {
     const durum = muhasebeDurumu(r)
+    const yoksayilanlar = r.muhasebeYoksayilanKalemler ?? []
     // Broker, 2026-10-20: "tek bir sabit rozet seti kullan, her raporda
     // aynı 4 aşama görünsün" — hepsi tamamsa tek rozete indirgeme
     // kaldırıldı (önceki hâli, Onay Bekleyenler'de 4 rozet, tamamlanmış
     // bir raporda bambaşka 3 etiket göstererek tutarsızlık yaratıyordu).
     return (
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        {MUHASEBE_KALEMLERI.map((k) => (
-          <span
-            key={k.key}
-            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-              durum[k.key] ? 'bg-tint-green text-tint-green-text' : 'bg-tint-amber text-tint-amber-text'
-            }`}
-          >
-            {durum[k.key] ? <Check size={11} /> : null} {k.label}
-          </span>
-        ))}
+        {MUHASEBE_KALEMLERI.map((k) => {
+          const tamam = durum[k.key]
+          const yoksayildi = !tamam && yoksayilanlar.includes(k.key)
+          return (
+            <span
+              key={k.key}
+              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                tamam ? 'bg-tint-green text-tint-green-text' : yoksayildi ? 'bg-surface-sunken text-text-muted' : 'bg-tint-amber text-tint-amber-text'
+              }`}
+            >
+              {tamam ? <Check size={11} /> : null} {k.label}
+              {yoksayildi && ' (yoksayıldı)'}
+              {isViewAll && !tamam && (
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => handleYoksay(r.id, k.key, !yoksayildi)}
+                  className="ml-1 font-medium underline decoration-dotted hover:text-text-primary disabled:opacity-50"
+                >
+                  {yoksayildi ? 'Geri Al' : 'Yoksay'}
+                </button>
+              )}
+            </span>
+          )
+        })}
       </div>
     )
   }
