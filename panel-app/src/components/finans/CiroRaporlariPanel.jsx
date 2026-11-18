@@ -201,9 +201,14 @@ export default function CiroRaporlariPanel() {
   async function handleCreate(form) {
     setSubmitting(true)
     try {
-      await ciroRaporlariProvider.create(form, user.id)
+      const rapor = await ciroRaporlariProvider.create(form, user.id)
       setShowFormModal(false)
-      showToast('Taslak kaydedildi — fatura dosyanı yükleyip onaya gönder.', 'success')
+      showToast('Taslak kaydedildi — şimdi fatura dosyanı yükle.', 'success')
+      // Broker, 2026-11-18: "danışmanın kestiği faturanın yükleme alanını
+      // göremiyoruz ciro girilince" — eskiden taslak kaydedilince listeye
+      // dönülüyordu, yükleme alanı (detay penceresinde) bulması danışmana
+      // kalıyordu. Artık taslak oluşunca detay penceresi otomatik açılıyor.
+      setDetailId(rapor.id)
       reload()
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
