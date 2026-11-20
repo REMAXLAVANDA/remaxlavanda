@@ -149,7 +149,10 @@ export default function HaritaPanel() {
       </div>
 
       <div className="h-[560px] overflow-hidden rounded-2xl border border-border-default">
-        <MapContainer center={merkez} zoom={12} style={{ height: '100%', width: '100%' }}>
+        {/* SiteKonumSecici'deki AYNI düzeltme (2026-11-20, broker: "sayfa
+            üstte kalıyor") — fare tekerleği varsayılan olarak haritayı
+            yakınlaştırıyordu, sayfa kaydırmayı engelliyordu. */}
+        <MapContainer center={merkez} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://locationiq.com/">LocationIQ</a>'
             url={`https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`}

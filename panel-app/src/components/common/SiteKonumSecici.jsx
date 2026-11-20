@@ -169,7 +169,15 @@ export default function SiteKonumSecici({ siteAdi, onSiteAdiChange, lat, lng, on
         </div>
 
         <div className="mt-2 h-[260px] overflow-hidden rounded-lg border border-ink-200">
-          <MapContainer center={merkez} zoom={pinVar ? 17 : 13} style={{ height: '100%', width: '100%' }}>
+          {/* Broker, 2026-11-20: "ciro raporu girerken haritada da aynı
+              şeyler oluyordu — sayfa üstte kalıyor" — Leaflet varsayılan
+              olarak fare tekerleğini haritayı YAKINLAŞTIRMAK için kullanıyor.
+              Bu harita uzun, kaydırılabilir bir formun İÇİNDE olduğu için,
+              danışman sayfayı aşağı kaydırmaya çalışırken fare haritanın
+              üzerindeyse sayfa hiç kaymıyor, bunun yerine harita yakınlaşıyor
+              — "sayfa üstte takılı kalma" hissi böyle oluşuyordu. Fare
+              tekerleğiyle yakınlaştırma kapatıldı, +/- düğmeleri hâlâ çalışıyor. */}
+          <MapContainer center={merkez} zoom={pinVar ? 17 : 13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://locationiq.com/">LocationIQ</a>'
               url={`https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`}
