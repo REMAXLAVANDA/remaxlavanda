@@ -445,8 +445,11 @@ export default function Lig() {
           "Sonuçları Açıkla" düğmesi. Danışman/ofis bu bloğu hiç görmez,
           onlara aşağıdaki ayrı "hazırlanıyor" mesajı gösteriliyor. */}
       {!loading && !error && period && effectiveDurum === 'kapali' && isBrokerOrOwner && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <div className="flex items-center gap-2 text-sm text-amber-900">
+        {/* /kurul, 2026-11-20 (görsel-denetçi, Sapma — broker onayı
+            2026-11-20): Takip modülü aynı anlam için tint-amber'a
+            geçmişti, burası stok amber-*'ta kalmıştı. */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-tint-amber bg-tint-amber p-4">
+          <div className="flex items-center gap-2 text-sm text-tint-amber-text">
             <Lock size={16} className="shrink-0" />
             <span>
               Bu dönem kapalı — bitişe 7 gün kaldığı için sonuçlar sadece sana görünüyor, danışman/ofis göremiyor.
@@ -456,7 +459,7 @@ export default function Lig() {
             <button
               onClick={requestAnnounce}
               disabled={submitting}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-tint-amber-text px-3 py-2 text-sm font-medium text-white hover:opacity-80 disabled:opacity-50"
             >
               <Megaphone size={16} /> Sonuçları Açıkla
             </button>

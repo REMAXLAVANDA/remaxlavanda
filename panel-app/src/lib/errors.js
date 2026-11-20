@@ -55,6 +55,14 @@ export function mapSupabaseError(error) {
   } else if (code === '23503') {
     kind = 'in_use'
     message = IN_USE_MESSAGE
+  } else if (code === '23505' && rawMessage.includes('ux_banka_hareketleri_mukerrer_engeli')) {
+    // /kurul, 2026-11-20: aynı tutar+tarih+gönderen+tip ile mükerrer banka
+    // hareketi girişini engelleyen kısıt — 2026-11-15'teki gerçek olaydan
+    // sonra eklendi (bkz. migration 20261120120000). Genel CONFLICT_MESSAGE
+    // burada yanıltıcı olurdu ("başka biri değiştirmiş" değil, aynı işlem
+    // zaten var).
+    kind = 'conflict'
+    message = 'Bu işlem (aynı tutar, tarih ve gönderen) zaten kayıtlı — mükerrer giriş engellendi.'
   } else if (status === 409 || code === '23505') {
     kind = 'conflict'
     message = CONFLICT_MESSAGE
