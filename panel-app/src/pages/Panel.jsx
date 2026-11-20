@@ -231,16 +231,19 @@ function Widget({ icon: Icon, title, count, description, to, linkLabel, classNam
 // başarısız olursa gösterilir — sayfanın geri kalanı normal çalıştığı için
 // tam sayfa ErrorState yerine küçük, bilgilendirici bir şerit (bkz.
 // loadAll() notu).
+// /kurul, 2026-11-20 (görsel-denetçi, Sapma — broker onayı 2026-11-20):
+// Takip modülü aynı anlam için tint-amber'a geçmişti, Panel/Lig stok
+// amber-*'ta kalmıştı — tutarlılık için buraya da uygulandı.
 function PartialFailureBanner({ onRetry }) {
   return (
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-tint-amber bg-tint-amber px-4 py-2.5 text-sm text-tint-amber-text">
       <span className="flex items-center gap-2">
         <AlertTriangle size={15} className="shrink-0" />
         Bazı veriler yüklenemedi, panel eksik görünüyor olabilir.
       </span>
       <button
         onClick={onRetry}
-        className="shrink-0 rounded-lg bg-white px-3 py-1 text-xs font-medium text-amber-800 shadow-sm hover:bg-amber-100"
+        className="shrink-0 rounded-lg bg-white px-3 py-1 text-xs font-medium text-tint-amber-text shadow-sm hover:bg-tint-amber"
       >
         Tekrar Dene
       </button>
@@ -258,7 +261,7 @@ function PartialFailureBanner({ onRetry }) {
 function EmptyRow({ text, failed }) {
   if (failed) {
     return (
-      <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-6 text-sm text-amber-700">
+      <div className="flex items-center gap-2 rounded-xl bg-tint-amber px-4 py-6 text-sm text-tint-amber-text">
         <AlertTriangle size={16} /> Bu veri şu an yüklenemedi — sayfayı yenile.
       </div>
     )
