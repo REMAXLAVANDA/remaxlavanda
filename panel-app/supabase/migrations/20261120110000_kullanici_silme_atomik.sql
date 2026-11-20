@@ -105,5 +105,10 @@ begin
 end;
 $$;
 
-revoke all on function public.delete_user_cleanup(uuid) from public;
+-- NOT: "from public" tek başına yetmiyor — Supabase projelerinde yeni
+-- fonksiyonlara varsayılan olarak anon/authenticated için de EXECUTE
+-- hakkı otomatik ekleniyor (ALTER DEFAULT PRIVILEGES), bu PUBLIC'ten ayrı
+-- bir hak. Canlıda doğrulandı: sadece "from public" yazınca authenticated
+-- hâlâ çağırabiliyordu — anon/authenticated da elle eklenmeli.
+revoke all on function public.delete_user_cleanup(uuid) from public, anon, authenticated;
 grant execute on function public.delete_user_cleanup(uuid) to service_role;
