@@ -3112,3 +3112,29 @@ Aynı oturumda, rapordaki ~20 küçük/orta maddeden broker'ın "en
    hesaplanıp UTC+3'te sistematik 1 gün hataya yol açıyordu.
 6. 4 yeni Finans tablosunun INSERT politikasındaki çıplak `auth.uid()`
    → `(select auth.uid())` (performans, davranış değişmedi).
+
+## 2026-11-20 — Kârlılık'taki kuruş/virgül hatası: düzeltme hiç canlıya alınmamış
+
+Broker, Kasım 2026 verisiyle canlıda "Ofis Payı (KDV Dahil)" sütununun
+gerçek tutarın ~1000 katı göründüğünü bildirdi (ör. 46.700 TL yerine
+"46.700.004 TL"). İnceleme: bu tam olarak 2026-11-09'da zaten düzeltilmiş
+bir sorundu (`formatCurrency`, `maximumFractionDigits:2`) ama o düzeltme
+(`5e348a32`) SADECE bu geliştirme kolunda kalmış, hiçbir zaman ana kola
+(canlıya) taşınmamış — deploy edilen pakette hâlâ eski, seçeneksiz
+`toLocaleString('tr-TR')` vardı. Düzeltme ana kola alınıp canlıya
+gönderildi; ayrıca `supabaseProvider.deleteUser`'daki ayrı, önceden
+fark edilmemiş bir hata da bu arada bulunup düzeltildi (yukarıya bkz.).
+
+## 2026-11-20 — "Yeni Ciro Raporu" modalı 3 adımlı sihirbaza bölündü
+
+Broker, canlı Chrome testinde formu "çok karmaşık" buldu — tek uzun
+scroll, ~25 alan, üstteki 3 sütunlu ızgara hizasızdı (Portföy Tipi ile
+İşlem Tipi aynı satırda görünmüyordu). Hiçbir alan/doğrulama kaldırılmadı,
+3 adıma bölündü: 1) İşlem & Portföy 2) Taraflar 3) Para Hareketleri.
+"İleri" sadece o adımın eksiklerini gösterir, taslak düzenlerken her
+zaman 1. adımdan başlar. Yol boyunca gerçek bir React hatası bulunup
+düzeltildi: "İleri" (type=button) ve son adımdaki "Kaydet" (type=submit)
+aynı JSX konumunu paylaştığı için React aynı `<button>` DOM düğümünü
+yeniden kullanıyordu — adım 2→3 geçişinde "İleri"ye tıklamak düğümü
+type=submit'e mutasyona uğratıp formu YANLIŞLIKLA gönderiyordu (canlı
+Playwright testiyle yakalandı). Ayrı `key` ile düzeltildi.
