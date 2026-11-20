@@ -1,0 +1,14 @@
+-- /kurul, 2026-11-20 (kod-güvenlik-denetçi, YAYINA ENGEL): emanet_ozet
+-- view'ı security_invoker ayarı olmadan oluşturulmuştu, yani view SAHİBİNİN
+-- (postgres) yetkisiyle çalışıyordu — alttaki emanetler/emanet_hareketleri
+-- tablolarındaki "sadece broker/owner/muhasebe görsün" RLS kuralını (
+-- is_finans_yetkili()) atlıyordu. View'a "authenticated" yetkisi verildiği
+-- için (20261106100600 migration) herhangi bir danışman bu view'dan TÜM
+-- emanet bakiyelerini görebiliyordu.
+--
+-- Bu ayar sadece view'ın ÇALIŞMA biçimini değiştiriyor (sorguyu çağıranın
+-- kendi yetkisiyle çalıştırıyor) — view'ın tanımına veya hiçbir satıra
+-- dokunmuyor. Broker/owner/muhasebe için hiçbir değişiklik yok (zaten
+-- is_finans_yetkili() onlar için doğru dönüyor), danışmanlar için view
+-- artık boş dönecek (alttaki tablolara zaten erişimleri yok).
+alter view public.emanet_ozet set (security_invoker = true);
