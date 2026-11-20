@@ -605,7 +605,11 @@ export default function CallTable({
                         {isManager && (
                           <button
                             onClick={() => onDelete(call)}
-                            className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                            // /kurul, 2026-11-20 (görsel-denetçi, Önemli): stok
+                            // red-* yerine TaskRow.jsx'teki AYNI "satırı sil"
+                            // ikon-butonunun marka tokenleri (text-text-muted
+                            // hover:bg-tint-red hover:text-brand-700).
+                            className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-700"
                             title="Çağrıyı sil"
                           >
                             <Trash2 size={14} />
@@ -756,7 +760,7 @@ export default function CallTable({
                   {isManager && (
                     <button
                       onClick={() => onDelete(call)}
-                      className="rounded-lg p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"
+                      className="rounded-lg p-1.5 text-text-muted hover:bg-tint-red hover:text-brand-700"
                       title="Çağrıyı sil"
                     >
                       <Trash2 size={14} />

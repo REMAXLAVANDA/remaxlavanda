@@ -31,7 +31,11 @@ export default function Sidebar({ open, onNavigate }) {
       <nav className="flex flex-1 flex-col gap-4 px-3 py-2">
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col gap-0.5">
-            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+            {/* /kurul, 2026-11-20 (görsel-denetçi, Önemli): white/35 lacivert
+                zeminde 3.09:1 veriyordu, WCAG 1.4.3 eşiğinin (4.5:1) altında —
+                aynı dosyadaki "Ofis Portalı" alt yazısının zaten kullandığı
+                white/50'ye (4.79:1, hesaplanıp doğrulandı) çevrildi. */}
+            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/50">
               {group.label}
             </p>
             {group.items.map((m) => (
@@ -52,7 +56,10 @@ export default function Sidebar({ open, onNavigate }) {
                 {/* İsim çakışması netleştirmesi (Panel/Takip) — sadece bu iki
                     öğede subtitle tanımlı, hover değil her zaman görünür
                     (mobilde de okunsun diye), bkz. lib/modules.js notları. */}
-                {m.subtitle && <span className="text-[10px] font-normal text-white/40">· {m.subtitle}</span>}
+                {/* /kurul, 2026-11-20 (görsel-denetçi, Önemli): white/40
+                    3.59:1 veriyordu, white/50'ye çevrildi (bkz. grup
+                    başlığındaki aynı not). */}
+                {m.subtitle && <span className="text-[10px] font-normal text-white/50">· {m.subtitle}</span>}
               </NavLink>
             ))}
           </div>
