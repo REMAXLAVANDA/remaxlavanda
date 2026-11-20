@@ -14,18 +14,22 @@ export function LoadingState({ label = 'Yükleniyor...' }) {
   )
 }
 
+// /kurul, 2026-11-20 (görsel-denetçi, Önemli): stok Tailwind red-* yerine
+// uygulamanın her yerde kullandığı marka tokenleri (bkz. Button.jsx
+// "danger-outline" varyantı, MetricCard'daki aynı eşleşme) — bu bileşen
+// 24 dosyada kullanıldığı için tek yerde düzeltmek yetiyor.
 export function ErrorState({ error, onRetry }) {
   // Teknik hata detayı burada da gösterilmez — sadece mapSupabaseError'un
   // ürettiği kullanıcıya güvenli mesaj (bkz. lib/errors.js).
   const message = error?.message ?? 'Beklenmeyen bir hata oluştu.'
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-12 text-center">
-      <AlertTriangle size={20} className="text-red-500" />
-      <p className="max-w-sm text-sm text-red-700">{message}</p>
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border-danger bg-tint-red py-12 text-center">
+      <AlertTriangle size={20} className="text-brand-600" />
+      <p className="max-w-sm text-sm text-brand-700">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-red-700 shadow-sm hover:bg-red-100"
+          className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-brand-700 shadow-sm hover:bg-tint-red"
         >
           <RotateCcw size={14} />
           Tekrar Dene

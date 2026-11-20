@@ -1636,7 +1636,17 @@ export const ciroRaporlari = {
         .eq('id', id),
     )
     if (katilimcilar) {
-      await run(client().from('ciro_raporu_katilimcilari').delete().eq('ciro_raporu_id', id))
+      // /kurul, 2026-11-20 (veri-zinciri-analisti, Önemli): eskiden önce
+      // SİL sonra EKLE sırasıyla çalışıyordu — ekleme adımı hata verirse
+      // (ör. pay_orani check constraint'i, create()'teki aynı yorumdaki
+      // gibi prod'da gerçekten yaşandı) rapor TAMAMEN katılımcısız
+      // kalıyordu. Artık önce yeni satırlar eklenir, SADECE eklemenin
+      // başarılı olduğu doğrulandıktan sonra eski satırlar (id'leri bu
+      // ekleme öncesi alınmış) silinir — ekleme başarısız olursa eski
+      // katılımcılar olduğu gibi kalır, veri kaybı olmaz.
+      const eskiIdler = (
+        await run(client().from('ciro_raporu_katilimcilari').select('id').eq('ciro_raporu_id', id))
+      ).map((r) => r.id)
       const katilimciRows = katilimcilar.map((k) => ({
         ciro_raporu_id: id,
         danisman_id: k.danismanId ?? null,
@@ -1652,6 +1662,9 @@ export const ciroRaporlari = {
         ofis_payi_tutari: k.ofisPayiTutari ?? null,
       }))
       await run(client().from('ciro_raporu_katilimcilari').insert(katilimciRows))
+      if (eskiIdler.length) {
+        await run(client().from('ciro_raporu_katilimcilari').delete().in('id', eskiIdler))
+      }
     }
     if (paraHareketleri?.length) {
       const hareketRows = paraHareketleri.map((h) => ({

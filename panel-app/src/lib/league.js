@@ -78,11 +78,21 @@ export function canAnnouncePeriod(role) {
 // orası, bu sadece UI'ın anında doğru göstermesi için, cron'un o gece
 // gelmesini beklemeden). "durum" kolonu 'acik' kalsa bile bitişe 7 gün
 // kaldıysa 'kapali' sayılır.
+//
+// /kurul, 2026-11-20 (veri-zinciri-analisti, Önemli): eskiden
+// `new Date(new Date().toDateString())` kullanılıyordu — bu, "bugün"ü
+// TARAYICININ yerel saatine göre gece yarısı yapıyordu, ama period.bitis
+// ("YYYY-MM-DD") ve SQL'deki current_date UTC'ye göre yorumlanıyor.
+// UTC+3'te (Türkiye) bu fark sistematik olarak 1 gün hataya yol açıyordu
+// (UI "acık" gösterirken DB zaten "kapalı" sayabiliyordu). Artık ikisi de
+// AYNI takvim gününü UTC gece yarısı olarak kullanıyor — SQL ile birebir.
 export function periodEffectiveDurum(period) {
   if (!period) return 'acik'
   if (period.durum === 'aciklandi') return 'aciklandi'
   if (period.durum === 'kapali') return 'kapali'
-  const gunKala = Math.ceil((new Date(period.bitis) - new Date(new Date().toDateString())) / 86400000)
+  const now = new Date()
+  const bugunUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const gunKala = Math.ceil((new Date(period.bitis) - bugunUTC) / 86400000)
   return gunKala <= 7 ? 'kapali' : 'acik'
 }
 
