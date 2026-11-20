@@ -35,6 +35,12 @@ function generateDisBeyanKodu() {
   return `DIS-${parca}`
 }
 
+// Form tek bir uzun scroll'du (broker: "çok karmaşık" — 2026-11-20
+// canlı Chrome testinde, Temel Bilgiler'in 3 sütunlu ızgarası da
+// hizasızdı). 3 adımlı sihirbaza bölündü — hiçbir alan/doğrulama
+// kaldırılmadı, sadece hangi adımda gösterildiği değişti.
+const STEP_LABELS = { 1: 'İşlem & Portföy', 2: 'Taraflar', 3: 'Para Hareketleri' }
+
 // Danışman kendi kapattığı bir işlem için ciro raporu oluşturur — rapor
 // "taslak" durumunda kalır, onaya gönderme ayrı bir adım (fatura no
 // girilmesi şart, bkz. CiroRaporlariPanel.jsx handleCreate/
@@ -164,6 +170,15 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
       : [],
   )
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
+
+  // Form 3 adımlı sihirbaz (bkz. yukarıdaki STEP_LABELS notu). Taslak
+  // düzenlerken de her zaman 1. adımdan başlar (broker: "kaldığı adımdan
+  // değil") — hangi alanın hangi adımda olduğu dışında davranış aynı.
+  const [step, setStep] = useState(1)
+  // 0 = henüz bu adımda "İleri"ye basılmadı. Adım değişince sıfırlanır
+  // (goNext/goBack), böylece bir sonraki adıma geçince önceki adımın
+  // uyarısı yanlışlıkla yeni adımda görünmez.
+  const [attemptedStep, setAttemptedStep] = useState(0)
 
   // Site Adı yazıldıkça (debounce'lu) o siteye bağlı ONAYLANMIŞ önceki
   // satışları çeker — veri yoksa oncekiSatislar boş kalır, kutu hiç
@@ -434,58 +449,81 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
   // (sadece ağ isteği sürerken disabled) — eksik varsa handleSubmit kaydı
   // GÖNDERMEZ, bunun yerine bu liste formun üstünde kırmızı bir uyarı
   // olarak gösterilir (bkz. attemptedSubmit/eksikAlanlar JSX'i).
+  //
+  // 2026-11-20 sihirbaz bölünmesi: her eksik artık hangi ADIMDA
+  // olduğuyla ({step, mesaj}) işaretleniyor — "İleri" o adımın
+  // kendi eksiklerini gösterir, son adımdaki "Kaydet" hepsini (aynı
+  // mesajlarla, davranış DEĞİŞMEDİ).
   const eksikAlanlar = []
-  if (disBeyanKodu.trim().length === 0) eksikAlanlar.push(portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu')
-  if (tapuBilgileri.trim().length === 0) eksikAlanlar.push('Tapu Bilgileri (İl/İlçe/Mahalle/Ada/Parsel/Bağımsız Bölüm)')
-  if (siteAdi.trim().length === 0) eksikAlanlar.push('Site/Bina Adı')
-  if (lat == null || lng == null) eksikAlanlar.push('Harita Konumu (haritadan pin koy ya da adres ara)')
-  if (mulkBedeliGerekli && !(mulkBedeliParsed !== null && mulkBedeliParsed > 0)) eksikAlanlar.push('Anlaşılan Bedel')
-  if (!form.islemTarihi) eksikAlanlar.push('İşlem tarihi')
-  if (!raporKategori) eksikAlanlar.push('Kategori')
-  if (disOfisVarMi === null) eksikAlanlar.push('Satıcı veya alıcı tarafını başka bir ofis mi temsil etti? (Evet/Hayır seç)')
+  if (disBeyanKodu.trim().length === 0)
+    eksikAlanlar.push({ step: 1, mesaj: portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu' })
+  if (tapuBilgileri.trim().length === 0) eksikAlanlar.push({ step: 1, mesaj: 'Tapu Bilgileri (İl/İlçe/Mahalle/Ada/Parsel/Bağımsız Bölüm)' })
+  if (siteAdi.trim().length === 0) eksikAlanlar.push({ step: 1, mesaj: 'Site/Bina Adı' })
+  if (lat == null || lng == null) eksikAlanlar.push({ step: 1, mesaj: 'Harita Konumu (haritadan pin koy ya da adres ara)' })
+  if (mulkBedeliGerekli && !(mulkBedeliParsed !== null && mulkBedeliParsed > 0)) eksikAlanlar.push({ step: 1, mesaj: 'Anlaşılan Bedel' })
+  if (!form.islemTarihi) eksikAlanlar.push({ step: 1, mesaj: 'İşlem tarihi' })
+  if (!raporKategori) eksikAlanlar.push({ step: 1, mesaj: 'Kategori' })
+  if (!editing && baglanmaParasiVarMi === null)
+    eksikAlanlar.push({ step: 1, mesaj: 'Bu işlemde bağlanma parası alındı mı? (Evet/Hayır seç)' })
+  if (
+    baglanmaParasiVarMi === true &&
+    !(parseThousands(baglanmaParasiTutari) !== null && parseThousands(baglanmaParasiTutari) > 0 && baglanmaParasiTarihi)
+  )
+    eksikAlanlar.push({ step: 1, mesaj: 'Bağlanma Parası — Tutar ve Tarih' })
+  if (disOfisVarMi === null) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı veya alıcı tarafını başka bir ofis mi temsil etti? (Evet/Hayır seç)' })
   // /kurul, 2026-11-15: yukarıdaki soruya "Evet" denip aşağıda hiçbir taraf
   // "Başka Ofis" işaretlenmezse rapor sessizce "dış ofis yok" kaydediliyordu
   // (Birgül Özdemir vakasının aynı kökü) — artık bu tutarsızlık submit'i
   // engelliyor (her iki yönde).
   if (disOfisVarMi === true && saticiTemsilciTipi !== 'dis_ofis' && aliciTemsilciTipi !== 'dis_ofis')
-    eksikAlanlar.push('"Evet, başka ofis" dedin ama aşağıda Satıcı veya Alıcı tarafında "Başka Ofis" işaretlemedin')
+    eksikAlanlar.push({ step: 2, mesaj: '"Evet, başka ofis" dedin ama aşağıda Satıcı veya Alıcı tarafında "Başka Ofis" işaretlemedin' })
   if (disOfisVarMi === false && (saticiTemsilciTipi === 'dis_ofis' || aliciTemsilciTipi === 'dis_ofis'))
-    eksikAlanlar.push('"Hayır" dedin ama aşağıda Satıcı veya Alıcı tarafında hâlâ "Başka Ofis" işaretli — yukarıdaki soruyu tekrar kontrol et')
-  if (!editing && baglanmaParasiVarMi === null) eksikAlanlar.push('Bu işlemde bağlanma parası alındı mı? (Evet/Hayır seç)')
-  if (
-    baglanmaParasiVarMi === true &&
-    !(parseThousands(baglanmaParasiTutari) !== null && parseThousands(baglanmaParasiTutari) > 0 && baglanmaParasiTarihi)
-  )
-    eksikAlanlar.push('Bağlanma Parası — Tutar ve Tarih')
-  if (krediDurumu === 'kredi' && krediBankasi.trim().length === 0) eksikAlanlar.push('Kredi bankası')
-  if (satici.adSoyad.trim().length === 0) eksikAlanlar.push('Satıcı — Ad Soyad')
-  if (satici.telefon.trim().length === 0) eksikAlanlar.push('Satıcı — Telefon')
-  if (satici.kimlikNo.trim().length === 0) eksikAlanlar.push('Satıcı — TC/Vergi No')
-  if (saticiVar === null) eksikAlanlar.push('Satıcıdan hizmet bedeli aldın mı? (Aldım/Almadım seç)')
+    eksikAlanlar.push({ step: 2, mesaj: '"Hayır" dedin ama aşağıda Satıcı veya Alıcı tarafında hâlâ "Başka Ofis" işaretli — yukarıdaki soruyu tekrar kontrol et' })
+  if (krediDurumu === 'kredi' && krediBankasi.trim().length === 0) eksikAlanlar.push({ step: 3, mesaj: 'Kredi bankası' })
+  if (satici.adSoyad.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı — Ad Soyad' })
+  if (satici.telefon.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı — Telefon' })
+  if (satici.kimlikNo.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı — TC/Vergi No' })
+  if (saticiVar === null) eksikAlanlar.push({ step: 2, mesaj: 'Satıcıdan hizmet bedeli aldın mı? (Aldım/Almadım seç)' })
   if (saticiVar === true && !(saticiHizmetBedeliParsed !== null && saticiHizmetBedeliParsed > 0))
-    eksikAlanlar.push('Satıcı — Hizmet Bedeli')
-  if (saticiVar === true && !(saticiKdvOraniParsed !== null && saticiKdvOraniParsed >= 0)) eksikAlanlar.push('Satıcı — KDV %')
-  if (alici.adSoyad.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı — Ad Soyad')
-  if (alici.telefon.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı — Telefon')
-  if (alici.kimlikNo.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı — TC/Vergi No')
-  if (aliciVar === null) eksikAlanlar.push('Alıcıdan/Kiracıdan hizmet bedeli aldın mı? (Aldım/Almadım seç)')
+    eksikAlanlar.push({ step: 2, mesaj: 'Satıcı — Hizmet Bedeli' })
+  if (saticiVar === true && !(saticiKdvOraniParsed !== null && saticiKdvOraniParsed >= 0)) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı — KDV %' })
+  if (alici.adSoyad.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Alıcı/Kiracı — Ad Soyad' })
+  if (alici.telefon.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Alıcı/Kiracı — Telefon' })
+  if (alici.kimlikNo.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Alıcı/Kiracı — TC/Vergi No' })
+  if (aliciVar === null) eksikAlanlar.push({ step: 2, mesaj: 'Alıcıdan/Kiracıdan hizmet bedeli aldın mı? (Aldım/Almadım seç)' })
   if (aliciVar === true && !(aliciHizmetBedeliParsed !== null && aliciHizmetBedeliParsed > 0))
-    eksikAlanlar.push('Alıcı/Kiracı — Hizmet Bedeli')
-  if (aliciVar === true && !(aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) eksikAlanlar.push('Alıcı/Kiracı — KDV %')
+    eksikAlanlar.push({ step: 2, mesaj: 'Alıcı/Kiracı — Hizmet Bedeli' })
+  if (aliciVar === true && !(aliciKdvOraniParsed !== null && aliciKdvOraniParsed >= 0)) eksikAlanlar.push({ step: 2, mesaj: 'Alıcı/Kiracı — KDV %' })
   if (saticiDiger.some((k) => !(k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0)))
-    eksikAlanlar.push('Eklediğin ek satıcı bilgileri (ad soyad/telefon/TC no) eksik')
+    eksikAlanlar.push({ step: 2, mesaj: 'Eklediğin ek satıcı bilgileri (ad soyad/telefon/TC no) eksik' })
   if (aliciDiger.some((k) => !(k.adSoyad.trim().length > 0 && k.telefon.trim().length > 0 && k.kimlikNo.trim().length > 0)))
-    eksikAlanlar.push('Eklediğin ek alıcı bilgileri (ad soyad/telefon/TC no) eksik')
-  if (saticiTemsilciTipi === 'dis_ofis' && saticiDisOfisAdi.trim().length === 0) eksikAlanlar.push('Satıcı tarafı — Dış Ofis Adı')
-  if (aliciTemsilciTipi === 'dis_ofis' && aliciDisOfisAdi.trim().length === 0) eksikAlanlar.push('Alıcı/Kiracı tarafı — Dış Ofis Adı')
+    eksikAlanlar.push({ step: 2, mesaj: 'Eklediğin ek alıcı bilgileri (ad soyad/telefon/TC no) eksik' })
+  if (saticiTemsilciTipi === 'dis_ofis' && saticiDisOfisAdi.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı tarafı — Dış Ofis Adı' })
+  if (aliciTemsilciTipi === 'dis_ofis' && aliciDisOfisAdi.trim().length === 0) eksikAlanlar.push({ step: 2, mesaj: 'Alıcı/Kiracı tarafı — Dış Ofis Adı' })
   if (saticiTemsilciTipi === 'dis_ofis' && aliciTemsilciTipi === 'dis_ofis')
-    eksikAlanlar.push('Satıcı ve Alıcı aynı anda "Başka Ofis" olamaz — en az biri bizim danışmanımız olmalı')
-  if (islemTutariToplam <= 0) eksikAlanlar.push('Satıcı veya alıcıdan en az birinden hizmet bedeli girilmeli')
-  if (katilimcilarHazir.length === 0 && islemTutariToplam > 0) eksikAlanlar.push('Pay hesaplanamadı — hizmet bedellerini kontrol et')
+    eksikAlanlar.push({ step: 2, mesaj: 'Satıcı ve Alıcı aynı anda "Başka Ofis" olamaz — en az biri bizim danışmanımız olmalı' })
+  if (islemTutariToplam <= 0) eksikAlanlar.push({ step: 2, mesaj: 'Satıcı veya alıcıdan en az birinden hizmet bedeli girilmeli' })
+  if (katilimcilarHazir.length === 0 && islemTutariToplam > 0) eksikAlanlar.push({ step: 2, mesaj: 'Pay hesaplanamadı — hizmet bedellerini kontrol et' })
   if (paraHareketleriGecerliSayisi === 0 && (existingParaHareketleri?.length ?? 0) === 0)
-    eksikAlanlar.push('En az bir Para Hareketi (tutar + tarih)')
+    eksikAlanlar.push({ step: 3, mesaj: 'En az bir Para Hareketi (tutar + tarih)' })
+
+  const eksikAlanlarMesajlari = eksikAlanlar.map((e) => e.mesaj)
+  const eksikAlanlarForStep = (n) => eksikAlanlar.filter((e) => e.step === n).map((e) => e.mesaj)
 
   const [attemptedSubmit, setAttemptedSubmit] = useState(false)
+
+  function goNext() {
+    if (eksikAlanlarForStep(step).length > 0) {
+      setAttemptedStep(step)
+      return
+    }
+    setAttemptedStep(0)
+    setStep((s) => s + 1)
+  }
+  function goBack() {
+    setAttemptedStep(0)
+    setStep((s) => s - 1)
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -579,830 +617,919 @@ export default function CiroRaporuFormModal({ onClose, onSubmit, submitting, dan
           geçip formu hiç submit ettirmiyordu — broker'ın istediği kendi
           mesajımızın çalışması için native doğrulama kapatıldı. */}
       <form onSubmit={handleSubmit} noValidate className="space-y-3">
-        {/* Bu formdaki TÜM tek seçimli buton grupları (Portföy Tipi, İşlem
-            Tipi, Kategori, Aldım/Almadım, Kredi Durumu, Giriş/Çıkış) aynı
-            seçili/seçili-değil desenini kullanıyor — 2026-10-18 görsel
-            tutarlılık düzeltmesi: seçili artık ince kenarlık farkıyla değil,
-            dolu brand-600 zemin + beyaz metinle göze çarpıyor. */}
-        {/* Broker, 2026-10-20 (madde 7): "Temel Bilgiler alanlarını 2-3
-            sütunlu ızgarada göster" (MyRemax referansı) — dar ekranda tek
-            sütuna döner. */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">Portföy Tipi</label>
-            <div className="flex gap-2">
-              {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => {
-                    setPortfoyTipi(key)
-                    if (key === 'dis_portfoy' && !disBeyanKodu.trim()) {
-                      setDisBeyanKodu(generateDisBeyanKodu())
-                    }
-                  }}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                    portfoyTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">
-              {portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu'} *
-            </label>
-            <input
-              required
-              value={disBeyanKodu}
-              onChange={(e) => setDisBeyanKodu(e.target.value)}
-              placeholder={portfoyTipi === 'portfoyum' ? 'Portföy kodu' : 'Dış beyan kodu'}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">
-              Tapu Bilgileri <span className="text-red-600">* zorunlu</span>
-            </label>
-            <textarea
-              required
-              rows={2}
-              value={tapuBilgileri}
-              onChange={(e) => setTapuBilgileri(e.target.value)}
-              placeholder="İl, ilçe, mahalle, ada, parsel, bağımsız bölüm — hepsini eksiksiz yaz"
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-            {/* Broker, 2026-11-07: "faturada bu bilgilerin olacağını ve
-                zorunlu olduğunu belirten korkutucu bir metin yazalım ki
-                doğruyu yazsın" — danışmanı buraya yanlış/eksik bilgi
-                yazmaması için caydırıcı, açık bir uyarı. */}
-            <p className="mt-1 text-xs font-semibold text-red-600">
-              Dikkat: Buraya yazdığın bilgiler resmi faturaya ve tapu işlemine aynen geçecek. Yanlış veya eksik
-              yazarsan sorumluluk sana aittir — kaydetmeden önce mutlaka kontrol et.
-            </p>
-          </div>
-
-          <SiteKonumSecici
-            siteAdi={siteAdi}
-            onSiteAdiChange={setSiteAdi}
-            lat={lat}
-            lng={lng}
-            onLocationChange={(yeniLat, yeniLng) => {
-              setLat(yeniLat)
-              setLng(yeniLng)
-            }}
-            required
-          />
-
-          {/* Broker, 2026-11-07: "bu sitede daha önce satış yaptık mı,
-              kaça sorusuna tek bakışta cevap" — veri yoksa HİÇ gösterilmiyor
-              (boş kutu gösterme). */}
-          {oncekiSatislar.length > 0 && (
-            <div className="rounded-lg bg-tint-amber p-3">
-              <p className="mb-1 text-xs font-semibold text-tint-amber-text">
-                Bu sitede önceki satışlar ({oncekiSatislar.length})
-              </p>
-              <ul className="space-y-0.5 text-xs text-tint-amber-text">
-                {oncekiSatislar.map((s) => (
-                  <li key={s.id}>
-                    {formatDateOnly(s.tarih)} — {tl(s.tutar)} ({s.danismanAdi || '—'})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">İşlem Tipi</label>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => set({ islemTipi: key })}
-                  className={`rounded-lg border px-3 py-2 text-xs font-medium ${
-                    form.islemTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {mulkBedeliGerekli && (
-            <div>
-              <label className="mb-1 block text-xs text-ink-500">
-                Anlaşılan Bedel (₺) {form.islemTipi === 'kiralama' ? '— aylık' : ''} *
-              </label>
-              <input
-                required
-                inputMode="numeric"
-                value={mulkBedeli}
-                onChange={(e) => setMulkBedeli(formatThousands(e.target.value))}
-                placeholder={form.islemTipi === 'satis' ? 'Mülkün satış bedeli' : 'Aylık kira bedeli'}
-                className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">
-              Bu işlemde satıcı veya alıcı tarafını başka bir emlak ofisi mi temsil etti? *
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  // "Hayır" derken aşağıdaki Satıcı/Alıcı "Başka Ofis"
-                  // seçimi unutulmuş kalabiliyordu (/kurul, 2026-11-15) —
-                  // bu soru artık alt seçimleri de "Kendi Danışmanımız"a
-                  // çekiyor, ikisi birbiriyle çelişen bir kayıt üretemez.
-                  setDisOfisVarMi(false)
-                  setSaticiTemsilciTipi('kendi')
-                  setAliciTemsilciTipi('kendi')
-                }}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  disOfisVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+        {/* Adım göstergesi — broker: "çok karmaşık" (2026-11-20 canlı test).
+            3 numaralı daire + aralarındaki çubuk, geçilen adımlar yeşile
+            dönüyor, bkz. STEP_LABELS. */}
+        <div className="mb-1 flex items-center gap-2">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="flex flex-1 items-center gap-2 last:flex-initial">
+              <div
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                  step === n
+                    ? 'bg-brand-600 text-white'
+                    : step > n
+                      ? 'bg-tint-green text-tint-green-text'
+                      : 'bg-surface-sunken text-text-muted'
                 }`}
               >
-                Hayır
-              </button>
-              <button
-                type="button"
-                onClick={() => setDisOfisVarMi(true)}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  disOfisVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                Evet, başka ofis
-              </button>
+                {n}
+              </div>
+              {n < 3 && <div className={`h-0.5 flex-1 rounded ${step > n ? 'bg-tint-green' : 'bg-border-default'}`} />}
             </div>
-          </div>
+          ))}
+        </div>
+        <p className="text-center text-xs font-medium text-text-muted">
+          Adım {step}/3 — {STEP_LABELS[step]}
+        </p>
 
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">
-              Bu işlemde bağlanma parası alındı mı? {!editing && '*'}
-            </label>
-            {editing ? (
-              <p className="rounded-lg bg-surface-sunken px-3 py-2 text-xs text-text-secondary">
-                {editing.emanetId
-                  ? baglanmaParasiBilgi
-                    ? `Evet — ${tl(baglanmaParasiBilgi.tutar)} (${formatDateOnly(baglanmaParasiBilgi.tarih)}) — düzenlemede değiştirilemez`
-                    : 'Evet — bağlı (yükleniyor…)'
-                  : 'Hayır / işaretlenmemiş — düzenlemede eklenemez'}
-              </p>
-            ) : (
-              <>
+        {step === 1 && (
+          <>
+            {/* Broker, 2026-10-20 (madde 7): "Temel Bilgiler alanlarını 2-3
+                sütunlu ızgarada göster" (MyRemax referansı). 2026-11-20
+                düzeltmesi: 3 sütun + farklı yükseklikteki alanlar (harita,
+                tapu metni) hizasızlığa yol açıyordu (canlı Chrome testi,
+                broker: "çok karmaşık") — artık 2 sütun, uzun/geniş alanlar
+                (Tapu Bilgileri, Site/Harita, önceki satışlar, bağlanma
+                parası detayı) sm:col-span-2 ile tam genişlik alıyor, kısa
+                alanlar çift çift aynı satırda hizalı kalıyor. */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs text-ink-500">Portföy Tipi</label>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setBaglanmaParasiVarMi(false)}
-                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                      baglanmaParasiVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                    }`}
-                  >
-                    Hayır
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBaglanmaParasiVarMi(true)}
-                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                      baglanmaParasiVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                    }`}
-                  >
-                    Evet
-                  </button>
-                </div>
-                {baglanmaParasiVarMi === true && (
-                  <div className="mt-2 flex animate-expand-in gap-2">
-                    <input
-                      required
-                      inputMode="numeric"
-                      value={baglanmaParasiTutari}
-                      onChange={(e) => setBaglanmaParasiTutari(formatThousands(e.target.value))}
-                      placeholder="Tutar (₺) *"
-                      className="flex-1 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-                    />
-                    <input
-                      required
-                      type="date"
-                      value={baglanmaParasiTarihi}
-                      onChange={(e) => setBaglanmaParasiTarihi(e.target.value)}
-                      className="rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">Kategori *</label>
-            <div className="flex gap-2">
-              {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setRaporKategori(key)}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                    raporKategori === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs text-ink-500">
-              İşlem tarihi * (sözleşme/devir tarihi — raporu ne zaman doldurduğun değil)
-            </label>
-            <input
-              required
-              type="date"
-              value={form.islemTarihi}
-              onChange={(e) => set({ islemTarihi: e.target.value })}
-              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
-            />
-          </div>
-        </div>
-
-        <div className="rounded-lg bg-ink-50 p-3">
-          <p className="mb-2 text-xs font-medium text-ink-700">Satıcı Bilgileri</p>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              required
-              value={satici.adSoyad}
-              onChange={(e) => setSatici((s) => ({ ...s, adSoyad: e.target.value }))}
-              placeholder="Ad Soyad *"
-              className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            />
-            <input
-              required
-              value={satici.telefon}
-              onChange={(e) => setSatici((s) => ({ ...s, telefon: e.target.value }))}
-              placeholder="Telefon *"
-              className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            />
-            <input
-              required
-              value={satici.kimlikNo}
-              onChange={(e) => setSatici((s) => ({ ...s, kimlikNo: e.target.value }))}
-              placeholder="TC veya Vergi No *"
-              className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            />
-          </div>
-
-          <div className={`mt-2 ${disOfisVarMi === true ? 'rounded-lg ring-2 ring-red-500 p-1.5' : ''}`}>
-            <label className="mb-1 block text-[11px] text-ink-500">
-              Satıcı tarafını kim temsil ediyor?
-              {disOfisVarMi === true && <span className="ml-1 font-semibold text-red-600">⬇ aşağıda işaretle</span>}
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setSaticiTemsilciTipi('kendi')}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  saticiTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                Kendi Danışmanımız
-              </button>
-              <button
-                type="button"
-                onClick={() => setSaticiTemsilciTipi('dis_ofis')}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  saticiTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                Başka Ofis (İşbirliği)
-              </button>
-            </div>
-            {saticiTemsilciTipi === 'kendi' ? (
-              <select
-                value={saticiDanismanId}
-                onChange={(e) => setSaticiDanismanId(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              >
-                <option value={user.id}>Ben</option>
-                {danismanOptions.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="mt-2 animate-expand-in space-y-2">
-                <input
-                  required
-                  value={saticiDisOfisAdi}
-                  onChange={(e) => setSaticiDisOfisAdi(e.target.value)}
-                  placeholder="Ofis Adı *"
-                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-                />
-                <input
-                  value={saticiDisOfisKisi}
-                  onChange={(e) => setSaticiDisOfisKisi(e.target.value)}
-                  placeholder="İlgili Kişi (opsiyonel)"
-                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-                />
-              </div>
-            )}
-          </div>
-
-          {saticiDiger.map((k, i) => (
-            <div key={i} className="mt-2 grid grid-cols-2 gap-2 border-t border-ink-200 pt-2">
-              <input
-                required
-                value={k.adSoyad}
-                onChange={(e) => updateDigerKisi(setSaticiDiger, i, { adSoyad: e.target.value })}
-                placeholder="Ad Soyad *"
-                className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <input
-                required
-                value={k.telefon}
-                onChange={(e) => updateDigerKisi(setSaticiDiger, i, { telefon: e.target.value })}
-                placeholder="Telefon *"
-                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <div className="flex gap-1">
-                <input
-                  required
-                  value={k.kimlikNo}
-                  onChange={(e) => updateDigerKisi(setSaticiDiger, i, { kimlikNo: e.target.value })}
-                  placeholder="TC veya Vergi No *"
-                  className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeDigerKisi(setSaticiDiger, i)}
-                  className="rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
-                  aria-label="Satıcıyı kaldır"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => addDigerKisi(setSaticiDiger)}
-            className="mt-2 text-xs font-medium text-brand-700 hover:underline"
-          >
-            + Başka satıcı ekle
-          </button>
-
-          <p className="mt-2 mb-1 text-xs font-medium text-ink-700">Satıcıdan hizmet bedeli aldım mı? *</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setSaticiVar(true)}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                saticiVar === true
-                  ? 'border-brand-600 bg-brand-600 text-white'
-                  : 'border-border-default bg-surface-sunken text-text-secondary'
-              }`}
-            >
-              Aldım
-            </button>
-            <button
-              type="button"
-              onClick={() => setSaticiVar(false)}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                saticiVar === false
-                  ? 'border-brand-600 bg-brand-600 text-white'
-                  : 'border-border-default bg-surface-sunken text-text-secondary'
-              }`}
-            >
-              Almadım
-            </button>
-          </div>
-          {saticiVar === true && (
-            <div className="mt-2 flex animate-expand-in gap-2">
-              <input
-                required
-                inputMode="numeric"
-                value={satici.hizmetBedeli}
-                onChange={(e) => setSatici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
-                placeholder="Hizmet Bedeli (KDV Dahil) *"
-                className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <input
-                required
-                inputMode="numeric"
-                value={satici.kdvOrani}
-                onChange={(e) => setSatici((s) => ({ ...s, kdvOrani: e.target.value.replace(/[^0-9.]/g, '') }))}
-                placeholder="KDV % *"
-                className="w-20 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-            </div>
-          )}
-          {saticiVar === true && saticiHizmetBedeliHaric != null && (
-            <p className="mt-1 text-[11px] text-ink-500">KDV hariç: {tl(saticiHizmetBedeliHaric)}</p>
-          )}
-          {saticiVar === true && hizmetBedeliStandartDisiMi(saticiHizmetBedeliParsed, beklenenHizmetBedeliTutari) && (
-            <p className="mt-1 text-[11px] text-amber-600">
-              Standart oranda ({form.islemTipi === 'satis' ? '%2+KDV' : '1 kira+KDV'}) bu tutar {tl(beklenenHizmetBedeliTutari)} olurdu — girdiğin tutarı kontrol et.
-            </p>
-          )}
-        </div>
-
-        <div className="rounded-lg bg-ink-50 p-3">
-          <p className="mb-2 text-xs font-medium text-ink-700">Alıcı/Kiracı Bilgileri</p>
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              required
-              value={alici.adSoyad}
-              onChange={(e) => setAlici((s) => ({ ...s, adSoyad: e.target.value }))}
-              placeholder="Ad Soyad *"
-              className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            />
-            <input
-              required
-              value={alici.telefon}
-              onChange={(e) => setAlici((s) => ({ ...s, telefon: e.target.value }))}
-              placeholder="Telefon *"
-              className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            />
-            <input
-              required
-              value={alici.kimlikNo}
-              onChange={(e) => setAlici((s) => ({ ...s, kimlikNo: e.target.value }))}
-              placeholder="TC veya Vergi No *"
-              className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-            />
-          </div>
-
-          <div className={`mt-2 ${disOfisVarMi === true ? 'rounded-lg ring-2 ring-red-500 p-1.5' : ''}`}>
-            <label className="mb-1 block text-[11px] text-ink-500">
-              Alıcı/Kiracı tarafını kim temsil ediyor?
-              {disOfisVarMi === true && <span className="ml-1 font-semibold text-red-600">⬇ aşağıda işaretle</span>}
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setAliciTemsilciTipi('kendi')}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  aliciTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                Kendi Danışmanımız
-              </button>
-              <button
-                type="button"
-                onClick={() => setAliciTemsilciTipi('dis_ofis')}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                  aliciTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                Başka Ofis (İşbirliği)
-              </button>
-            </div>
-            {aliciTemsilciTipi === 'kendi' ? (
-              <select
-                value={aliciDanismanId}
-                onChange={(e) => setAliciDanismanId(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              >
-                <option value={user.id}>Ben</option>
-                {danismanOptions.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="mt-2 animate-expand-in space-y-2">
-                <input
-                  required
-                  value={aliciDisOfisAdi}
-                  onChange={(e) => setAliciDisOfisAdi(e.target.value)}
-                  placeholder="Ofis Adı *"
-                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-                />
-                <input
-                  value={aliciDisOfisKisi}
-                  onChange={(e) => setAliciDisOfisKisi(e.target.value)}
-                  placeholder="İlgili Kişi (opsiyonel)"
-                  className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-                />
-              </div>
-            )}
-          </div>
-
-          {aliciDiger.map((k, i) => (
-            <div key={i} className="mt-2 grid grid-cols-2 gap-2 border-t border-ink-200 pt-2">
-              <input
-                required
-                value={k.adSoyad}
-                onChange={(e) => updateDigerKisi(setAliciDiger, i, { adSoyad: e.target.value })}
-                placeholder="Ad Soyad *"
-                className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <input
-                required
-                value={k.telefon}
-                onChange={(e) => updateDigerKisi(setAliciDiger, i, { telefon: e.target.value })}
-                placeholder="Telefon *"
-                className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <div className="flex gap-1">
-                <input
-                  required
-                  value={k.kimlikNo}
-                  onChange={(e) => updateDigerKisi(setAliciDiger, i, { kimlikNo: e.target.value })}
-                  placeholder="TC veya Vergi No *"
-                  className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeDigerKisi(setAliciDiger, i)}
-                  className="rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
-                  aria-label="Alıcıyı kaldır"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => addDigerKisi(setAliciDiger)}
-            className="mt-2 text-xs font-medium text-brand-700 hover:underline"
-          >
-            + Başka alıcı/kiracı ekle
-          </button>
-
-          <p className="mt-2 mb-1 text-xs font-medium text-ink-700">Alıcıdan/Kiracıdan hizmet bedeli aldım mı? *</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setAliciVar(true)}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                aliciVar === true
-                  ? 'border-brand-600 bg-brand-600 text-white'
-                  : 'border-border-default bg-surface-sunken text-text-secondary'
-              }`}
-            >
-              Aldım
-            </button>
-            <button
-              type="button"
-              onClick={() => setAliciVar(false)}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
-                aliciVar === false
-                  ? 'border-brand-600 bg-brand-600 text-white'
-                  : 'border-border-default bg-surface-sunken text-text-secondary'
-              }`}
-            >
-              Almadım
-            </button>
-          </div>
-          {aliciVar === true && (
-            <div className="mt-2 flex animate-expand-in gap-2">
-              <input
-                required
-                inputMode="numeric"
-                value={alici.hizmetBedeli}
-                onChange={(e) => setAlici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
-                placeholder="Hizmet Bedeli (KDV Dahil) *"
-                className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-              <input
-                required
-                inputMode="numeric"
-                value={alici.kdvOrani}
-                onChange={(e) => setAlici((s) => ({ ...s, kdvOrani: e.target.value.replace(/[^0-9.]/g, '') }))}
-                placeholder="KDV % *"
-                className="w-20 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
-              />
-            </div>
-          )}
-          {aliciVar === true && aliciHizmetBedeliHaric != null && (
-            <p className="mt-1 text-[11px] text-ink-500">KDV hariç: {tl(aliciHizmetBedeliHaric)}</p>
-          )}
-          {aliciVar === true && hizmetBedeliStandartDisiMi(aliciHizmetBedeliParsed, beklenenHizmetBedeliTutari) && (
-            <p className="mt-1 text-[11px] text-amber-600">
-              Standart oranda ({form.islemTipi === 'satis' ? '%2+KDV' : '1 kira+KDV'}) bu tutar {tl(beklenenHizmetBedeliTutari)} olurdu — girdiğin tutarı kontrol et.
-            </p>
-          )}
-        </div>
-
-        {/* Pay oranı artık elle yazılmıyor — satıcıyı/alıcıyı temsil eden
-            danışman yukarıdaki iki seçimle belirleniyor, pay otomatik
-            olarak o tarafın hizmet bedelinden hesaplanıyor (broker,
-            2026-10-16). Ekranda da hiç gösterilmiyor (broker, 2026-10-21:
-            "oran yazmasına gerek yok, bizde alıcı satıcı ikiye ayrılır,
-            oranı karıştırma") — satıcı/alıcı iki ayrı taraf, bir ortaklık
-            yüzdesi değil; k.payOrani değeri hâlâ iç hesaplamada (gdCirosu,
-            komisyonTutariOnerisi) kullanılıyor, sadece kullanıcıya
-            gösterilmiyor. */}
-        {toplamHizmetBedeliDeger > 0 && (
-          <div className="space-y-1.5 rounded-lg bg-brand-50 p-3 text-xs text-brand-800">
-            {katilimcilarHazir.length === 0 ? (
-              'Pay hesaplanamadı — satıcı/alıcıdan alınan hizmet bedelini kontrol et.'
-            ) : (
-              katilimcilarHazir.map((k) => (
-                <p key={k.danismanId ?? k.disOfisAdi}>
-                  <span className="font-medium">{katilimciGosterimAdi(k)}</span>
-                  {k.disOfisMi ? (
-                    ' · dış ofis — bu pay için hakediş/cari hesap oluşturulmaz'
-                  ) : k.anlasmaOrani != null ? (
-                    <>
-                      {' '}
-                      · hakediş: <span className="font-semibold">{tl(k.komisyonTutariOnerisi)}</span> (%{k.anlasmaOrani} anlaşma oranı)
-                    </>
-                  ) : (
-                    ' · anlaşma oranı tanımlı değil, broker/owner ile kontrol et'
-                  )}
-                </p>
-              ))
-            )}
-          </div>
-        )}
-
-        <div className="rounded-lg bg-ink-50 p-3">
-          <p className="mb-2 text-xs font-medium text-ink-700">Diğer Bilgiler</p>
-          <div className="flex gap-2">
-            {Object.entries(KREDI_DURUMU_LABELS).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setKrediDurumu(key)}
-                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium ${
-                  krediDurumu === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {krediDurumu === 'kredi' && (
-            <input
-              required
-              value={krediBankasi}
-              onChange={(e) => setKrediBankasi(e.target.value)}
-              placeholder="Kredi bankası *"
-              className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-            />
-          )}
-        </div>
-
-        <div className="rounded-lg bg-ink-50 p-3">
-          <p className="mb-2 text-xs font-medium text-ink-700">Para Hareketleri *</p>
-          {editing && (
-            <p className="mb-2 rounded-lg bg-tint-amber px-2 py-1.5 text-[11px] font-medium text-tint-amber-text">
-              Bunu girdiğin işlem: {editing.disBeyanKodu ?? '—'} · {tl(editing.islemTutari)} — başka bir sekmede açık
-              işlemle karıştırmadığından emin ol.
-            </p>
-          )}
-          <p className="mb-2 text-[11px] text-ink-500">
-            Bu işleme ait TÜM banka giriş/çıkışlarını (bağlanma parası, hizmet bedeli — her hareketi ayrı satır olarak) buraya ekle —
-            broker/ofis bunları gerçek banka ekstresiyle eşleştirecek. En az bir hareket girilmesi zorunlu.
-          </p>
-          {existingParaHareketleri?.length > 0 && (
-            <div className="mb-2 space-y-1 rounded-lg bg-white p-2 text-[11px] text-ink-600">
-              <p className="font-medium text-ink-700">Daha önce eklenmiş (düzenlenemez):</p>
-              {existingParaHareketleri.map((h) => (
-                <p key={h.id}>
-                  {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {BANKA_HAREKETI_TUR_LABELS[h.tur] ?? 'Diğer'} · {tl(h.tutar)} · {h.gonderenAdi || '—'}
-                </p>
-              ))}
-            </div>
-          )}
-          {paraHareketleri.map((h, i) => (
-            <div key={i} className="mb-2 rounded-lg border border-ink-200 bg-white p-2 last:mb-0">
-              <div className="mb-2 flex gap-2">
-                {[
-                  { key: 'giris', label: 'Giriş' },
-                  { key: 'cikis', label: 'Çıkış' },
-                ].map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    onClick={() => updateParaHareketi(i, { tip: t.key })}
-                    className={`rounded-lg border px-2 py-1 text-xs font-medium ${
-                      h.tip === t.key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => removeParaHareketi(i)}
-                  className="ml-auto rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
-                  aria-label="Satırı kaldır"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="mb-2 flex flex-wrap gap-1.5">
-                {Object.entries(BANKA_HAREKETI_TUR_LABELS)
-                  .filter(([key]) => key !== 'baglanma_parasi')
-                  .map(([key, label]) => (
+                  {Object.entries(PORTFOY_TIPI_LABELS).map(([key, label]) => (
                     <button
                       key={key}
                       type="button"
-                      onClick={() => updateParaHareketi(i, { tur: key })}
-                      className={`rounded-lg border px-2 py-1 text-xs font-medium ${
-                        (h.tur ?? 'hizmet_bedeli') === key
-                          ? 'border-brand-600 bg-brand-600 text-white'
-                          : 'border-border-default bg-surface-sunken text-text-secondary'
+                      onClick={() => {
+                        setPortfoyTipi(key)
+                        if (key === 'dis_portfoy' && !disBeyanKodu.trim()) {
+                          setDisBeyanKodu(generateDisBeyanKodu())
+                        }
+                      }}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                        portfoyTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
                       }`}
                     >
                       {label}
                     </button>
                   ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+
+              <div>
+                <label className="mb-1 block text-xs text-ink-500">
+                  {portfoyTipi === 'portfoyum' ? 'Portföy / Referans Numarası' : 'Dış Beyan Kodu'} *
+                </label>
                 <input
-                  inputMode="numeric"
-                  value={h.tutar}
-                  onChange={(e) => updateParaHareketi(i, { tutar: formatThousands(e.target.value) })}
-                  placeholder="Tutar (₺)"
-                  className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                  required
+                  value={disBeyanKodu}
+                  onChange={(e) => setDisBeyanKodu(e.target.value)}
+                  placeholder={portfoyTipi === 'portfoyum' ? 'Portföy kodu' : 'Dış beyan kodu'}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
                 />
-                <input
-                  value={h.gonderenAdi}
-                  onChange={(e) => updateParaHareketi(i, { gonderenAdi: e.target.value })}
-                  placeholder={h.tip === 'cikis' ? 'Kime gönderildi' : 'Kimden geldi'}
-                  className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs text-ink-500">
+                  Tapu Bilgileri <span className="text-red-600">* zorunlu</span>
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={tapuBilgileri}
+                  onChange={(e) => setTapuBilgileri(e.target.value)}
+                  placeholder="İl, ilçe, mahalle, ada, parsel, bağımsız bölüm — hepsini eksiksiz yaz"
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
                 />
+                {/* Broker, 2026-11-07: "faturada bu bilgilerin olacağını ve
+                    zorunlu olduğunu belirten korkutucu bir metin yazalım ki
+                    doğruyu yazsın" — danışmanı buraya yanlış/eksik bilgi
+                    yazmaması için caydırıcı, açık bir uyarı. */}
+                <p className="mt-1 text-xs font-semibold text-red-600">
+                  Dikkat: Buraya yazdığın bilgiler resmi faturaya ve tapu işlemine aynen geçecek. Yanlış veya eksik
+                  yazarsan sorumluluk sana aittir — kaydetmeden önce mutlaka kontrol et.
+                </p>
+              </div>
+
+              <div className="sm:col-span-2">
+                <SiteKonumSecici
+                  siteAdi={siteAdi}
+                  onSiteAdiChange={setSiteAdi}
+                  lat={lat}
+                  lng={lng}
+                  onLocationChange={(yeniLat, yeniLng) => {
+                    setLat(yeniLat)
+                    setLng(yeniLng)
+                  }}
+                  required
+                />
+              </div>
+
+              {/* Broker, 2026-11-07: "bu sitede daha önce satış yaptık mı,
+                  kaça sorusuna tek bakışta cevap" — veri yoksa HİÇ gösterilmiyor
+                  (boş kutu gösterme). */}
+              {oncekiSatislar.length > 0 && (
+                <div className="sm:col-span-2 rounded-lg bg-tint-amber p-3">
+                  <p className="mb-1 text-xs font-semibold text-tint-amber-text">
+                    Bu sitede önceki satışlar ({oncekiSatislar.length})
+                  </p>
+                  <ul className="space-y-0.5 text-xs text-tint-amber-text">
+                    {oncekiSatislar.map((s) => (
+                      <li key={s.id}>
+                        {formatDateOnly(s.tarih)} — {tl(s.tutar)} ({s.danismanAdi || '—'})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-xs text-ink-500">İşlem Tipi</label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(ISLEM_TIPI_LABELS).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => set({ islemTipi: key })}
+                      className={`rounded-lg border px-3 py-2 text-xs font-medium ${
+                        form.islemTipi === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {mulkBedeliGerekli && (
                 <div>
-                  <label className="mb-0.5 block text-[10px] text-ink-500">Transfer Tarihi</label>
+                  <label className="mb-1 block text-xs text-ink-500">
+                    Anlaşılan Bedel (₺) {form.islemTipi === 'kiralama' ? '— aylık' : ''} *
+                  </label>
                   <input
-                    type="date"
-                    value={h.tarih}
-                    onChange={(e) => updateParaHareketi(i, { tarih: e.target.value })}
-                    className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                    required
+                    inputMode="numeric"
+                    value={mulkBedeli}
+                    onChange={(e) => setMulkBedeli(formatThousands(e.target.value))}
+                    placeholder={form.islemTipi === 'satis' ? 'Mülkün satış bedeli' : 'Aylık kira bedeli'}
+                    className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
                   />
                 </div>
-                <div>
-                  <label className="mb-0.5 block text-[10px] text-ink-500">Dekont Tarihi</label>
-                  <input
-                    type="date"
-                    value={h.dekontTarihi}
-                    onChange={(e) => updateParaHareketi(i, { dekontTarihi: e.target.value })}
-                    className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
-                  />
+              )}
+
+              <div>
+                <label className="mb-1 block text-xs text-ink-500">Kategori *</label>
+                <div className="flex gap-2">
+                  {Object.entries(RAPOR_KATEGORI_LABELS).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setRaporKategori(key)}
+                      className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                        raporKategori === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-ink-500">
+                  İşlem tarihi * (sözleşme/devir tarihi — raporu ne zaman doldurduğun değil)
+                </label>
                 <input
-                  value={h.referansNo}
-                  onChange={(e) => updateParaHareketi(i, { referansNo: e.target.value })}
-                  placeholder="İşlem Referans No (EFT/FAST)"
-                  className="col-span-2 rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                  required
+                  type="date"
+                  value={form.islemTarihi}
+                  onChange={(e) => set({ islemTarihi: e.target.value })}
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
                 />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs text-ink-500">
+                  Bu işlemde bağlanma parası alındı mı? {!editing && '*'}
+                </label>
+                {editing ? (
+                  <p className="rounded-lg bg-surface-sunken px-3 py-2 text-xs text-text-secondary">
+                    {editing.emanetId
+                      ? baglanmaParasiBilgi
+                        ? `Evet — ${tl(baglanmaParasiBilgi.tutar)} (${formatDateOnly(baglanmaParasiBilgi.tarih)}) — düzenlemede değiştirilemez`
+                        : 'Evet — bağlı (yükleniyor…)'
+                      : 'Hayır / işaretlenmemiş — düzenlemede eklenemez'}
+                  </p>
+                ) : (
+                  <>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setBaglanmaParasiVarMi(false)}
+                        className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                          baglanmaParasiVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                        }`}
+                      >
+                        Hayır
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBaglanmaParasiVarMi(true)}
+                        className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                          baglanmaParasiVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                        }`}
+                      >
+                        Evet
+                      </button>
+                    </div>
+                    {baglanmaParasiVarMi === true && (
+                      <div className="mt-2 flex animate-expand-in gap-2">
+                        <input
+                          required
+                          inputMode="numeric"
+                          value={baglanmaParasiTutari}
+                          onChange={(e) => setBaglanmaParasiTutari(formatThousands(e.target.value))}
+                          placeholder="Tutar (₺) *"
+                          className="flex-1 rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                        />
+                        <input
+                          required
+                          type="date"
+                          value={baglanmaParasiTarihi}
+                          onChange={(e) => setBaglanmaParasiTarihi(e.target.value)}
+                          className="rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800"
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
-          ))}
-          <button type="button" onClick={addParaHareketi} className="text-xs font-medium text-brand-700 hover:underline">
-            + Para hareketi ekle
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between rounded-lg bg-ink-50 p-3">
-          <span className="text-xs font-medium text-ink-700">İşlem Tutarı (Toplam)</span>
-          <span className="text-sm font-semibold text-ink-800">{tl(islemTutariToplam)}</span>
-        </div>
-
-        <textarea
-          value={form.notlar}
-          onChange={(e) => set({ notlar: e.target.value })}
-          placeholder="Not (opsiyonel)"
-          rows={2}
-          className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
-        />
-
-        {attemptedSubmit && eksikAlanlar.length > 0 && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="mb-1 text-xs font-semibold text-red-700">Kaydetmeden önce şunları gir:</p>
-            <ul className="list-disc space-y-0.5 pl-4 text-xs text-red-700">
-              {eksikAlanlar.map((mesaj) => (
-                <li key={mesaj}>{mesaj}</li>
-              ))}
-            </ul>
-          </div>
+          </>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50">
-            Vazgeç
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-          >
-            {submitting ? 'Kaydediliyor...' : editing ? 'Güncelle' : 'Taslak Olarak Kaydet'}
-          </button>
+        {step === 2 && (
+          <>
+            {/* "Başka ofis mi" sorusu — Satıcı/Alıcı'nın dış ofis seçimini
+                doğrudan gatelediği için Taraflar adımına taşındı (eskiden
+                Temel Bilgiler ızgarasının içindeydi). */}
+            <div>
+              <label className="mb-1 block text-xs text-ink-500">
+                Bu işlemde satıcı veya alıcı tarafını başka bir emlak ofisi mi temsil etti? *
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // "Hayır" derken aşağıdaki Satıcı/Alıcı "Başka Ofis"
+                    // seçimi unutulmuş kalabiliyordu (/kurul, 2026-11-15) —
+                    // bu soru artık alt seçimleri de "Kendi Danışmanımız"a
+                    // çekiyor, ikisi birbiriyle çelişen bir kayıt üretemez.
+                    setDisOfisVarMi(false)
+                    setSaticiTemsilciTipi('kendi')
+                    setAliciTemsilciTipi('kendi')
+                  }}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    disOfisVarMi === false ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  Hayır
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDisOfisVarMi(true)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    disOfisVarMi === true ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  Evet, başka ofis
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-ink-50 p-3">
+              <p className="mb-2 text-xs font-medium text-ink-700">Satıcı Bilgileri</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  required
+                  value={satici.adSoyad}
+                  onChange={(e) => setSatici((s) => ({ ...s, adSoyad: e.target.value }))}
+                  placeholder="Ad Soyad *"
+                  className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  required
+                  value={satici.telefon}
+                  onChange={(e) => setSatici((s) => ({ ...s, telefon: e.target.value }))}
+                  placeholder="Telefon *"
+                  className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  required
+                  value={satici.kimlikNo}
+                  onChange={(e) => setSatici((s) => ({ ...s, kimlikNo: e.target.value }))}
+                  placeholder="TC veya Vergi No *"
+                  className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+              </div>
+
+              <div className={`mt-2 ${disOfisVarMi === true ? 'rounded-lg ring-2 ring-red-500 p-1.5' : ''}`}>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  Satıcı tarafını kim temsil ediyor?
+                  {disOfisVarMi === true && <span className="ml-1 font-semibold text-red-600">⬇ aşağıda işaretle</span>}
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSaticiTemsilciTipi('kendi')}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                      saticiTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    Kendi Danışmanımız
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSaticiTemsilciTipi('dis_ofis')}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                      saticiTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    Başka Ofis (İşbirliği)
+                  </button>
+                </div>
+                {saticiTemsilciTipi === 'kendi' ? (
+                  <select
+                    value={saticiDanismanId}
+                    onChange={(e) => setSaticiDanismanId(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  >
+                    <option value={user.id}>Ben</option>
+                    {danismanOptions.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="mt-2 animate-expand-in space-y-2">
+                    <input
+                      required
+                      value={saticiDisOfisAdi}
+                      onChange={(e) => setSaticiDisOfisAdi(e.target.value)}
+                      placeholder="Ofis Adı *"
+                      className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                    />
+                    <input
+                      value={saticiDisOfisKisi}
+                      onChange={(e) => setSaticiDisOfisKisi(e.target.value)}
+                      placeholder="İlgili Kişi (opsiyonel)"
+                      className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {saticiDiger.map((k, i) => (
+                <div key={i} className="mt-2 grid grid-cols-2 gap-2 border-t border-ink-200 pt-2">
+                  <input
+                    required
+                    value={k.adSoyad}
+                    onChange={(e) => updateDigerKisi(setSaticiDiger, i, { adSoyad: e.target.value })}
+                    placeholder="Ad Soyad *"
+                    className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                  <input
+                    required
+                    value={k.telefon}
+                    onChange={(e) => updateDigerKisi(setSaticiDiger, i, { telefon: e.target.value })}
+                    placeholder="Telefon *"
+                    className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                  <div className="flex gap-1">
+                    <input
+                      required
+                      value={k.kimlikNo}
+                      onChange={(e) => updateDigerKisi(setSaticiDiger, i, { kimlikNo: e.target.value })}
+                      placeholder="TC veya Vergi No *"
+                      className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeDigerKisi(setSaticiDiger, i)}
+                      className="rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
+                      aria-label="Satıcıyı kaldır"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addDigerKisi(setSaticiDiger)}
+                className="mt-2 text-xs font-medium text-brand-700 hover:underline"
+              >
+                + Başka satıcı ekle
+              </button>
+
+              <p className="mt-2 mb-1 text-xs font-medium text-ink-700">Satıcıdan hizmet bedeli aldım mı? *</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSaticiVar(true)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    saticiVar === true
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  Aldım
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSaticiVar(false)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    saticiVar === false
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  Almadım
+                </button>
+              </div>
+              {saticiVar === true && (
+                <div className="mt-2 flex animate-expand-in gap-2">
+                  <input
+                    required
+                    inputMode="numeric"
+                    value={satici.hizmetBedeli}
+                    onChange={(e) => setSatici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
+                    placeholder="Hizmet Bedeli (KDV Dahil) *"
+                    className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                  <input
+                    required
+                    inputMode="numeric"
+                    value={satici.kdvOrani}
+                    onChange={(e) => setSatici((s) => ({ ...s, kdvOrani: e.target.value.replace(/[^0-9.]/g, '') }))}
+                    placeholder="KDV % *"
+                    className="w-20 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                </div>
+              )}
+              {saticiVar === true && saticiHizmetBedeliHaric != null && (
+                <p className="mt-1 text-[11px] text-ink-500">KDV hariç: {tl(saticiHizmetBedeliHaric)}</p>
+              )}
+              {saticiVar === true && hizmetBedeliStandartDisiMi(saticiHizmetBedeliParsed, beklenenHizmetBedeliTutari) && (
+                <p className="mt-1 text-[11px] text-amber-600">
+                  Standart oranda ({form.islemTipi === 'satis' ? '%2+KDV' : '1 kira+KDV'}) bu tutar {tl(beklenenHizmetBedeliTutari)} olurdu — girdiğin tutarı kontrol et.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-lg bg-ink-50 p-3">
+              <p className="mb-2 text-xs font-medium text-ink-700">Alıcı/Kiracı Bilgileri</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  required
+                  value={alici.adSoyad}
+                  onChange={(e) => setAlici((s) => ({ ...s, adSoyad: e.target.value }))}
+                  placeholder="Ad Soyad *"
+                  className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  required
+                  value={alici.telefon}
+                  onChange={(e) => setAlici((s) => ({ ...s, telefon: e.target.value }))}
+                  placeholder="Telefon *"
+                  className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+                <input
+                  required
+                  value={alici.kimlikNo}
+                  onChange={(e) => setAlici((s) => ({ ...s, kimlikNo: e.target.value }))}
+                  placeholder="TC veya Vergi No *"
+                  className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                />
+              </div>
+
+              <div className={`mt-2 ${disOfisVarMi === true ? 'rounded-lg ring-2 ring-red-500 p-1.5' : ''}`}>
+                <label className="mb-1 block text-[11px] text-ink-500">
+                  Alıcı/Kiracı tarafını kim temsil ediyor?
+                  {disOfisVarMi === true && <span className="ml-1 font-semibold text-red-600">⬇ aşağıda işaretle</span>}
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAliciTemsilciTipi('kendi')}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                      aliciTemsilciTipi === 'kendi' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    Kendi Danışmanımız
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAliciTemsilciTipi('dis_ofis')}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                      aliciTemsilciTipi === 'dis_ofis' ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    Başka Ofis (İşbirliği)
+                  </button>
+                </div>
+                {aliciTemsilciTipi === 'kendi' ? (
+                  <select
+                    value={aliciDanismanId}
+                    onChange={(e) => setAliciDanismanId(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  >
+                    <option value={user.id}>Ben</option>
+                    {danismanOptions.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="mt-2 animate-expand-in space-y-2">
+                    <input
+                      required
+                      value={aliciDisOfisAdi}
+                      onChange={(e) => setAliciDisOfisAdi(e.target.value)}
+                      placeholder="Ofis Adı *"
+                      className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                    />
+                    <input
+                      value={aliciDisOfisKisi}
+                      onChange={(e) => setAliciDisOfisKisi(e.target.value)}
+                      placeholder="İlgili Kişi (opsiyonel)"
+                      className="w-full rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {aliciDiger.map((k, i) => (
+                <div key={i} className="mt-2 grid grid-cols-2 gap-2 border-t border-ink-200 pt-2">
+                  <input
+                    required
+                    value={k.adSoyad}
+                    onChange={(e) => updateDigerKisi(setAliciDiger, i, { adSoyad: e.target.value })}
+                    placeholder="Ad Soyad *"
+                    className="col-span-2 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                  <input
+                    required
+                    value={k.telefon}
+                    onChange={(e) => updateDigerKisi(setAliciDiger, i, { telefon: e.target.value })}
+                    placeholder="Telefon *"
+                    className="rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                  <div className="flex gap-1">
+                    <input
+                      required
+                      value={k.kimlikNo}
+                      onChange={(e) => updateDigerKisi(setAliciDiger, i, { kimlikNo: e.target.value })}
+                      placeholder="TC veya Vergi No *"
+                      className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeDigerKisi(setAliciDiger, i)}
+                      className="rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
+                      aria-label="Alıcıyı kaldır"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addDigerKisi(setAliciDiger)}
+                className="mt-2 text-xs font-medium text-brand-700 hover:underline"
+              >
+                + Başka alıcı/kiracı ekle
+              </button>
+
+              <p className="mt-2 mb-1 text-xs font-medium text-ink-700">Alıcıdan/Kiracıdan hizmet bedeli aldım mı? *</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAliciVar(true)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    aliciVar === true
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  Aldım
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAliciVar(false)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    aliciVar === false
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  Almadım
+                </button>
+              </div>
+              {aliciVar === true && (
+                <div className="mt-2 flex animate-expand-in gap-2">
+                  <input
+                    required
+                    inputMode="numeric"
+                    value={alici.hizmetBedeli}
+                    onChange={(e) => setAlici((s) => ({ ...s, hizmetBedeli: formatThousands(e.target.value) }))}
+                    placeholder="Hizmet Bedeli (KDV Dahil) *"
+                    className="flex-1 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                  <input
+                    required
+                    inputMode="numeric"
+                    value={alici.kdvOrani}
+                    onChange={(e) => setAlici((s) => ({ ...s, kdvOrani: e.target.value.replace(/[^0-9.]/g, '') }))}
+                    placeholder="KDV % *"
+                    className="w-20 rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-xs text-ink-800"
+                  />
+                </div>
+              )}
+              {aliciVar === true && aliciHizmetBedeliHaric != null && (
+                <p className="mt-1 text-[11px] text-ink-500">KDV hariç: {tl(aliciHizmetBedeliHaric)}</p>
+              )}
+              {aliciVar === true && hizmetBedeliStandartDisiMi(aliciHizmetBedeliParsed, beklenenHizmetBedeliTutari) && (
+                <p className="mt-1 text-[11px] text-amber-600">
+                  Standart oranda ({form.islemTipi === 'satis' ? '%2+KDV' : '1 kira+KDV'}) bu tutar {tl(beklenenHizmetBedeliTutari)} olurdu — girdiğin tutarı kontrol et.
+                </p>
+              )}
+            </div>
+
+            {/* Pay oranı artık elle yazılmıyor — satıcıyı/alıcıyı temsil eden
+                danışman yukarıdaki iki seçimle belirleniyor, pay otomatik
+                olarak o tarafın hizmet bedelinden hesaplanıyor (broker,
+                2026-10-16). Ekranda da hiç gösterilmiyor (broker, 2026-10-21:
+                "oran yazmasına gerek yok, bizde alıcı satıcı ikiye ayrılır,
+                oranı karıştırma") — satıcı/alıcı iki ayrı taraf, bir ortaklık
+                yüzdesi değil; k.payOrani değeri hâlâ iç hesaplamada (gdCirosu,
+                komisyonTutariOnerisi) kullanılıyor, sadece kullanıcıya
+                gösterilmiyor. */}
+            {toplamHizmetBedeliDeger > 0 && (
+              <div className="space-y-1.5 rounded-lg bg-brand-50 p-3 text-xs text-brand-800">
+                {katilimcilarHazir.length === 0 ? (
+                  'Pay hesaplanamadı — satıcı/alıcıdan alınan hizmet bedelini kontrol et.'
+                ) : (
+                  katilimcilarHazir.map((k) => (
+                    <p key={k.danismanId ?? k.disOfisAdi}>
+                      <span className="font-medium">{katilimciGosterimAdi(k)}</span>
+                      {k.disOfisMi ? (
+                        ' · dış ofis — bu pay için hakediş/cari hesap oluşturulmaz'
+                      ) : k.anlasmaOrani != null ? (
+                        <>
+                          {' '}
+                          · hakediş: <span className="font-semibold">{tl(k.komisyonTutariOnerisi)}</span> (%{k.anlasmaOrani} anlaşma oranı)
+                        </>
+                      ) : (
+                        ' · anlaşma oranı tanımlı değil, broker/owner ile kontrol et'
+                      )}
+                    </p>
+                  ))
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <div className="rounded-lg bg-ink-50 p-3">
+              <p className="mb-2 text-xs font-medium text-ink-700">Diğer Bilgiler</p>
+              <div className="flex gap-2">
+                {Object.entries(KREDI_DURUMU_LABELS).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setKrediDurumu(key)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium ${
+                      krediDurumu === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {krediDurumu === 'kredi' && (
+                <input
+                  required
+                  value={krediBankasi}
+                  onChange={(e) => setKrediBankasi(e.target.value)}
+                  placeholder="Kredi bankası *"
+                  className="mt-2 w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+                />
+              )}
+            </div>
+
+            <div className="rounded-lg bg-ink-50 p-3">
+              <p className="mb-2 text-xs font-medium text-ink-700">Para Hareketleri *</p>
+              {editing && (
+                <p className="mb-2 rounded-lg bg-tint-amber px-2 py-1.5 text-[11px] font-medium text-tint-amber-text">
+                  Bunu girdiğin işlem: {editing.disBeyanKodu ?? '—'} · {tl(editing.islemTutari)} — başka bir sekmede açık
+                  işlemle karıştırmadığından emin ol.
+                </p>
+              )}
+              <p className="mb-2 text-[11px] text-ink-500">
+                Bu işleme ait TÜM banka giriş/çıkışlarını (bağlanma parası, hizmet bedeli — her hareketi ayrı satır olarak) buraya ekle —
+                broker/ofis bunları gerçek banka ekstresiyle eşleştirecek. En az bir hareket girilmesi zorunlu.
+              </p>
+              {existingParaHareketleri?.length > 0 && (
+                <div className="mb-2 space-y-1 rounded-lg bg-white p-2 text-[11px] text-ink-600">
+                  <p className="font-medium text-ink-700">Daha önce eklenmiş (düzenlenemez):</p>
+                  {existingParaHareketleri.map((h) => (
+                    <p key={h.id}>
+                      {h.tip === 'cikis' ? 'Çıkış' : 'Giriş'} · {BANKA_HAREKETI_TUR_LABELS[h.tur] ?? 'Diğer'} · {tl(h.tutar)} · {h.gonderenAdi || '—'}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {paraHareketleri.map((h, i) => (
+                <div key={i} className="mb-2 rounded-lg border border-ink-200 bg-white p-2 last:mb-0">
+                  <div className="mb-2 flex gap-2">
+                    {[
+                      { key: 'giris', label: 'Giriş' },
+                      { key: 'cikis', label: 'Çıkış' },
+                    ].map((t) => (
+                      <button
+                        key={t.key}
+                        type="button"
+                        onClick={() => updateParaHareketi(i, { tip: t.key })}
+                        className={`rounded-lg border px-2 py-1 text-xs font-medium ${
+                          h.tip === t.key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => removeParaHareketi(i)}
+                      className="ml-auto rounded-lg border border-ink-200 px-2 text-xs text-ink-500 hover:bg-ink-100"
+                      aria-label="Satırı kaldır"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    {Object.entries(BANKA_HAREKETI_TUR_LABELS)
+                      .filter(([key]) => key !== 'baglanma_parasi')
+                      .map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => updateParaHareketi(i, { tur: key })}
+                          className={`rounded-lg border px-2 py-1 text-xs font-medium ${
+                            (h.tur ?? 'hizmet_bedeli') === key
+                              ? 'border-brand-600 bg-brand-600 text-white'
+                              : 'border-border-default bg-surface-sunken text-text-secondary'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      inputMode="numeric"
+                      value={h.tutar}
+                      onChange={(e) => updateParaHareketi(i, { tutar: formatThousands(e.target.value) })}
+                      placeholder="Tutar (₺)"
+                      className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                    />
+                    <input
+                      value={h.gonderenAdi}
+                      onChange={(e) => updateParaHareketi(i, { gonderenAdi: e.target.value })}
+                      placeholder={h.tip === 'cikis' ? 'Kime gönderildi' : 'Kimden geldi'}
+                      className="rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                    />
+                    <div>
+                      <label className="mb-0.5 block text-[10px] text-ink-500">Transfer Tarihi</label>
+                      <input
+                        type="date"
+                        value={h.tarih}
+                        onChange={(e) => updateParaHareketi(i, { tarih: e.target.value })}
+                        className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-0.5 block text-[10px] text-ink-500">Dekont Tarihi</label>
+                      <input
+                        type="date"
+                        value={h.dekontTarihi}
+                        onChange={(e) => updateParaHareketi(i, { dekontTarihi: e.target.value })}
+                        className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                      />
+                    </div>
+                    <input
+                      value={h.referansNo}
+                      onChange={(e) => updateParaHareketi(i, { referansNo: e.target.value })}
+                      placeholder="İşlem Referans No (EFT/FAST)"
+                      className="col-span-2 rounded-lg border border-ink-200 px-2 py-1.5 text-xs text-ink-800"
+                    />
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={addParaHareketi} className="text-xs font-medium text-brand-700 hover:underline">
+                + Para hareketi ekle
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-ink-50 p-3">
+              <span className="text-xs font-medium text-ink-700">İşlem Tutarı (Toplam)</span>
+              <span className="text-sm font-semibold text-ink-800">{tl(islemTutariToplam)}</span>
+            </div>
+
+            <textarea
+              value={form.notlar}
+              onChange={(e) => set({ notlar: e.target.value })}
+              placeholder="Not (opsiyonel)"
+              rows={2}
+              className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
+            />
+          </>
+        )}
+
+        {/* 1. ve 2. adımda "İleri" o adımın kendi eksiklerini gösterir.
+            3. adımda (son adım) "Kaydet"/"Güncelle" TÜM eksikleri gösterir —
+            davranış eskisiyle birebir aynı, sadece adım 1/2'dekiler normalde
+            buraya gelmeden zaten tamamlanmış olur. */}
+        {step < 3
+          ? attemptedStep === step &&
+            eksikAlanlarForStep(step).length > 0 && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="mb-1 text-xs font-semibold text-red-700">İleri gitmeden önce şunları gir:</p>
+                <ul className="list-disc space-y-0.5 pl-4 text-xs text-red-700">
+                  {eksikAlanlarForStep(step).map((mesaj) => (
+                    <li key={mesaj}>{mesaj}</li>
+                  ))}
+                </ul>
+              </div>
+            )
+          : attemptedSubmit &&
+            eksikAlanlarMesajlari.length > 0 && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="mb-1 text-xs font-semibold text-red-700">Kaydetmeden önce şunları gir:</p>
+                <ul className="list-disc space-y-0.5 pl-4 text-xs text-red-700">
+                  {eksikAlanlarMesajlari.map((mesaj) => (
+                    <li key={mesaj}>{mesaj}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+        <div className="flex items-center justify-between gap-2 pt-2">
+          <div className="flex gap-2">
+            <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-ink-500 hover:bg-ink-50">
+              Vazgeç
+            </button>
+            {step > 1 && (
+              <button type="button" onClick={goBack} className="rounded-lg border border-border-default px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-sunken">
+                Geri
+              </button>
+            )}
+          </div>
+          {/* key farklı olmalı: aynı JSX konumunda type="button" ↔
+              type="submit" geçişi, React AYNI <button> DOM düğümünü
+              yeniden kullanıp (mutate) sadece type özniteliğini
+              değiştirdiğinde, tarayıcı tıklamanın "submit düğmesi" olup
+              olmadığını native davranış aşamasında (React'ın kendi
+              re-render'ı bittikten SONRA) kontrol ediyor — o anda düğüm
+              zaten type="submit" olmuş oluyor ve "İleri"ye basmak
+              formu YANLIŞLIKLA gönderiyordu (canlı Playwright testinde
+              yakalandı: adım 2→3 geçişinde attemptedSubmit anında true
+              oluyordu). Ayrı key, React'a bunun FARKLI bir düğüm
+              olduğunu söyleyip DOM node'u gerçekten değiştirtiyor. */}
+          {step < 3 ? (
+            <button
+              key="ileri"
+              type="button"
+              onClick={goNext}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              İleri
+            </button>
+          ) : (
+            <button
+              key="kaydet"
+              type="submit"
+              disabled={submitting}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              {submitting ? 'Kaydediliyor...' : editing ? 'Güncelle' : 'Taslak Olarak Kaydet'}
+            </button>
+          )}
         </div>
       </form>
     </Modal>
