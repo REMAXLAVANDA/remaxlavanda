@@ -3055,3 +3055,39 @@ bulunan 4 "Yayına Engel" bulgunun hepsi düzeltildi:
 4. `text-ink-400` (kontrast 2.60:1, WCAG eşiğinin altında) — `AsyncState.
    jsx` ve `Modal.jsx`'te `text-text-muted`'a çevrildi, 24+ dosyayı
    etkiliyordu.
+
+Aynı raporun "Senin kararını bekleyen Sapma'lar" bölümündeki 7 sorudan
+broker'ın "evet" dediği 4'ü de aynı oturumda düzeltildi:
+
+1. **Cari Hesap hakediş/ödeme senkronu tek işleme alındı** — eskiden
+   `updateKatilimciFatura` 3 ayrı istek gönderiyordu (katılımcı güncelleme
+   + 2 ayrı cari hesap güncellemesi), biri başarısız olursa hakediş
+   satırı eski kalabiliyordu. `cari_hesap_odeme_kaydi_senkronize()`
+   tetikleyicisi genişletildi (migration 20261120130000), client taraflı
+   2 ayrı UPDATE kaldırıldı — artık hepsi tek UPDATE'in tetikleyicisinde,
+   aynı transaction'da. Canlıda test edilip hem hakediş hem ödeme
+   satırının birlikte doğru güncellendiği doğrulandı.
+2. **Banka Hareketleri'nde mükerrer kayıt engeli eklendi** —
+   2026-11-15'te gerçekten yaşanan bir olaydan sonra (`audit_log`'da
+   "Mükerrer (aynı işlem 2 kere girilmiş)" notuyla 4 kayıt elle
+   temizlenmiş). `ux_banka_hareketleri_mukerrer_engeli` kısıtlı index
+   eklendi (migration 20261120120000) — aynı tutar+tarih+gönderen+tip ile
+   elle (kaynak='manuel') tekrar girişi veritabanı seviyesinde engelliyor.
+   Hata mesajı da `lib/errors.js`'e eklendi (düz Türkçe, "zaten kayıtlı").
+3. **Lead Havuzu'ndaki "gecikmiş" işaretine yazı desteği eklendi** —
+   eskiden sadece kenarlık rengiyle gösteriliyordu (renk körü biri
+   göremeyebilir), Fırsatlar'daki eşdeğeri (`OpportunityTable`) hem renk
+   hem kalın yazıyla destekliydi. `LeadTable.jsx`'te aynı desen (tarih
+   metni `font-medium text-brand-700`) masaüstü + mobil her ikisine de
+   uygulandı.
+4. **Panel/Lig'deki eski stok amber renkleri `tint-amber`'a çevrildi** —
+   Takip modülü aynı anlam için daha önce geçmişti, Panel (`
+   PartialFailureBanner`/`EmptyRow`) ve Lig (dönem kapalı bandı) geride
+   kalmıştı.
+
+Kalan 3 soru: biri ("19 danışman") bilinen bir durum olduğu için kod
+değişikliği gerektirmiyor, biri ("Fırsatlar'ın kapanışı") danışmanların
+süreci sistem dışında bitirmesiyle ilgili — bir eğitim/alışkanlık konusu,
+kod boşluğu değil. Rehber > Kararlar ve Planlama > Görevler'in neden
+kullanılmadığı sorusu ise broker ile ayrıca konuşulacak, henüz
+cevaplanmadı.
