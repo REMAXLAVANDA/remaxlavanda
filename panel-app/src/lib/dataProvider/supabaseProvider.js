@@ -1714,30 +1714,14 @@ export const ciroRaporlari = {
     // client-taraflı hesap, muhasebe (is_manager() olmayan) fatura girince
     // broker_alanlarini_koru tetikleyicisi yüzünden sessizce null'a
     // dönüyordu — bkz. o migration'daki not.
+    // Cari Hesap senkronu (hakediş satırının tutarı/açık-kapalı durumu +
+    // ayrı "ödeme" satırının ekleme/güncelleme/silinmesi) artık TAMAMEN
+    // trg_cari_hesap_odeme_kaydi tetikleyicisinde — bu tek UPDATE ile AYNI
+    // transaction'da, hepsi ya da hiçbiri. Eskiden burada 2 ayrı UPDATE
+    // daha vardı (/kurul, 2026-11-20 Sapma düzeltmesi, broker onayı) —
+    // biri başarısız olursa diğer satır güncel kalıp hakediş satırı eski
+    // kalabiliyordu. bkz. migration 20261120130000.
     await run(client().from('ciro_raporu_katilimcilari').update(dbPatch).eq('id', id))
-
-    // Cari Hesap senkronu: fatura tutarı değiştiyse ilgili alacak satırının
-    // tutarı güncellenir; ödeme durumu değiştiyse satır kapanır/açılır —
-    // bu katılımcı için approve()'da oluşturulmuş bir satır varsa (yoksa
-    // no-op, eq eşleşen satır bulamaz).
-    if ('faturaTutari' in patch && patch.faturaTutari != null) {
-      await run(
-        client()
-          .from('cari_hareketler')
-          .update({ tutar: patch.faturaTutari })
-          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
-          .eq('kaynak_id', id),
-      )
-    }
-    if ('odemeDurumu' in patch) {
-      await run(
-        client()
-          .from('cari_hareketler')
-          .update({ durum: patch.odemeDurumu === 'alindi' ? 'kapandi' : 'acik' })
-          .eq('kaynak_tip', 'ciro_raporu_katilimcisi')
-          .eq('kaynak_id', id),
-      )
-    }
   },
   // 2026-10-17 /kurul düzeltmesi: onay artık TEK bir veritabanı
   // fonksiyonunda (approve_ciro_raporu, SECURITY DEFINER) atomik ve
