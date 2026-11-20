@@ -255,6 +255,13 @@ export default function CiroRaporlariPanel() {
     try {
       await ciroRaporlariProvider.submit(r.id)
       showToast('Ciro raporu onaya gönderildi.', 'success')
+      // Broker, 2026-11-20: "onaya gönder dediğinde sayfa üstte kalıyor,
+      // enteresan bir problem var" — onaya gönderilince detay penceresi
+      // içindeki Sil/Düzenle/Onaya Gönder düğmeleri kayboluyordu (artık
+      // taslak değil) ama pencere açık kalıp boş bir alan bırakıyordu.
+      // Artık gönderilince pencere kapanıyor, danışman listede raporun
+      // "Onay Bekliyor"a taşındığını görüyor.
+      setDetailId(null)
       reload()
     } catch (err) {
       showToast(err.message ?? 'Gönderilemedi, tekrar dene.', 'error')
