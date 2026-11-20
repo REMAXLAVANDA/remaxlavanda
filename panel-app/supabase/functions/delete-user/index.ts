@@ -18,9 +18,17 @@
 // atamaları, görevler) ise ARTIK SİLİNMİYOR — broker kararı: "hiçbir
 // müşteri/iş kaydı, o kaydı giren kişi ayrıldı diye silinmemeli". Bunun
 // yerine auth.users silinmeden ÖNCE bu danışmana ait "kime ait" alanları
-// biz boşaltıyoruz (aşağıda), kayıt kendisi kalıyor — yönetim isterse
-// başkasına yeniden atar. tasks.assignee_id/created_by artık DB seviyesinde
+// biz boşaltıyoruz, kayıt kendisi kalıyor — yönetim isterse başkasına
+// yeniden atar. tasks.assignee_id/created_by artık DB seviyesinde
 // "on delete set null" olduğu için burada elle dokunmaya gerek yok.
+//
+// /kurul, 2026-11-20 (veri-zinciri-analisti, YAYINA ENGEL): bu boşaltma
+// adımları eskiden burada tek tek (ayrı ayrı commit olan) sorgularla
+// yapılıyordu — biri hata verirse öncekiler GERİ ALINMIYORDU. Artık hepsi
+// public.delete_user_cleanup() RPC'si içinde TEK bir veritabanı işlemi —
+// bkz. migration 20261120110000. Finansal/kayıt geçmişi olan bir danışmanı
+// silmeye çalışırsak bu RPC hiçbir şeyi değiştirmeden açık bir hatayla
+// durur (aşağıda yakalanıp kullanıcıya düz Türkçe gösteriliyor).
 //
 // Bu yüzden broker kendi kendini silemez (yanlışlıkla kilitlenmesin diye).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -88,37 +96,10 @@ Deno.serve(async (req) => {
     return Response.json({ ok: false, error: 'Kendi hesabını silemezsin.' }, { status: 400, headers: CORS })
   }
 
-  // Fırsatlar: silinen kişi sahibiyse (owner_id) veya üzerine almışsa
-  // (claimer_id) kayıt SİLİNMİYOR, sadece o alan boşaltılıyor. "claimed"
-  // durumundaki bir fırsatın sahibi ayrılırsa havuza geri düşsün diye
-  // status da 'acik'ya, claimed_at da null'a çekiliyor — kapanmış/iptal
-  // fırsatların durumuna dokunulmuyor.
-  await admin.from('opportunities').update({ owner_id: null }).eq('owner_id', id)
-  await admin
-    .from('opportunities')
-    .update({ claimer_id: null, claimed_at: null, status: 'acik' })
-    .eq('claimer_id', id)
-    .eq('status', 'claimed')
-  await admin.from('opportunities').update({ claimer_id: null }).eq('claimer_id', id).neq('status', 'claimed')
-  await admin.from('opportunities').update({ closed_by: null }).eq('closed_by', id)
-
-  // Çağrı kayıtları, lead havuzu, recruiting atamaları: kayıt kalıyor,
-  // sadece atama boşalıyor.
-  await admin.from('call_logs').update({ assigned_to: null }).eq('assigned_to', id)
-  await admin.from('leads').update({ atanan_danisman_id: null }).eq('atanan_danisman_id', id)
-  await admin.from('recruiting_candidates').update({ atanan_danisman_id: null }).eq('atanan_danisman_id', id)
-
-  // Rehber (dokümanlar), audit log ve "kim girdi/kim onayladı" kolonları:
-  // kayıt kalıyor, sadece kim yaptığı bilgisi boşalıyor.
-  await admin.from('docs').update({ created_by: null }).eq('created_by', id)
-  await admin.from('doc_versions').update({ uploaded_by: null }).eq('uploaded_by', id)
-  await admin.from('audit_log').update({ actor_id: null }).eq('actor_id', id)
-  await admin.from('onboarding_checklist_status').update({ done_by: null }).eq('done_by', id)
-  await admin.from('score_entries').update({ entered_by: null }).eq('entered_by', id)
-  await admin.from('ciro_musterileri').update({ entered_by: null }).eq('entered_by', id)
-  await admin.from('ciro_girisleri').update({ entered_by: null }).eq('entered_by', id)
-  await admin.from('social_activity_log').update({ entered_by: null }).eq('entered_by', id)
-  await admin.from('event_attendance').update({ mazeret_reviewed_by: null }).eq('mazeret_reviewed_by', id)
+  const { error: cleanupErr } = await admin.rpc('delete_user_cleanup', { p_user_id: id })
+  if (cleanupErr) {
+    return Response.json({ ok: false, error: cleanupErr.message }, { status: 400, headers: CORS })
+  }
 
   const { error: deleteErr } = await admin.auth.admin.deleteUser(id)
   if (deleteErr) {
