@@ -2277,9 +2277,18 @@ export const users = {
   // Function'ı üzerinden gidiyor (create-user ile aynı kalıp). Fonksiyon
   // henüz deploy edilmediyse (supabase functions deploy delete-user) bu
   // çağrı hata fırlatır — kasıtlı, sessizce "silinmiş gibi" davranmıyoruz.
+  //
+  // /kurul, 2026-11-20 düzeltmesi sırasında fark edildi: fonksiyon 400 gibi
+  // bir durum koduyla (ör. "finans kaydı var, silinemez") döndüğünde
+  // supabase-js bunu data değil error olarak veriyor — eskiden bu durumda
+  // asıl mesaj hiç gösterilmiyor, genel "deploy edilmemiş olabilir" mesajı
+  // basılıyordu. error.context'teki gerçek yanıt gövdesi okunuyor.
   async deleteUser(id) {
     const { data, error } = await client().functions.invoke('delete-user', { body: { id } })
-    if (error) throw new Error('Kullanıcı silinemedi — delete-user fonksiyonu deploy edilmemiş olabilir.')
+    if (error) {
+      const body = await error.context?.json?.().catch(() => null)
+      throw new Error(body?.error ?? 'Kullanıcı silinemedi — delete-user fonksiyonu deploy edilmemiş olabilir.')
+    }
     if (!data?.ok) throw new Error(data?.error ?? 'Kullanıcı silinemedi.')
   },
   // Unutulan şifre için broker/owner yeni bir geçici şifre atar —
