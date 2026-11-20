@@ -3090,4 +3090,25 @@ değişikliği gerektirmiyor, biri ("Fırsatlar'ın kapanışı") danışmanlar�
 süreci sistem dışında bitirmesiyle ilgili — bir eğitim/alışkanlık konusu,
 kod boşluğu değil. Rehber > Kararlar ve Planlama > Görevler'in neden
 kullanılmadığı sorusu ise broker ile ayrıca konuşulacak, henüz
-cevaplanmadı.
+cevaplanmadı (broker: "danışmanlar bilmiyor/alışkanlık yok" — tanıtım/
+hatırlatma konusu, kod değişikliği değil).
+
+Aynı oturumda, rapordaki ~20 küçük/orta maddeden broker'ın "en
+önemlilerini seç" dediği 6 tanesi de düzeltildi:
+
+1. Sidebar grup başlığı (white/35, 3.09:1) ve alt yazı (white/40, 3.59:1)
+   — white/50'ye çevrildi (4.79:1, hesaplanıp doğrulandı), aynı dosyadaki
+   mevcut değerle tutarlı.
+2. `ErrorState` (24 dosyada) — stok Tailwind kırmızısı yerine marka
+   tokenleri (tint-red/border-danger/brand-600/700).
+3. `CallTable.jsx`'teki "Çağrıyı sil" butonu — `TaskRow.jsx`'teki aynı
+   marka tokenlerine çevrildi.
+4. `ciroRaporlari.update()` — katılımcı satırları artık önce eklenip
+   SONRA eski satırlar silinir (eskiden tersiydi — ekleme hata verirse
+   rapor tamamen katılımcısız kalabiliyordu, `create()`'teki yorumda
+   anlatılan, prod'da gerçekten yaşanan senaryonun aynısı).
+5. Lig dönem kapanışı — "bugün" artık UTC takvim gününe göre (SQL'deki
+   `current_date` ile birebir), eskiden tarayıcı yerel saatine göre
+   hesaplanıp UTC+3'te sistematik 1 gün hataya yol açıyordu.
+6. 4 yeni Finans tablosunun INSERT politikasındaki çıplak `auth.uid()`
+   → `(select auth.uid())` (performans, davranış değişmedi).
