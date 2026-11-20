@@ -443,11 +443,11 @@ export default function Lig() {
 
       {/* Dönem kapalı (kör yargılama penceresi) — broker/owner'a banner +
           "Sonuçları Açıkla" düğmesi. Danışman/ofis bu bloğu hiç görmez,
-          onlara aşağıdaki ayrı "hazırlanıyor" mesajı gösteriliyor. */}
+          onlara aşağıdaki ayrı "hazırlanıyor" mesajı gösteriliyor.
+          /kurul, 2026-11-20 (görsel-denetçi, Sapma — broker onayı
+          2026-11-20): Takip modülü aynı anlam için tint-amber'a geçmişti,
+          burası stok amber-*'ta kalmıştı, aşağıda düzeltildi. */}
       {!loading && !error && period && effectiveDurum === 'kapali' && isBrokerOrOwner && (
-        {/* /kurul, 2026-11-20 (görsel-denetçi, Sapma — broker onayı
-            2026-11-20): Takip modülü aynı anlam için tint-amber'a
-            geçmişti, burası stok amber-*'ta kalmıştı. */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-tint-amber bg-tint-amber p-4">
           <div className="flex items-center gap-2 text-sm text-tint-amber-text">
             <Lock size={16} className="shrink-0" />
