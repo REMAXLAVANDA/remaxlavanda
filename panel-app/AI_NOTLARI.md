@@ -3014,3 +3014,44 @@ karşılığı olacağından aynı yer için iki çelişkili pin çıkmasın diy
 bu yorum broker'a henüz ayrıca sorulmadı. Leaflet + OpenStreetMap
 kullanıldı (ücretsiz, API anahtarı gerekmiyor). Eski kayıtlarda konum
 yok, haritada görünmüyorlar (geriye dönük doldurma kapsam dışı).
+
+## 2026-11-20 — /kurul 360° denetim: 4 kritik bulgu düzeltildi
+
+Broker'ın "sistemi 360° incele" talebiyle yapılan tam kapsamlı /kurul
+denetiminde (rapor: `docs/kurul/raporlar/2026-11-20-genel-sistem-360.md`)
+bulunan 4 "Yayına Engel" bulgunun hepsi düzeltildi:
+
+1. **`emanet_ozet` görünümü RLS'i atlıyordu** — `security_invoker` ayarı
+   eksikti, görünüm sahibinin (postgres) yetkisiyle çalışıp altındaki
+   `emanetler`/`emanet_hareketleri` tablolarındaki "sadece broker/owner/
+   muhasebe" kuralını (`is_finans_yetkili()`) atlıyordu; görünüme
+   `authenticated`e açık SELECT verildiği için herhangi bir danışman TÜM
+   emanet bakiyelerini görebiliyordu. `alter view ... set
+   (security_invoker = true)` ile düzeltildi, canlıda rol simülasyonuyla
+   doğrulandı (danışman artık 0 satır, owner kendi gördüğü satırları
+   görüyor).
+2. **Kullanıcı silme (delete-user) tek parça değildi** — eskiden 11 ayrı
+   adım (her biri kendi başına commit oluyordu) halinde çalışıyordu; biri
+   hata verirse öncekiler geri alınmıyordu. Ayrıca fonksiyon yazıldığından
+   sonra eklenen birçok tablodaki "kim yaptı"/"kimin hesabı" alanı hiç
+   temizlenmiyordu. Yeni `delete_user_cleanup()` SECURITY DEFINER
+   fonksiyonu (migration 20261120110000) hepsini TEK transaction'a aldı:
+   finansal/kayıt geçmişi (cari hesap, anlaşma, koçluk notu, ciro payı,
+   masraf, ortak hesabı, tedarikçi ödemesi, harita kaydı ekleyeni) olan
+   bir kullanıcı hiç dokunulmadan açık bir hatayla durduruluyor ("önce
+   pasif yap"); geri kalan "kim yaptı" alanları (eşleştirme/onay/not)
+   hepsi birden boşalıyor. ÖNEMLİ yetki notu: bu fonksiyon SADECE
+   service_role'e (delete-user Edge Function'ı) açık — ilk denemede
+   "revoke ... from public" yetmedi, Supabase projelerinde yeni
+   fonksiyonlara otomatik olarak anon/authenticated de ekleniyor, bunlar
+   da elle geri alınmak zorunda kaldı (canlıda doğrulandı). Ayrıca
+   edge function'ın hata mesajını istemciye hiç ulaştırmayan eski bir
+   hata da fark edilip düzeltildi (`supabaseProvider.deleteUser` —
+   `functions.invoke` 400 durumunda mesajı `error.context`'e koyuyor,
+   `data`'ya değil).
+3. Harita'da "Kaydı Sil" onaysız, tek tıkla siliyordu (sistemdeki TEK
+   onaysız silme noktası) — diğer ekranlardaki `deleteTarget` +
+   `ConfirmDialog` deseni uygulandı.
+4. `text-ink-400` (kontrast 2.60:1, WCAG eşiğinin altında) — `AsyncState.
+   jsx` ve `Modal.jsx`'te `text-text-muted`'a çevrildi, 24+ dosyayı
+   etkiliyordu.
