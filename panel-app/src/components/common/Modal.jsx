@@ -71,7 +71,10 @@ export default function Modal({ title, onClose, children, maxWidth = 'max-w-md',
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-ink-900">{title}</h2>
-          <button onClick={onClose} aria-label="Kapat" className="rounded-lg p-1 text-ink-400 hover:bg-ink-50">
+          {/* /kurul, 2026-11-20 (görsel-denetçi, YAYINA ENGEL): text-ink-400
+              beyaz zeminde 2.60:1 kontrast veriyor, WCAG 1.4.3/1.4.11 altında —
+              bu düğme sistemdeki TÜM modallarda var. */}
+          <button onClick={onClose} aria-label="Kapat" className="rounded-lg p-1 text-text-muted hover:bg-ink-50">
             <X size={18} />
           </button>
         </div>

@@ -2,9 +2,12 @@ import { AlertTriangle, Loader2, Lock, RotateCcw } from 'lucide-react'
 
 // Paylaşılan yükleniyor/hata durumları — useAsyncList ile birlikte tüm
 // sayfalarda aynı görünüm/davranışı sağlar.
+// /kurul, 2026-11-20 (görsel-denetçi, YAYINA ENGEL): text-ink-400 beyaz
+// zeminde 2.60:1 kontrast veriyor, WCAG 1.4.3 eşiğinin (4.5:1) altında —
+// bu bileşen 24 dosyada kullanıldığı için etkisi genişti.
 export function LoadingState({ label = 'Yükleniyor...' }) {
   return (
-    <div className="flex items-center justify-center gap-2 rounded-xl border border-ink-100 bg-white py-12 text-sm text-ink-400">
+    <div className="flex items-center justify-center gap-2 rounded-xl border border-ink-100 bg-white py-12 text-sm text-text-muted">
       <Loader2 size={16} className="animate-spin" />
       {label}
     </div>

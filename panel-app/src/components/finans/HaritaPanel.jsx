@@ -14,6 +14,7 @@ import { ROLES } from '../../lib/roles'
 import { ISLEM_TIPI_LABELS as CIRO_ISLEM_TIPI_LABELS, RAPOR_KATEGORI_LABELS } from '../../lib/ciroRaporlari'
 import { ISLEM_TIPI_LABELS as PORTFOY_ISLEM_TIPI_LABELS } from '../../lib/opportunities'
 import { LoadingState, ErrorState } from '../common/AsyncState'
+import ConfirmDialog from '../common/ConfirmDialog'
 import ManuelHaritaKaydiModal from './ManuelHaritaKaydiModal'
 
 function tl(n) {
@@ -78,6 +79,11 @@ export default function HaritaPanel() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  // /kurul, 2026-11-20 (kullanılabilirlik-denetçi, YAYINA ENGEL): sistemdeki
+  // TEK onaysız silme noktasıydı (CLAUDE.md "Asla olmaması gerekenler:
+  // Onaysız veri silme") — diğer ekranlardaki AYNI deleteTarget+ConfirmDialog
+  // deseni buraya da uygulandı.
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   // Broker de kendi işlemini kaydedebilmek için seçilebilir — ama Lig
   // sıralamaları gibi performans listelerinde YAYINLANMAK istemiyor (bkz.
@@ -106,10 +112,12 @@ export default function HaritaPanel() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete() {
+    const id = deleteTarget
     setDeletingId(id)
     try {
       await haritaProvider.manuelKayitSil(id)
+      setDeleteTarget(null)
       showToast('Kayıt silindi.', 'success')
       await reload()
     } catch (err) {
@@ -178,7 +186,7 @@ export default function HaritaPanel() {
                   {isManager && k.kaynak === 'manuel' && (
                     <button
                       disabled={deletingId === k.id}
-                      onClick={() => handleDelete(k.id)}
+                      onClick={() => setDeleteTarget(k.id)}
                       className="mt-1 font-medium text-brand-700 hover:underline disabled:opacity-50"
                     >
                       {deletingId === k.id ? 'Siliniyor...' : 'Kaydı sil'}
@@ -196,6 +204,17 @@ export default function HaritaPanel() {
           onSubmit={handleAddSubmit}
           submitting={submitting}
           danismanOptions={danismanOptions}
+        />
+      )}
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Kaydı sil"
+          message="Bu manuel harita kaydını silmek istediğine emin misin? Bu işlem geri alınamaz."
+          confirmLabel="Evet, sil"
+          tone="danger"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          confirming={deletingId === deleteTarget}
         />
       )}
     </div>
