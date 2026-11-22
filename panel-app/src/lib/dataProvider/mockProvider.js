@@ -1604,6 +1604,36 @@ export const bankaHareketleri = {
     hareket.cozumNotu = cozumNotu
     return delay({ id: hareketId })
   },
+  // bkz. supabaseProvider.js ofisGideriIsaretle (banka_hareketi_ofis_gideri_isaretle
+  // RPC'si) — AYNI mantık: taze bir hareket için de, kategorisi boş eski
+  // bir 'masraf' hareketi için de kullanılabiliyor.
+  async ofisGideriIsaretle(hareketId, { anaKategori, altKategori, aciklama, cozumNotu, kasaId }, kullaniciId) {
+    const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
+    if (!hareket) throw new Error('Hareket bulunamadı.')
+    if (!cozumNotu || !cozumNotu.trim()) throw new Error('Çözüm notu zorunlu.')
+    if (!altKategori || !altKategori.trim()) throw new Error('Gider kategorisi seçilmeli.')
+    if (hareket.genelGiderId) throw new Error('Bu hareket zaten bir gider kaydına bağlı.')
+    const kasaIdDeger = kasaId || hareket.kasaId
+    if (!kasaIdDeger) throw new Error('Kasa seçilmeli.')
+    const giderRow = {
+      id: `gg-${Date.now()}`,
+      anaKategori,
+      altKategori,
+      tutar: Number(hareket.tutar),
+      tarih: hareket.tarih,
+      kasaId: kasaIdDeger,
+      aciklama: aciklama || null,
+      createdBy: kullaniciId,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_GENEL_GIDERLER.push(giderRow)
+    hareket.durum = 'masraf'
+    hareket.genelGiderId = giderRow.id
+    hareket.cozumNotu = cozumNotu
+    hareket.eslestirenId = kullaniciId
+    hareket.eslesmeTarihi = new Date().toISOString()
+    return delay({ giderId: giderRow.id })
+  },
   // Artık odeme_durumu'nu otomatik 'alindi' yapmıyor — bkz.
   // supabaseProvider.js'teki aynı fonksiyondaki 2026-10-11 notu.
   async eslestir(hareketId, katilimciId, eslestirenId) {

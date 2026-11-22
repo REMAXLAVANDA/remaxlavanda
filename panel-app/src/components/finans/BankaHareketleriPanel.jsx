@@ -10,6 +10,7 @@ import {
   bankaHareketleri as bankaHareketleriProvider,
   categories as categoriesProvider,
   kasalar as kasalarProvider,
+  islemMasraflari as islemMasraflariProvider,
 } from '../../lib/dataProvider'
 import {
   BANKA_HAREKETI_DURUM_LABELS,
@@ -25,6 +26,7 @@ import { getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState, RestrictedAccess } from '../common/AsyncState'
 import BlokeCozumleModal from './BlokeCozumleModal'
 import MasrafIsaretleModal from './MasrafIsaretleModal'
+import OfisGideriTamamlaModal from './OfisGideriTamamlaModal'
 import BankaHareketiDanismanPanel from './BankaHareketiDanismanPanel'
 
 function tl(n) {
@@ -34,15 +36,16 @@ function tl(n) {
 const today = () => new Date().toISOString().slice(0, 10)
 
 async function loadAll() {
-  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar] = await Promise.all([
+  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar, islemMasraflari] = await Promise.all([
     bankaHareketleriProvider.list(),
     ciroRaporlariProvider.list(),
     opportunitiesProvider.list(),
     categoriesProvider.list('masraflar'),
     bankaHareketleriProvider.listEmanetOzet(),
     kasalarProvider.list(),
+    islemMasraflariProvider.listAll(),
   ])
-  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar }
+  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar, islemMasraflari }
 }
 
 export default function BankaHareketleriPanel() {
@@ -66,8 +69,10 @@ export default function BankaHareketleriPanel() {
   const [matchTarget, setMatchTarget] = useState(null)
   const [blokeTarget, setBlokeTarget] = useState(null)
   const [masrafTarget, setMasrafTarget] = useState(null)
+  const [tamamlaTarget, setTamamlaTarget] = useState(null)
   const [aciklamaTarget, setAciklamaTarget] = useState(null)
   const [arama, setArama] = useState('')
+  const [sadeceBosMasraflar, setSadeceBosMasraflar] = useState(false)
 
   // Ödeme bekleyen tüm katılımcı satırları — her bankadan gelen hareket
   // için en olası eşleşme adayları buradan çıkıyor (bkz. lib/
@@ -109,14 +114,29 @@ export default function BankaHareketleriPanel() {
   // React Hook kuralları: hook'lar koşullu dönüşten önce, hep aynı
   // sırada çağrılmalı (bkz. bekleyenKatilimcilar notu).
   const aramaNormalize = (s) => (s ?? '').toLocaleLowerCase('tr-TR')
-  const hareketler = useMemo(() => {
-    const tumHareketler = data?.hareketler ?? []
-    const q = aramaNormalize(arama.trim())
-    if (!q) return tumHareketler
-    return tumHareketler.filter((h) =>
-      [h.aciklama, h.gonderenAdi, h.cozumNotu].some((alan) => aramaNormalize(alan).includes(q)),
+
+  // 1.2: "kategorisi boş masraflar" — İşlem Masrafı (danışman carisine
+  // bağlı) olarak zaten çözülmüş masraf kayıtları burada SAYILMIYOR,
+  // sadece hiçbir gider kaydına (genel_gider_id) bağlanmamış, eski/
+  // kategorisiz kalan masraflar (bkz. OfisGideriTamamlaModal).
+  const bosMasrafIdSeti = useMemo(() => {
+    const danismanCariBankaIdleri = new Set(
+      (data?.islemMasraflari ?? []).filter((m) => m.siniflandirma === 'danisman_cari').map((m) => m.bankaHareketiId),
     )
-  }, [data, arama])
+    const set = new Set()
+    for (const h of data?.hareketler ?? []) {
+      if (h.durum === 'masraf' && !h.genelGiderId && !danismanCariBankaIdleri.has(h.id)) set.add(h.id)
+    }
+    return set
+  }, [data])
+
+  const hareketler = useMemo(() => {
+    let liste = data?.hareketler ?? []
+    if (sadeceBosMasraflar) liste = liste.filter((h) => bosMasrafIdSeti.has(h.id))
+    const q = aramaNormalize(arama.trim())
+    if (!q) return liste
+    return liste.filter((h) => [h.aciklama, h.gonderenAdi, h.cozumNotu].some((alan) => aramaNormalize(alan).includes(q)))
+  }, [data, arama, sadeceBosMasraflar, bosMasrafIdSeti])
 
   if (!canManageBankaHareketleri(role)) {
     // Danışman/ofis tam yönetim ekranını (eşleştirme/bloke/masraf) hiç
@@ -217,12 +237,33 @@ export default function BankaHareketleriPanel() {
     }
   }
 
-  async function handleMasrafIsaretle(payload) {
+  async function handleMasrafIsaretle({ secim, ...payload }) {
     setSubmitting(true)
     try {
-      await bankaHareketleriProvider.masrafOlarakIsaretle(masrafTarget.id, payload, user.id)
+      if (secim === 'ofis_gideri') {
+        await bankaHareketleriProvider.ofisGideriIsaretle(masrafTarget.id, payload, user.id)
+      } else {
+        await bankaHareketleriProvider.masrafOlarakIsaretle(masrafTarget.id, payload, user.id)
+      }
       setMasrafTarget(null)
       showToast('Masraf olarak kaydedildi.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // 1.2: "kategorisi boş masraflar" filtresinden açılıyor — eski bir
+  // masraf kaydına sonradan kategori + not ekler, durum zaten 'masraf'
+  // olduğu için değişmiyor (bkz. OfisGideriTamamlaModal, aynı RPC).
+  async function handleOfisGideriTamamla(payload) {
+    setSubmitting(true)
+    try {
+      await bankaHareketleriProvider.ofisGideriIsaretle(tamamlaTarget.id, payload, user.id)
+      setTamamlaTarget(null)
+      showToast('Gider kategorisi eklendi.', 'success')
       reload()
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
@@ -398,12 +439,20 @@ export default function BankaHareketleriPanel() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && (
-        <input
-          value={arama}
-          onChange={(e) => setArama(e.target.value)}
-          placeholder="Açıklama, gönderen veya çözüm notunda ara…"
-          className="mb-3 w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted sm:w-80"
-        />
+        <div className="mb-3 flex flex-wrap items-center gap-3">
+          <input
+            value={arama}
+            onChange={(e) => setArama(e.target.value)}
+            placeholder="Açıklama, gönderen veya çözüm notunda ara…"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted sm:w-80"
+          />
+          {bosMasrafIdSeti.size > 0 && (
+            <label className="flex items-center gap-1.5 text-xs text-text-secondary">
+              <input type="checkbox" checked={sadeceBosMasraflar} onChange={(e) => setSadeceBosMasraflar(e.target.checked)} />
+              Sadece kategorisi boş masraflar ({bosMasrafIdSeti.size})
+            </label>
+          )}
+        </div>
       )}
 
       {!loading && !error && (
@@ -513,6 +562,14 @@ export default function BankaHareketleriPanel() {
                         <Undo2 size={13} /> Eşleşmeyi kaldır
                       </button>
                     )}
+                    {bosMasrafIdSeti.has(h.id) && (
+                      <button
+                        onClick={() => setTamamlaTarget(h)}
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-tint-amber-text hover:bg-tint-amber"
+                      >
+                        <Receipt size={13} /> Kategori Ekle
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -610,6 +667,16 @@ export default function BankaHareketleriPanel() {
           onClose={() => setMasrafTarget(null)}
           onSubmit={handleMasrafIsaretle}
           onKategoriEkle={handleKategoriEkle}
+          submitting={submitting}
+        />
+      )}
+
+      {tamamlaTarget && (
+        <OfisGideriTamamlaModal
+          hareket={tamamlaTarget}
+          kasalar={data?.kasalar}
+          onClose={() => setTamamlaTarget(null)}
+          onSubmit={handleOfisGideriTamamla}
           submitting={submitting}
         />
       )}

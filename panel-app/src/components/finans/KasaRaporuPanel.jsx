@@ -50,8 +50,14 @@ async function loadAll() {
   // Broker, 2026-11-09: Kasa Raporu'na bankaHareketleri de eklenmeli — ama
   // sadece kasa_id atanmış olanlar (henüz atanmamışları raporda GÖSTERMİYORUZ,
   // sayısını ayrıca kontrol edip broker'a bildiriyoruz, bkz. kasasizBankaHareketiSayisi).
-  const bankaHareketleri = bankaHareketleriTumu.filter((h) => h.kasaId != null)
-  return { kasalar, genelGiderler, tedarikciOdemeleri, ortakHesabiHareketleri, kasaTransferleri, cariHesapOdemeleri, bankaHareketleri, kasasizBankaHareketiSayisi: bankaHareketleriTumu.length - bankaHareketleri.length }
+  // Madde 1.2 (2026-11-22): genel_gider_id'si olan bir banka hareketi
+  // çift sayılmasın — o paranın gider tarafı zaten aşağıdaki genelGiderler
+  // listesinden ayrı bir satır olarak geliyor, ikisi AYNI parayı
+  // temsil ediyor. Bu, "kasa seçilmemiş" uyarısından AYRI tutuluyor —
+  // bilinçli bir hariç tutma, eksik veri değil.
+  const kasasizBankaHareketleri = bankaHareketleriTumu.filter((h) => h.kasaId == null)
+  const bankaHareketleri = bankaHareketleriTumu.filter((h) => h.kasaId != null && h.genelGiderId == null)
+  return { kasalar, genelGiderler, tedarikciOdemeleri, ortakHesabiHareketleri, kasaTransferleri, cariHesapOdemeleri, bankaHareketleri, kasasizBankaHareketiSayisi: kasasizBankaHareketleri.length }
 }
 
 // Her kaynaktan gelen farklı şekildeki satırları tek bir ortak forma

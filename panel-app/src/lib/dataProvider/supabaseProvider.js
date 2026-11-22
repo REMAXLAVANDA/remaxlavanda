@@ -1914,6 +1914,7 @@ function mapBankaHareketi(row) {
     ciroRaporuId: row.ciro_raporu_id,
     kasaId: row.kasa_id,
     cozumNotu: row.cozum_notu,
+    genelGiderId: row.genel_gider_id,
   }
 }
 
@@ -1997,6 +1998,26 @@ export const bankaHareketleri = {
         p_siniflandirma: siniflandirma || 'siniflandirilmamis',
         p_danisman_id: danismanId || null,
         p_cozum_notu: cozumNotu,
+      }),
+    )
+  },
+  // Madde 1.2 (2026-11-22): "Ofis Gideri" — İşlem Masrafı'ndan (yukarıda)
+  // BİLİNÇLİ olarak ayrı bir RPC, çünkü ikisi tamamen farklı hedefe
+  // yazıyor (bu, gerçek bir genel_giderler kaydı açıyor; o, danışman
+  // carisine borç yazabiliyor). Aynı fonksiyon, zaten 'masraf' durumunda
+  // olan ama kategorisi/gideri hiç girilmemiş ESKİ bir kayda SONRADAN
+  // kategori eklemek için de kullanılıyor (bkz. BankaHareketleriPanel
+  // "kategorisi boş masraflar" filtresi) — durum zaten 'masraf' olduğu
+  // için fonksiyon onu değiştirmeden sadece gider kaydını bağlıyor.
+  async ofisGideriIsaretle(hareketId, { anaKategori, altKategori, aciklama, cozumNotu, kasaId }) {
+    return run(
+      client().rpc('banka_hareketi_ofis_gideri_isaretle', {
+        p_banka_hareketi_id: hareketId,
+        p_ana_kategori: anaKategori,
+        p_alt_kategori: altKategori,
+        p_aciklama: aciklama || null,
+        p_cozum_notu: cozumNotu,
+        p_kasa_id: kasaId || null,
       }),
     )
   },
