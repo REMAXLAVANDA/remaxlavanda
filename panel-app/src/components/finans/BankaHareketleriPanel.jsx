@@ -11,6 +11,7 @@ import {
   categories as categoriesProvider,
   kasalar as kasalarProvider,
   islemMasraflari as islemMasraflariProvider,
+  ortakHesabiHareketleri as ortakHesabiHareketleriProvider,
 } from '../../lib/dataProvider'
 import {
   BANKA_HAREKETI_DURUM_LABELS,
@@ -36,7 +37,7 @@ function tl(n) {
 const today = () => new Date().toISOString().slice(0, 10)
 
 async function loadAll() {
-  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar, islemMasraflari] = await Promise.all([
+  const [hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar, islemMasraflari, ortakHesabiHareketleri] = await Promise.all([
     bankaHareketleriProvider.list(),
     ciroRaporlariProvider.list(),
     opportunitiesProvider.list(),
@@ -44,8 +45,9 @@ async function loadAll() {
     bankaHareketleriProvider.listEmanetOzet(),
     kasalarProvider.list(),
     islemMasraflariProvider.listAll(),
+    ortakHesabiHareketleriProvider.list(),
   ])
-  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar, islemMasraflari }
+  return { hareketler, raporlar, opportunities, kategoriler, emanetOzet, kasalar, islemMasraflari, ortakHesabiHareketleri }
 }
 
 export default function BankaHareketleriPanel() {
@@ -67,6 +69,7 @@ export default function BankaHareketleriPanel() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [matchTarget, setMatchTarget] = useState(null)
+  const [ortakMatchTarget, setOrtakMatchTarget] = useState(null)
   const [blokeTarget, setBlokeTarget] = useState(null)
   const [masrafTarget, setMasrafTarget] = useState(null)
   const [tamamlaTarget, setTamamlaTarget] = useState(null)
@@ -213,6 +216,22 @@ export default function BankaHareketleriPanel() {
     }
   }
 
+  // Madde 1.3 (2026-11-22): banka satırını bir ortak hesabı hareketine
+  // bağlar (ör. "bu çıkış, ortağın çektiği para").
+  async function handleOrtagaEslestir(ortakHareketId) {
+    setSubmitting(true)
+    try {
+      await bankaHareketleriProvider.eslestirOrtaga(ortakMatchTarget.id, ortakHareketId, user.id)
+      setOrtakMatchTarget(null)
+      showToast('Ortak hesabı hareketine bağlandı.', 'success')
+      reload()
+    } catch (err) {
+      showToast(err.message ?? 'Bağlanamadı, tekrar dene.', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleKaldir(hareketId) {
     try {
       await bankaHareketleriProvider.eslesmeyiKaldir(hareketId)
@@ -310,6 +329,10 @@ export default function BankaHareketleriPanel() {
   const kategoriler = data?.kategoriler ?? []
   const adaylar = matchTarget ? eslesmeAdaylari(matchTarget.tutar, bekleyenKatilimcilar) : []
   const blokeAdaylari = blokeTarget ? bekleyenKatilimcilar.filter((a) => a.opportunityId === blokeTarget.opportunityId) : []
+  // Madde 1.3: henüz hiçbir banka satırına bağlanmamış ortak hareketleri
+  // — eşleştirme adayı listesi.
+  const baglanmisOrtakHareketIdleri = new Set((data?.hareketler ?? []).map((h) => h.ortakHareketId).filter(Boolean))
+  const ortakAdaylari = (data?.ortakHesabiHareketleri ?? []).filter((o) => !baglanmisOrtakHareketIdleri.has(o.id))
 
   return (
     <div>
@@ -544,6 +567,14 @@ export default function BankaHareketleriPanel() {
                         >
                           <Receipt size={13} /> Masraf
                         </button>
+                        {ortakAdaylari.length > 0 && (
+                          <button
+                            onClick={() => setOrtakMatchTarget(h)}
+                            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-text-secondary hover:bg-surface-sunken"
+                          >
+                            <Link2 size={13} /> Ortağa Eşleştir
+                          </button>
+                        )}
                       </div>
                     )}
                     {h.durum === 'blokede' && (
@@ -617,6 +648,49 @@ export default function BankaHareketleriPanel() {
             )}
             <div className="mt-4 flex justify-end">
               <button onClick={() => setMatchTarget(null)} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
+                Vazgeç
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {ortakMatchTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setOrtakMatchTarget(null)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-lg"
+          >
+            <h2 className="mb-1 text-base font-semibold text-ink-900">Ortak Hesabı Hareketine Bağla</h2>
+            <p className="mb-4 text-sm text-text-muted">
+              {tl(ortakMatchTarget.tutar)} · {formatDateOnly(ortakMatchTarget.tarih)} · {ortakMatchTarget.gonderenAdi || 'Gönderen belirtilmemiş'}
+            </p>
+            {ortakAdaylari.length === 0 ? (
+              <p className="text-sm text-text-muted">Bağlanabilecek bir ortak hareketi yok.</p>
+            ) : (
+              <div className="space-y-2">
+                {ortakAdaylari.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => handleOrtagaEslestir(o.id)}
+                    disabled={submitting}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-border-default p-3 text-left hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium text-text-primary">{userName(o.ortakId)}</span>
+                      <span className="block truncate text-xs text-text-muted">
+                        {o.tur === 'koyma' ? 'Koyma' : 'Çekiş'} · {formatDateOnly(o.tarih)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-medium text-text-primary">{tl(o.tutar)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button onClick={() => setOrtakMatchTarget(null)} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
                 Vazgeç
               </button>
             </div>

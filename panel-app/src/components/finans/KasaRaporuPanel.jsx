@@ -15,6 +15,7 @@ import {
 } from '../../lib/dataProvider'
 import { formatDateOnly } from '../../lib/format'
 import { DATE_RANGES, isWithinRange } from '../../lib/dateRange'
+import { ROLES } from '../../lib/roles'
 import { LoadingState, ErrorState } from '../common/AsyncState'
 import DateRangeFilter from '../common/DateRangeFilter'
 import Modal from '../common/Modal'
@@ -31,6 +32,7 @@ const HAREKET_TIPLERI = {
   genel_gider: 'Genel Gider',
   tedarikci: 'Tedarikçi Ödemesi',
   ortak_hesabi: 'Ortak Hesabı Çekişi',
+  ortak_hesabi_koyma: 'Ortak Hesabına Koyma',
   transfer_cikis: 'Kasa Transferi (Çıkış)',
   transfer_giris: 'Kasa Transferi (Giriş)',
   cari_odeme: 'Danışman Hakedişi Ödemesi',
@@ -92,15 +94,18 @@ function ortakForma(data) {
     })
   }
   for (const o of data.ortakHesabiHareketleri) {
+    // Madde 1.3 (2026-11-22): "koyma" eklendi — kasaya GİRİŞ (ortak para
+    // koyuyor), "çekiş" ESKİ davranış, kasadan ÇIKIŞ (ortak para çekiyor).
+    const koymaMi = o.tur === 'koyma'
     satirlar.push({
       id: `oh-${o.id}`,
       tarih: o.tarih,
-      tip: HAREKET_TIPLERI.ortak_hesabi,
+      tip: koymaMi ? HAREKET_TIPLERI.ortak_hesabi_koyma : HAREKET_TIPLERI.ortak_hesabi,
       aciklama: o.aciklama || '—',
       kasaId: o.kasaId,
       kullaniciId: o.createdBy,
-      cikis: o.tutar,
-      giris: 0,
+      cikis: koymaMi ? 0 : o.tutar,
+      giris: koymaMi ? o.tutar : 0,
     })
   }
   for (const c of data.cariHesapOdemeleri) {
@@ -157,7 +162,10 @@ function ortakForma(data) {
 // mutabakat raporu. Danışman hiç görmez (bkz. RaporlarPanel.jsx
 // canViewAllCiroRaporlari koşulu).
 export default function KasaRaporuPanel() {
-  const { user } = useAuth()
+  const { user, role } = useAuth()
+  // Madde 1.3 (2026-11-22): "ortağın şirkete para koyması" SADECE
+  // broker/owner — veritabanındaki is_manager() ile AYNI kural.
+  const isManager = role === ROLES.BROKER || role === ROLES.OWNER
   const { knownUsers } = useKnownUsers()
   const { showToast } = useToast()
   const { data, loading, error, reload } = useAsyncList(loadAll, [])
@@ -170,6 +178,19 @@ export default function KasaRaporuPanel() {
   const kasalar = data?.kasalar ?? []
   const kasasizBankaHareketiSayisi = data?.kasasizBankaHareketiSayisi ?? 0
   const tumSatirlar = useMemo(() => (data ? ortakForma(data) : []), [data])
+
+  // Madde 1.3 (2026-11-22): "ortak bakiyesi = koyma - çekiş" — kasa
+  // bakiyesinden AYRI bir şey (ortağın şirkete kişisel borcu/alacağı),
+  // o yüzden kasaFiltre'den bağımsız, her zaman tüm hareketler üzerinden
+  // hesaplanıyor.
+  const ortakBakiyeleri = useMemo(() => {
+    const map = {}
+    for (const o of data?.ortakHesabiHareketleri ?? []) {
+      if (!map[o.ortakId]) map[o.ortakId] = 0
+      map[o.ortakId] += o.tur === 'koyma' ? Number(o.tutar) : -Number(o.tutar)
+    }
+    return Object.entries(map).map(([ortakId, bakiye]) => ({ ortakId, bakiye }))
+  }, [data])
 
   const kasayaGoreSatirlar = useMemo(
     () => (kasaFiltre ? tumSatirlar.filter((s) => s.kasaId === kasaFiltre) : tumSatirlar),
@@ -228,7 +249,7 @@ export default function KasaRaporuPanel() {
       } else if (payload.hareketTipi === 'tedarikci') {
         await tedarikciOdemeleriProvider.create(payload, user.id)
       } else if (payload.hareketTipi === 'ortak_hesabi') {
-        await ortakHesabiHareketleriProvider.create({ ...payload, ortakId: user.id }, user.id)
+        await ortakHesabiHareketleriProvider.create({ ...payload, ortakId: user.id, tur: payload.ortakTuru }, user.id)
       } else if (payload.hareketTipi === 'transfer') {
         await kasaTransferleriProvider.create(payload, user.id)
       }
@@ -292,6 +313,17 @@ export default function KasaRaporuPanel() {
         </p>
       )}
 
+      {ortakBakiyeleri.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {ortakBakiyeleri.map((o) => (
+            <p key={o.ortakId} className="rounded-lg bg-surface-sunken px-3 py-2 text-xs text-text-secondary">
+              Ortak Bakiyesi ({knownUsers[o.ortakId]?.name ?? '—'}):{' '}
+              <span className="font-medium text-text-primary">{tl(o.bakiye)}</span>
+            </p>
+          ))}
+        </div>
+      )}
+
       {kasasizBankaHareketiSayisi > 0 && (
         <p className="mb-2 rounded-lg bg-tint-amber px-3 py-2 text-xs text-tint-amber-text">
           {kasasizBankaHareketiSayisi} banka hareketinde kasa seçilmemiş — bu rapora hiç girmiyorlar, bakiye eksik
@@ -335,7 +367,9 @@ export default function KasaRaporuPanel() {
         </table>
       </div>
 
-      {showAddModal && <HareketEkleModal kasalar={kasalar} onClose={() => setShowAddModal(false)} onSubmit={handleAddSubmit} submitting={submitting} />}
+      {showAddModal && (
+        <HareketEkleModal kasalar={kasalar} isManager={isManager} onClose={() => setShowAddModal(false)} onSubmit={handleAddSubmit} submitting={submitting} />
+      )}
       {showAcilisModal && (
         <AcilisBakiyesiModal kasa={seciliKasa} onClose={() => setShowAcilisModal(false)} onSubmit={handleAcilisSubmit} submitting={submitting} />
       )}
@@ -390,7 +424,7 @@ function AcilisBakiyesiModal({ kasa, onClose, onSubmit, submitting }) {
   )
 }
 
-function HareketEkleModal({ kasalar, onClose, onSubmit, submitting }) {
+function HareketEkleModal({ kasalar, isManager, onClose, onSubmit, submitting }) {
   const [hareketTipi, setHareketTipi] = useState('genel_gider')
   const [tutar, setTutar] = useState('')
   const [tarih, setTarih] = useState(new Date().toISOString().slice(0, 10))
@@ -403,6 +437,7 @@ function HareketEkleModal({ kasalar, onClose, onSubmit, submitting }) {
   const [faturaNo, setFaturaNo] = useState('')
   const [cikisKasaId, setCikisKasaId] = useState('')
   const [girisKasaId, setGirisKasaId] = useState('')
+  const [ortakTuru, setOrtakTuru] = useState('cekis')
 
   const altKategoriSecenekleri = anaKategori === 'personel' ? PERSONEL_ALT_KATEGORILERI : anaKategori === 'isletme' ? ISLETME_ALT_KATEGORILERI : []
 
@@ -429,6 +464,7 @@ function HareketEkleModal({ kasalar, onClose, onSubmit, submitting }) {
       faturaNo: faturaNo.trim() || null,
       cikisKasaId,
       girisKasaId,
+      ortakTuru: hareketTipi === 'ortak_hesabi' && isManager ? ortakTuru : 'cekis',
     })
   }
 
@@ -457,6 +493,29 @@ function HareketEkleModal({ kasalar, onClose, onSubmit, submitting }) {
             ))}
           </div>
         </div>
+
+        {hareketTipi === 'ortak_hesabi' && isManager && (
+          <div>
+            <label className="mb-1 block text-xs text-text-secondary">Yön</label>
+            <div className="flex gap-2">
+              {[
+                ['cekis', 'Çekiş (ortak para çekiyor)'],
+                ['koyma', 'Koyma (ortak para koyuyor)'],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setOrtakTuru(key)}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium ${
+                    ortakTuru === key ? 'border-brand-600 bg-brand-600 text-white' : 'border-border-default bg-surface-sunken text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {hareketTipi === 'genel_gider' && (
           <>

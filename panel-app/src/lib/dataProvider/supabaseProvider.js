@@ -1915,6 +1915,7 @@ function mapBankaHareketi(row) {
     kasaId: row.kasa_id,
     cozumNotu: row.cozum_notu,
     genelGiderId: row.genel_gider_id,
+    ortakHareketId: row.ortak_hareket_id,
   }
 }
 
@@ -2061,6 +2062,22 @@ export const bankaHareketleri = {
       client()
         .from('banka_hareketleri')
         .update({ durum: 'eslesmedi', eslesen_katilimci_id: null, eslestiren_id: null, eslesme_tarihi: null })
+        .eq('id', hareketId),
+    )
+  },
+  // Madde 1.3 (2026-11-22): banka satırını bir ortak hesabı hareketine
+  // bağlar — eslestir()'le AYNI desen (durum 'eslesti' olur), sadece
+  // hedef bir ciro katılımcısı değil bir ortak hareketi.
+  async eslestirOrtaga(hareketId, ortakHareketId, eslestirenId) {
+    await run(
+      client()
+        .from('banka_hareketleri')
+        .update({
+          durum: 'eslesti',
+          ortak_hareket_id: ortakHareketId,
+          eslestiren_id: eslestirenId,
+          eslesme_tarihi: new Date().toISOString(),
+        })
         .eq('id', hareketId),
     )
   },
@@ -2889,11 +2906,11 @@ export const ortakHesabiHareketleri = {
     const data = await run(client().from('ortak_hesabi_hareketleri').select('*').order('tarih', { ascending: false }))
     return data.map(mapOrtakHesabiHareketi)
   },
-  async create({ ortakId, tutar, tarih, kasaId, aciklama }, olusturanId) {
+  async create({ ortakId, tur, tutar, tarih, kasaId, aciklama }, olusturanId) {
     const data = await run(
       client()
         .from('ortak_hesabi_hareketleri')
-        .insert({ ortak_id: ortakId, tutar, tarih, kasa_id: kasaId, aciklama: aciklama || null, created_by: olusturanId })
+        .insert({ ortak_id: ortakId, tur: tur || 'cekis', tutar, tarih, kasa_id: kasaId, aciklama: aciklama || null, created_by: olusturanId })
         .select()
         .single(),
     )
