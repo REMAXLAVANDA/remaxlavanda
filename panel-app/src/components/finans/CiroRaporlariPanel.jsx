@@ -42,6 +42,7 @@ const MUHASEBE_KALEMLERI = [
   { key: 'danismanFatura', label: 'Danışman Fatura' },
   { key: 'musteriFatura', label: 'Müşteri Fatura' },
   { key: 'bankaKontrol', label: 'Banka Kontrol' },
+  { key: 'odeme', label: 'Ödeme' },
   { key: 'myremax', label: 'MyRemax' },
 ]
 
@@ -538,6 +539,10 @@ export default function CiroRaporlariPanel() {
         const kendiKatilimcilar = katilimcilar.filter((k) => !k.disOfisMi)
         return kendiKatilimcilar.length > 0 && kendiKatilimcilar.every((k) => k.faturaDosyaUrl)
       })(),
+      // 2026-11-22 broker bulgusu: "ödeme bekliyor" diye bekleyen katılımcı
+      // vardı ama bu, diğer 4 kalem gibi eksik uyarısında hiç görünmüyordu
+      // — katılımcı tek tek açılmadan fark edilmiyordu.
+      odeme: katilimcilar.length > 0 && katilimcilar.every((k) => k.odemeDurumu === 'alindi'),
       myremax: !!r.myremaxGirildi,
     }
   }
