@@ -1913,6 +1913,7 @@ function mapBankaHareketi(row) {
     teyitTarihi: row.teyit_tarihi,
     ciroRaporuId: row.ciro_raporu_id,
     kasaId: row.kasa_id,
+    cozumNotu: row.cozum_notu,
   }
 }
 
@@ -1987,7 +1988,7 @@ export const bankaHareketleri = {
   // atomik RPC (Finans madde 5/6, 2026-11-06): islem_masraflari + (varsa)
   // cari_hareketler + banka_hareketleri tek transaction'da, ayrı
   // transaction'sız çağrılardaki eski mükerrer kayıt riski olmadan.
-  async masrafOlarakIsaretle(hareketId, { tur, aciklama, siniflandirma, danismanId }) {
+  async masrafOlarakIsaretle(hareketId, { tur, aciklama, siniflandirma, danismanId, cozumNotu }) {
     return run(
       client().rpc('masraf_olarak_isaretle', {
         p_banka_hareketi_id: hareketId,
@@ -1995,6 +1996,7 @@ export const bankaHareketleri = {
         p_aciklama: aciklama || null,
         p_siniflandirma: siniflandirma || 'siniflandirilmamis',
         p_danisman_id: danismanId || null,
+        p_cozum_notu: cozumNotu,
       }),
     )
   },
@@ -2050,7 +2052,7 @@ export const bankaHareketleri = {
   // tarafında hiç sınırlanmıyordu. cozumle_emanet() fonksiyonu kilitli
   // tek transaction'da yapıyor, kısmi mahsupta artık yanlışlıkla "ödeme
   // alındı" işaretlemiyor (sadece tam karşılananda).
-  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }) {
+  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi, cozumNotu }) {
     return run(
       client().rpc('cozumle_emanet', {
         p_banka_hareketi_id: blokeId,
@@ -2058,6 +2060,7 @@ export const bankaHareketleri = {
         p_katilimci_id: katilimciId || null,
         p_mahsup_tutari: mahsupTutari ?? null,
         p_alici_adi: aliciAdi || null,
+        p_cozum_notu: cozumNotu,
       }),
     )
   },

@@ -33,6 +33,7 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
   const [aciklama, setAciklama] = useState(hareket.aciklama ?? '')
   const [yeniKategoriAdi, setYeniKategoriAdi] = useState('')
   const [kategoriEkleniyor, setKategoriEkleniyor] = useState(false)
+  const [cozumNotu, setCozumNotu] = useState('')
 
   const yeniKategoriModu = tur === YENI_KATEGORI
   const danismanCariModu = siniflandirma === 'danisman_cari'
@@ -53,7 +54,14 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
     e.preventDefault()
     if (!tur || yeniKategoriModu) return
     if (danismanCariModu && !danismanId) return
-    onSubmit({ tur, aciklama: aciklama.trim(), siniflandirma, danismanId: danismanCariModu ? danismanId : null })
+    if (!cozumNotu.trim()) return
+    onSubmit({
+      tur,
+      aciklama: aciklama.trim(),
+      siniflandirma,
+      danismanId: danismanCariModu ? danismanId : null,
+      cozumNotu: cozumNotu.trim(),
+    })
   }
 
   return (
@@ -138,13 +146,24 @@ export default function MasrafIsaretleModal({ hareket, kategoriler, danismanOpti
           placeholder="Açıklama (opsiyonel)"
           className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
         />
+        <div>
+          <label className="mb-1 block text-xs text-text-secondary">Çözüm notu (zorunlu)</label>
+          <textarea
+            required
+            rows={2}
+            value={cozumNotu}
+            onChange={(e) => setCozumNotu(e.target.value)}
+            placeholder="Bu masrafla ilgili kısa not"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+        </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
             Vazgeç
           </button>
           <button
             type="submit"
-            disabled={submitting || !tur || yeniKategoriModu || (danismanCariModu && !danismanId)}
+            disabled={submitting || !tur || yeniKategoriModu || (danismanCariModu && !danismanId) || !cozumNotu.trim()}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {submitting ? 'Kaydediliyor...' : 'Masraf Olarak Kaydet'}
