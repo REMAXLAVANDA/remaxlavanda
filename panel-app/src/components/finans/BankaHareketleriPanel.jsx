@@ -103,6 +103,21 @@ export default function BankaHareketleriPanel() {
     [knownUsers],
   )
 
+  // 1.1: not alanı eklenince aranabilir olması da istendi — açıklama,
+  // gönderen adı ve çözüm notu üzerinde basit, Türkçe'ye duyarlı metin
+  // araması (büyük/küçük harf farkı olmadan). Guard'dan (aşağıda) ÖNCE —
+  // React Hook kuralları: hook'lar koşullu dönüşten önce, hep aynı
+  // sırada çağrılmalı (bkz. bekleyenKatilimcilar notu).
+  const aramaNormalize = (s) => (s ?? '').toLocaleLowerCase('tr-TR')
+  const hareketler = useMemo(() => {
+    const tumHareketler = data?.hareketler ?? []
+    const q = aramaNormalize(arama.trim())
+    if (!q) return tumHareketler
+    return tumHareketler.filter((h) =>
+      [h.aciklama, h.gonderenAdi, h.cozumNotu].some((alan) => aramaNormalize(alan).includes(q)),
+    )
+  }, [data, arama])
+
   if (!canManageBankaHareketleri(role)) {
     // Danışman/ofis tam yönetim ekranını (eşleştirme/bloke/masraf) hiç
     // görmüyor — sadece kendi dekontunu ekleyip görebildiği sade bir
@@ -251,18 +266,6 @@ export default function BankaHareketleriPanel() {
     return created
   }
 
-  // 1.1: not alanı eklenince aranabilir olması da istendi — açıklama,
-  // gönderen adı ve çözüm notu üzerinde basit, Türkçe'ye duyarlı metin
-  // araması (büyük/küçük harf farkı olmadan).
-  const aramaNormalize = (s) => (s ?? '').toLocaleLowerCase('tr-TR')
-  const hareketler = useMemo(() => {
-    const tumHareketler = data?.hareketler ?? []
-    const q = aramaNormalize(arama.trim())
-    if (!q) return tumHareketler
-    return tumHareketler.filter((h) =>
-      [h.aciklama, h.gonderenAdi, h.cozumNotu].some((alan) => aramaNormalize(alan).includes(q)),
-    )
-  }, [data, arama])
   const kategoriler = data?.kategoriler ?? []
   const adaylar = matchTarget ? eslesmeAdaylari(matchTarget.tutar, bekleyenKatilimcilar) : []
   const blokeAdaylari = blokeTarget ? bekleyenKatilimcilar.filter((a) => a.opportunityId === blokeTarget.opportunityId) : []
