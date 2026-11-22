@@ -18,17 +18,25 @@ export default function BlokeCozumleModal({ bloke, adaylar, userName, onClose, o
   const [katilimciId, setKatilimciId] = useState(adaylar[0]?.katilimciId ?? '')
   const [mahsupTutari, setMahsupTutari] = useState('')
   const [aliciAdi, setAliciAdi] = useState('')
+  const [cozumNotu, setCozumNotu] = useState('')
 
   const mahsupVar = aksiyon === 'mahsup_et' || aksiyon === 'kismi_mahsup'
   const kalan = aksiyon === 'kismi_mahsup' ? kalanTutar(bloke.tutar, mahsupTutari) : 0
 
   const canSubmit =
-    (!mahsupVar || katilimciId) && (aksiyon !== 'kismi_mahsup' || (mahsupTutari && Number(mahsupTutari) > 0 && Number(mahsupTutari) < bloke.tutar))
+    (!mahsupVar || katilimciId) &&
+    (aksiyon !== 'kismi_mahsup' || (mahsupTutari && Number(mahsupTutari) > 0 && Number(mahsupTutari) < bloke.tutar)) &&
+    cozumNotu.trim().length > 0
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    onSubmit(aksiyon, { katilimciId: mahsupVar ? katilimciId : null, mahsupTutari: aksiyon === 'kismi_mahsup' ? Number(mahsupTutari) : null, aliciAdi: capitalizeWords(aliciAdi.trim()) })
+    onSubmit(aksiyon, {
+      katilimciId: mahsupVar ? katilimciId : null,
+      mahsupTutari: aksiyon === 'kismi_mahsup' ? Number(mahsupTutari) : null,
+      aliciAdi: capitalizeWords(aliciAdi.trim()),
+      cozumNotu: cozumNotu.trim(),
+    })
   }
 
   return (
@@ -93,6 +101,18 @@ export default function BlokeCozumleModal({ bloke, adaylar, userName, onClose, o
             className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
           />
         )}
+
+        <div>
+          <label className="mb-1 block text-xs text-text-muted">Çözüm notu (zorunlu)</label>
+          <textarea
+            required
+            rows={2}
+            value={cozumNotu}
+            onChange={(e) => setCozumNotu(e.target.value)}
+            placeholder="Bu çözümle ilgili kısa not — ör. kimle görüşüldü, neden bu seçenek"
+            className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted"
+          />
+        </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">

@@ -1559,9 +1559,10 @@ export const bankaHareketleri = {
   // bkz. supabaseProvider.js masrafOlarakIsaretle (masraf_olarak_isaretle
   // RPC'si) — AYNI mantık, mock'ta tek transaction kaygısı yok ama
   // sınıflandırma davranışı birebir aynı (madde 5, 2026-11-06).
-  async masrafOlarakIsaretle(hareketId, { tur, aciklama, siniflandirma, danismanId }, kullaniciId) {
+  async masrafOlarakIsaretle(hareketId, { tur, aciklama, siniflandirma, danismanId, cozumNotu }, kullaniciId) {
     const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
     if (!hareket) throw new Error('Hareket bulunamadı.')
+    if (!cozumNotu || !cozumNotu.trim()) throw new Error('Çözüm notu zorunlu.')
     if (MOCK_ISLEM_MASRAFLARI.some((m) => m.bankaHareketiId === hareketId)) {
       throw new Error('Bu banka hareketi zaten masraf olarak işaretlenmiş.')
     }
@@ -1600,6 +1601,7 @@ export const bankaHareketleri = {
     hareket.durum = 'masraf'
     hareket.eslestirenId = kullaniciId
     hareket.eslesmeTarihi = new Date().toISOString()
+    hareket.cozumNotu = cozumNotu
     return delay({ id: hareketId })
   },
   // Artık odeme_durumu'nu otomatik 'alindi' yapmıyor — bkz.
@@ -1629,9 +1631,10 @@ export const bankaHareketleri = {
   // gerçek transaction/kilit kaygısı yok ama davranış AYNI: kısmi
   // mahsupta sadece TAM karşılandıysa "alındı" (eski hata burada da
   // düzeltildi), mahsup tutarı bloke bakiyesini aşamaz.
-  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi }, kullaniciId) {
+  async blokeyiCozumle(blokeId, { aksiyon, katilimciId, mahsupTutari, aliciAdi, cozumNotu }, kullaniciId) {
     const bloke = MOCK_BANKA_HAREKETLERI.find((h) => h.id === blokeId)
     if (!bloke) throw new Error('Bloke kaydı bulunamadı.')
+    if (!cozumNotu || !cozumNotu.trim()) throw new Error('Çözüm notu zorunlu.')
     if (bloke.durum === 'cozuldu') throw new Error('Bu emanet zaten çözümlenmiş, tekrar işlem yapılamaz.')
     const mahsupVar = aksiyon === 'mahsup_et' || aksiyon === 'kismi_mahsup'
     const cikisVar = aksiyon === 'geri_gonder' || aksiyon === 'saticiya_gonder' || aksiyon === 'kismi_mahsup'
@@ -1681,6 +1684,7 @@ export const bankaHareketleri = {
     bloke.mahsupTutari = aksiyon === 'kismi_mahsup' ? gercekMahsup : null
     bloke.eslestirenId = kullaniciId
     bloke.eslesmeTarihi = new Date().toISOString()
+    bloke.cozumNotu = cozumNotu
     return delay({ id: blokeId })
   },
   // Finans madde 1 — "Emanette bekleyen: X TL" özeti. Mock'ta ayrı bir

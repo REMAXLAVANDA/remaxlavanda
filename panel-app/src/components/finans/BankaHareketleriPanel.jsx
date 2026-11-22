@@ -67,6 +67,7 @@ export default function BankaHareketleriPanel() {
   const [blokeTarget, setBlokeTarget] = useState(null)
   const [masrafTarget, setMasrafTarget] = useState(null)
   const [aciklamaTarget, setAciklamaTarget] = useState(null)
+  const [arama, setArama] = useState('')
 
   // Ödeme bekleyen tüm katılımcı satırları — her bankadan gelen hareket
   // için en olası eşleşme adayları buradan çıkıyor (bkz. lib/
@@ -250,7 +251,18 @@ export default function BankaHareketleriPanel() {
     return created
   }
 
-  const hareketler = data?.hareketler ?? []
+  // 1.1: not alanı eklenince aranabilir olması da istendi — açıklama,
+  // gönderen adı ve çözüm notu üzerinde basit, Türkçe'ye duyarlı metin
+  // araması (büyük/küçük harf farkı olmadan).
+  const aramaNormalize = (s) => (s ?? '').toLocaleLowerCase('tr-TR')
+  const hareketler = useMemo(() => {
+    const tumHareketler = data?.hareketler ?? []
+    const q = aramaNormalize(arama.trim())
+    if (!q) return tumHareketler
+    return tumHareketler.filter((h) =>
+      [h.aciklama, h.gonderenAdi, h.cozumNotu].some((alan) => aramaNormalize(alan).includes(q)),
+    )
+  }, [data, arama])
   const kategoriler = data?.kategoriler ?? []
   const adaylar = matchTarget ? eslesmeAdaylari(matchTarget.tutar, bekleyenKatilimcilar) : []
   const blokeAdaylari = blokeTarget ? bekleyenKatilimcilar.filter((a) => a.opportunityId === blokeTarget.opportunityId) : []
@@ -383,6 +395,15 @@ export default function BankaHareketleriPanel() {
       {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
       {!loading && !error && (
+        <input
+          value={arama}
+          onChange={(e) => setArama(e.target.value)}
+          placeholder="Açıklama, gönderen veya çözüm notunda ara…"
+          className="mb-3 w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary placeholder:text-text-muted sm:w-80"
+        />
+      )}
+
+      {!loading && !error && (
         <div className="overflow-x-auto rounded-2xl border border-border-subtle">
           <table className="w-full text-left text-sm">
             <thead>
@@ -393,6 +414,7 @@ export default function BankaHareketleriPanel() {
                 <th className="px-4 py-2.5 font-medium">Gönderen</th>
                 <th className="px-4 py-2.5 font-medium">Açıklama</th>
                 <th className="px-4 py-2.5 font-medium">Durum</th>
+                <th className="px-4 py-2.5 font-medium">Çözüm Notu</th>
                 <th className="px-4 py-2.5 font-medium">Dekont</th>
                 <th className="px-4 py-2.5 font-medium" />
               </tr>
@@ -400,8 +422,8 @@ export default function BankaHareketleriPanel() {
             <tbody>
               {hareketler.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-6 text-center text-text-muted">
-                    Henüz hareket yok.
+                  <td colSpan={9} className="px-4 py-6 text-center text-text-muted">
+                    {arama.trim() ? 'Aramayla eşleşen hareket yok.' : 'Henüz hareket yok.'}
                   </td>
                 </tr>
               )}
@@ -438,6 +460,11 @@ export default function BankaHareketleriPanel() {
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BANKA_HAREKETI_DURUM_STYLES[h.durum]}`}>
                       {BANKA_HAREKETI_DURUM_LABELS[h.durum]}
                       {h.durum === 'eslesti' && h.eslesenKatilimciId ? ` — ${userName(bekleyenKatilimcilar.find((a) => a.katilimciId === h.eslesenKatilimciId)?.danismanId) ?? ''}` : ''}
+                    </span>
+                  </td>
+                  <td className="max-w-xs px-4 py-2.5 text-text-secondary">
+                    <span className="block truncate" title={h.cozumNotu || ''}>
+                      {h.cozumNotu || '—'}
                     </span>
                   </td>
                   <td className="px-4 py-2.5">
