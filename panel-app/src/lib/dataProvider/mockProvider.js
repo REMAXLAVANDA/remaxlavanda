@@ -1656,6 +1656,15 @@ export const bankaHareketleri = {
     hareket.eslesmeTarihi = null
     return delay({ id: hareketId })
   },
+  async eslestirOrtaga(hareketId, ortakHareketId, eslestirenId) {
+    const hareket = MOCK_BANKA_HAREKETLERI.find((h) => h.id === hareketId)
+    if (!hareket) throw new Error('Hareket bulunamadı.')
+    hareket.durum = 'eslesti'
+    hareket.ortakHareketId = ortakHareketId
+    hareket.eslestirenId = eslestirenId
+    hareket.eslesmeTarihi = new Date().toISOString()
+    return delay({ id: hareketId })
+  },
   // Bloke (bağlanma parası) çözümleme — 4 senaryo, bkz. supabaseProvider.js
   // cozumle_emanet RPC'sindeki açıklama (madde 1/2, 2026-11-06). Mock'ta
   // gerçek transaction/kilit kaygısı yok ama davranış AYNI: kısmi
@@ -2374,8 +2383,8 @@ export const ortakHesabiHareketleri = {
   async list() {
     return delay([...MOCK_ORTAK_HESABI_HAREKETLERI])
   },
-  async create({ ortakId, tutar, tarih, kasaId, aciklama }, olusturanId) {
-    const row = { id: `oh-${Date.now()}`, ortakId, tur: 'cekis', tutar: Number(tutar), tarih, kasaId, aciklama: aciklama || null, createdBy: olusturanId, createdAt: new Date().toISOString() }
+  async create({ ortakId, tur, tutar, tarih, kasaId, aciklama }, olusturanId) {
+    const row = { id: `oh-${Date.now()}`, ortakId, tur: tur || 'cekis', tutar: Number(tutar), tarih, kasaId, aciklama: aciklama || null, createdBy: olusturanId, createdAt: new Date().toISOString() }
     MOCK_ORTAK_HESABI_HAREKETLERI.push(row)
     return delay(row)
   },
