@@ -110,6 +110,30 @@ export function eslesmeAdaylari(hareketTutari, adaylar) {
     .sort((a, b) => a.fark - b.fark)
 }
 
+// Madde 1.2 (broker, 2026-11-22): banka "Masraf" akışında "Ofis Gideri"
+// seçilince sorulacak sabit 14 kategori — her biri genel_giderler'in
+// (ana_kategori: personel/isletme/arac) ALTINA bir alt_kategori metni
+// olarak yazılıyor. Ana kategori burada SADECE depolama için türetiliyor
+// (KasaRaporuPanel'in zaten bildiği personel/isletme ayrımı) — ekranda
+// danışmana/broker'a hiç gösterilmiyor, sadece bu 14 düz liste görünür.
+export const OFIS_GIDER_KATEGORILERI = [
+  { label: 'REMAX Royalty/Network', anaKategori: 'isletme' },
+  { label: 'SGK/Vergi', anaKategori: 'personel' },
+  { label: 'Maaş', anaKategori: 'personel' },
+  { label: 'Prim', anaKategori: 'personel' },
+  { label: 'Avukat/Hukuk', anaKategori: 'isletme' },
+  { label: 'Noter', anaKategori: 'isletme' },
+  { label: 'Ofis Mutfak', anaKategori: 'isletme' },
+  { label: 'Yiyecek İçecek', anaKategori: 'isletme' },
+  { label: 'Reklam (Facebook vb.)', anaKategori: 'isletme' },
+  { label: 'Sosyal Medya Ajans', anaKategori: 'isletme' },
+  { label: 'Yazılım/Abonelik', anaKategori: 'isletme' },
+  { label: 'Kırtasiye/Kargo', anaKategori: 'isletme' },
+  { label: 'Banka Masrafı', anaKategori: 'isletme' },
+  { label: 'Bağış', anaKategori: 'isletme' },
+  { label: 'Diğer', anaKategori: 'isletme' },
+]
+
 // Kısmi mahsup formunda: mahsup tutarı girilince kalan (çıkışa gidecek)
 // tutar otomatik hesaplanır — DB'deki deferred mantığın (tutar <= bloke
 // tutarı) istemci tarafı karşılığı, sunucuya gitmeden önce anlık uyarı.
