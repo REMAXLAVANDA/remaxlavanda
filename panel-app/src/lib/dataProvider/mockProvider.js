@@ -2359,7 +2359,7 @@ export const tedarikciOdemeleri = {
   async list() {
     return delay([...MOCK_TEDARIKCI_ODEMELERI])
   },
-  async create({ tedarikciAdi, vergiNo, tutar, tarih, kasaId, faturaNo, faturaDosyaUrl, aciklama }, olusturanId) {
+  async create({ tedarikciAdi, vergiNo, tutar, tarih, kasaId, faturaNo, faturaDosyaUrl, tedarikciFaturaId, aciklama }, olusturanId) {
     const row = {
       id: `to-${Date.now()}`,
       tedarikciAdi,
@@ -2369,11 +2369,37 @@ export const tedarikciOdemeleri = {
       kasaId,
       faturaNo: faturaNo || null,
       faturaDosyaUrl: faturaDosyaUrl || null,
+      tedarikciFaturaId: tedarikciFaturaId || null,
       aciklama: aciklama || null,
       createdBy: olusturanId,
       createdAt: new Date().toISOString(),
     }
     MOCK_TEDARIKCI_ODEMELERI.push(row)
+    return delay(row)
+  },
+}
+
+const MOCK_TEDARIKCI_FATURALARI = []
+export const tedarikciFaturalari = {
+  async list() {
+    return delay([...MOCK_TEDARIKCI_FATURALARI])
+  },
+  async create({ tedarikciAdi, vergiNo, faturaNo, faturaTarihi, vadeTarihi, tutar, kdvTutari, faturaDosyaUrl, aciklama }, olusturanId) {
+    const row = {
+      id: `tf-${Date.now()}`,
+      tedarikciAdi,
+      vergiNo: vergiNo || null,
+      faturaNo: faturaNo || null,
+      faturaTarihi,
+      vadeTarihi: vadeTarihi || null,
+      tutar: Number(tutar),
+      kdvTutari: kdvTutari ? Number(kdvTutari) : null,
+      faturaDosyaUrl: faturaDosyaUrl || null,
+      aciklama: aciklama || null,
+      createdBy: olusturanId,
+      createdAt: new Date().toISOString(),
+    }
+    MOCK_TEDARIKCI_FATURALARI.push(row)
     return delay(row)
   },
 }
