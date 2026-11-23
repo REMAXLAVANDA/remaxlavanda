@@ -2941,6 +2941,32 @@ export const tedarikciFaturalari = {
   },
 }
 
+function mapDefterKaydi(row) {
+  return {
+    id: row.id,
+    tarih: row.tarih,
+    hesapTip: row.hesap_tip,
+    hesapId: row.hesap_id,
+    kategori: row.kategori,
+    yon: row.yon,
+    tutar: Number(row.tutar),
+    kdvTutari: row.kdv_tutari == null ? null : Number(row.kdv_tutari),
+    kaynakTablo: row.kaynak_tablo,
+    kaynakId: row.kaynak_id,
+    aciklama: row.aciklama,
+  }
+}
+
+// 2. Aşama Adım 5 (docs/muhasebe-tasarim.md madde h) — SADECE OKUMA, bkz.
+// lib/defterRaporlari.js. Yazma yolu yok (RLS'de policy yok, trigger'lar
+// yazıyor), bu yüzden burada sadece list().
+export const defterKayitlari = {
+  async list() {
+    const data = await run(client().from('defter_kayitlari').select('*').order('tarih', { ascending: true }))
+    return data.map(mapDefterKaydi)
+  },
+}
+
 function mapOrtakHesabiHareketi(row) {
   return {
     id: row.id,
