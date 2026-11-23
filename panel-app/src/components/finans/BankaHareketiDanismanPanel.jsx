@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { useAsyncList } from '../../hooks/useAsyncList'
 import { bankaHareketleri as bankaHareketleriProvider, kasalar as kasalarProvider } from '../../lib/dataProvider'
-import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, BANKA_HAREKETI_TUR_LABELS } from '../../lib/bankaHareketleri'
+import { BANKA_HAREKETI_DURUM_LABELS, BANKA_HAREKETI_DURUM_STYLES, BANKA_HAREKETI_TUR_LABELS, mukerrerAdaylari } from '../../lib/bankaHareketleri'
 import { formatDateOnly, formatThousands, parseThousands, capitalizeWords } from '../../lib/format'
 import { validateFinansFile, uploadFinansFile, getSignedFinansUrl } from '../../lib/storage'
 import { LoadingState, ErrorState } from '../common/AsyncState'
@@ -55,6 +55,7 @@ export default function BankaHareketiDanismanPanel() {
   const [submitting, setSubmitting] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [mukerrerAdaylarListesi, setMukerrerAdaylarListesi] = useState(null)
 
   const ownHareketler = (data?.hareketler ?? []).filter((h) => h.olusturanId === user.id)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
@@ -110,9 +111,9 @@ export default function BankaHareketiDanismanPanel() {
     setFileError(null)
   }
 
-  async function handleCreate(e) {
-    e.preventDefault()
-    if (!canSubmit || fileError) return
+  // Madde 1.4 (2026-11-22): mükerrer uyarısından sonra "Yine de Ekle"
+  // onayıyla aynı kod çalışsın diye ayrı fonksiyona çıkarıldı.
+  async function gercektenEkle() {
     setSubmitting(true)
     try {
       const dekontDosyaUrl = file ? await uploadFinansFile(file, user.id) : null
@@ -146,12 +147,24 @@ export default function BankaHareketiDanismanPanel() {
         kasaId: form.kasaId,
       })
       setFile(null)
+      setMukerrerAdaylarListesi(null)
       showToast(cikis ? 'Çıkış hareketi kaydedildi.' : 'Dekont kaydedildi, broker eşleştirip onaylayacak.', 'success')
     } catch (err) {
       showToast(err.message ?? 'Kaydedilemedi, tekrar dene.', 'error')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault()
+    if (!canSubmit || fileError) return
+    const adaylar = mukerrerAdaylari({ tip: form.tip, tutar: parsedTutar, tarih: form.tarih }, data?.hareketler)
+    if (adaylar.length > 0) {
+      setMukerrerAdaylarListesi(adaylar)
+      return
+    }
+    await gercektenEkle()
   }
 
   async function handleView(path) {
@@ -362,6 +375,19 @@ export default function BankaHareketiDanismanPanel() {
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
           confirming={deleting}
+        />
+      )}
+
+      {mukerrerAdaylarListesi && (
+        <ConfirmDialog
+          title="Mükerrer Olabilir"
+          message={`Aynı tutar, tarihe yakın ve aynı tipte zaten şu kayıt(lar) var: ${mukerrerAdaylarListesi
+            .map((h) => `${tl(h.tutar)} · ${formatDateOnly(h.tarih)}`)
+            .join(', ')}. Yine de eklemek istiyor musun?`}
+          confirmLabel="Yine de Ekle"
+          onConfirm={gercektenEkle}
+          onCancel={() => setMukerrerAdaylarListesi(null)}
+          confirming={submitting}
         />
       )}
     </div>

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { ROLES } from './roles'
-import { canManageBankaHareketleri, canSubmitBankaHareketi, eslesmeAdaylari, kalanTutar, musteriCarisi, toplamEslesenTutar } from './bankaHareketleri'
+import {
+  canManageBankaHareketleri,
+  canSubmitBankaHareketi,
+  eslesmeAdaylari,
+  kalanTutar,
+  mukerrerAdaylari,
+  musteriCarisi,
+  toplamEslesenTutar,
+} from './bankaHareketleri'
 
 describe('canManageBankaHareketleri', () => {
   it('sadece broker yönetebilir (owner Finans\'ta sadece ciro/cari görür)', () => {
@@ -108,5 +116,41 @@ describe('musteriCarisi', () => {
   it('boş/undefined listede boş dizi döner', () => {
     expect(musteriCarisi([])).toEqual([])
     expect(musteriCarisi(undefined)).toEqual([])
+  })
+})
+
+describe('mukerrerAdaylari', () => {
+  const mevcut = [
+    { id: 'a', tip: 'cikis', tutar: 1000, tarih: '2026-11-10' },
+    { id: 'b', tip: 'giris', tutar: 1000, tarih: '2026-11-10' },
+    { id: 'c', tip: 'cikis', tutar: 2000, tarih: '2026-11-10' },
+  ]
+
+  it('aynı tarih/tutar/tip\'te kayıt varsa aday olarak döner', () => {
+    const sonuc = mukerrerAdaylari({ tip: 'cikis', tutar: 1000, tarih: '2026-11-10' }, mevcut)
+    expect(sonuc).toHaveLength(1)
+    expect(sonuc[0].id).toBe('a')
+  })
+
+  it('tip farklıysa aday saymaz (aynı tutar/tarih olsa da)', () => {
+    expect(mukerrerAdaylari({ tip: 'giris', tutar: 2000, tarih: '2026-11-10' }, mevcut)).toHaveLength(0)
+  })
+
+  it('tutar farklıysa aday saymaz', () => {
+    expect(mukerrerAdaylari({ tip: 'cikis', tutar: 1500, tarih: '2026-11-10' }, mevcut)).toHaveLength(0)
+  })
+
+  it('±3 gün içindeyse aday sayar', () => {
+    expect(mukerrerAdaylari({ tip: 'cikis', tutar: 1000, tarih: '2026-11-13' }, mevcut)).toHaveLength(1)
+    expect(mukerrerAdaylari({ tip: 'cikis', tutar: 1000, tarih: '2026-11-07' }, mevcut)).toHaveLength(1)
+  })
+
+  it('3 günden uzaksa aday saymaz', () => {
+    expect(mukerrerAdaylari({ tip: 'cikis', tutar: 1000, tarih: '2026-11-14' }, mevcut)).toHaveLength(0)
+  })
+
+  it('boş/undefined listede boş dizi döner', () => {
+    expect(mukerrerAdaylari({ tip: 'cikis', tutar: 1000, tarih: '2026-11-10' }, [])).toEqual([])
+    expect(mukerrerAdaylari({ tip: 'cikis', tutar: 1000, tarih: '2026-11-10' }, undefined)).toEqual([])
   })
 })

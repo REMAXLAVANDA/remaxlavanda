@@ -142,6 +142,23 @@ export function kalanTutar(blokeTutari, mahsupTutari) {
   return kalan < 0 ? 0 : Math.round(kalan * 100) / 100
 }
 
+// Madde 1.4 (broker, 2026-11-22): elle banka hareketi girilirken aynı
+// tarih (±3 gün), aynı tutar, aynı tip'te kayıt varsa uyarı göster —
+// mükerrer giriş (ekstreden aynı satırı iki kez yapıştırma gibi) en çok
+// rastlanan hata. Tarih aralığı ±3 gün (dekont/ekstre tarihi arasında
+// kayma olabiliyor, bkz. 2026-11-15 gerçek mükerrer kayıt olayı), sadece
+// tutar+tip birebir aynıysa aday sayılıyor.
+export function mukerrerAdaylari({ tip, tutar, tarih }, mevcutHareketler) {
+  const hedefZaman = new Date(tarih).getTime()
+  const ucGunMs = 3 * 24 * 60 * 60 * 1000
+  return (mevcutHareketler ?? []).filter((h) => {
+    if (h.tip !== tip) return false
+    if (Number(h.tutar) !== Number(tutar)) return false
+    const fark = Math.abs(new Date(h.tarih).getTime() - hedefZaman)
+    return fark <= ucGunMs
+  })
+}
+
 // Müşteri Carisi (Finans > Raporlar > Cari Hesap) — broker, 2026-10-17:
 // "biz müşterilerden bağlanma yani bloke para alıyoruz, müşterilerle de
 // cari alışveriş yapmalıyız", ve çözümde "bazen Ahmet'ten geliyor
