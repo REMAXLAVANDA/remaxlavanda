@@ -20,6 +20,7 @@ import {
   canManageBankaHareketleri,
   canSubmitBankaHareketi,
   eslesmeAdaylari,
+  mukerrerAdaylari,
 } from '../../lib/bankaHareketleri'
 import { slugify } from '../../lib/categories'
 import { formatDateOnly, formatThousands, parseThousands, capitalizeWords, sortByName } from '../../lib/format'
@@ -76,6 +77,7 @@ export default function BankaHareketleriPanel() {
   const [aciklamaTarget, setAciklamaTarget] = useState(null)
   const [arama, setArama] = useState('')
   const [sadeceBosMasraflar, setSadeceBosMasraflar] = useState(false)
+  const [mukerrerAdaylarListesi, setMukerrerAdaylarListesi] = useState(null)
 
   // Ödeme bekleyen tüm katılımcı satırları — her bankadan gelen hareket
   // için en olası eşleşme adayları buradan çıkıyor (bkz. lib/
@@ -161,9 +163,11 @@ export default function BankaHareketleriPanel() {
     return o ? o.ozet || o.konum : 'Fırsat'
   }
 
-  async function handleCreate(e) {
-    e.preventDefault()
-    if (!canSubmit) return
+  // Madde 1.4 (2026-11-22): asıl ekleme işlemi ayrı bir fonksiyona
+  // çıkarıldı — hem normal akışta (mükerrer adayı yoksa) hem "Yine de
+  // Ekle" onayından sonra (mükerrer uyarısı gösterildiyse) AYNI kod
+  // çalışıyor.
+  async function gercektenEkle() {
     setSubmitting(true)
     try {
       await bankaHareketleriProvider.create(
@@ -193,6 +197,7 @@ export default function BankaHareketleriPanel() {
         opportunityId: '',
         kasaId: form.kasaId,
       })
+      setMukerrerAdaylarListesi(null)
       showToast(form.bloke ? 'Bağlanma parası bloke olarak kaydedildi.' : 'Hareket eklendi.', 'success')
       reload()
     } catch (err) {
@@ -200,6 +205,17 @@ export default function BankaHareketleriPanel() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault()
+    if (!canSubmit) return
+    const adaylar = mukerrerAdaylari({ tip: form.tip, tutar: parsedTutar, tarih: form.tarih }, hareketler)
+    if (adaylar.length > 0) {
+      setMukerrerAdaylarListesi(adaylar)
+      return
+    }
+    await gercektenEkle()
   }
 
   async function handleEslestir(katilimciId) {
@@ -753,6 +769,44 @@ export default function BankaHareketleriPanel() {
           onSubmit={handleOfisGideriTamamla}
           submitting={submitting}
         />
+      )}
+
+      {mukerrerAdaylarListesi && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setMukerrerAdaylarListesi(null)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-lg"
+          >
+            <h2 className="mb-1 text-base font-semibold text-ink-900">Mükerrer Olabilir</h2>
+            <p className="mb-4 text-sm text-text-muted">
+              Aynı tutar, tarihe yakın ve aynı tipte {mukerrerAdaylarListesi.length} kayıt zaten var. Yine de eklemek istiyor musun?
+            </p>
+            <div className="mb-4 space-y-2">
+              {mukerrerAdaylarListesi.map((h) => (
+                <div key={h.id} className="rounded-xl border border-border-default p-3 text-sm">
+                  <p className="font-medium text-text-primary">
+                    {tl(h.tutar)} · {formatDateOnly(h.tarih)}
+                  </p>
+                  <p className="truncate text-xs text-text-muted">{h.aciklama || h.gonderenAdi || '—'}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setMukerrerAdaylarListesi(null)} className="rounded-lg px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface-sunken">
+                Vazgeç
+              </button>
+              <button
+                onClick={gercektenEkle}
+                disabled={submitting}
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+              >
+                {submitting ? 'Kaydediliyor...' : 'Yine de Ekle'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
