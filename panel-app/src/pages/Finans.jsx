@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { canSubmitBankaHareketi, canManageBankaHareketleri } from '../lib/bankaHareketleri'
+import { ROLES } from '../lib/roles'
 import CiroRaporlariPanel from '../components/finans/CiroRaporlariPanel'
 import BankaHareketleriPanel from '../components/finans/BankaHareketleriPanel'
 import RaporlarPanel from '../components/finans/RaporlarPanel'
@@ -37,7 +38,14 @@ export default function Finans() {
   // dar yetki) ama canManageBankaHareketleri'nde var (tam yönetim,
   // 2026-11-07) — ikisinden biri yeterli, sekme açılsın.
   const showBankaTab = canSubmitBankaHareketi(role) || canManageBankaHareketleri(role)
-  const visibleTabs = showBankaTab ? TABS : TABS.filter((t) => t.key === 'ciro' || t.key === 'raporlar')
+  // Broker, 2026-11-23: "owner ciro raporları kalsın, diğer raporları
+  // görme yetkisini iptal edelim" — eskiden (2026-10-09) owner ciro VE
+  // cari hesabı görüyordu, bu karar onu DAHA DA daraltıyor: owner artık
+  // Raporlar sekmesinin (Cari Hesap/Masraflar/Kârlılık/Kasa Raporu) hiçbirini
+  // görmüyor, sadece Ciro Raporları kalıyor (Banka Hareketleri'nde zaten
+  // hiç göremiyordu).
+  const showRaporlarTab = role !== ROLES.OWNER
+  const visibleTabs = TABS.filter((t) => (t.key === 'banka' ? showBankaTab : t.key === 'raporlar' ? showRaporlarTab : true))
 
   return (
     <div>
