@@ -36,6 +36,7 @@ export const harita = provider.harita
 export const kasalar = provider.kasalar
 export const genelGiderler = provider.genelGiderler
 export const tedarikciOdemeleri = provider.tedarikciOdemeleri
+export const tedarikciFaturalari = provider.tedarikciFaturalari
 export const ortakHesabiHareketleri = provider.ortakHesabiHareketleri
 export const kasaTransferleri = provider.kasaTransferleri
 export const cariHesapOdemeleri = provider.cariHesapOdemeleri

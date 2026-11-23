@@ -6,6 +6,7 @@ import CariHesapPanel from './CariHesapPanel'
 import MasraflarPanel from './MasraflarPanel'
 import KarlilikPanel from './KarlilikPanel'
 import KasaRaporuPanel from './KasaRaporuPanel'
+import TedarikciCarisiPanel from './TedarikciCarisiPanel'
 
 // Finans > Raporlar — Cari Hesap ve Masraflar burada toplandı (2026-10-09
 // broker: "rapor demiştim ama sen masraflar menüsüne eklemişsin, rapor
@@ -23,6 +24,7 @@ import KasaRaporuPanel from './KasaRaporuPanel'
 // sekme artık yok, bkz. BankaHareketleriPanel.jsx.
 const TABS = [
   { key: 'cari', label: 'Cari Hesap' },
+  { key: 'tedarikci', label: 'Tedarikçi Carisi' },
   { key: 'masraflar', label: 'Masraflar' },
   { key: 'karlilik', label: 'Kârlılık' },
   { key: 'kasa', label: 'Kasa Raporu' },
@@ -34,10 +36,13 @@ export default function RaporlarPanel() {
   const showMasraflar = canManageMasraflar(role)
   const showKarlilik = canApproveCiroRaporu(role)
   // Kasa Raporu — broker/owner/muhasebe (Excel/BizimHesap'ın yerine geçen
-  // kasa/gider takibi, 2026-11-09). Danışman hiç görmez.
+  // kasa/gider takibi, 2026-11-09). Danışman hiç görmez. Tedarikçi
+  // Carisi (2. Aşama Adım 2) AYNI yetki — danışmanın göreceği bir şey
+  // değil, sadece Kasa Raporu'ndaki tedarikçi ödemelerinin borç tarafı.
   const showKasa = canViewAllCiroRaporlari(role)
+  const showTedarikci = canViewAllCiroRaporlari(role)
   const visibleTabs = TABS.filter((t) =>
-    t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : t.key === 'kasa' ? showKasa : true,
+    t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : t.key === 'kasa' ? showKasa : t.key === 'tedarikci' ? showTedarikci : true,
   )
 
   return (
@@ -59,6 +64,7 @@ export default function RaporlarPanel() {
       )}
 
       {tab === 'cari' && <CariHesapPanel />}
+      {showTedarikci && tab === 'tedarikci' && <TedarikciCarisiPanel />}
       {showMasraflar && tab === 'masraflar' && <MasraflarPanel />}
       {showKarlilik && tab === 'karlilik' && <KarlilikPanel />}
       {showKasa && tab === 'kasa' && <KasaRaporuPanel />}

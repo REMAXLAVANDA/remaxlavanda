@@ -2854,6 +2854,7 @@ function mapTedarikciOdemesi(row) {
     kasaId: row.kasa_id,
     faturaNo: row.fatura_no,
     faturaDosyaUrl: row.fatura_dosya_url,
+    tedarikciFaturaId: row.tedarikci_fatura_id,
     aciklama: row.aciklama,
     createdBy: row.created_by,
     createdAt: row.created_at,
@@ -2865,7 +2866,7 @@ export const tedarikciOdemeleri = {
     const data = await run(client().from('tedarikci_odemeleri').select('*').order('tarih', { ascending: false }))
     return data.map(mapTedarikciOdemesi)
   },
-  async create({ tedarikciAdi, vergiNo, tutar, tarih, kasaId, faturaNo, faturaDosyaUrl, aciklama }, olusturanId) {
+  async create({ tedarikciAdi, vergiNo, tutar, tarih, kasaId, faturaNo, faturaDosyaUrl, tedarikciFaturaId, aciklama }, olusturanId) {
     const data = await run(
       client()
         .from('tedarikci_odemeleri')
@@ -2877,6 +2878,7 @@ export const tedarikciOdemeleri = {
           kasa_id: kasaId,
           fatura_no: faturaNo || null,
           fatura_dosya_url: faturaDosyaUrl || null,
+          tedarikci_fatura_id: tedarikciFaturaId || null,
           aciklama: aciklama || null,
           created_by: olusturanId,
         })
@@ -2884,6 +2886,55 @@ export const tedarikciOdemeleri = {
         .single(),
     )
     return mapTedarikciOdemesi(data)
+  },
+}
+
+function mapTedarikciFaturasi(row) {
+  return {
+    id: row.id,
+    tedarikciAdi: row.tedarikci_adi,
+    vergiNo: row.vergi_no,
+    faturaNo: row.fatura_no,
+    faturaTarihi: row.fatura_tarihi,
+    vadeTarihi: row.vade_tarihi,
+    tutar: Number(row.tutar),
+    kdvTutari: row.kdv_tutari == null ? null : Number(row.kdv_tutari),
+    faturaDosyaUrl: row.fatura_dosya_url,
+    aciklama: row.aciklama,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  }
+}
+
+// 2. Aşama Adım 2 (docs/muhasebe-tasarim.md madde f) — tedarikçiye gelen
+// faturanın BORÇ tarafı. tedarikciOdemeleri yukarıdaki ÖDEME tarafı,
+// ikisi birlikte lib/tedarikciCarisi.js'deki tedarikciOzeti() ile
+// bakiyeye dönüşüyor.
+export const tedarikciFaturalari = {
+  async list() {
+    const data = await run(client().from('tedarikci_faturalari').select('*').order('fatura_tarihi', { ascending: false }))
+    return data.map(mapTedarikciFaturasi)
+  },
+  async create({ tedarikciAdi, vergiNo, faturaNo, faturaTarihi, vadeTarihi, tutar, kdvTutari, faturaDosyaUrl, aciklama }, olusturanId) {
+    const data = await run(
+      client()
+        .from('tedarikci_faturalari')
+        .insert({
+          tedarikci_adi: tedarikciAdi,
+          vergi_no: vergiNo || null,
+          fatura_no: faturaNo || null,
+          fatura_tarihi: faturaTarihi,
+          vade_tarihi: vadeTarihi || null,
+          tutar,
+          kdv_tutari: kdvTutari || null,
+          fatura_dosya_url: faturaDosyaUrl || null,
+          aciklama: aciklama || null,
+          created_by: olusturanId,
+        })
+        .select()
+        .single(),
+    )
+    return mapTedarikciFaturasi(data)
   },
 }
 
