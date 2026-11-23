@@ -87,6 +87,23 @@ export function guncelAnlasmaOrani(anlasmalar, danismanId, tarihIso) {
   return uygun[0]?.paylasimOrani ?? null
 }
 
+// AYNI mantık, aylık katılım bedeli için (2. Aşama Adım 3, broker kararı
+// 2026-11-23: "her yıl yeniliyoruz" — bu yüzden ayrı bir kolon değil, bu
+// tarih-aralıklı anlaşma satırının içinde, paylasim_orani ile AYNI
+// versiyonlama).
+export function guncelKatilimBedeli(anlasmalar, danismanId, tarihIso) {
+  const tarih = new Date(tarihIso)
+  const uygun = (anlasmalar ?? [])
+    .filter((a) => a.danismanId === danismanId)
+    .filter((a) => {
+      const baslangic = new Date(a.gecerlilikBaslangic)
+      const bitis = a.gecerlilikBitis ? new Date(a.gecerlilikBitis) : null
+      return tarih >= baslangic && (!bitis || tarih <= bitis)
+    })
+    .sort((a, b) => new Date(b.gecerlilikBaslangic) - new Date(a.gecerlilikBaslangic))
+  return uygun[0]?.aylikKatilimBedeli ?? null
+}
+
 // Bir katılımcının payına düşen SATIŞ tutarı — Lig'e/Mentor Primi'ye giden
 // değer bu (komisyon değil, broker'ın onayladığı tasarım: "ciro" her zaman
 // satış hacmini ölçüyor, bkz. AI_NOTLARI.md).

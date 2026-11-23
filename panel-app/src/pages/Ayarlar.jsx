@@ -19,7 +19,7 @@ import {
   danismanAnlasmalari as danismanAnlasmalariProvider,
 } from '../lib/dataProvider'
 import { canManageUsers, canViewAuditLog, canViewMentorPrimi, ROLE_LABELS } from '../lib/roles'
-import { canApproveCiroRaporu, guncelAnlasmaOrani } from '../lib/ciroRaporlari'
+import { canApproveCiroRaporu, guncelAnlasmaOrani, guncelKatilimBedeli } from '../lib/ciroRaporlari'
 import { DANISMAN_TIER_RATES, tierFromOranlar } from '../lib/danismanTier'
 import { nextBirthdayDate } from '../lib/calendar'
 import { slugify } from '../lib/categories'
@@ -205,11 +205,17 @@ export default function Ayarlar() {
   // (canManageAnlasmalar) ve sadece bir tier gerçekten seçildiğinde (form
   // state'i SADECE "Kaydet"e basınca buraya geliyor, persistMentorBaslangic
   // ile AYNI "kısmi değerle hiç çağrılma" deseni).
-  async function persistDanismanTier(danismanId, tier) {
+  async function persistDanismanTier(danismanId, tier, aylikKatilimBedeli) {
     if (!canManageAnlasmalar || !tier) return
     const rates = DANISMAN_TIER_RATES[tier]
     const created = await danismanAnlasmalariProvider.create(
-      { danismanId, paylasimOrani: rates.paylasimOrani, rtPayOrani: rates.rtPayOrani, gecerlilikBaslangic: new Date().toISOString().slice(0, 10) },
+      {
+        danismanId,
+        paylasimOrani: rates.paylasimOrani,
+        rtPayOrani: rates.rtPayOrani,
+        aylikKatilimBedeli,
+        gecerlilikBaslangic: new Date().toISOString().slice(0, 10),
+      },
       user.id,
     )
     setDanismanAnlasmalariList((prev) => [...(prev ?? []), created])
@@ -456,9 +462,9 @@ export default function Ayarlar() {
       }
       if (form.tier) {
         try {
-          await persistDanismanTier(created.id, form.tier)
+          await persistDanismanTier(created.id, form.tier, form.katilimBedeli === '' ? null : Number(form.katilimBedeli))
         } catch {
-          showToast('Kullanıcı oluşturuldu ama paylaşım oranı kaydedilemedi.', 'error')
+          showToast('Kullanıcı oluşturuldu ama paylaşım oranı/katılım bedeli kaydedilemedi.', 'error')
         }
       }
     } catch (err) {
@@ -497,9 +503,9 @@ export default function Ayarlar() {
       }
       if (patch.tier !== undefined) {
         try {
-          await persistDanismanTier(editingUser.id, patch.tier)
+          await persistDanismanTier(editingUser.id, patch.tier, patch.katilimBedeli)
         } catch {
-          showToast('Kullanıcı güncellendi ama paylaşım oranı kaydedilemedi.', 'error')
+          showToast('Kullanıcı güncellendi ama paylaşım oranı/katılım bedeli kaydedilemedi.', 'error')
         }
       }
       setEditingUser(null)
@@ -790,6 +796,7 @@ export default function Ayarlar() {
           canSetMentorPrimi={canViewMentor}
           canSetAnlasma={canManageAnlasmalar}
           guncelTier={tierFromOranlar(guncelAnlasmaOrani(danismanAnlasmalariList ?? [], editingUser.id, new Date().toISOString().slice(0, 10)))}
+          guncelKatilimBedeli={guncelKatilimBedeli(danismanAnlasmalariList ?? [], editingUser.id, new Date().toISOString().slice(0, 10))}
           onClose={() => setEditingUser(null)}
           onSubmit={handleEditUser}
           submitting={submitting}

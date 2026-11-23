@@ -1423,7 +1423,7 @@ export const danismanAnlasmalari = {
   async list() {
     return delay([...MOCK_DANISMAN_ANLASMALARI].sort((a, b) => new Date(b.gecerlilikBaslangic) - new Date(a.gecerlilikBaslangic)))
   },
-  async create({ danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic }, createdBy) {
+  async create({ danismanId, paylasimOrani, rtPayOrani, aylikKatilimBedeli, gecerlilikBaslangic }, createdBy) {
     const acikSatir = MOCK_DANISMAN_ANLASMALARI.find((a) => a.danismanId === danismanId && !a.gecerlilikBitis)
     if (acikSatir) {
       acikSatir.gecerlilikBitis = new Date(new Date(gecerlilikBaslangic).getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -1433,6 +1433,7 @@ export const danismanAnlasmalari = {
       danismanId,
       paylasimOrani: Number(paylasimOrani),
       rtPayOrani: rtPayOrani == null || rtPayOrani === '' ? null : Number(rtPayOrani),
+      aylikKatilimBedeli: aylikKatilimBedeli == null || aylikKatilimBedeli === '' ? null : Number(aylikKatilimBedeli),
       gecerlilikBaslangic,
       gecerlilikBitis: null,
       createdBy,
