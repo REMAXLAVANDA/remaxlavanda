@@ -7,6 +7,7 @@ import MasraflarPanel from './MasraflarPanel'
 import KarlilikPanel from './KarlilikPanel'
 import KasaRaporuPanel from './KasaRaporuPanel'
 import TedarikciCarisiPanel from './TedarikciCarisiPanel'
+import DefterRaporlariPanel from './DefterRaporlariPanel'
 
 // Finans > Raporlar — Cari Hesap ve Masraflar burada toplandı (2026-10-09
 // broker: "rapor demiştim ama sen masraflar menüsüne eklemişsin, rapor
@@ -28,6 +29,7 @@ const TABS = [
   { key: 'masraflar', label: 'Masraflar' },
   { key: 'karlilik', label: 'Kârlılık' },
   { key: 'kasa', label: 'Kasa Raporu' },
+  { key: 'defter', label: 'Defter Raporları' },
 ]
 
 export default function RaporlarPanel() {
@@ -39,10 +41,23 @@ export default function RaporlarPanel() {
   // kasa/gider takibi, 2026-11-09). Danışman hiç görmez. Tedarikçi
   // Carisi (2. Aşama Adım 2) AYNI yetki — danışmanın göreceği bir şey
   // değil, sadece Kasa Raporu'ndaki tedarikçi ödemelerinin borç tarafı.
+  // Defter Raporları (2. Aşama Adım 5) da AYNI yetki — tüm kasa/gider/
+  // cari verisini tek yerde topluyor, Kasa Raporu'yla aynı hassasiyette.
   const showKasa = canViewAllCiroRaporlari(role)
   const showTedarikci = canViewAllCiroRaporlari(role)
+  const showDefter = canViewAllCiroRaporlari(role)
   const visibleTabs = TABS.filter((t) =>
-    t.key === 'masraflar' ? showMasraflar : t.key === 'karlilik' ? showKarlilik : t.key === 'kasa' ? showKasa : t.key === 'tedarikci' ? showTedarikci : true,
+    t.key === 'masraflar'
+      ? showMasraflar
+      : t.key === 'karlilik'
+        ? showKarlilik
+        : t.key === 'kasa'
+          ? showKasa
+          : t.key === 'tedarikci'
+            ? showTedarikci
+            : t.key === 'defter'
+              ? showDefter
+              : true,
   )
 
   return (
@@ -68,6 +83,7 @@ export default function RaporlarPanel() {
       {showMasraflar && tab === 'masraflar' && <MasraflarPanel />}
       {showKarlilik && tab === 'karlilik' && <KarlilikPanel />}
       {showKasa && tab === 'kasa' && <KasaRaporuPanel />}
+      {showDefter && tab === 'defter' && <DefterRaporlariPanel />}
     </div>
   )
 }

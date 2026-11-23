@@ -2405,6 +2405,12 @@ export const tedarikciFaturalari = {
   },
 }
 
+export const defterKayitlari = {
+  async list() {
+    return delay([])
+  },
+}
+
 const MOCK_ORTAK_HESABI_HAREKETLERI = []
 export const ortakHesabiHareketleri = {
   async list() {
