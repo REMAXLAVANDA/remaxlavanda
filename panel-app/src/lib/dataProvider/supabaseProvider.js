@@ -1829,6 +1829,7 @@ export const danismanAnlasmalari = {
       danismanId: a.danisman_id,
       paylasimOrani: Number(a.paylasim_orani),
       rtPayOrani: a.rt_pay_orani == null ? null : Number(a.rt_pay_orani),
+      aylikKatilimBedeli: a.aylik_katilim_bedeli == null ? null : Number(a.aylik_katilim_bedeli),
       gecerlilikBaslangic: a.gecerlilik_baslangic,
       gecerlilikBitis: a.gecerlilik_bitis,
       createdBy: a.created_by,
@@ -1839,7 +1840,7 @@ export const danismanAnlasmalari = {
   // satırı varsa, yeni oranın başlangıcından bir gün öncesine kadar
   // kapatılır — social_activity_log'daki puan_snapshot ile AYNI "geçmişi
   // bozma" refleksi: eski rapor hesaplamaları eski oranla donmuş kalır.
-  async create({ danismanId, paylasimOrani, rtPayOrani, gecerlilikBaslangic }, createdBy) {
+  async create({ danismanId, paylasimOrani, rtPayOrani, aylikKatilimBedeli, gecerlilikBaslangic }, createdBy) {
     const acikSatirlar = await run(
       client()
         .from('danisman_anlasmalari')
@@ -1866,6 +1867,7 @@ export const danismanAnlasmalari = {
           danisman_id: danismanId,
           paylasim_orani: paylasimOrani,
           rt_pay_orani: rtPayOrani ?? null,
+          aylik_katilim_bedeli: aylikKatilimBedeli ?? null,
           gecerlilik_baslangic: gecerlilikBaslangic,
           created_by: createdBy,
         })
@@ -1877,6 +1879,7 @@ export const danismanAnlasmalari = {
       danismanId: data.danisman_id,
       paylasimOrani: Number(data.paylasim_orani),
       rtPayOrani: data.rt_pay_orani == null ? null : Number(data.rt_pay_orani),
+      aylikKatilimBedeli: data.aylik_katilim_bedeli == null ? null : Number(data.aylik_katilim_bedeli),
       gecerlilikBaslangic: data.gecerlilik_baslangic,
     }
   },

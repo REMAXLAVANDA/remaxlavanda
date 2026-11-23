@@ -43,6 +43,7 @@ export default function CreateUserModal({
     tcNo: '',
     mentorBaslangicTarihi: '',
     tier: '',
+    katilimBedeli: '',
     kaynak: '',
     okul: '',
     meslek: '',
@@ -63,7 +64,7 @@ export default function CreateUserModal({
     form.dogumTarihi &&
     form.password.length >= 8 &&
     tcNoValid &&
-    (!showAnlasmaField || !!form.tier) &&
+    (!showAnlasmaField || (!!form.tier && form.katilimBedeli !== '')) &&
     (!showKaynakField || !!form.kaynak) &&
     (!isDanisman || (form.okul.trim() && form.meslek.trim() && form.deneyimYili !== '')) &&
     (!showMentorField || !!form.mentorBaslangicTarihi)
@@ -81,6 +82,7 @@ export default function CreateUserModal({
             okul: form.okul.trim(),
             meslek: form.meslek.trim(),
             deneyimYili: form.deneyimYili === '' ? null : Number(form.deneyimYili),
+            katilimBedeli: form.katilimBedeli === '' ? null : Number(form.katilimBedeli),
           })
         }}
         className="space-y-3"
@@ -283,6 +285,24 @@ export default function CreateUserModal({
                 Çalışan Payı: %{DANISMAN_TIER_RATES[form.tier].paylasimOrani} · RT Payı: %{DANISMAN_TIER_RATES[form.tier].rtPayOrani}
               </p>
             )}
+          </div>
+        )}
+
+        {/* Aylık Katılım Bedeli (2. Aşama Adım 3, broker kararı 2026-11-23):
+            tutar danışman girişinde elle belirleniyor, her yıl yenileniyor —
+            bkz. danisman_anlasmalari.aylik_katilim_bedeli. */}
+        {showAnlasmaField && (
+          <div>
+            <label className="mb-1 block text-xs text-text-secondary">
+              Aylık Katılım Bedeli (₺) <span className="text-red-600">*</span>
+            </label>
+            <input
+              required
+              inputMode="numeric"
+              value={form.katilimBedeli}
+              onChange={(e) => set({ katilimBedeli: e.target.value.replace(/[^0-9]/g, '') })}
+              className="w-full rounded-lg border border-border-default px-3 py-2 text-sm text-text-primary"
+            />
           </div>
         )}
 

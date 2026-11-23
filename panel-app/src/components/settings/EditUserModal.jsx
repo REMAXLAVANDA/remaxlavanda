@@ -18,6 +18,7 @@ export default function EditUserModal({
   canSetMentorPrimi,
   canSetAnlasma,
   guncelTier,
+  guncelKatilimBedeli,
   onClose,
   onSubmit,
   submitting,
@@ -43,11 +44,12 @@ export default function EditUserModal({
   const showAnlasmaField = canSetAnlasma && user.role === 'danisman'
   const [anlasmaDegistir, setAnlasmaDegistir] = useState(false)
   const [tier, setTier] = useState(guncelTier ?? 'rap')
+  const [katilimBedeli, setKatilimBedeli] = useState(guncelKatilimBedeli != null ? String(guncelKatilimBedeli) : '')
   const canSubmit =
     form.ad.trim().length > 0 &&
     !!form.dogumTarihi &&
     tcNoValid &&
-    (!anlasmaDegistir || !!tier) &&
+    (!anlasmaDegistir || (!!tier && katilimBedeli !== '')) &&
     (!showProfileFields || (!!form.kaynak && form.okul.trim() && form.meslek.trim() && form.deneyimYili !== '')) &&
     (!showMentorField || !!form.mentorBaslangicTarihi)
 
@@ -63,6 +65,7 @@ export default function EditUserModal({
             tcNo: form.tcNo.trim(),
             mentorBaslangicTarihi: showMentorField ? form.mentorBaslangicTarihi : undefined,
             tier: showAnlasmaField && anlasmaDegistir ? tier : undefined,
+            katilimBedeli: showAnlasmaField && anlasmaDegistir ? Number(katilimBedeli) : undefined,
             kaynak: showProfileFields ? form.kaynak : undefined,
             okul: showProfileFields ? form.okul.trim() : null,
             meslek: showProfileFields ? form.meslek.trim() : null,
@@ -203,11 +206,17 @@ export default function EditUserModal({
           <div className="rounded-lg bg-surface-sunken p-3">
             <label className="flex items-center gap-2 text-xs text-text-secondary">
               <input type="checkbox" checked={anlasmaDegistir} onChange={(e) => setAnlasmaDegistir(e.target.checked)} />
-              Paylaşım oranını değiştir
-              {guncelTier && <span className="text-text-muted"> — güncel: {DANISMAN_TIER_LABELS[guncelTier]}</span>}
+              Paylaşım oranını / aylık katılım bedelini değiştir
+              {guncelTier && (
+                <span className="text-text-muted">
+                  {' '}
+                  — güncel: {DANISMAN_TIER_LABELS[guncelTier]}
+                  {guncelKatilimBedeli != null ? ` · ${Number(guncelKatilimBedeli).toLocaleString('tr-TR')} TL` : ''}
+                </span>
+              )}
             </label>
             {anlasmaDegistir && (
-              <div className="mt-2">
+              <div className="mt-2 space-y-2">
                 <div className="flex gap-2">
                   {Object.entries(DANISMAN_TIER_LABELS).map(([key, label]) => (
                     <button
@@ -223,10 +232,22 @@ export default function EditUserModal({
                   ))}
                 </div>
                 {tier && (
-                  <p className="mt-1.5 text-xs text-text-muted">
+                  <p className="text-xs text-text-muted">
                     Çalışan Payı: %{DANISMAN_TIER_RATES[tier].paylasimOrani} · RT Payı: %{DANISMAN_TIER_RATES[tier].rtPayOrani}
                   </p>
                 )}
+                <div>
+                  <label className="mb-1 block text-xs text-text-secondary">
+                    Aylık Katılım Bedeli (₺) <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    required
+                    inputMode="numeric"
+                    value={katilimBedeli}
+                    onChange={(e) => setKatilimBedeli(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="w-full rounded-lg border border-border-default bg-white px-3 py-2 text-sm text-text-primary"
+                  />
+                </div>
               </div>
             )}
           </div>
